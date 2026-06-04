@@ -48,7 +48,7 @@ export default defineConfig({
         },
         {
           label: 'API reference',
-          autogenerate: { directory: 'api' },
+          items: [{ autogenerate: { directory: 'api' } }],
         },
       ],
     }),
