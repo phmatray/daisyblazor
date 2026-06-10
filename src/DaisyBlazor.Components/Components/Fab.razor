@@ -8,7 +8,7 @@
 
 <div class="@_cls" style="@Style" @attributes="UserAttributes">
     @* Focusable trigger — tabindex + role required for cross-browser focus-within *@
-    <div tabindex="0" role="button" class="@_triggerCls">
+    <div tabindex="0" role="button" class="@_triggerCls" aria-label="@AriaLabel">
         <Icon Name="@_icon" />
     </div>
 
@@ -16,7 +16,7 @@
     {
         @* fab-close must NOT be focusable so it collapses on click without re-opening *@
         <div class="fab-close">
-            <span class="@_closeCls">
+            <span class="@_closeCls" role="button" aria-label="@CloseAriaLabel">
                 <Icon Name="@Icons.Material.Filled.Close" />
             </span>
         </div>
@@ -28,6 +28,15 @@
 @code {
     /// <summary>Material Symbols ligature for the trigger icon. Defaults to "add".</summary>
     [Parameter] public string? Icon { get; set; }
+
+    /// <summary>
+    /// Accessible name for the FAB trigger button. The trigger is icon-only, so set this
+    /// to describe the action it opens (e.g. "Actions"). When null no aria-label is emitted.
+    /// </summary>
+    [Parameter] public string? AriaLabel { get; set; }
+
+    /// <summary>Accessible name for the close/dismiss overlay control. Defaults to "Close".</summary>
+    [Parameter] public string? CloseAriaLabel { get; set; } = "Close";
 
     /// <summary>Semantic color applied to the trigger button.</summary>
     [Parameter] public Color Color { get; set; } = Color.Primary;

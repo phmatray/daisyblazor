@@ -7,6 +7,9 @@
 
 <div class="@CssClass.Merge("toast toast-end toast-bottom z-50", Class)"
      style="@Style"
+     role="status"
+     aria-live="polite"
+     aria-atomic="true"
      @attributes="UserAttributes">
     @foreach (SnackbarMessage message in Snackbar.Shown)
     {

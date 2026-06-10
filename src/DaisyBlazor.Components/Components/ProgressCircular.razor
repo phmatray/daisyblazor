@@ -3,7 +3,7 @@
 @* MudProgressCircular replacement. daisyUI .loading .loading-spinner with size + color.
    daisyUI spinners are always indeterminate; Value is accepted for compatibility. *@
 
-<span class="@_cls" style="@Style" role="status" aria-label="loading" @attributes="UserAttributes"></span>
+<span class="@_cls" style="@Style" role="status" aria-label="@AriaLabel" @attributes="UserAttributes"></span>
 
 @code {
     [Parameter] public bool Indeterminate { get; set; } = true;
@@ -12,6 +12,7 @@
     [Parameter] public double Max { get; set; } = 100;
     [Parameter] public Color Color { get; set; } = Color.Default;
     [Parameter] public Size Size { get; set; } = Size.Medium;
+    [Parameter] public string AriaLabel { get; set; } = "loading";
 
     [Parameter] public string? Class { get; set; }
     [Parameter] public string? Style { get; set; }

@@ -26,13 +26,13 @@
             <button type="button" class="btn btn-sm join-item"
                     disabled="@(Grid.Page <= 0)"
                     @onclick="PreviousPageAsync"
-                    aria-label="Previous page">
+                    aria-label="@PreviousPageText">
                 <Icon Name="@Icons.Material.Filled.ChevronLeft" Size="Size.Small" />
             </button>
             <button type="button" class="btn btn-sm join-item"
                     disabled="@(Grid.Page >= Grid.PageCount - 1)"
                     @onclick="NextPageAsync"
-                    aria-label="Next page">
+                    aria-label="@NextPageText">
                 <Icon Name="@Icons.Material.Filled.ChevronRight" Size="Size.Small" />
             </button>
         </div>
@@ -52,6 +52,12 @@
 
     /// <summary>Separator word in the range text (e.g. "of").</summary>
     [Parameter] public string InfoSeparatorText { get; set; } = "of";
+
+    /// <summary>Accessible label for the previous-page navigation button.</summary>
+    [Parameter] public string PreviousPageText { get; set; } = "Previous page";
+
+    /// <summary>Accessible label for the next-page navigation button.</summary>
+    [Parameter] public string NextPageText { get; set; } = "Next page";
 
     [Parameter] public string? Class { get; set; }
     [Parameter] public string? Style { get; set; }

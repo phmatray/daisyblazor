@@ -24,7 +24,7 @@
                    @attributes="UserAttributes" />
             @if (Clearable && (!string.IsNullOrEmpty(_text) || Value is not null))
             {
-                <button type="button" class="btn btn-ghost btn-xs btn-circle" @onclick="ClearAsync" tabindex="-1" aria-label="clear">
+                <button type="button" class="btn btn-ghost btn-xs btn-circle" @onclick="ClearAsync" tabindex="-1" aria-label="@ClearAriaLabel">
                     <Icon Name="@Icons.Material.Filled.Clear" Size="Size.Small" />
                 </button>
             }
@@ -105,6 +105,7 @@
     [Parameter] public bool CoerceText { get; set; }
     [Parameter] public bool CoerceValue { get; set; }
     [Parameter] public string NoItemsText { get; set; } = "No items found";
+    [Parameter] public string ClearAriaLabel { get; set; } = "Clear";
     [Parameter] public RenderFragment<T>? ItemTemplate { get; set; }
     [Parameter] public RenderFragment? NoItemsTemplate { get; set; }
     [Parameter] public string? Class { get; set; }

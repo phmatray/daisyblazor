@@ -2,7 +2,7 @@
 
 @* MudTh replacement. Plain <th> passthrough. *@
 
-<th class="@Class" style="@Style" @attributes="UserAttributes">
+<th class="@Class" style="@Style" scope="@_scope" @attributes="UserAttributes">
     @ChildContent
 </th>
 
@@ -11,4 +11,9 @@
     [Parameter] public string? Class { get; set; }
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
+
+    // Default header cells to scope="col" for screen-reader column association.
+    // If the consumer supplies their own scope via captured attributes, theirs wins
+    // (returning null here suppresses our attribute so @attributes can apply theirs).
+    private string? _scope => UserAttributes is not null && UserAttributes.ContainsKey("scope") ? null : "col";
 }

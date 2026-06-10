@@ -9,7 +9,10 @@
 @foreach (DialogReference dialog in _dialogs)
 {
     <dialog class="modal modal-open" open @key="dialog.Id">
-        <div class="@ModalBoxCss(dialog)">
+        <div class="@ModalBoxCss(dialog)"
+             role="dialog"
+             aria-modal="true"
+             aria-label="@AriaLabel(dialog)">
             @if (ShowCloseButton(dialog))
             {
                 <button type="button"
@@ -66,6 +69,12 @@
 
     private static bool ShowCloseButton(DialogReference dialog) =>
         dialog.Options.CloseButton == true;
+
+    // Names the dialog for assistive technology. The title element itself lives inside the
+    // hosted component (Dialog.razor), so we surface the reference's title string as an
+    // aria-label here; returns null (attribute omitted) when no title was supplied.
+    private static string? AriaLabel(DialogReference dialog) =>
+        string.IsNullOrEmpty(dialog.Title) ? null : dialog.Title;
 
     private static string ModalBoxCss(DialogReference dialog) => CssClass.Merge(
         "modal-box relative",

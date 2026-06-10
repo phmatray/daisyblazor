@@ -2,7 +2,7 @@
 
 @* MudCard replacement. daisyUI .card surface; bordered when Outlined, shadow from Elevation. *@
 
-<div class="@_cls" style="@Style" @onclick="OnClick" @attributes="UserAttributes">
+<div class="@_cls" style="@Style" @onclick="OnClick" @attributes="_attributes">
     @ChildContent
 </div>
 
@@ -14,6 +14,47 @@
     [Parameter] public string? Class { get; set; }
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
+
+    // When the card is clickable, splat button semantics + a key handler so keyboard and
+    // screen-reader users can focus and activate it (mirrors FeatureNavCard). Defaults are
+    // applied first, then UserAttributes override them so a consumer-supplied
+    // role/tabindex/aria-* always wins. When OnClick is unset, only UserAttributes are
+    // forwarded and the markup is unchanged.
+    private IReadOnlyDictionary<string, object>? _attributes
+    {
+        get
+        {
+            if (!OnClick.HasDelegate)
+            {
+                return UserAttributes;
+            }
+
+            Dictionary<string, object> merged = new()
+            {
+                ["role"] = "button",
+                ["tabindex"] = "0",
+                ["onkeydown"] = EventCallback.Factory.Create<KeyboardEventArgs>(this, HandleKeyDown),
+            };
+
+            if (UserAttributes is not null)
+            {
+                foreach (KeyValuePair<string, object> attribute in UserAttributes)
+                {
+                    merged[attribute.Key] = attribute.Value;
+                }
+            }
+
+            return merged;
+        }
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key is "Enter" or " " or "Spacebar")
+        {
+            await OnClick.InvokeAsync();
+        }
+    }
 
     private string _shadow => Elevation switch
     {

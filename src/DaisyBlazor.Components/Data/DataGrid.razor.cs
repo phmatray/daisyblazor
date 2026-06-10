@@ -43,6 +43,10 @@ public partial class DataGrid<T>
     [Parameter]
     public RenderFragment? NoRecordsContent { get; set; }
 
+    /// <summary>Text shown in the built-in empty state when there are no rows and no <see cref="NoRecordsContent"/>.</summary>
+    [Parameter]
+    public string EmptyText { get; set; } = "No records found";
+
     /// <summary>Content shown while <see cref="Loading"/> is true.</summary>
     [Parameter]
     public RenderFragment? LoadingContent { get; set; }

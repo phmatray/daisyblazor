@@ -5,7 +5,7 @@
 
 @if (!string.IsNullOrEmpty(Href))
 {
-    <a href="@Href" class="@_cls" style="@Style" @attributes="UserAttributes">
+    <a href="@Href" class="@_cls" style="@Style" aria-label="@_ariaLabel" @attributes="UserAttributes">
         @if (!string.IsNullOrEmpty(Icon))
         {
             <Icon Name="@Icon" />
@@ -18,7 +18,7 @@
 }
 else
 {
-    <button type="button" class="@_cls" style="@Style" @onclick="OnClick" @attributes="UserAttributes">
+    <button type="button" class="@_cls" style="@Style" aria-label="@_ariaLabel" @onclick="OnClick" @attributes="UserAttributes">
         @if (!string.IsNullOrEmpty(Icon))
         {
             <Icon Name="@Icon" />
@@ -37,6 +37,12 @@ else
     /// <summary>Optional text label rendered below the icon via the daisyUI .dock-label class.</summary>
     [Parameter] public string? Label { get; set; }
 
+    /// <summary>
+    /// Accessible name for an icon-only item. Used when no visible <see cref="Label"/> is set
+    /// (a visible label already names the control). When both are empty no aria-label is emitted.
+    /// </summary>
+    [Parameter] public string? AriaLabel { get; set; }
+
     /// <summary>Material Symbol ligature name (e.g. Icons.Material.Filled.Home). When set, renders an <see cref="Icon"/> child.</summary>
     [Parameter] public string? Icon { get; set; }
 
@@ -53,4 +59,8 @@ else
     private string _cls => CssClass.Merge(
         Active ? "dock-active" : null,
         Class);
+
+    // When a visible Label is present it names the control; otherwise fall back to AriaLabel
+    // (null collapses the attribute, so an item with neither still renders without crashing).
+    private string? _ariaLabel => string.IsNullOrEmpty(Label) ? AriaLabel : null;
 }

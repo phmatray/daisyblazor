@@ -9,12 +9,15 @@
     <ul>
         @if (Items is not null)
         {
-            @foreach (BreadcrumbItem item in Items)
+            @for (int i = 0; i < Items.Count; i++)
             {
+                BreadcrumbItem item = Items[i];
+                // The last item represents the current page (leaf of the trail).
+                string? ariaCurrent = i == Items.Count - 1 ? "page" : null;
                 <li>
                     @if (!string.IsNullOrEmpty(item.Href) && !item.Disabled)
                     {
-                        <a href="@item.Href" class="flex items-center gap-1">
+                        <a href="@item.Href" class="flex items-center gap-1" aria-current="@ariaCurrent">
                             @if (!string.IsNullOrEmpty(item.Icon))
                             {
                                 <Icon Name="@item.Icon" Size="Size.Small" />
@@ -24,7 +27,7 @@
                     }
                     else
                     {
-                        <span class="@_spanCls(item)">
+                        <span class="@_spanCls(item)" aria-current="@ariaCurrent">
                             @if (!string.IsNullOrEmpty(item.Icon))
                             {
                                 <Icon Name="@item.Icon" Size="Size.Small" />

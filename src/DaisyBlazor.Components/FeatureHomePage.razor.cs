@@ -80,6 +80,10 @@ public partial class FeatureHomePage
     [Parameter]
     public RenderFragment? AccessDeniedContent { get; set; }
 
+    /// <summary>Text shown in the default access-denied warning alert (when no <see cref="AccessDeniedContent"/> is supplied).</summary>
+    [Parameter]
+    public string AccessDeniedText { get; set; } = "Access denied.";
+
     private bool HasHeaderActions => HeaderActions is not null;
 
     private bool UseHero => Icon is not null;
