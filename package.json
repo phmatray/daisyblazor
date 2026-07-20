@@ -5,7 +5,7 @@
   "description": "Workspace-level front-end deps for DaisyBlazor (so the shipped preset's daisyUI plugin resolves during local CSS builds).",
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.0",
-    "daisyui": "5.5.20",
+    "daisyui": "5.7.0",
     "tailwindcss": "^4.1.0"
   }
 }
