@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> **This repository has moved.** The code now lives in **[phmatray/blazor-tailwind-ui](https://github.com/phmatray/blazor-tailwind-ui)** under [`kits/daisyblazor`](https://github.com/phmatray/blazor-tailwind-ui/tree/main/kits/daisyblazor) — full git history preserved. This repository is archived (read-only).
+
 <!-- portfolio-toc:start -->
 
 ## Table of Contents
