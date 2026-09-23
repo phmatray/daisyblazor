@@ -1,19 +1,19 @@
 @namespace DaisyBlazor.Layout
 
-@* DetailCard: Paper-wrapped card with an icon+title header and a dense, hoverable
-   daisyUI table body. Pair with DetailRow. *@
+@* DetailCard: a SectionCard whose body is a dense, hoverable label/value table.
+   Pair with DetailRow. The chrome (surface, icon+title header) lives in SectionCard so
+   the two cannot drift apart; use SectionCard directly for a free-form body. *@
 
-<Paper Class="@CssClass.Merge("p-4", Class)" Style="@Style" Elevation="@Elevation" @attributes="UserAttributes">
-    <Typography Typo="Typo.h6" Class="mb-3 flex items-center gap-2">
-        @if (Icon is not null)
-        {
-            <Icon Name="@Icon" />
-        }
-        @Title
-    </Typography>
+<SectionCard Title="@Title"
+             Icon="@Icon"
+             Elevation="@Elevation"
+             ShowDivider="false"
+             Class="@Class"
+             Style="@Style"
+             @attributes="UserAttributes">
     <SimpleTable Dense="@Dense" Hover="true">
         <tbody>
             @ChildContent
         </tbody>
     </SimpleTable>
-</Paper>
+</SectionCard>

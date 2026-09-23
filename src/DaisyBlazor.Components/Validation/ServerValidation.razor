@@ -1,0 +1,53 @@
+@namespace DaisyBlazor.Validation
+@implements IDisposable
+
+@* Cascades a ServerValidationState to every input beneath it, and re-renders that subtree
+   whenever the errors change. Inputs that declare a FieldName pick their error up on their
+   own; anything else can use <FieldError For="..." />. *@
+
+<CascadingValue Value="State" IsFixed="false">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    private ServerValidationState? _subscribed;
+
+    /// <summary>The error set to cascade. Usually a field on the page, reused across submits.</summary>
+    [Parameter, EditorRequired]
+    public ServerValidationState State { get; set; } = null!;
+
+    /// <summary>The form (or any markup) whose inputs should react to <see cref="State"/>.</summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (ReferenceEquals(_subscribed, State))
+        {
+            return;
+        }
+
+        Unsubscribe();
+        _subscribed = State;
+
+        if (_subscribed is not null)
+        {
+            _subscribed.OnChange += HandleChange;
+        }
+    }
+
+    // The cascaded value is a mutable object, so mutating it does not by itself re-render the
+    // subtree — this subscription is what makes SetErrors() visible in the UI.
+    private void HandleChange() => InvokeAsync(StateHasChanged);
+
+    private void Unsubscribe()
+    {
+        if (_subscribed is not null)
+        {
+            _subscribed.OnChange -= HandleChange;
+            _subscribed = null;
+        }
+    }
+
+    public void Dispose() => Unsubscribe();
+}

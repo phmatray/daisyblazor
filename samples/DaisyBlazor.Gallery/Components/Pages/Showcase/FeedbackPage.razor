@@ -143,8 +143,119 @@
     }
 </Showcase>
 
+@* ── EmptyState ────────────────────────────────────────────────────────────── *@
+<Showcase Title="EmptyState" Tag="<EmptyState>" Description="The 'nothing here' panel: a centred icon, a message, and an optional subtitle. Use it instead of leaving a blank region." BodyClass="block space-y-4">
+    <Paper Elevation="1">
+        <EmptyState Icon="@Icons.Material.Filled.SearchOff"
+                    Message="No flights match your filters"
+                    Subtitle="Try widening the date range." />
+    </Paper>
+    <Paper Elevation="1">
+        <EmptyState Message="Nothing to show yet" />
+    </Paper>
+</Showcase>
+
+@* ── AccessDenied ──────────────────────────────────────────────────────────── *@
+<Showcase Title="AccessDenied" Tag="<AccessDenied>" Description="The page state for a user who is not allowed in. A sibling of EmptyState — same job (a page with nothing to show) for a different reason." BodyClass="block space-y-4">
+    <Paper Elevation="1">
+        <AccessDenied Title="Access denied"
+                      Message="You do not have the role required to view flight details."
+                      ActionText="Back to home"
+                      ActionHref="/"
+                      MinHeight="260px" />
+    </Paper>
+
+    <p class="text-sm opacity-70">
+        Every string is a parameter and there is no localizer dependency — same contract as
+        <code>EmptyState</code>. The action button only appears when <code>ActionText</code> is set,
+        and <code>ChildContent</code> takes extra detail such as the roles the page needs:
+    </p>
+    <Paper Elevation="1">
+        <AccessDenied Title="Insufficient permissions"
+                      Message="This page requires one of:"
+                      Icon="@Icons.Material.Filled.Shield"
+                      IconColor="Color.Warning"
+                      ActionText="Request access"
+                      ActionHref="@null"
+                      OnAction="@(() => _accessRequested = true)"
+                      MinHeight="260px">
+            <div class="flex flex-wrap justify-center gap-1.5 mt-2">
+                <Badge Color="Color.Info">Flights.Viewer</Badge>
+                <Badge Color="Color.Info">Flights.Operator</Badge>
+            </div>
+        </AccessDenied>
+    </Paper>
+    @if (_accessRequested)
+    {
+        <p class="text-sm opacity-60">Callback fired — the action can be a handler instead of a link.</p>
+    }
+</Showcase>
+
+@* ── ErrorAlert ────────────────────────────────────────────────────────────── *@
+<Showcase Title="ErrorAlert" Tag="<ErrorAlert>" Description="A conditional error banner: it renders nothing when Message is null, so it can sit unguarded at the top of a page." BodyClass="block space-y-3">
+    <ErrorAlert Message="Could not reach the flight information service (HTTP 503)." />
+    <div>
+        <Button Size="Size.Small" Color="Color.Error"
+                OnClick="@(() => _alertMessage = _alertMessage is null ? "Something went wrong while saving." : null)">
+            Toggle message
+        </Button>
+        <ErrorAlert Message="@_alertMessage" Class="mt-3" />
+        @if (_alertMessage is null)
+        {
+            <p class="text-sm opacity-60 mt-2">Message is null — the component renders nothing at all.</p>
+        }
+    </div>
+</Showcase>
+
+@* ── Dialog service ────────────────────────────────────────────────────────── *@
+<Showcase Title="Dialog + ConfirmDialog + MessageBox" Tag="IDialogService / <Dialog> / <ConfirmDialog>" Description="Dialogs are opened through IDialogService rather than by placing a component; DialogProvider (already in MainLayout) hosts them." BodyClass="block space-y-3">
+    <div class="flex flex-wrap gap-2">
+        <Button Color="Color.Primary" OnClick="ShowMessageBox">Message box</Button>
+        <Button Color="Color.Error" OnClick="ShowConfirm">Confirm (destructive)</Button>
+    </div>
+    <p class="text-sm opacity-60">Result: @(_confirmResult ?? "(none yet)")</p>
+<pre class="bg-base-200 rounded p-3 text-xs overflow-x-auto"><code>@@inject IDialogService Dialogs
+
+bool? ok = await Dialogs.ShowMessageBoxAsync("Delete batch", "This cannot be undone.", "Delete", "Cancel");
+
+// or a richer, parameterised dialog component:
+IDialogReference dialog = await Dialogs.ShowAsync&lt;ConfirmDialog&gt;("Delete batch", new DialogParameters
+{
+    [nameof(ConfirmDialog.ContentText)] = "This cannot be undone.",
+    [nameof(ConfirmDialog.ButtonText)]  = "Delete",
+    [nameof(ConfirmDialog.Color)]       = Color.Error,
+});
+DialogResult? result = await dialog.Result;</code></pre>
+</Showcase>
+
 @code
 {
+    // ── EmptyState / AccessDenied / ErrorAlert / dialogs ──────────────────────
+    private bool _accessRequested;
+    private string? _alertMessage;
+    private string? _confirmResult;
+
+    private async Task ShowMessageBox()
+    {
+        bool? ok = await DialogService.ShowMessageBoxAsync(
+            "Delete batch", "This cannot be undone.", "Delete", "Cancel");
+        _confirmResult = ok == true ? "confirmed" : "cancelled";
+    }
+
+    private async Task ShowConfirm()
+    {
+        IDialogReference dialog = await DialogService.ShowAsync<ConfirmDialog>("Delete batch", new DialogParameters
+        {
+            [nameof(ConfirmDialog.ContentText)] = "This permanently removes 3 000 charge lines.",
+            [nameof(ConfirmDialog.ButtonText)] = "Delete",
+            [nameof(ConfirmDialog.CancelText)] = "Keep",
+            [nameof(ConfirmDialog.Color)] = Color.Error,
+        });
+
+        DialogResult? result = await dialog.Result;
+        _confirmResult = result?.Canceled == false ? "confirmed" : "cancelled";
+    }
+
     // ── Snackbar helpers ──────────────────────────────────────────────────────
     private static readonly IReadOnlyDictionary<Severity, string> SnackbarMessages =
         new Dictionary<Severity, string>

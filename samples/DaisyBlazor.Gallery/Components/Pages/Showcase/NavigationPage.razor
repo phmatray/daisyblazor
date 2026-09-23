@@ -235,6 +235,40 @@
     }
 </Showcase>
 
+@* ── NavMenuLink ───────────────────────────────────────────────────────────── *@
+<Showcase Title="NavMenuLink" Tag="<NavMenuLink>" Description="A NavLink wrapped in daisyUI menu styling, with an icon slot and automatic active state." BodyClass="block">
+    <Paper Elevation="1" Class="p-2 max-w-xs">
+        <ul class="menu w-full">
+            <NavMenuLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</NavMenuLink>
+            <NavMenuLink Href="data-display" Icon="@Icons.Material.Filled.TableChart">Data display</NavMenuLink>
+            <NavMenuLink Href="navigation" Icon="@Icons.Material.Filled.Navigation">Navigation (active)</NavMenuLink>
+            <NavMenuLink Href="https://daisyui.com" Target="_blank" Icon="@Icons.Material.Filled.OpenInNew">External</NavMenuLink>
+            <NavMenuLink Href="nowhere" Icon="@Icons.Material.Filled.Block" Disabled="true">Disabled</NavMenuLink>
+        </ul>
+    </Paper>
+    <p class="text-sm opacity-70 mt-2">
+        The active entry is highlighted automatically — this page's own link is styled as current.
+    </p>
+</Showcase>
+
+@* ── PageBreadcrumb ────────────────────────────────────────────────────────── *@
+<Showcase Title="PageBreadcrumb" Tag="<PageBreadcrumb>" Description="A breadcrumb bar driven by IBreadcrumbService rather than by markup, so pages set their trail from code." BodyClass="block">
+    <p class="text-sm opacity-70 mb-3">
+        Not rendered live here: it resolves <code>IBreadcrumbService</code>, which is registered by
+        <code>AddBreadcrumbs&lt;TResource&gt;()</code> against your own localizer resource — an
+        application-level choice this gallery deliberately does not make. Use
+        <a class="link" href="navigation#breadcrumbs">Breadcrumbs</a> above for a markup-driven trail.
+    </p>
+<pre class="bg-base-200 rounded p-3 text-xs overflow-x-auto"><code>// Program.cs
+builder.Services.AddBreadcrumbs&lt;SharedResource&gt;();
+
+// MainLayout.razor — renders whatever the current page registered
+&lt;PageBreadcrumb /&gt;
+
+// A page contributes its trail by implementing IBreadcrumbSource,
+// or by calling IBreadcrumbService directly.</code></pre>
+</Showcase>
+
 @code
 {
     // Tabs

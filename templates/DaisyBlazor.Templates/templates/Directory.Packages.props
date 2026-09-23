@@ -1,0 +1,7 @@
+<Project>
+  <!-- SENTINEL — see Directory.Build.props next to this file. Template content pins its own
+       package versions inline, because the consumer has no central Directory.Packages.props. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>

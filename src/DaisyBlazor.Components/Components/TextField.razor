@@ -62,9 +62,9 @@
                @attributes="UserAttributes" />
     }
 
-    @if (Error && !string.IsNullOrEmpty(ErrorText))
+    @if (_hasError && !string.IsNullOrEmpty(_errorText))
     {
-        <span class="label-text text-error text-xs mt-1">@ErrorText</span>
+        <span class="label-text text-error text-xs mt-1">@_errorText</span>
     }
     else if (!string.IsNullOrEmpty(HelperText))
     {
@@ -95,6 +95,16 @@
     [Parameter] public string? HelperText { get; set; }
     [Parameter] public bool Error { get; set; }
     [Parameter] public string? ErrorText { get; set; }
+
+    /// <summary>
+    /// Field name used to pick up a server-side error from an enclosing
+    /// <see cref="DaisyBlazor.Validation.ServerValidation"/>. Deliberately NOT called <c>Name</c>:
+    /// a parameter called <c>Name</c> would capture the HTML <c>name</c> attribute instead of
+    /// letting it splat through, silently breaking form posts.
+    /// </summary>
+    [Parameter] public string? FieldName { get; set; }
+
+    [CascadingParameter] private ServerValidationState? ServerValidation { get; set; }
     [Parameter] public InputType InputType { get; set; } = InputType.Text;
     /// <summary>Validation expression (MudBlazor compat; not used for HTML rendering).</summary>
     [Parameter] public object? For { get; set; }
@@ -106,6 +116,14 @@
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
     private bool _isDense => Dense || Margin == Margin.Dense;
+
+    // An explicit Error/ErrorText always wins; the cascaded server state only fills the gap.
+    // That keeps every existing usage byte-identical when no ServerValidation is present.
+    private string? _serverError => FieldName is null ? null : ServerValidation?.FirstErrorFor(FieldName);
+
+    private bool _hasError => Error || _serverError is not null;
+
+    private string? _errorText => ErrorText ?? _serverError;
 
     private string _htmlType => InputType switch
     {
@@ -135,7 +153,7 @@
         Variant == Variant.Filled ? "input-bordered bg-base-200" : null,
         _isDense ? "input-sm" : null,
         FullWidth ? "w-full" : null,
-        Error ? "input-error" : null);
+        _hasError ? "input-error" : null);
 
     private string _inputWrapperCls => CssClass.Merge(
         "input",
@@ -143,7 +161,7 @@
         Variant == Variant.Filled ? "input-bordered bg-base-200" : null,
         _isDense ? "input-sm" : null,
         FullWidth ? "w-full" : null,
-        Error ? "input-error" : null,
+        _hasError ? "input-error" : null,
         "flex items-center gap-2");
 
     private string _textareaCls => CssClass.Merge(
@@ -152,7 +170,7 @@
         Variant == Variant.Filled ? "textarea-bordered bg-base-200" : null,
         _isDense ? "textarea-sm" : null,
         FullWidth ? "w-full" : null,
-        Error ? "textarea-error" : null);
+        _hasError ? "textarea-error" : null);
 
     private RenderFragment AdornmentInner => @<text>
         @if (!string.IsNullOrEmpty(AdornmentIcon))

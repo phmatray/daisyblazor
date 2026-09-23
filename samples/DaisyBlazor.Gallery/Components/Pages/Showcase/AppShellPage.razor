@@ -1,0 +1,163 @@
+@page "/app-shell"
+@rendermode InteractiveServer
+
+<PageTitle>App shell · DaisyBlazor</PageTitle>
+<h1 class="text-3xl font-bold font-heading mb-1">App shell</h1>
+<p class="opacity-70 mb-6">
+    Higher-order pieces for building a multi-feature application: launcher cards, feature landing
+    pages, hero headers and detail layouts. These compose the primitives on the other pages.
+</p>
+
+@* ── AppCard ───────────────────────────────────────────────────────────────── *@
+<Showcase Title="AppCard" Tag="<AppCard>" Description="A launcher tile for one application or feature: gradient, icon, name, optional badge, and either a route or a click callback." BodyClass="block">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <AppCard Name="Flights" Icon="@Icons.Material.Filled.FlightTakeoff" Route="/data-display" />
+        <AppCard Name="Employees" Icon="@Icons.Material.Filled.People" Route="/data-display"
+                 GradientStart="#11998e" GradientEnd="#38ef7d" />
+        <AppCard Name="Security" Icon="@Icons.Material.Filled.Shield" Route="/data-display"
+                 GradientStart="#ee0979" GradientEnd="#ff6a00" Badge="3" />
+        <AppCard Name="Callback instead of route" Icon="@Icons.Material.Filled.Apps"
+                 GradientStart="#8e2de2" GradientEnd="#4a00e0"
+                 OnCardClick="@(() => _appCardClicks++)" />
+    </div>
+    <p class="text-sm opacity-60 mt-3">Callback fired @_appCardClicks×</p>
+</Showcase>
+
+@* ── FeatureNavCard ────────────────────────────────────────────────────────── *@
+<Showcase Title="FeatureNavCard" Tag="<FeatureNavCard>" Description="A richer navigation card — avatar, title, subtitle, description and a call to action. Used to list the sections inside a feature." BodyClass="block">
+    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <FeatureNavCard Icon="@Icons.Material.Filled.Assessment"
+                        AvatarColor="Color.Primary"
+                        Title="Reports"
+                        Subtitle="Daily operations"
+                        Description="Submit and review the daily flight reports for every movement."
+                        Href="/data-display"
+                        ActionLabel="Open reports" />
+        <FeatureNavCard Icon="@Icons.Material.Filled.Settings"
+                        AvatarColor="Color.Secondary"
+                        Title="Administration"
+                        Subtitle="Configuration"
+                        Description="Reference data, access groups and feature toggles."
+                        Href="/data-input"
+                        ActionLabel="Configure"
+                        ActionColor="Color.Secondary" />
+        <FeatureNavCard Icon="@Icons.Material.Filled.HelpOutline"
+                        AvatarColor="Color.Info"
+                        Title="Help"
+                        Subtitle="Documentation"
+                        Description="How the module works, and who to contact when it does not."
+                        Href="/feedback"
+                        ActionLabel="Read the guide"
+                        ActionColor="Color.Info" />
+    </div>
+</Showcase>
+
+@* ── FeatureHero ───────────────────────────────────────────────────────────── *@
+<Showcase Title="FeatureHero" Tag="<FeatureHero>" Description="The gradient header at the top of a feature: eyebrow, icon, title, subtitle, plus optional action and stat slots." BodyClass="block space-y-4">
+    <FeatureHero Icon="@Icons.Material.Filled.FlightTakeoff"
+                 Eyebrow="Operations"
+                 Title="Flights"
+                 Subtitle="Live movements for the current operating day.">
+        <Actions>
+            <Button Color="Color.Primary">New movement</Button>
+            <Button Variant="Variant.Outlined">Export</Button>
+        </Actions>
+        <Stats>
+            <Stat Title="Departures" Value="128" />
+            <Stat Title="On time" Value="94%" />
+            <Stat Title="Delayed" Value="7" />
+        </Stats>
+    </FeatureHero>
+
+    <FeatureHero Icon="@Icons.Material.Filled.Shield"
+                 Title="Minimal hero"
+                 GradientStart="#ee0979" GradientEnd="#ff6a00" />
+</Showcase>
+
+@* ── FeatureHomePage ───────────────────────────────────────────────────────── *@
+<Showcase Title="FeatureHomePage" Tag="<FeatureHomePage>" Description="The whole landing page for a feature in one component: a FeatureHero on top and your content underneath." BodyClass="block">
+    <div class="border border-base-300 rounded-box overflow-hidden">
+        <FeatureHomePage Icon="@Icons.Material.Filled.Analytics"
+                         Eyebrow="Planning"
+                         Title="Runway planning"
+                         Subtitle="Slots, closures and maintenance windows.">
+            <HeroStats>
+                <Stat Title="Slots today" Value="212" />
+                <Stat Title="Closures" Value="2" />
+            </HeroStats>
+            <HeaderActions>
+                <Button Size="Size.Small" Color="Color.Primary">Add slot</Button>
+            </HeaderActions>
+            <QuickAccessButtons>
+                <QuickAccessButton Label="Add slot" Icon="@Icons.Material.Filled.Add" Color="Color.Primary" Href="/data-input" />
+                <QuickAccessButton Label="Closures" Icon="@Icons.Material.Filled.Build" Color="Color.Warning" BadgeText="2" Href="/data-display" />
+            </QuickAccessButtons>
+            <NavCards>
+                <FeatureNavCard Icon="@Icons.Material.Filled.CalendarToday" AvatarColor="Color.Primary"
+                                Title="Week view" Subtitle="Planning" Description="The rolling seven-day plan."
+                                Href="/data-display" ActionLabel="Open" />
+                <FeatureNavCard Icon="@Icons.Material.Filled.Build" AvatarColor="Color.Warning"
+                                Title="Maintenance" Subtitle="Closures" Description="Scheduled runway closures."
+                                Href="/data-display" ActionLabel="Open" />
+                <FeatureNavCard Icon="@Icons.Material.Filled.HelpOutline" AvatarColor="Color.Info"
+                                Title="Help" Subtitle="Documentation" Description="How slots are allocated."
+                                Href="/feedback" ActionLabel="Open" />
+            </NavCards>
+            <AdditionalContent>
+                <SectionCard Title="Anything else" Icon="@Icons.Material.Filled.Info" ShowDivider="false">
+                    <Typography Typo="Typo.body2">
+                        <code>AdditionalContent</code> takes whatever the feature needs below its nav cards.
+                    </Typography>
+                </SectionCard>
+            </AdditionalContent>
+        </FeatureHomePage>
+    </div>
+</Showcase>
+
+@* ── QuickAccessButton ─────────────────────────────────────────────────────── *@
+<Showcase Title="QuickAccessButton" Tag="<QuickAccessButton>" Description="A labelled shortcut tile with icon, colour, optional badge, and loading/disabled states." BodyClass="flex flex-row flex-wrap items-start gap-4">
+    <QuickAccessButton Label="New report" Icon="@Icons.Material.Filled.Add" Color="Color.Primary"
+                       OnClick="@(() => _quickClicks++)" />
+    <QuickAccessButton Label="Inbox" Icon="@Icons.Material.Filled.Inbox" Color="Color.Info" BadgeText="12" />
+    <QuickAccessButton Label="Open docs" Icon="@Icons.Material.Filled.OpenInNew" Href="/feedback" />
+    <QuickAccessButton Label="Working…" Icon="@Icons.Material.Filled.Sync" Color="Color.Secondary" Loading="true" />
+    <QuickAccessButton Label="Unavailable" Icon="@Icons.Material.Filled.Block" Disabled="true" />
+    <p class="basis-full text-sm opacity-60">Clicked @_quickClicks×</p>
+</Showcase>
+
+@* ── DetailLayout ──────────────────────────────────────────────────────────── *@
+<Showcase Title="DetailLayout" Tag="<DetailLayout>" Description="The standard detail-page frame: back link, title, status slot, and a main/sidebar/related three-slot body." BodyClass="block">
+    <div class="border border-base-300 rounded-box p-4">
+        <DetailLayout Title="Flight SN2314"
+                      Subtitle="Brussels South Charleroi → Barcelona"
+                      BackRoute="/data-display"
+                      BackLabel="Back to flights">
+            <StatusSlot>
+                <StatusChip Label="Boarding" Color="Color.Info" />
+            </StatusSlot>
+            <MainContent>
+                <SectionCard Title="Movement" Icon="@Icons.Material.Filled.FlightTakeoff">
+                    <DetailRow Label="Scheduled" Value="14:35" />
+                    <DetailRow Label="Estimated" Value="14:52" />
+                    <DetailRow Label="Gate" Value="B12" />
+                </SectionCard>
+            </MainContent>
+            <Sidebar>
+                <SectionCard Title="Aircraft" Icon="@Icons.Material.Filled.AirplanemodeActive" ShowDivider="false">
+                    <Typography Typo="Typo.body2">Airbus A320 · OO-SNA</Typography>
+                </SectionCard>
+            </Sidebar>
+            <RelatedContent>
+                <SectionCard Title="Related" Icon="@Icons.Material.Filled.Link" ShowDivider="false">
+                    <Typography Typo="Typo.body2">Previous rotation, crew roster, turnaround log.</Typography>
+                </SectionCard>
+            </RelatedContent>
+        </DetailLayout>
+    </div>
+</Showcase>
+
+@code
+{
+    private int _appCardClicks;
+    private int _quickClicks;
+}

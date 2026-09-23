@@ -1,8 +1,11 @@
 @namespace DaisyBlazor
 @typeparam T
+@attribute [CascadingTypeParameter(nameof(T))]
 
 @* MudRadioGroup<T> replacement. Holds the selected Value and a shared input name; Radio children
-   register and read the value via a cascading reference. *@
+   register and read the value via a cascading reference.
+   CascadingTypeParameter lets a <Radio> infer T from this parent, so a radio that sets no
+   Value/Option of its own — the "none" case for a nullable selection — needs no T="..." annotation. *@
 
 <div class="@_cls" style="@Style" role="radiogroup" @attributes="UserAttributes">
     <CascadingValue Value="this" IsFixed="true">

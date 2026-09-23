@@ -1,14 +1,14 @@
 @namespace DaisyBlazor.Data
 
-@* MudBlazor StatusChip replacement. A filled chip for status indicators. *@
+@* A filled chip for status indicators. Colour and icon can be resolved from a StatusMap so the
+   call site stops computing them; an explicit Color/Icon always wins, keeping older usage intact. *@
 
-<Chip T="string"
-      Color="@Color"
+<Chip Color="@_color"
       Size="@Size"
       Variant="Variant.Filled"
-      Icon="@Icon"
+      Icon="@_icon"
       Class="@Class"
       Style="@Style"
       @attributes="UserAttributes">
-    @Label
+    @_label
 </Chip>

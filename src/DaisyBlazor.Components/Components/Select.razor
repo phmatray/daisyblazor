@@ -1,8 +1,11 @@
 @namespace DaisyBlazor
 @typeparam T
+@attribute [CascadingTypeParameter(nameof(T))]
 
 @* MudSelect<T> replacement. daisyUI .select. SelectItem children register via a cascading
-   value; we render a native <select> of <option>s and map the chosen index back to T. *@
+   value; we render a native <select> of <option>s and map the chosen index back to T.
+   CascadingTypeParameter lets a <SelectItem> infer T from this parent, so an item that
+   sets no Value of its own (a placeholder, say) still needs no T="..." annotation. *@
 
 <div class="@_fieldsetCls" style="@Style">
     @if (!string.IsNullOrEmpty(Label))
@@ -36,7 +39,11 @@
         }
     </select>
 
-    @if (!string.IsNullOrEmpty(HelperText))
+    @if (_hasError && !string.IsNullOrEmpty(_errorText))
+    {
+        <span class="label-text text-error text-xs mt-1">@_errorText</span>
+    }
+    else if (!string.IsNullOrEmpty(HelperText))
     {
         <span class="label-text text-xs opacity-70 mt-1">@HelperText</span>
     }
@@ -57,6 +64,23 @@
     [Parameter] public bool Required { get; set; }
     [Parameter] public bool FullWidth { get; set; } = true;
     [Parameter] public string? HelperText { get; set; }
+
+    /// <summary>Marks the control as invalid (adds <c>select-error</c>).</summary>
+    [Parameter] public bool Error { get; set; }
+
+    /// <summary>Message shown beneath the control when <see cref="Error"/> is set. Replaces
+    /// <see cref="HelperText"/> while an error is showing, matching TextField's behaviour.</summary>
+    [Parameter] public string? ErrorText { get; set; }
+
+    /// <summary>
+    /// Field name used to pick up a server-side error from an enclosing
+    /// <see cref="DaisyBlazor.Validation.ServerValidation"/>. Not called <c>Name</c> so the HTML
+    /// <c>name</c> attribute keeps splatting through.
+    /// </summary>
+    [Parameter] public string? FieldName { get; set; }
+
+    [CascadingParameter] private ServerValidationState? ServerValidation { get; set; }
+
     [Parameter] public string ClearText { get; set; } = "";
     [Parameter] public object? For { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -68,6 +92,13 @@
     private readonly List<SelectItem<T>> _items = new();
 
     private bool _isDense => Dense || Margin == Margin.Dense;
+
+    // Explicit Error/ErrorText wins; the cascaded server state only fills the gap.
+    private string? _serverError => FieldName is null ? null : ServerValidation?.FirstErrorFor(FieldName);
+
+    private bool _hasError => Error || _serverError is not null;
+
+    private string? _errorText => ErrorText ?? _serverError;
 
     internal void RegisterItem(SelectItem<T> item)
     {
@@ -113,7 +144,8 @@
         Variant == Variant.Outlined ? "select-bordered" : null,
         Variant == Variant.Filled ? "select-bordered bg-base-200" : null,
         _isDense ? "select-sm" : null,
-        FullWidth ? "w-full" : null);
+        FullWidth ? "w-full" : null,
+        _hasError ? "select-error" : null);
 
     private async Task OnSelectChanged(ChangeEventArgs args)
     {

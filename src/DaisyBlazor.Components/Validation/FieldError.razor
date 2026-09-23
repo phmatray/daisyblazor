@@ -1,0 +1,39 @@
+@namespace DaisyBlazor.Validation
+
+@* Renders the server-side error message(s) for one field. Works under ANY input — including
+   components that have no Error/ErrorText parameters of their own — so there is always a way
+   to surface a server error even for controls this library does not own. *@
+
+@if (_messages.Count > 0)
+{
+    @foreach (string message in _messages)
+    {
+        <span class="@_cls" style="@Style" @attributes="UserAttributes">@message</span>
+    }
+}
+
+@code {
+    [CascadingParameter]
+    private ServerValidationState? State { get; set; }
+
+    /// <summary>Field name to report errors for. Matched case-insensitively, and against the last
+    /// dot-separated segment, so <c>request.Name</c> matches <c>Name</c>.</summary>
+    [Parameter, EditorRequired]
+    public string For { get; set; } = null!;
+
+    /// <summary>Extra CSS classes appended to each message.</summary>
+    [Parameter]
+    public string? Class { get; set; }
+
+    /// <summary>Optional inline style applied to each message.</summary>
+    [Parameter]
+    public string? Style { get; set; }
+
+    /// <summary>Unmatched attributes splatted onto each message.</summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
+
+    private IReadOnlyList<string> _messages => State?.ErrorsFor(For) ?? [];
+
+    private string _cls => CssClass.Merge("label-text text-error text-xs mt-1 block", Class);
+}

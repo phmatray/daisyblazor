@@ -1,0 +1,11 @@
+<Project>
+  <!--
+    SENTINEL — do not delete, do not add properties.
+
+    Everything below this folder is template CONTENT shipped inside the DaisyBlazor.Templates
+    NuGet package. MSBuild stops its upward search for Directory.Build.props at the first file
+    it finds, so this empty project isolates the generated app from the repository's own Directory.Build.props
+    (repo TFM, Central Package Management, packaging metadata) — none of which exists on the
+    machine of a user who ran `dotnet new daisyblazor`.
+  -->
+</Project>

@@ -29,7 +29,7 @@
                 @foreach (ActiveFilter filter in ActiveFilters!)
                 {
                     ActiveFilter captured = filter;
-                    <Chip T="string" Color="Color.Info" Size="Size.Small"
+                    <Chip Color="Color.Info" Size="Size.Small"
                           OnClose="@(_ => OnRemoveFilter.InvokeAsync(captured))">
                         @filter.Label
                     </Chip>

@@ -1,0 +1,46 @@
+@namespace DaisyBlazor.Layout
+
+@* SectionCard: Paper surface + icon/title header + optional rule + optional header
+   actions, wrapping a FREE-FORM body.
+
+   This is the general form of DetailCard: same chrome, but the body is whatever you
+   put in it rather than a fixed table. DetailCard is now a specialization that fills
+   the body with a SimpleTable of DetailRow. *@
+
+<Paper Elevation="@Elevation"
+       Class="@CssClass.Merge("p-4", Class)"
+       Style="@Style"
+       @attributes="UserAttributes">
+    @if (HeaderActions is null)
+    {
+        <Typography Typo="@TitleTypo" Class="mb-3 flex items-center gap-2">
+            @if (!string.IsNullOrEmpty(Icon))
+            {
+                <Icon Name="@Icon" />
+            }
+            @Title
+        </Typography>
+    }
+    else
+    {
+        <Stack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
+            <Typography Typo="@TitleTypo" Class="flex items-center gap-2">
+                @if (!string.IsNullOrEmpty(Icon))
+                {
+                    <Icon Name="@Icon" />
+                }
+                @Title
+            </Typography>
+            <Stack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+                @HeaderActions
+            </Stack>
+        </Stack>
+    }
+
+    @if (ShowDivider)
+    {
+        <Divider Class="mb-3" />
+    }
+
+    @ChildContent
+</Paper>
