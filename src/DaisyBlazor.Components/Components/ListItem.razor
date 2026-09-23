@@ -1,8 +1,8 @@
 @namespace DaisyBlazor
-@typeparam T
 
-@* MudListItem<T> replacement. Renders an <li> inside a .menu, with optional icon,
-   text, link (Href) or click behavior. *@
+@* MudListItem replacement. Renders an <li> inside a .menu, with optional icon,
+   text, link (Href) or click behavior. `Value` is an untyped tag the component never
+   reads — it exists for the caller's own dispatch, so it costs no type parameter. *@
 
 <li class="@Class" style="@Style" @attributes="UserAttributes">
     @if (!string.IsNullOrEmpty(Href))
@@ -31,7 +31,7 @@
     [Parameter] public string? Text { get; set; }
     [Parameter] public string? Href { get; set; }
     [Parameter] public bool Disabled { get; set; }
-    [Parameter] public T? Value { get; set; }
+    [Parameter] public object? Value { get; set; }
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
     [Parameter] public string? Class { get; set; }
     [Parameter] public string? Style { get; set; }

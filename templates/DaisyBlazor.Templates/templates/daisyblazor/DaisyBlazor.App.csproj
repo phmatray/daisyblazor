@@ -7,9 +7,12 @@
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
   </PropertyGroup>
 
+  <!-- Keep these in sync with <Version> in the repository's Directory.Build.props, so a freshly
+       scaffolded app pulls the version that was just published (they were left at 0.1.1 while
+       the kit shipped 0.2.3). -->
   <ItemGroup>
-    <PackageReference Include="DaisyBlazor.Components" Version="0.1.1" />
-    <PackageReference Include="DaisyBlazor.Charts" Version="0.1.1" />
+    <PackageReference Include="DaisyBlazor.Components" Version="0.2.3" />
+    <PackageReference Include="DaisyBlazor.Charts" Version="0.2.3" />
   </ItemGroup>
 
   <!-- Build the Tailwind/daisyUI CSS as part of `dotnet build` (runs `npm install` on first run). -->

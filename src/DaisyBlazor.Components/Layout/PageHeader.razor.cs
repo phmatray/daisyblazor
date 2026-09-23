@@ -15,6 +15,13 @@ public partial class PageHeader
     [Parameter]
     public string? Subtitle { get; set; }
 
+    /// <summary>
+    /// Optional Material symbol ligature shown to the left of <see cref="Title"/>. When omitted the
+    /// title renders exactly as before, so adding this parameter cannot shift an existing header.
+    /// </summary>
+    [Parameter]
+    public string? Icon { get; set; }
+
     /// <summary>Optional right-aligned content (typically action buttons).</summary>
     [Parameter]
     public RenderFragment? Actions { get; set; }

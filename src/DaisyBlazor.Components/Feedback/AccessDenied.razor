@@ -1,0 +1,34 @@
+@namespace DaisyBlazor.Feedback
+
+@* The "you are not allowed in here" page state: centred lock icon, title, explanation and a way
+   back. Sibling of EmptyState — same job (a page with nothing to show) for a different reason. *@
+
+<Container MaxWidth="@MaxWidth"
+           Class="@CssClass.Merge("flex flex-col items-center justify-center text-center", Class)"
+           Style="@CssClass.Merge($"min-height: {MinHeight};", Style)"
+           @attributes="UserAttributes">
+    @if (!string.IsNullOrEmpty(Icon))
+    {
+        <Icon Name="@Icon" Size="Size.Large" Color="@IconColor" Class="mb-4" />
+    }
+
+    <Typography Typo="Typo.h5" Class="mb-2">@Title</Typography>
+
+    @if (!string.IsNullOrEmpty(Message))
+    {
+        <Typography Typo="Typo.body1" Color="Color.Secondary" Align="Align.Center">@Message</Typography>
+    }
+
+    @ChildContent
+
+    @if (!string.IsNullOrEmpty(ActionText))
+    {
+        <Button Variant="Variant.Outlined"
+                Color="Color.Primary"
+                Href="@ActionHref"
+                OnClick="@OnAction"
+                Class="mt-4">
+            @ActionText
+        </Button>
+    }
+</Container>

@@ -1,3 +1,4 @@
+using AngleSharp.Dom;
 using DaisyBlazor;
 using DaisyBlazor.Charts;
 using Microsoft.AspNetCore.Components;
@@ -76,7 +77,9 @@ public class ComponentRenderTests : BunitContext
         IRenderedComponent<RadialProgress> cut = Render<RadialProgress>(ps => ps.Add(p => p.Value, 70));
 
         cut.Markup.ShouldContain("radial-progress");
-        cut.Find("div").GetAttribute("style").ShouldContain("--value:70");
+        string? style = cut.Find("div").GetAttribute("style");
+        style.ShouldNotBeNull();
+        style.ShouldContain("--value:70");
     }
 
     [Fact]
@@ -86,7 +89,7 @@ public class ComponentRenderTests : BunitContext
             .Add(p => p.Value, 50)
             .Add(p => p.Color, Color.Success));
 
-        var input = cut.Find("input");
+        IElement input = cut.Find("input");
         input.ClassList.ShouldContain("range");
         input.ClassList.ShouldContain("range-success");
         input.GetAttribute("value").ShouldBe("50");
@@ -129,15 +132,15 @@ public class ComponentRenderTests : BunitContext
             .AddChildContent<Tab>(tab => tab.Add(t => t.Title, "One").AddChildContent("first"))
             .AddChildContent<Tab>(tab => tab.Add(t => t.Title, "Two").AddChildContent("second")));
 
-        var tabs = cut.FindAll("[role=tab]");
+        IReadOnlyList<IElement> tabs = cut.FindAll("[role=tab]");
         tabs.Count.ShouldBe(2);
         // role=tab REQUIRES aria-selected; exactly the active (index 1) tab is selected.
         tabs[0].GetAttribute("aria-selected").ShouldBe("false");
         tabs[1].GetAttribute("aria-selected").ShouldBe("true");
 
         // The active tab is linked to the panel, and the panel is labelled back by it.
-        var panel = cut.Find("[role=tabpanel]");
-        var panelId = panel.GetAttribute("id");
+        IElement panel = cut.Find("[role=tabpanel]");
+        string? panelId = panel.GetAttribute("id");
         panelId.ShouldNotBeNullOrEmpty();
         tabs[1].GetAttribute("aria-controls").ShouldBe(panelId);
         panel.GetAttribute("aria-labelledby").ShouldBe(tabs[1].GetAttribute("id"));

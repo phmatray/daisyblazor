@@ -214,9 +214,9 @@
         <p class="text-xs opacity-60 mb-2 font-mono">string — text labels</p>
         <div class="flex flex-col gap-2">
             <ToggleGroup T="string" @bind-Value="_alignment" Color="Color.Primary">
-                <ToggleItem T="string" Value="@("left")"   Text="Left" />
-                <ToggleItem T="string" Value="@("center")" Text="Center" />
-                <ToggleItem T="string" Value="@("right")"  Text="Right" />
+                <ToggleItem Value="@("left")"   Text="Left" />
+                <ToggleItem Value="@("center")" Text="Center" />
+                <ToggleItem Value="@("right")"  Text="Right" />
             </ToggleGroup>
             <p class="text-sm">Selected: <strong>@(_alignment ?? "none")</strong></p>
         </div>
@@ -226,9 +226,9 @@
         <p class="text-xs opacity-60 mb-2 font-mono">string — icon labels</p>
         <div class="flex flex-col gap-2">
             <ToggleGroup T="string" @bind-Value="_view" Color="Color.Secondary" Size="Size.Small">
-                <ToggleItem T="string" Value="@("list")"   Icon="list" />
-                <ToggleItem T="string" Value="@("grid")"   Icon="grid_view" />
-                <ToggleItem T="string" Value="@("table")"  Icon="table_chart" />
+                <ToggleItem Value="@("list")"   Icon="list" />
+                <ToggleItem Value="@("grid")"   Icon="grid_view" />
+                <ToggleItem Value="@("table")"  Icon="table_chart" />
             </ToggleGroup>
             <p class="text-sm">View: <strong>@(_view ?? "none")</strong></p>
         </div>
@@ -238,10 +238,10 @@
         <p class="text-xs opacity-60 mb-2 font-mono">int — numeric selection</p>
         <div class="flex flex-col gap-2">
             <ToggleGroup T="int" @bind-Value="_quantity" Color="Color.Tertiary">
-                <ToggleItem T="int" Value="1"  Text="1×" />
-                <ToggleItem T="int" Value="5"  Text="5×" />
-                <ToggleItem T="int" Value="10" Text="10×" />
-                <ToggleItem T="int" Value="25" Text="25×" />
+                <ToggleItem Value="1"  Text="1×" />
+                <ToggleItem Value="5"  Text="5×" />
+                <ToggleItem Value="10" Text="10×" />
+                <ToggleItem Value="25" Text="25×" />
             </ToggleGroup>
             <p class="text-sm">Quantity: <strong>@_quantity</strong></p>
         </div>
@@ -276,6 +276,113 @@
             </SideContent>
         </Drawer>
     </div>
+</Showcase>
+
+@* ─── Paper ──────────────────────────────────────────────────────────────── *@
+<Showcase Title="Paper" Tag="<Paper>" Description="The surface everything else sits on: base-100 background, rounded-box, and an elevation-driven shadow." BodyClass="block space-y-3">
+    <div class="grid gap-3 md:grid-cols-3">
+        @foreach (int elevation in new[] { 0, 1, 2, 4, 8, 16 })
+        {
+            <Paper Elevation="elevation" Class="p-4 text-sm">
+                <code>Elevation="@elevation"</code>
+            </Paper>
+        }
+    </div>
+    <Paper Outlined="true" Class="p-4 text-sm">
+        <code>Outlined="true"</code> — a border instead of a shadow.
+    </Paper>
+    <Paper Square="true" Elevation="2" Class="p-4 text-sm">
+        <code>Square="true"</code> — no rounding.
+    </Paper>
+</Showcase>
+
+@* ─── Stack ──────────────────────────────────────────────────────────────── *@
+<Showcase Title="Stack" Tag="<Stack>" Description="Flex layout without hand-writing flex utilities: direction, spacing, alignment and justification as parameters." BodyClass="block space-y-4">
+    <div>
+        <p class="text-sm opacity-70 mb-2">Column (default), <code>Spacing="2"</code></p>
+        <Stack Spacing="2">
+            <div class="bg-base-200 rounded p-2 text-sm">First</div>
+            <div class="bg-base-200 rounded p-2 text-sm">Second</div>
+        </Stack>
+    </div>
+    <div>
+        <p class="text-sm opacity-70 mb-2"><code>Row="true"</code> with <code>Justify.SpaceBetween</code></p>
+        <Stack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="bg-base-200 rounded p-2">
+            <Typography Typo="Typo.subtitle2">Title on the left</Typography>
+            <Button Size="Size.Small" Color="Color.Primary">Action on the right</Button>
+        </Stack>
+    </div>
+    <div>
+        <p class="text-sm opacity-70 mb-2"><code>Row="true"</code>, <code>Justify.Center</code>, <code>Spacing="4"</code></p>
+        <Stack Row="true" Justify="Justify.Center" Spacing="4" Class="bg-base-200 rounded p-2">
+            <Badge Color="Color.Primary">One</Badge>
+            <Badge Color="Color.Secondary">Two</Badge>
+            <Badge Color="Color.Tertiary">Three</Badge>
+        </Stack>
+    </div>
+</Showcase>
+
+@* ─── Spacer ─────────────────────────────────────────────────────────────── *@
+<Showcase Title="Spacer" Tag="<Spacer>" Description="A flex-grow filler: pushes whatever follows it to the far end of a Stack." BodyClass="block">
+    <Stack Row="true" AlignItems="AlignItems.Center" Class="bg-base-200 rounded p-2">
+        <Typography Typo="Typo.subtitle2">Left</Typography>
+        <Spacer />
+        <Typography Typo="Typo.body2" Class="opacity-70">pushed right by &lt;Spacer /&gt;</Typography>
+    </Stack>
+</Showcase>
+
+@* ─── PageHeader ─────────────────────────────────────────────────────────── *@
+<Showcase Title="PageHeader" Tag="<PageHeader>" Description="Page title with optional icon, subtitle, and right-aligned actions." BodyClass="block space-y-4">
+    <PageHeader Title="Flights" Icon="@Icons.Material.Filled.FlightTakeoff" Subtitle="Departures for the current operating day" />
+    <Divider />
+    <PageHeader Title="Zones" Icon="@Icons.Material.Filled.LocationOn">
+        <Actions>
+            <Button Variant="Variant.Outlined" Size="Size.Small">Export</Button>
+            <Button Color="Color.Primary" Size="Size.Small">Add zone</Button>
+        </Actions>
+    </PageHeader>
+</Showcase>
+
+@* ─── SectionCard ────────────────────────────────────────────────────────── *@
+<Showcase Title="SectionCard" Tag="<SectionCard>" Description="Surface + icon/title header + rule + free-form body. The general form of DetailCard — use it whenever the body is not a label/value table." BodyClass="block space-y-4">
+    <SectionCard Title="Privacy" Icon="@Icons.Material.Filled.Shield">
+        <Typography Typo="Typo.body2">
+            Any content goes here — prose, a form, a chart, a list. Nothing is forced into a table.
+        </Typography>
+    </SectionCard>
+
+    <SectionCard Title="Zone occupancy" Icon="@Icons.Material.Filled.Analytics">
+        <HeaderActions>
+            <Button Variant="Variant.Text" Size="Size.Small" StartIcon="@Icons.Material.Filled.Refresh">Refresh</Button>
+        </HeaderActions>
+        <ChildContent>
+            <Typography Typo="Typo.body2">
+                Pass <code>HeaderActions</code> to put controls opposite the title; the header becomes a
+                space-between row. Wrap the body in an explicit <code>&lt;ChildContent&gt;</code> when you do.
+            </Typography>
+        </ChildContent>
+    </SectionCard>
+
+    <SectionCard Title="Tighter card" Icon="@Icons.Material.Filled.Tune" ShowDivider="false" Elevation="1">
+        <Typography Typo="Typo.body2">
+            <code>ShowDivider="false"</code> drops the rule; <code>Elevation</code> and <code>Class</code>
+            pass through to the surface.
+        </Typography>
+    </SectionCard>
+</Showcase>
+
+@* ─── DetailCard + DetailRow ─────────────────────────────────────────────── *@
+<Showcase Title="DetailCard + DetailRow" Tag="<DetailCard> / <DetailRow>" Description="A SectionCard specialization whose body is a dense label/value table." BodyClass="block">
+    <DetailCard Title="Flight SN2314" Icon="@Icons.Material.Filled.AirplanemodeActive">
+        <DetailRow Label="Status" Value="Boarding" />
+        <DetailRow Label="Gate" Value="B12" />
+        <DetailRow Label="Scheduled" Value="14:35" />
+        <DetailRow Label="Aircraft">
+            <ValueContent>
+                <Badge Color="Color.Info">A320</Badge>
+            </ValueContent>
+        </DetailRow>
+    </DetailCard>
 </Showcase>
 
 @code

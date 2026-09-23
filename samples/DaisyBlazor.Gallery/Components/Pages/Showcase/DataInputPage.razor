@@ -88,13 +88,13 @@
 </Showcase>
 
 @* ── Checkbox ───────────────────────────────────────────────────────────────── *@
-<Showcase Title="Checkbox" Tag="<Checkbox<T>>" Description="Boolean checkbox with colour and size variants.">
+<Showcase Title="Checkbox" Tag="<Checkbox>" Description="Boolean checkbox with colour and size variants. Non-generic: a checkbox is only ever ticked or not, so no T is needed.">
     <div class="flex flex-col gap-2">
-        <Checkbox T="bool" Label="Default" @bind-Value="_checkA" />
-        <Checkbox T="bool" Label="Primary" Color="Color.Primary" @bind-Value="_checkB" />
-        <Checkbox T="bool" Label="Success" Color="Color.Success" @bind-Value="_checkC" />
-        <Checkbox T="bool" Label="Large warning" Color="Color.Warning" Size="Size.Large" @bind-Value="_checkD" />
-        <Checkbox T="bool" Label="Disabled (checked)" Color="Color.Secondary" Disabled="true" Value="true" />
+        <Checkbox Label="Default" @bind-Value="_checkA" />
+        <Checkbox Label="Primary" Color="Color.Primary" @bind-Value="_checkB" />
+        <Checkbox Label="Success" Color="Color.Success" @bind-Value="_checkC" />
+        <Checkbox Label="Large warning" Color="Color.Warning" Size="Size.Large" @bind-Value="_checkD" />
+        <Checkbox Label="Disabled (checked)" Color="Color.Secondary" Disabled="true" Value="true" />
         <p class="text-sm opacity-60 mt-1">
             a=@_checkA  b=@_checkB  c=@_checkC  d=@_checkD
         </p>
@@ -102,12 +102,12 @@
 </Showcase>
 
 @* ── Switch ─────────────────────────────────────────────────────────────────── *@
-<Showcase Title="Switch" Tag="<Switch<T>>" Description="Toggle switch — same API as Checkbox but uses the .toggle daisyUI class.">
+<Showcase Title="Switch" Tag="<Switch>" Description="Toggle switch — same API as Checkbox but uses the .toggle daisyUI class. Non-generic: a toggle is only ever on or off, so no T is needed.">
     <div class="flex flex-col gap-2">
-        <Switch T="bool" Label="Enable notifications" @bind-Value="_switchA" />
-        <Switch T="bool" Label="Dark mode" Color="Color.Primary" @bind-Value="_switchB" />
-        <Switch T="bool" Label="Auto-save" Color="Color.Success" Size="Size.Large" @bind-Value="_switchC" />
-        <Switch T="bool" Label="Disabled" Disabled="true" Value="false" />
+        <Switch Label="Enable notifications" @bind-Value="_switchA" />
+        <Switch Label="Dark mode" Color="Color.Primary" @bind-Value="_switchB" />
+        <Switch Label="Auto-save" Color="Color.Success" Size="Size.Large" @bind-Value="_switchC" />
+        <Switch Label="Disabled" Disabled="true" Value="false" />
         <p class="text-sm opacity-60 mt-1">
             notifications=@_switchA  darkMode=@_switchB  autoSave=@_switchC
         </p>
@@ -119,10 +119,10 @@
     <div class="flex flex-col gap-2">
         <p class="text-sm font-medium">Preferred contact method</p>
         <RadioGroup T="string" @bind-Value="_radioValue">
-            <Radio T="string" Value="@("email")"   Label="Email"   Color="Color.Primary" />
-            <Radio T="string" Value="@("phone")"   Label="Phone"   Color="Color.Primary" />
-            <Radio T="string" Value="@("sms")"     Label="SMS"     Color="Color.Primary" />
-            <Radio T="string" Value="@("none")"    Label="None"    Disabled="true" />
+            <Radio Value="@("email")"   Label="Email"   Color="Color.Primary" />
+            <Radio Value="@("phone")"   Label="Phone"   Color="Color.Primary" />
+            <Radio Value="@("sms")"     Label="SMS"     Color="Color.Primary" />
+            <Radio Value="@("none")"    Label="None"    Disabled="true" />
         </RadioGroup>
         <p class="text-sm opacity-60 mt-1">Selected: @(_radioValue ?? "none")</p>
     </div>
@@ -237,8 +237,123 @@
     <p class="text-sm opacity-60">Value: @(_floatingName ?? "(empty)")</p>
 </Showcase>
 
+@* ── Form ──────────────────────────────────────────────────────────────────── *@
+<Showcase Title="Form" Tag="<Form>" Description="A thin fieldset wrapper that groups controls and spaces them consistently." BodyClass="block">
+    <Paper Elevation="1" Class="p-4 max-w-md">
+        <Form>
+            <TextField Label="Full name" Placeholder="Jane Doe" />
+            <TextField Label="Email" InputType="InputType.Email" Placeholder="jane@example.com" />
+            <Switch Label="Send me updates" />
+            <Stack Row="true" Justify="Justify.FlexEnd" Spacing="2" Class="mt-2">
+                <Button Variant="Variant.Text">Cancel</Button>
+                <Button Color="Color.Primary">Save</Button>
+            </Stack>
+        </Form>
+    </Paper>
+</Showcase>
+
+@* ── Field ─────────────────────────────────────────────────────────────────── *@
+<Showcase Title="Field" Tag="<Field>" Description="A read-only labelled value — the display counterpart of TextField, with the same label/adornment chrome." BodyClass="block">
+    <div class="grid gap-3 md:grid-cols-3">
+        <Field Label="Flight number">SN2314</Field>
+        <Field Label="Gate" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.LocationOn">B12</Field>
+        <Field Label="Scheduled" Adornment="Adornment.End" AdornmentText="UTC">14:35</Field>
+    </div>
+</Showcase>
+
+@* ── Autocomplete ──────────────────────────────────────────────────────────── *@
+<Showcase Title="Autocomplete" Tag="<Autocomplete<T>>" Description="Type-ahead search driven by an async SearchFunc, so it works equally well against an in-memory list or a remote API." BodyClass="block">
+    <div class="max-w-md">
+        <Autocomplete T="string" Label="Airport" Placeholder="Type 'br'…"
+                      @bind-Value="_autoValue"
+                      SearchFunc="SearchAirports" />
+        <p class="text-sm opacity-60 mt-2">Selected: @(_autoValue ?? "(none)")</p>
+    </div>
+</Showcase>
+
+@* ── ColorPicker ───────────────────────────────────────────────────────────── *@
+<Showcase Title="ColorPicker" Tag="<ColorPicker>" Description="A native colour input with the library's label and field chrome." BodyClass="block">
+    <div class="max-w-md flex items-end gap-4">
+        <ColorPicker Label="Accent colour" @bind-Value="_pickedColor" />
+        <div class="w-12 h-12 rounded border border-base-300" style="background:@_pickedColor"></div>
+        <code class="text-sm">@_pickedColor</code>
+    </div>
+</Showcase>
+
+@* ── ValidatorHint ─────────────────────────────────────────────────────────── *@
+<Showcase Title="Validator + ValidatorHint" Tag="<Validator> / <ValidatorHint>" Description="daisyUI's CSS-only validation styling: the browser's own :invalid state drives the colours. For server-returned errors use ServerValidation below instead." BodyClass="block">
+    <div class="max-w-md space-y-3">
+        <Validator Hint="Must be a valid email address">
+            <input type="email" class="input input-bordered w-full" placeholder="not-an-email" required />
+        </Validator>
+        <Validator>
+            <input type="text" class="input input-bordered w-full" placeholder="At least 4 characters" minlength="4" required />
+            <ValidatorHint>Minimum 4 characters.</ValidatorHint>
+        </Validator>
+        <p class="text-sm opacity-60">Type something invalid and blur the field to see the state.</p>
+    </div>
+</Showcase>
+
+@* ── ServerValidation ──────────────────────────────────────────────────────── *@
+<Showcase Title="ServerValidation" Tag="<ServerValidation> / <FieldError>" Description="Renders per-field errors returned by an API. Inputs declaring FieldName light up on their own; FieldError works under any control." BodyClass="block space-y-4">
+    <ServerValidation State="_validation">
+        <div class="grid gap-3 md:grid-cols-3">
+            <TextField Label="Name" FieldName="Name" @bind-Value="_vName" HelperText="Required" />
+            <NumericField T="int" Label="Seats" FieldName="Seats" @bind-Value="_vSeats" />
+            <Select T="string" Label="Kind" FieldName="Kind" @bind-Value="_vKind">
+                <SelectItem Value="@("cargo")">Cargo</SelectItem>
+                <SelectItem Value="@("pax")">Passenger</SelectItem>
+            </Select>
+        </div>
+
+        <p class="text-sm opacity-70 mt-3">
+            A control with no Error parameters of its own can still report, via
+            <code>&lt;FieldError For="Notes" /&gt;</code>:
+        </p>
+        <textarea class="textarea textarea-bordered w-full" rows="2" placeholder="Notes"></textarea>
+        <FieldError For="Notes" />
+    </ServerValidation>
+
+    <div class="flex flex-wrap gap-2 pt-2">
+        <Button Color="Color.Error" Size="Size.Small" OnClick="SimulateServerRejection">Simulate 400 from the API</Button>
+        <Button Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => _validation.Clear())">Clear</Button>
+    </div>
+    <p class="text-xs opacity-60">
+        Server field names are matched case-insensitively and by last dot-segment, so
+        <code>request.Name</code> still finds <code>Name</code>.
+    </p>
+</Showcase>
+
 @code
 {
+    // Form / Field / Autocomplete / ColorPicker
+    private string? _autoValue;
+    private string? _pickedColor = "#667eea";
+
+    private static readonly string[] _airportNames =
+    [
+        "Brussels", "Brussels South Charleroi", "Bruges–Ostend", "Liège", "Antwerp", "Paris CDG", "Amsterdam Schiphol",
+    ];
+
+    private static Task<IEnumerable<string>> SearchAirports(string value, CancellationToken token) =>
+        Task.FromResult(string.IsNullOrWhiteSpace(value)
+            ? _airportNames.AsEnumerable()
+            : _airportNames.Where(a => a.Contains(value, StringComparison.OrdinalIgnoreCase)));
+
+    // ServerValidation
+    private readonly ServerValidationState _validation = new();
+    private string? _vName;
+    private int _vSeats;
+    private string? _vKind;
+
+    private void SimulateServerRejection() => _validation.SetErrors(
+    [
+        ("request.Name", "Name is required."),          // deliberately qualified — still matches "Name"
+        ("Seats", "Seats must be greater than zero."),
+        ("Kind", "Pick a movement kind."),
+        ("Notes", "Notes may not exceed 200 characters.")
+    ]);
+
     // TextField
     private string? _textValue;
     private string? _textareaValue;

@@ -75,16 +75,16 @@
 </Showcase>
 
 @* ── Chip ──────────────────────────────────────────────────────────────── *@
-<Showcase Title="Chip" Tag="<Chip<T>>" Description="Compact label with optional icon, close button, and click handling.">
-    <Chip T="string" Text="Default" />
-    <Chip T="string" Text="Primary" Color="Color.Primary" />
-    <Chip T="string" Text="Secondary" Color="Color.Secondary" />
-    <Chip T="string" Text="Success" Color="Color.Success" />
-    <Chip T="string" Text="Outlined" Color="Color.Info" Variant="Variant.Outlined" />
-    <Chip T="string" Text="Soft" Color="Color.Warning" Variant="Variant.Text" />
-    <Chip T="string" Text="With icon" Color="Color.Tertiary" Icon="star" />
-    <Chip T="string" Text="Clickable" Color="Color.Primary" OnClick="@(() => _chipClicks++)" />
-    <Chip T="string" Text="Closable" Color="Color.Error" OnClose="@(c => _chipVisible = false)" />
+<Showcase Title="Chip" Tag="<Chip>" Description="Compact label with optional icon, close button, and click handling. Non-generic: the optional Value is an untyped tag for your own dispatch, so a plain label needs no annotation.">
+    <Chip Text="Default" />
+    <Chip Text="Primary" Color="Color.Primary" />
+    <Chip Text="Secondary" Color="Color.Secondary" />
+    <Chip Text="Success" Color="Color.Success" />
+    <Chip Text="Outlined" Color="Color.Info" Variant="Variant.Outlined" />
+    <Chip Text="Soft" Color="Color.Warning" Variant="Variant.Text" />
+    <Chip Text="With icon" Color="Color.Tertiary" Icon="star" />
+    <Chip Text="Clickable" Color="Color.Primary" OnClick="@(() => _chipClicks++)" />
+    <Chip Text="Closable" Color="Color.Error" OnClose="@(c => _chipVisible = false)" />
     @if (!_chipVisible)
     {
         <span class="text-xs opacity-60">(chip closed)</span>
@@ -96,7 +96,7 @@
 </Showcase>
 
 @* ── SimpleTable ───────────────────────────────────────────────────────── *@
-<Showcase Title="SimpleTable" Tag="<SimpleTable>" Description="Lightweight daisyUI table with striped, hover, dense, and bordered variants." BodyClass="block space-y-4">
+<Showcase Title="SimpleTable" Tag="<SimpleTable>" Description="Lightweight daisyUI table with striped, hover, dense, and bordered variants. Non-generic, so reach for it whenever you write the rows as markup — Table is the generic one, for binding a collection." BodyClass="block space-y-4">
     <SimpleTable Hover Striped>
         <thead>
             <tr>
@@ -383,8 +383,230 @@
     </div>
 </Showcase>
 
+@* ── ItemList + ListItem ───────────────────────────────────────────────────── *@
+<Showcase Title="ItemList + ListItem" Tag="<ItemList> / <ListItem>" Description="A daisyUI menu-style list. ListItem takes an icon, text, an optional Href, and a click callback. Neither is generic — ListItem's optional Value is an untyped tag for your own dispatch, so a display-only list needs no annotation." BodyClass="block space-y-4">
+    <div class="grid gap-4 md:grid-cols-2">
+        <Paper Elevation="1" Class="p-2">
+            <ItemList>
+                <ListItem Icon="@Icons.Material.Filled.Inbox" Text="Inbox" />
+                <ListItem Icon="@Icons.Material.Filled.Send" Text="Sent" />
+                <ListItem Icon="@Icons.Material.Filled.Delete" Text="Trash" Disabled="true" />
+            </ItemList>
+        </Paper>
+        <Paper Elevation="1" Class="p-2">
+            <ItemList Dense="true">
+                <ListItem Icon="@Icons.Material.Filled.Person" Text="Clickable" OnClick="@(() => _listClicks++)" />
+                <ListItem Icon="@Icons.Material.Filled.Link" Text="As a link" Href="#" />
+                <ListItem>
+                    <Stack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <Icon Name="@Icons.Material.Filled.Star" /> <span>Free-form ChildContent</span>
+                        <Badge Color="Color.Success" Size="Size.Small">new</Badge>
+                    </Stack>
+                </ListItem>
+            </ItemList>
+        </Paper>
+    </div>
+    <p class="text-sm opacity-60">Clicks: @_listClicks</p>
+</Showcase>
+
+@* ── Table + Tr/Td/Th ──────────────────────────────────────────────────────── *@
+<Showcase Title="Table + Tr / Td / Th" Tag="<Table T> / <Tr> / <Th> / <Td>" Description="Component wrappers over the raw table elements, for when you want daisyUI table styling but full control of the markup. Table stays generic — its T drives Items, RowTemplate and OnRowClick — so a markup-only table like this one needs T=&quot;object&quot;. Prefer SimpleTable when you are not binding rows." BodyClass="block">
+    <Table T="object" Dense="true" Hover="true" Striped="true">
+        <thead>
+            <Tr>
+                <Th>Airport</Th>
+                <Th>IATA</Th>
+                <Th Align="right">Movements</Th>
+            </Tr>
+        </thead>
+        <tbody>
+            @foreach ((string name, string iata, int moves) in _airports)
+            {
+                <Tr>
+                    <Td>@name</Td>
+                    <Td><code>@iata</code></Td>
+                    <Td Align="right">@moves</Td>
+                </Tr>
+            }
+        </tbody>
+    </Table>
+    <p class="text-sm opacity-70 mt-3">
+        For a static label/value block prefer <code>&lt;DetailCard&gt;</code> + <code>&lt;DetailRow&gt;</code>;
+        for a real dataset with sorting and paging, <code>&lt;DataGrid&gt;</code>.
+    </p>
+</Showcase>
+
+@* ── KpiCard ───────────────────────────────────────────────────────────────── *@
+<Showcase Title="KpiCard" Tag="<KpiCard>" Description="A single headline number with a label, optional subtitle, and an accent colour taken from a CSS custom property." BodyClass="block">
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard Label="Departures" Value="128" Subtitle="today" />
+        <KpiCard Label="On time" Value="94%" Subtitle="last 24 h" Color="var(--color-success)" />
+        <KpiCard Label="Delayed" Value="7" Subtitle="＞15 min" Color="var(--color-warning)" />
+        <KpiCard Label="Cancelled" Value="1" Color="var(--color-error)" />
+    </div>
+</Showcase>
+
+@* ── Image ─────────────────────────────────────────────────────────────────── *@
+<Showcase Title="Image" Tag="<Image>" Description="An img wrapper with sizing and object-fit as parameters." BodyClass="flex flex-row flex-wrap items-end gap-6">
+    <div class="text-center">
+        <Image Src="@_sampleImage" Alt="Fixed size" Width="96" Height="96" ObjectFit="cover" Class="rounded" />
+        <p class="text-xs opacity-60 mt-1">96×96, cover</p>
+    </div>
+    <div class="text-center">
+        <Image Src="@_sampleImage" Alt="Contain" Width="96" Height="96" ObjectFit="contain" Class="rounded bg-base-200" />
+        <p class="text-xs opacity-60 mt-1">96×96, contain</p>
+    </div>
+    <div class="text-center w-48">
+        <Image Src="@_sampleImage" Alt="Fluid" Fluid="true" Class="rounded" />
+        <p class="text-xs opacity-60 mt-1">Fluid="true"</p>
+    </div>
+</Showcase>
+
+@* ── DataGrid + DataGridPager ──────────────────────────────────────────────── *@
+<Showcase Title="DataGrid + DataGridPager" Tag="<DataGrid> / <PropertyColumn> / <TemplateColumn>" Description="The full grid: typed columns, sorting, paging, row clicks, and a ServerData hook for server-side datasets." BodyClass="block">
+    <DataGrid T="Airport" Items="_airportRows" Dense="true" Hover="true" Striped="true"
+              RowsPerPage="3" PageSizeOptions="[3, 5, 10]"
+              RowClick="@(args => _gridClicked = args.Item.Name)">
+        <Columns>
+            <PropertyColumn T="Airport" TProperty="string" Property="x => x.Name" Title="Airport" Sortable="true" />
+            <PropertyColumn T="Airport" TProperty="string" Property="x => x.Iata" Title="IATA" Sortable="true" />
+            <TemplateColumn T="Airport" Title="Movements" Sortable="true" SortBy="x => x.Movements">
+                <CellTemplate>
+                    <Badge Color="@(context.Item.Movements > 100 ? Color.Success : Color.Default)">
+                        @context.Item.Movements
+                    </Badge>
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+        <PagerContent>
+            <DataGridPager T="Airport" PageSizeOptions="[3, 5, 10]" />
+        </PagerContent>
+    </DataGrid>
+    <p class="text-sm opacity-60 mt-2">Last row clicked: @(_gridClicked ?? "(none)")</p>
+</Showcase>
+
+@* ── DataTable ─────────────────────────────────────────────────────────────── *@
+<Showcase Title="DataTable" Tag="<DataTable>" Description="A lighter grid that owns its own loading and empty states — reach for it when you do not need DataGrid's paging and sorting machinery." BodyClass="block space-y-4">
+    <DataTable T="Airport" Items="_airportRows" Dense="true">
+        <Columns>
+            <PropertyColumn T="Airport" TProperty="string" Property="x => x.Name" Title="Airport" />
+            <PropertyColumn T="Airport" TProperty="string" Property="x => x.Iata" Title="IATA" />
+        </Columns>
+    </DataTable>
+
+    <p class="text-sm opacity-70">Its built-in empty state, with no items:</p>
+    <DataTable T="Airport" Items="@(Array.Empty<Airport>())" Dense="true"
+               EmptyIcon="@Icons.Material.Filled.SearchOff" EmptyMessage="No airports match this filter">
+        <Columns>
+            <PropertyColumn T="Airport" TProperty="string" Property="x => x.Name" Title="Airport" />
+        </Columns>
+    </DataTable>
+</Showcase>
+
+@* ── TablePager ────────────────────────────────────────────────────────────── *@
+<Showcase Title="TablePager" Tag="<TablePager>" Description="The standalone pager used by Table — page size, range readout and navigation, without a grid attached." BodyClass="block">
+    <Paper Elevation="1" Class="p-2">
+        <TablePager PageSizeOptions="[10, 25, 50]" />
+    </Paper>
+</Showcase>
+
+@* ── FilterPanel ───────────────────────────────────────────────────────────── *@
+<Showcase Title="FilterPanel" Tag="<FilterPanel>" Description="A collapsible filter surface with an apply/reset pair and removable active-filter chips." BodyClass="block">
+    <FilterPanel Title="Filters"
+                 ActiveFilters="_activeFilters"
+                 OnApply="@(() => _filterLog = "applied")"
+                 OnClear="@(() => { _activeFilters = []; _filterLog = "cleared"; })"
+                 OnRemoveFilter="@(f => { _activeFilters = _activeFilters.Where(x => x != f).ToList(); _filterLog = $"removed {f.Label}"; })">
+        <div class="grid gap-3 md:grid-cols-3">
+            <TextField Label="Flight number" Placeholder="SN2314" />
+            <Select T="string" Label="Direction">
+                <SelectItem Value="@("dep")">Departures</SelectItem>
+                <SelectItem Value="@("arr")">Arrivals</SelectItem>
+            </Select>
+            <DatePicker Label="Date" />
+        </div>
+    </FilterPanel>
+    <p class="text-sm opacity-60 mt-2">Last action: @(_filterLog ?? "(none)")</p>
+</Showcase>
+
+@* ── StatusChip + StatusMap ────────────────────────────────────────────────── *@
+<Showcase Title="StatusChip + StatusMap" Tag="<StatusChip> / StatusMap" Description="Declare the status → colour/icon mapping once, then render a status without every call site computing its own colour." BodyClass="block space-y-4">
+    <div class="flex flex-wrap gap-2">
+        @foreach (Shipment status in Enum.GetValues<Shipment>())
+        {
+            <StatusChip Status="status" Map="ShipmentStatus" />
+        }
+    </div>
+
+    <p class="text-sm opacity-70">
+        All four come from one map — no <code>Color</code> at the call site:
+    </p>
+<pre class="bg-base-200 rounded p-3 text-xs overflow-x-auto"><code>static readonly StatusMap ShipmentStatus = StatusMap.For&lt;Shipment&gt;()
+    .Add(Shipment.Delivered, Color.Success, Icons.Material.Filled.CheckCircle)
+    .Add([Shipment.Pending, Shipment.InTransit], Color.Info, Icons.Material.Filled.LocalShipping)
+    .Add(Shipment.Lost, Color.Error, Icons.Material.Filled.Error)
+    .Default(Color.Default)
+    .Build();
+
+&lt;StatusChip Status="@("@status")" Map="ShipmentStatus" /&gt;</code></pre>
+
+    <p class="text-sm opacity-70">
+        Labels stay with you — they are usually localized, so the map covers colour and icon only.
+        An explicit <code>Label</code>, <code>Color</code> or <code>Icon</code> always overrides it:
+    </p>
+    <div class="flex flex-wrap gap-2">
+        <StatusChip Status="Shipment.Delivered" Map="ShipmentStatus" Label="Livré" />
+        <StatusChip Status="Shipment.Delivered" Map="ShipmentStatus" Label="Override" Color="Color.Warning" />
+        <StatusChip Label="No map at all" Color="Color.Info" />
+    </div>
+</Showcase>
+
 @code
 {
+    // ── ItemList / Table / DataGrid / FilterPanel ─────────────────────────
+    public sealed record Airport(string Name, string Iata, int Movements);
+
+    private int _listClicks;
+    private string? _gridClicked;
+    private string? _filterLog;
+
+    private const string _sampleImage =
+        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 120'%3E"
+        + "%3Crect width='160' height='120' fill='%23667eea'/%3E"
+        + "%3Ccircle cx='80' cy='60' r='34' fill='%23f5f7ff'/%3E%3C/svg%3E";
+
+    private readonly (string Name, string Iata, int Movements)[] _airports =
+    [
+        ("Brussels South Charleroi", "CRL", 128),
+        ("Brussels", "BRU", 342),
+        ("Liège", "LGG", 61),
+    ];
+
+    private readonly Airport[] _airportRows =
+    [
+        new("Brussels South Charleroi", "CRL", 128),
+        new("Brussels", "BRU", 342),
+        new("Liège", "LGG", 61),
+        new("Ostend–Bruges", "OST", 44),
+        new("Antwerp", "ANR", 12),
+    ];
+
+    private IReadOnlyList<ActiveFilter> _activeFilters =
+    [
+        new ActiveFilter("Direction", "Departures"),
+        new ActiveFilter("Date", "today"),
+    ];
+
+    // ── StatusChip / StatusMap ────────────────────────────────────────────
+    public enum Shipment { Pending, InTransit, Delivered, Lost }
+
+    private static readonly StatusMap ShipmentStatus = StatusMap.For<Shipment>()
+        .Add(Shipment.Delivered, Color.Success, Icons.Material.Filled.CheckCircle)
+        .Add([Shipment.Pending, Shipment.InTransit], Color.Info, Icons.Material.Filled.LocalShipping)
+        .Add(Shipment.Lost, Color.Error, Icons.Material.Filled.Error)
+        .Default(Color.Default)
+        .Build();
+
     // ── Chip state ────────────────────────────────────────────────────────
     private int _chipClicks = 0;
     private bool _chipVisible = true;

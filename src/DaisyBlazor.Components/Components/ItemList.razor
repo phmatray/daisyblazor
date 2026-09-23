@@ -1,9 +1,8 @@
 @namespace DaisyBlazor
-@typeparam T
-@attribute [CascadingTypeParameter(nameof(T))]
 
-@* MudList<T> replacement. daisyUI .menu vertical list; ListItem children render <li>.
-   CascadingTypeParameter lets nested <ListItem> infer T from the parent <ItemList T="...">. *@
+@* MudList replacement. daisyUI .menu vertical list; ListItem children render <li>.
+   Non-generic on purpose: nothing here ever read the item type, so it only forced a
+   T="..." onto every call site — and onto every child, via the cascade it used to declare. *@
 
 <ul class="@_cls" style="@Style" @attributes="UserAttributes">
     @ChildContent

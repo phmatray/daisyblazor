@@ -5,7 +5,13 @@
 <Stack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center"
        Class="@Class" Style="@Style" @attributes="UserAttributes">
     <Stack Spacing="0">
-        <Typography Typo="Typo.h4">@Title</Typography>
+        <Typography Typo="Typo.h4" Class="@(string.IsNullOrEmpty(Icon) ? null : "flex items-center gap-2")">
+            @if (!string.IsNullOrEmpty(Icon))
+            {
+                <Icon Name="@Icon" />
+            }
+            @Title
+        </Typography>
         @if (Subtitle is not null)
         {
             <Typography Typo="Typo.body2" Color="Color.Secondary">@Subtitle</Typography>

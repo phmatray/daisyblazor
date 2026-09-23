@@ -1,7 +1,8 @@
 @namespace DaisyBlazor
-@typeparam T
 
-@* MudSwitch<T> replacement. daisyUI .toggle. Same shape as Checkbox; Value/ValueChanged (bool). *@
+@* MudSwitch replacement. daisyUI .toggle. Same shape as Checkbox; Value/ValueChanged (bool).
+   Non-generic on purpose: a toggle is only ever on or off, so a type parameter bought nothing
+   but a mandatory T="bool" on every call site. *@
 
 <label class="@_labelCls" style="@Style">
     <input type="checkbox"
@@ -19,10 +20,10 @@
 </label>
 
 @code {
-    [Parameter] public T? Value { get; set; }
-    [Parameter] public EventCallback<T?> ValueChanged { get; set; }
-    [Parameter] public T? Checked { get; set; }
-    [Parameter] public EventCallback<T?> CheckedChanged { get; set; }
+    [Parameter] public bool Value { get; set; }
+    [Parameter] public EventCallback<bool> ValueChanged { get; set; }
+    [Parameter] public bool Checked { get; set; }
+    [Parameter] public EventCallback<bool> CheckedChanged { get; set; }
     [Parameter] public string? Label { get; set; }
     [Parameter] public Color Color { get; set; } = Color.Default;
     [Parameter] public Size Size { get; set; } = Size.Medium;
@@ -34,16 +35,12 @@
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
-    private bool _usesChecked => CheckedChanged.HasDelegate || (Checked is not null && !ValueChanged.HasDelegate);
+    @* `Checked` is the MudBlazor-style alias for `Value`. A non-nullable bool can no longer signal
+       "unset", so opting into the alias means wiring CheckedChanged or passing Checked="true" —
+       Checked="false" alone falls through to Value, which renders identically either way. *@
+    private bool _usesChecked => CheckedChanged.HasDelegate || (Checked && !ValueChanged.HasDelegate);
 
-    private bool _checked
-    {
-        get
-        {
-            object? source = _usesChecked ? Checked : Value;
-            return source is bool b && b;
-        }
-    }
+    private bool _checked => _usesChecked ? Checked : Value;
 
     private string _labelCls => CssClass.Merge("flex items-center gap-2 cursor-pointer", Class);
 
@@ -76,17 +73,16 @@
         }
 
         bool isChecked = args.Value is bool b && b;
-        T? newValue = (T)(object)isChecked;
 
         if (_usesChecked)
         {
-            Checked = newValue;
-            await CheckedChanged.InvokeAsync(newValue);
+            Checked = isChecked;
+            await CheckedChanged.InvokeAsync(isChecked);
         }
         else
         {
-            Value = newValue;
-            await ValueChanged.InvokeAsync(newValue);
+            Value = isChecked;
+            await ValueChanged.InvokeAsync(isChecked);
         }
     }
 }

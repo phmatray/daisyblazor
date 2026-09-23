@@ -1,8 +1,9 @@
 @namespace DaisyBlazor
-@typeparam T
 
-@* MudChip<T> replacement. daisyUI .badge with color/size/variant, optional leading icon,
-   click handling and an optional close button. *@
+@* MudChip replacement. daisyUI .badge with color/size/variant, optional leading icon,
+   click handling and an optional close button.
+   Non-generic on purpose: `Value` is a caller-owned tag this component never reads, so a type
+   parameter only forced a T="..." onto call sites that just wanted a label. *@
 
 @if (OnClick.HasDelegate)
 {
@@ -20,8 +21,9 @@ else
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    /// <summary>Backing value for selection scenarios.</summary>
-    [Parameter] public T? Value { get; set; }
+    /// <summary>Backing value for selection scenarios. Untyped — the chip never reads it; it is
+    /// carried purely so the caller can identify this chip in its own dispatch.</summary>
+    [Parameter] public object? Value { get; set; }
 
     /// <summary>Text shown when no ChildContent is supplied.</summary>
     [Parameter] public string? Text { get; set; }
@@ -39,7 +41,7 @@ else
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
 
     /// <summary>Raised when the close button is clicked; rendering it requires a delegate.</summary>
-    [Parameter] public EventCallback<Chip<T>> OnClose { get; set; }
+    [Parameter] public EventCallback<Chip> OnClose { get; set; }
 
     [Parameter] public string? Class { get; set; }
     [Parameter] public string? Style { get; set; }
