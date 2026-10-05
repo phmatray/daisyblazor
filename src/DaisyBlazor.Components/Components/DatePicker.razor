@@ -1,26 +1,49 @@
 @namespace DaisyBlazor
 @using System.Globalization
 
-@* MudDatePicker replacement. Native input type=date bound to a DateTime?. Exposes both Date and
-   Value (alias) so existing @bind-Date / @bind-Value usage keeps working. *@
+@* MudDatePicker replacement bound to a DateTime?. Exposes both Date and Value (alias) so existing
+   @bind-Date / @bind-Value usage keeps working.
+
+   A native <input type="date"> orders its digits by the BROWSER's locale, not the app's culture,
+   so the visible field is a text input formatted with DateFormat (default: the current culture's
+   short date pattern). The native picker sits invisibly over the calendar glyph, for the mouse;
+   the text field is the keyboard path. An entry that does not parse snaps back to the bound date. *@
 
 <div class="@_fieldsetCls" style="@Style">
     @if (!string.IsNullOrEmpty(Label))
     {
-        <label class="label">
+        <label class="label" for="@_textId">
             <span class="label-text">@Label</span>
         </label>
     }
-    <input type="date"
-           class="@_inputCls"
-           value="@_isoValue"
-           min="@_minIso"
-           max="@_maxIso"
-           placeholder="@Placeholder"
-           disabled="@Disabled"
-           readonly="@ReadOnly"
-           @onchange="OnChange"
-           @attributes="UserAttributes" />
+    <div class="@_inputCls">
+        <input @key="_textVersion"
+               id="@_textId"
+               type="text"
+               class="grow"
+               inputmode="numeric"
+               autocomplete="off"
+               value="@_text"
+               placeholder="@(Placeholder ?? _format)"
+               aria-label="@(string.IsNullOrEmpty(Label) ? Placeholder : null)"
+               disabled="@Disabled"
+               readonly="@(ReadOnly || !Editable)"
+               @onchange="OnTextChange"
+               @attributes="UserAttributes" />
+        <span class="dz-date__pick">
+            <Icon Name="@(AdornmentIcon ?? Icons.Material.Filled.CalendarToday)" Size="Size.Small" Class="opacity-60" />
+            @if (!Disabled && !ReadOnly)
+            {
+                <input type="date"
+                       tabindex="-1"
+                       aria-hidden="true"
+                       value="@_isoValue"
+                       min="@_minIso"
+                       max="@_maxIso"
+                       @onchange="OnPickerChange" />
+            }
+        </span>
+    </div>
 </div>
 
 @code {
@@ -35,12 +58,23 @@
     [Parameter] public bool Dense { get; set; }
     [Parameter] public bool Disabled { get; set; }
     [Parameter] public bool ReadOnly { get; set; }
+
+    /// <summary>When false, the date can only be chosen from the picker, not typed.</summary>
     [Parameter] public bool Editable { get; set; } = true;
+
+    /// <summary>When true, emptying the text clears the date; otherwise an empty entry snaps back.</summary>
     [Parameter] public bool Clearable { get; set; }
+
     [Parameter] public bool FullWidth { get; set; } = true;
     [Parameter] public DateTime? MinDate { get; set; }
     [Parameter] public DateTime? MaxDate { get; set; }
+
+    /// <summary>
+    /// .NET format of the visible text (e.g. "dd/MM/yyyy"); defaults to the current culture's short
+    /// date pattern. Typed entries are parsed with it first, then leniently in the current culture.
+    /// </summary>
     [Parameter] public string? DateFormat { get; set; }
+
     [Parameter] public Color Color { get; set; } = Color.Default;
     [Parameter] public string? AdornmentIcon { get; set; }
     [Parameter] public object? For { get; set; }
@@ -49,9 +83,20 @@
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
+    private readonly string _textId = "dz-date-" + Guid.NewGuid().ToString("N")[..8];
+
+    /// <summary>Re-keys the text input so a rejected entry snaps back to the bound date.</summary>
+    private int _textVersion;
+
     private bool _isDense => Dense || Margin == Margin.Dense;
 
     private DateTime? _current => Date ?? Value;
+
+    private string _format => string.IsNullOrWhiteSpace(DateFormat)
+        ? CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern
+        : DateFormat;
+
+    private string _text => _current?.ToString(_format, CultureInfo.CurrentCulture) ?? string.Empty;
 
     private string? _isoValue => _current?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
     private string? _minIso => MinDate?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
@@ -69,15 +114,51 @@
         _isDense ? "input-sm" : null,
         FullWidth ? "w-full" : null);
 
-    private async Task OnChange(ChangeEventArgs args)
+    private Task OnPickerChange(ChangeEventArgs args)
     {
         string? raw = args.Value?.ToString();
-        DateTime? parsed = null;
-
-        if (!string.IsNullOrWhiteSpace(raw)
-            && DateTime.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime d))
+        if (string.IsNullOrWhiteSpace(raw))
         {
-            parsed = d;
+            return Clearable ? SetAsync(null) : Task.CompletedTask;
+        }
+
+        return DateTime.TryParseExact(raw, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime d)
+            ? SetAsync(d)
+            : Task.CompletedTask;
+    }
+
+    private Task OnTextChange(ChangeEventArgs args)
+    {
+        string raw = args.Value?.ToString()?.Trim() ?? string.Empty;
+
+        if (raw.Length == 0 && Clearable)
+        {
+            return SetAsync(null);
+        }
+
+        if (TryParseText(raw, out DateTime d) && InRange(d))
+        {
+            return SetAsync(d);
+        }
+
+        _textVersion++;
+        return Task.CompletedTask;
+    }
+
+    private bool TryParseText(string raw, out DateTime date) =>
+        DateTime.TryParseExact(raw, _format, CultureInfo.CurrentCulture, DateTimeStyles.None, out date)
+        || DateTime.TryParse(raw, CultureInfo.CurrentCulture, DateTimeStyles.None, out date);
+
+    private bool InRange(DateTime d) =>
+        (MinDate is null || d.Date >= MinDate.Value.Date) && (MaxDate is null || d.Date <= MaxDate.Value.Date);
+
+    private async Task SetAsync(DateTime? parsed)
+    {
+        if (parsed?.Date == _current?.Date)
+        {
+            // Same day typed differently ("5/3/2026" for "05/03/2026"): redraw in the canonical format.
+            _textVersion++;
+            return;
         }
 
         Date = parsed;
