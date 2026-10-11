@@ -10,7 +10,7 @@
 
   <!-- Testing (bUnit + xUnit v3) -->
   <ItemGroup>
-    <PackageVersion Include="bunit" Version="2.7.2" />
+    <PackageVersion Include="bunit" Version="2.11.3" />
     <!-- bunit 2.7.2 pulls AngleSharp 1.4.0, which carries GHSA-pgww-w46g-26qg (NU1902).
          Pinned forward (explicit reference in the test project); drop once bunit ships a newer transitive. -->
     <PackageVersion Include="AngleSharp" Version="1.8.5" />
