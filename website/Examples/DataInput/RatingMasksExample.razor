@@ -1,0 +1,12 @@
+<div class="flex flex-col gap-3">
+    <Rating @bind-Value="_love" Mask="mask-heart" Color="Color.Error" />
+    <Rating @bind-Value="_score" Max="10" Mask="mask-circle" Color="Color.Primary" Size="Size.Small" />
+    <Rating @bind-Value="_spice" Mask="mask-triangle" Color="Color.Tertiary" Size="Size.Large" />
+</div>
+<p class="mt-3 font-mono text-sm">love=@_love · score=@_score/10 · spice=@_spice</p>
+
+@code {
+    private int _love = 3;
+    private int _score = 7;
+    private int _spice = 2;
+}

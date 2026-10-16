@@ -1,10 +1,10 @@
 @namespace DaisyBlazor.Feedback
 
-@* MudBlazor ErrorAlert replacement. Filled error Alert; renders nothing when Message is null. *@
+@* MudBlazor ErrorAlert replacement. Filled error Alert; renders nothing when Message is null or blank. *@
 
-@if (Message is not null)
+@if (!string.IsNullOrWhiteSpace(Message))
 {
-    <Alert Severity="Severity.Error" Variant="Variant.Filled" Class="@Class">
+    <Alert Severity="Severity.Error" Variant="Variant.Filled" Class="@Class" Style="@Style" @attributes="UserAttributes">
         @Message
     </Alert>
 }

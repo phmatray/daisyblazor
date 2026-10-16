@@ -1,0 +1,224 @@
+@* The playground: every simple parameter becomes a control (built from DaisyBlazor's own inputs),
+   the component re-renders live, and the Razor below rewrites itself to match. *@
+@using System.Globalization
+@using System.Text
+@inject XmlDocs Docs
+
+<section id="playground" class="scroll-mt-6" aria-labelledby="playground-title">
+    <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <h2 id="playground-title" class="font-display text-[2rem] font-bold leading-tight">Playground</h2>
+        <button type="button" class="btn btn-sm btn-ghost rounded-full" @onclick="Reset" disabled="@(!_dirty)">
+            <Icon Name="@Icons.Material.Filled.Refresh" Size="Size.Small" /> Reset
+        </button>
+    </div>
+
+    <div class="overflow-hidden rounded-2xl border-2 border-base-content">
+        <div>
+            <div class="grid min-h-56 place-items-center bg-base-100 p-8 sm:p-12">
+                @* A sized block, not a shrink-to-fit flex item: block components (Navbar, full-width fields) fill
+                   it, inline ones (buttons, badges) sit centred on the text axis. *@
+                <div class="w-full max-w-3xl text-center [&>*]:text-start">
+                    <DynamicComponent @key="_renderKey" Type="Spec.Component" Parameters="_rendered" />
+                </div>
+            </div>
+
+            <div class="grid gap-x-6 gap-y-5 border-t-2 border-base-content bg-base-200 p-5 sm:grid-cols-2 xl:grid-cols-3">
+                @if (Spec.ChildText is not null)
+                {
+                    <TextField Label="ChildContent" Value="@_childText" ValueChanged="v => SetChild(v)" Immediate="true" Margin="Margin.None" />
+                }
+                @foreach (ParamInfo p in _controls)
+                {
+                    ParamInfo param = p;
+                    Type type = Nullable.GetUnderlyingType(param.Type) ?? param.Type;
+                    <div>
+                        @if (type.IsEnum)
+                        {
+                            string[] names = Enum.GetNames(type);
+                            <span class="mb-1.5 flex items-baseline justify-between text-sm font-bold">
+                                <span class="font-mono">@param.Name</span>
+                                <span class="font-mono text-xs font-medium text-base-content/60">@type.Name</span>
+                            </span>
+                            @if (names.Length <= 4)
+                            {
+                                <ToggleGroup T="string" Value="@CurrentName(param)" ValueChanged="v => SetEnum(param, type, v)"
+                                             Size="Size.Small" Color="Color.Dark" Class="w-full [&>*]:flex-1">
+                                    @foreach (string n in names)
+                                    {
+                                        <ToggleItem T="string" Value="@n" Text="@n" />
+                                    }
+                                </ToggleGroup>
+                            }
+                            else
+                            {
+                                <div class="flex flex-wrap gap-1" role="radiogroup" aria-label="@param.Name">
+                                    @foreach (string n in names)
+                                    {
+                                        string name = n;
+                                        bool on = name == CurrentName(param);
+                                        <button type="button" role="radio" aria-checked="@(on ? "true" : "false")"
+                                                @onclick="() => SetEnum(param, type, name)"
+                                                class="rounded-full border-2 px-2.5 py-0.5 text-xs font-bold transition @(on ? "border-base-content bg-base-content text-base-100" : "border-base-300 hover:border-base-content")">
+                                            @name
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        }
+                        else if (type == typeof(bool))
+                        {
+                            <Switch Value="@((bool)(_values[param.Name] ?? false))" ValueChanged="v => Set(param, v)" Color="Color.Primary">
+                                <span class="font-mono text-sm font-bold">@param.Name</span>
+                            </Switch>
+                        }
+                        else
+                        {
+                            <TextField Label="@param.Name" Value="@Format(_values[param.Name])" ValueChanged="v => SetText(param, type, v)"
+                                       InputType="@(IsNumber(type) ? InputType.Number : InputType.Text)" Immediate="true" Margin="Margin.None" />
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+        <CodeBlock Code="@_code" Flush="true" Class="border-t-2 border-base-content" />
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public PlaygroundSpec Spec { get; set; } = null!;
+
+    private static readonly HashSet<Type> Simple =
+        [typeof(string), typeof(bool), typeof(int), typeof(long), typeof(double), typeof(decimal), typeof(float)];
+
+    private List<ParamInfo> _controls = [];
+    private Dictionary<string, object?> _defaults = [];
+    private Dictionary<string, object?> _values = [];
+    private Dictionary<string, object?> _rendered = [];
+    private string? _childText;
+    private string _code = "";
+    private bool _dirty;
+    private int _renderKey;
+
+    protected override void OnParametersSet()
+    {
+        IReadOnlyList<ParamInfo> all = ApiReflector.Parameters(Spec.Component, Docs);
+        IEnumerable<ParamInfo> candidates = all.Where(p => p.Kind == ParamKind.Property && IsSimple(p.Type) && p.Name is not ("Class" or "Style"));
+        _controls = Spec.Parameters.Length == 0
+            ? [.. candidates]
+            : [.. Spec.Parameters.Select(n => candidates.FirstOrDefault(p => p.Name == n)).OfType<ParamInfo>()];
+
+        object? instance = null;
+        try { instance = Activator.CreateInstance(Spec.Component); } catch { }
+        _defaults = _controls.ToDictionary(p => p.Name, p => instance is null ? null : p.Property.GetValue(instance));
+        Reset();
+    }
+
+    private void Reset()
+    {
+        _values = new Dictionary<string, object?>(_defaults);
+        foreach ((string k, object? v) in Spec.Initial) _values[k] = v;
+        _childText = Spec.ChildText;
+        _dirty = false;
+        Rebuild();
+    }
+
+    private static bool IsSimple(Type t)
+    {
+        Type u = Nullable.GetUnderlyingType(t) ?? t;
+        return u.IsEnum || Simple.Contains(u);
+    }
+
+    private static bool IsNumber(Type t) => t != typeof(string) && t != typeof(bool);
+
+    private string CurrentName(ParamInfo p) => _values[p.Name]?.ToString() ?? "";
+
+    private void SetEnum(ParamInfo p, Type type, string? name)
+    {
+        if (name is null) return;
+        Set(p, Enum.Parse(type, name));
+    }
+
+    private void SetText(ParamInfo p, Type type, string? text)
+    {
+        if (type == typeof(string)) { Set(p, string.IsNullOrEmpty(text) ? _defaults[p.Name] : text); return; }
+        if (string.IsNullOrWhiteSpace(text)) { Set(p, _defaults[p.Name]); return; }
+        try { Set(p, Convert.ChangeType(text, type, CultureInfo.InvariantCulture)); } catch (FormatException) { } catch (OverflowException) { }
+    }
+
+    private void SetChild(string? text)
+    {
+        _childText = text;
+        _dirty = true;
+        Rebuild();
+    }
+
+    private void Set(ParamInfo p, object? value)
+    {
+        _values[p.Name] = value;
+        _dirty = true;
+        Rebuild();
+    }
+
+    private void Rebuild()
+    {
+        _rendered = new Dictionary<string, object?>(_values);
+        if (_childText is not null)
+        {
+            string text = _childText;
+            _rendered["ChildContent"] = (RenderFragment)(b => b.AddContent(0, text));
+        }
+        _renderKey++;
+        _code = BuildCode();
+    }
+
+    private string BuildCode()
+    {
+        string tag = ApiReflector.TagName(Spec.Component);
+        var attrs = new List<string>();
+        if (Spec.Component.IsGenericType)
+        {
+            attrs.Add($"T=\"{ApiReflector.FriendlyName(Spec.Component.GetGenericArguments()[0])}\"");
+        }
+        foreach (ParamInfo p in _controls)
+        {
+            object? v = _values[p.Name];
+            if (Equals(v, _defaults[p.Name]) || v is null) continue;
+            attrs.Add($"{p.Name}=\"{Razor(v)}\"");
+        }
+        // Parameters set only through Spec.Initial (Class="tooltip-open"...) are rendered too, so they belong in the code.
+        foreach ((string name, object? v) in _values)
+        {
+            if (v is null || _defaults.ContainsKey(name)) continue;
+            attrs.Add($"{name}=\"{Razor(v)}\"");
+        }
+
+        bool child = !string.IsNullOrEmpty(_childText);
+        int length = tag.Length + 1 + attrs.Sum(a => a.Length + 1) + (child ? _childText!.Length + tag.Length + 4 : 3);
+        bool wrap = length > 72;
+        var sb = new StringBuilder("<").Append(tag);
+        foreach (string a in attrs)
+        {
+            sb.Append(wrap ? "\n" + new string(' ', tag.Length + 2) : " ").Append(a);
+        }
+        if (!child) return sb.Append(" />").ToString();
+        sb.Append('>');
+        if (wrap) sb.Append("\n    ").Append(_childText).Append('\n');
+        else sb.Append(_childText);
+        return sb.Append("</").Append(tag).Append('>').ToString();
+    }
+
+    private static string Razor(object v) => v switch
+    {
+        Enum e => $"{e.GetType().Name}.{e}",
+        bool b => b ? "true" : "false",
+        IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
+        _ => v.ToString() ?? "",
+    };
+
+    private static string? Format(object? v) => v switch
+    {
+        null => null,
+        IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
+        _ => v.ToString(),
+    };
+}

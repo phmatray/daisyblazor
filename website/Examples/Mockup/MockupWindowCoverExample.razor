@@ -1,0 +1,24 @@
+<MockupWindow Title="Deployments" BorderColor="Color.Primary" Class="border-2 bg-base-200">
+    <div class="w-full space-y-2">
+        @foreach ((string slot, string title, bool on) in _slots)
+        {
+            <div class="@(on ? "bg-primary text-primary-content" : "bg-base-100") flex items-center gap-3 rounded-box px-3 py-2">
+                <span class="font-mono text-sm font-bold">@slot</span>
+                <span class="flex-1 truncate text-sm font-semibold">@title</span>
+                @if (on)
+                {
+                    <Icon Name="@Icons.Material.Filled.RocketLaunch" Size="Size.Small" />
+                }
+            </div>
+        }
+    </div>
+</MockupWindow>
+
+@code {
+    private readonly (string Slot, string Title, bool On)[] _slots =
+    [
+        ("DEV", "api-gateway v2.5", false),
+        ("STG", "api-gateway v2.4", true),
+        ("PRD", "api-gateway v2.3", false),
+    ];
+}

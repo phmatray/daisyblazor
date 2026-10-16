@@ -1,0 +1,15 @@
+<SectionCard Title="Weekly signups" Icon="@Icons.Material.Filled.TrendingUp">
+    <HeaderActions>
+        <Button Variant="Variant.Text" Size="Size.Small" StartIcon="@Icons.Material.Filled.Refresh" OnClick="Refresh">Refresh</Button>
+    </HeaderActions>
+    <ChildContent>
+        <p class="font-display text-4xl font-bold">@_signups</p>
+        <p class="text-sm text-base-content/70">new accounts since Monday</p>
+    </ChildContent>
+</SectionCard>
+
+@code {
+    private int _signups = 1284;
+
+    private void Refresh() => _signups += Random.Shared.Next(3, 40);
+}

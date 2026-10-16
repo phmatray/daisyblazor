@@ -1,0 +1,14 @@
+@inject ISnackbar Snackbar
+
+@* The FAB is position: fixed. translateZ(0) pins it to this demo box; leave it out in a real page. *@
+<div class="relative h-72 w-full overflow-hidden rounded-box bg-base-200 [transform:translateZ(0)]">
+    <p class="p-5 text-sm opacity-70">Click the + button to open the speed dial.</p>
+    <Fab Color="Color.Primary" AriaLabel="Create">
+        <FabAction Icon="@Icons.Material.Filled.CreateNewFolder" Tooltip="New project" Color="Color.Secondary"
+                   OnClick="@(() => Snackbar.Add("Project created", Severity.Success))" />
+        <FabAction Icon="@Icons.Material.Filled.Upload" Tooltip="Upload a file" Color="Color.Info"
+                   OnClick="@(() => Snackbar.Add("Choose a file to upload", Severity.Info))" />
+        <FabAction Icon="@Icons.Material.Filled.PersonAdd" Tooltip="Invite a teammate"
+                   OnClick="@(() => Snackbar.Add("Invitation sent"))" />
+    </Fab>
+</div>

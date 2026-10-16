@@ -9,6 +9,7 @@
         <span class="text-sm opacity-70">@_rangeText</span>
 
         <select class="select select-bordered select-sm w-auto" value="@Host.PageSize"
+                aria-label="Rows per page"
                 @onchange="OnPageSizeChanged">
             @foreach (int option in PageSizeOptions)
             {
@@ -18,11 +19,13 @@
 
         <div class="join">
             <button type="button" class="btn btn-sm join-item"
+                    aria-label="Previous page"
                     disabled="@(Host.CurrentPage <= 0)"
                     @onclick="@(() => Host.SetPage(Host.CurrentPage - 1))">
                 <Icon Name="@Icons.Material.Filled.ChevronLeft" Size="Size.Small" />
             </button>
             <button type="button" class="btn btn-sm join-item"
+                    aria-label="Next page"
                     disabled="@(Host.CurrentPage >= Host.PageCount - 1)"
                     @onclick="@(() => Host.SetPage(Host.CurrentPage + 1))">
                 <Icon Name="@Icons.Material.Filled.ChevronRight" Size="Size.Small" />
@@ -34,8 +37,11 @@
 @code {
     [CascadingParameter] public ITablePagerHost? Host { get; set; }
 
+    /// <summary>Page sizes offered in the page-size select; defaults to 10, 25, 50 and 100.</summary>
     [Parameter] public int[] PageSizeOptions { get; set; } = new[] { 10, 25, 50, 100 };
+    /// <summary>Extra CSS classes merged onto the root element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

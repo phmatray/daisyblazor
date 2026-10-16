@@ -10,8 +10,10 @@
            class="@_cls"
            checked="@_checked"
            disabled="@Disabled"
-           readonly="@ReadOnly"
+           aria-readonly="@(ReadOnly ? "true" : null)"
+           @onclick:preventDefault="@ReadOnly"
            @onchange="OnChange"
+           @ref="_input"
            @attributes="UserAttributes" />
     @if (!string.IsNullOrEmpty(Label))
     {
@@ -21,18 +23,32 @@
 </label>
 
 @code {
+    /// <summary>Whether the checkbox is checked; two-way bindable with <c>@bind-Value</c>.</summary>
     [Parameter] public bool Value { get; set; }
+    /// <summary>Raised with the new state when the user toggles the checkbox.</summary>
     [Parameter] public EventCallback<bool> ValueChanged { get; set; }
+    /// <summary>MudBlazor-style alias for <see cref="Value"/>; used when <c>CheckedChanged</c> is wired or set to true.</summary>
     [Parameter] public bool Checked { get; set; }
+    /// <summary>MudBlazor-style alias for <see cref="ValueChanged"/>; wiring it makes <see cref="Checked"/> the source of truth.</summary>
     [Parameter] public EventCallback<bool> CheckedChanged { get; set; }
+    /// <summary>Text rendered in a <c>.label-text</c> span next to the input.</summary>
     [Parameter] public string? Label { get; set; }
+    /// <summary>Theme color mapped to <c>checkbox-primary</c>, <c>checkbox-accent</c>, etc.; Dark maps to <c>checkbox-neutral</c>; Default, Inherit and Surface add no color class.</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
+    /// <summary>Input size: Small adds <c>checkbox-sm</c>, Large adds <c>checkbox-lg</c>; Medium uses the daisyUI default.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
+    /// <summary>Disables the input and ignores change events.</summary>
     [Parameter] public bool Disabled { get; set; }
+    /// <summary>Blocks the click's default action (the HTML readonly attribute does nothing on checkboxes) and ignores change events, so the state cannot be changed by the user.</summary>
     [Parameter] public bool ReadOnly { get; set; }
+    /// <summary>Shows the mixed (indeterminate) state, e.g. on a "select all" box when only some children are ticked. Applied through JS interop because it is a DOM property, not an attribute.</summary>
+    [Parameter] public bool Indeterminate { get; set; }
+    /// <summary>Additional content rendered inside the label after the input and <see cref="Label"/>.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the wrapping <c>&lt;label&gt;</c> element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the wrapping <c>&lt;label&gt;</c> element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
@@ -54,6 +70,7 @@
         Color.Success => "checkbox-success",
         Color.Warning => "checkbox-warning",
         Color.Error => "checkbox-error",
+        Color.Dark => "checkbox-neutral",
         _ => ""
     };
 
@@ -65,6 +82,21 @@
     };
 
     private string _cls => CssClass.Merge("checkbox", _colorCls, _sizeCls);
+
+    [Inject] private IJSRuntime JS { get; set; } = null!;
+    private ElementReference _input;
+    private bool _indeterminateApplied;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // indeterminate is a DOM property with no HTML attribute, and a click clears it behind
+        // Blazor's back, so re-assert it after every render while set (and once when it turns off).
+        if (Indeterminate || _indeterminateApplied)
+        {
+            _indeterminateApplied = Indeterminate;
+            await JS.InvokeVoidAsync("Reflect.set", _input, "indeterminate", Indeterminate);
+        }
+    }
 
     private async Task OnChange(ChangeEventArgs args)
     {

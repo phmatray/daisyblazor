@@ -1,0 +1,13 @@
+<div class="flex min-h-52 flex-wrap items-start gap-4">
+    <Menu Label="Project actions">
+        <MenuItem Icon="@Icons.Material.Filled.Edit" OnClick="@(() => _last = "Rename")">Rename</MenuItem>
+        <MenuItem Icon="@Icons.Material.Filled.ContentCopy" OnClick="@(() => _last = "Duplicate")">Duplicate</MenuItem>
+        <MenuItem Icon="@Icons.Material.Filled.Favorite" OnClick="@(() => _last = "Star")">Star</MenuItem>
+        <MenuItem Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error" OnClick="@(() => _last = "Remove")">Remove</MenuItem>
+    </Menu>
+    <span class="py-3 text-sm">Last action: <strong>@(_last ?? "none yet")</strong></span>
+</div>
+
+@code {
+    private string? _last;
+}

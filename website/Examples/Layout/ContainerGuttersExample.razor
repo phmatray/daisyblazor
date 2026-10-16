@@ -1,0 +1,13 @@
+@* The dashed lines mark the container's edges, so the gutter (or its absence) is visible. *@
+<div class="space-y-3">
+    <div class="rounded-box bg-base-200 py-3">
+        <Container Class="border-x-2 border-dashed border-primary">
+            Gutters on (default): 1rem of side padding keeps text off the screen edge.
+        </Container>
+    </div>
+    <div class="rounded-box bg-base-200 py-3">
+        <Container Gutters="false" Class="border-x-2 border-dashed border-secondary">
+            Gutters="false": content runs flush to the edge, handy when the child brings its own padding.
+        </Container>
+    </div>
+</div>

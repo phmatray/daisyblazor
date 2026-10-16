@@ -1,0 +1,28 @@
+@* Toggle the four styling flags and watch the same markup change. *@
+<div class="mb-4 flex flex-wrap gap-4">
+    <Switch @bind-Value="_striped" Color="Color.Primary">Striped</Switch>
+    <Switch @bind-Value="_hover" Color="Color.Primary">Hover</Switch>
+    <Switch @bind-Value="_dense" Color="Color.Primary">Dense</Switch>
+    <Switch @bind-Value="_bordered" Color="Color.Primary">Bordered</Switch>
+</div>
+<SimpleTable Striped="_striped" Hover="_hover" Dense="_dense" Bordered="_bordered">
+    <thead>
+        <tr><th>Customer</th><th>Plan</th><th>Since</th></tr>
+    </thead>
+    <tbody>
+        @foreach ((string customer, string plan, int year) in _rows)
+        {
+            <tr><td>@customer</td><td>@plan</td><td>@year</td></tr>
+        }
+    </tbody>
+</SimpleTable>
+
+@code {
+    private bool _striped = true, _hover = true, _dense, _bordered;
+
+    private readonly (string, string, int)[] _rows =
+    [
+        ("Northwind Traders", "Enterprise", 2021), ("Contoso", "Pro", 2022),
+        ("Fabrikam", "Pro", 2023), ("Initech", "Free", 2024),
+    ];
+}

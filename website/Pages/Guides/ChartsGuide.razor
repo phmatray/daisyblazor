@@ -1,0 +1,199 @@
+@page "/charts"
+
+<DocShell Title="Charts" Tracks="G.Tracks" Trail="G.Trail" Portrait="Portrait" PortraitCaption="Plan mix">
+    <Lede>
+        <code>DaisyBlazor.Charts</code> draws line, area, bar, pie, donut and sparkline charts as inline SVG computed in C#.
+        No ApexCharts, no Chart.js, no JS interop, and every colour is a daisyUI theme token.
+    </Lede>
+    <ChildContent>
+        <div class="prose-doc">
+            <p>
+                Every chart is rendered as <strong>inline <code>&lt;svg&gt;</code></strong> whose geometry is computed in C#, and every colour is
+                emitted as a daisyUI theme token (<code>var(--color-primary)</code>, …), so charts <strong>follow the active
+                <code>data-theme</code> automatically</strong>, with no recompilation. The only dependency is <code>DaisyBlazor.Components</code>
+                (for the <code>Color</code> enum and the <code>CssClass</code> merge helper).
+            </p>
+
+            @H(0)
+            <CodeBlock Language="bash" Code="dotnet add package DaisyBlazor.Charts" />
+            <CodeBlock Title="_Imports.razor" Code="@@using DaisyBlazor.Charts" />
+
+            @H(1)
+            <table>
+                <thead><tr><th>Component</th><th>Renders</th><th>Key parameters</th></tr></thead>
+                <tbody>
+                    <tr><td><a href="components/linechart"><code>LineChart</code></a></td><td>One or more line series over a gridded, labelled axis</td><td><code>Series</code>, <code>Labels</code>, <code>Area</code>, <code>Smooth</code>, <code>ShowGrid</code>, <code>ShowPoints</code>, <code>ShowLegend</code></td></tr>
+                    <tr><td><a href="components/areachart"><code>AreaChart</code></a></td><td>A filled line chart (a <code>LineChart</code> with <code>Area=true</code>, for discoverability)</td><td><code>Series</code>, <code>Labels</code>, <code>Smooth</code>, <code>ShowGrid</code>, <code>ShowPoints</code>, <code>ShowLegend</code></td></tr>
+                    <tr><td><a href="components/barchart"><code>BarChart</code></a></td><td>Vertical or horizontal bars, flat (<code>Data</code>) or grouped (<code>Series</code>)</td><td><code>Data</code>, <code>Series</code>, <code>Labels</code>, <code>Horizontal</code>, <code>ShowGrid</code>, <code>ShowLegend</code></td></tr>
+                    <tr><td><a href="components/piechart"><code>PieChart</code></a></td><td>Pie slices with a legend and percentages</td><td><code>Data</code>, <code>ShowLegend</code>, <code>InnerRadiusRatio</code>, <code>CenterLabel</code></td></tr>
+                    <tr><td><a href="components/donutchart"><code>DonutChart</code></a></td><td>A donut (pie with a hole) and an optional center label</td><td><code>Data</code>, <code>ShowLegend</code>, <code>InnerRadiusRatio</code> (default <code>0.6</code>), <code>CenterLabel</code></td></tr>
+                    <tr><td><a href="components/sparkline"><code>Sparkline</code></a></td><td>A tiny, axis-less inline trend line (table cells, KPI tiles)</td><td><code>Data</code>, <code>Area</code>, <code>ShowEndDot</code>, <code>StrokeWidth</code>, <code>Color</code></td></tr>
+                </tbody>
+            </table>
+            <p>
+                Every chart also accepts <code>Title</code> (heading above the chart, also the accessible label), <code>Width</code> (default
+                <code>"100%"</code>), <code>Height</code> (default <code>"16rem"</code>; <code>Sparkline</code> <code>"1.5rem"</code>,
+                <code>Width</code> <code>"5rem"</code>), and the standard <code>Class</code> / <code>Style</code> / unmatched-attribute splat.
+            </p>
+
+            @H(2)
+            <CodeBlock Language="csharp" Code="@Models" />
+            <p>
+                <code>ChartSeries.Data</code> aligns by <strong>ordinal index</strong> with <code>Labels</code>. <code>ChartDataPoint.Value</code>
+                must be finite; for the circular charts, non-positive values are ignored.
+            </p>
+
+            @H(3)
+            <p>
+                Colours come from <code>ChartPalette</code>, which returns daisyUI tokens as CSS variables. Charts index into it (wrapping with
+                modulo) so each series or slice gets a distinct, theme-driven colour. The default cycling order, in the current theme:
+            </p>
+        </div>
+        <ol class="mt-5 flex max-w-[70ch] flex-wrap gap-2" aria-label="Default chart palette">
+            @foreach (string c in ChartPalette.Default)
+            {
+                <li class="flex items-center gap-2 rounded-full bg-base-200 py-1 pl-1 pr-3 text-sm font-semibold">
+                    <span class="size-6 rounded-full" style="background:@c"></span>@(c[12..^1])
+                </li>
+            }
+        </ol>
+        <div class="prose-doc mt-5">
+            <p>
+                Because the values are <code>var(--color-*)</code>, switching the daisyUI theme re-skins every chart instantly: no rebuild, no JS.
+                Override the colour of an individual series or point by setting its <code>Color</code> to <strong>any CSS colour</strong>:
+            </p>
+            <CodeBlock Language="csharp" Code="@Overrides" />
+            <p>
+                <code>ChartPalette.FromColor(Color)</code> also maps the DaisyBlazor <code>Color</code> enum to its token, so you can drive chart
+                colours from the same semantic enum used by the components.
+            </p>
+
+            @H(4)
+            <p>Rendered live, then the code. Switch to another theme from the top bar and watch the colours follow.</p>
+        </div>
+        <div class="mt-5 grid max-w-[70ch] gap-6 rounded-2xl border border-base-300 bg-base-100 p-6 sm:grid-cols-2">
+            <LineChart Title="Weekly visitors" Labels="@Days" Series="@_traffic" Smooth Area Class="sm:col-span-2" />
+            <BarChart Title="Signups by plan" Data="@_bars" Height="12rem" />
+            <DonutChart Title="Visits by source" Data="@_breakdown" CenterLabel="100" Height="12rem" />
+            <div class="flex items-center gap-3 sm:col-span-2">
+                <span class="text-sm font-semibold">Sparkline</span>
+                <Sparkline Data="@(new double[] { 3, 5, 4, 8, 6, 9 })" Area />
+            </div>
+        </div>
+        <div class="prose-doc mt-5">
+            <CodeBlock Code="@Usage" />
+
+            @H(5)
+            <ul>
+                <li>Charts use a fixed user-space <code>viewBox</code> scaled responsively (<code>preserveAspectRatio</code>), so they stay crisp at any rendered size.</li>
+                <li>Value axes include a <strong>zero baseline</strong>; flat or empty data is handled without divide-by-zero.</li>
+                <li><code>BarChart</code> takes <code>Series</code> (grouped) over <code>Data</code> (flat) when both are supplied; <code>Horizontal</code> flips the axis.</li>
+                <li>
+                    Pie and donut arcs are built from cumulative angles (0 = 12 o'clock, clockwise) with SVG <code>A</code> arc commands; a single
+                    full-circle slice is nudged to avoid a degenerate zero-length arc. Only positive values contribute to the total.
+                </li>
+                <li><code>Smooth</code> line mode uses a Catmull-Rom-to-Bézier conversion.</li>
+                <li>Every chart sets <code>role="img"</code> and an accessible <code>&lt;title&gt;</code> (from <code>Title</code> when provided).</li>
+            </ul>
+        </div>
+    </ChildContent>
+</DocShell>
+
+@code {
+    private static readonly GuideDoc G = Guides.Get("charts");
+
+    private static RenderFragment H(int i) => __builder =>
+    {
+        <h2 id="@G.Tracks[i].Id" class="scroll-mt-6 font-display">@G.Tracks[i].Title</h2>
+    };
+
+    private static readonly string[] Days = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+
+    private readonly ChartSeries[] _traffic =
+    [
+        new("Visitors", new double[] { 30, 40, 35, 50, 49 }),
+        new("Signups", new double[] { 5, 8, 6, 12, 10 }),
+    ];
+
+    private readonly ChartDataPoint[] _bars = [new("Starter", 12), new("Pro", 28), new("Team", 19)];
+
+    private readonly ChartDataPoint[] _breakdown = [new("Direct", 40), new("Search", 35), new("Social", 25)];
+
+    private readonly ChartDataPoint[] _plans = [new("Free", 48), new("Pro", 35), new("Enterprise", 17)];
+
+    private RenderFragment Portrait => __builder =>
+    {
+        <div class="space-y-3">
+            <DonutChart Data="@_plans" CenterLabel="1,240" ShowLegend="false" Height="9.5rem" Title="Customers by plan" />
+            <div class="grid grid-cols-2 gap-3 text-sm">
+                <div class="rounded-md bg-base-200 p-2">
+                    <span class="block font-semibold">Signups</span>
+                    <Sparkline Data="@(new double[] { 4, 6, 5, 9, 7, 11 })" Area Width="100%" />
+                </div>
+                <div class="rounded-md bg-base-200 p-2">
+                    <span class="block font-semibold">Churn</span>
+                    <Sparkline Data="@(new double[] { 8, 7, 9, 6, 8, 5 })" Color="var(--color-secondary)" Width="100%" />
+                </div>
+            </div>
+        </div>
+    };
+
+    private const string Models = """
+        // A single categorical point — used by BarChart (flat), PieChart, DonutChart.
+        // Color is an optional per-point CSS override.
+        public record ChartDataPoint(string Label, double Value, string? Color = null);
+
+        // A named numeric series — used by LineChart, AreaChart, grouped BarChart.
+        // Data index i lines up with the chart's X label i.
+        public class ChartSeries
+        {
+            public string Name { get; set; } = string.Empty;
+            public IReadOnlyList<double> Data { get; set; } = new List<double>();
+            public string? Color { get; set; }              // optional CSS override
+
+            public ChartSeries() { }
+            public ChartSeries(string name, IReadOnlyList<double> data, string? color = null) { /* … */ }
+        }
+        """;
+
+    private const string Overrides = """
+        new ChartSeries("Errors", data, color: "var(--color-error)");   // a theme token
+        new ChartDataPoint("Other", 12, "#94a3b8");                     // a hex literal
+        """;
+
+    private const string Usage = """
+        @using DaisyBlazor.Charts
+
+        <LineChart Title="Weekly visitors"
+                   Labels="@(new[] { "Mon", "Tue", "Wed", "Thu", "Fri" })"
+                   Series="@_traffic"
+                   Smooth Area />
+
+        <BarChart Title="Signups by plan"
+                  Data="@(new[]
+                  {
+                      new ChartDataPoint("Starter", 12),
+                      new ChartDataPoint("Pro", 28),
+                      new ChartDataPoint("Team", 19)
+                  })" />
+
+        <DonutChart Title="Visits by source" Data="@_breakdown" CenterLabel="100" />
+
+        <Sparkline Data="@(new double[] { 3, 5, 4, 8, 6, 9 })" Area />
+
+        @code {
+            private readonly ChartSeries[] _traffic =
+            {
+                new("Visitors", new double[] { 30, 40, 35, 50, 49 }),
+                new("Signups",  new double[] {  5,  8,  6, 12, 10 })
+            };
+
+            private readonly ChartDataPoint[] _breakdown =
+            {
+                new("Direct", 40),
+                new("Search", 35),
+                new("Social", 25)
+            };
+        }
+        """;
+}

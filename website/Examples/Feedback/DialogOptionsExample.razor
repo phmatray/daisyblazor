@@ -1,0 +1,16 @@
+@inject IDialogService DialogService
+
+<div class="flex flex-wrap gap-3">
+    <Button Variant="Variant.Outlined" OnClick="WideAsync">Wide, with close button</Button>
+    <Button Variant="Variant.Outlined" OnClick="StrictAsync">No backdrop or Escape dismiss</Button>
+</div>
+
+@code {
+    private Task WideAsync() => DialogService.ShowAsync<MessageBoxDialog>("Release notes",
+        new DialogParameters { ["Message"] = "Version 2.4 adds single sign-on, audit logs and a faster dashboard. It rolls out to every region this week." },
+        new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true });
+
+    private Task StrictAsync() => DialogService.ShowAsync<MessageBoxDialog>("Terms of service",
+        new DialogParameters { ["Message"] = "Please read and accept before you upgrade.", ["YesText"] = "I accept" },
+        new DialogOptions { BackdropClick = false, CloseOnEscapeKey = false });
+}

@@ -1,0 +1,15 @@
+<div class="flex flex-wrap items-center gap-2">
+    <StatusChip Status="Shipment.Delivered" Map="ShipmentStatus" Label="Livré" />
+    <StatusChip Status="Shipment.Delivered" Map="ShipmentStatus" Label="Signed for" Icon="@Icons.Material.Filled.Draw" />
+    <StatusChip Status="Shipment.Delivered" Map="ShipmentStatus" Label="Disputed" Color="Color.Warning" />
+    <StatusChip Label="No map at all" Color="Color.Tertiary" />
+</div>
+
+@code {
+    private enum Shipment { Shipped, Delivered }
+
+    private static readonly StatusMap ShipmentStatus = StatusMap.For<Shipment>()
+        .Add(Shipment.Shipped, Color.Primary, Icons.Material.Filled.LocalShipping)
+        .Add(Shipment.Delivered, Color.Success, Icons.Material.Filled.CheckCircle)
+        .Build();
+}

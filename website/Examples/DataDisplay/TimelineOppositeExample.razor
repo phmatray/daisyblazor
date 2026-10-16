@@ -1,0 +1,17 @@
+@* ItemOpposite labels each entry; ItemContent is the boxed part. *@
+<Timeline>
+    @foreach ((string version, string title) in _releases)
+    {
+        <TimelineItem Color="Color.Primary">
+            <ItemOpposite><span class="font-mono text-sm">@version</span></ItemOpposite>
+            <ItemContent><span class="font-semibold">@title</span></ItemContent>
+        </TimelineItem>
+    }
+</Timeline>
+
+@code {
+    private readonly (string, string)[] _releases =
+    [
+        ("v2.1", "Team workspaces"), ("v2.2", "Usage-based billing"), ("v2.3", "Single sign-on"), ("v2.4", "Audit log"),
+    ];
+}

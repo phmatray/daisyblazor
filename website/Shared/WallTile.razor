@@ -1,0 +1,14 @@
+@* One tile of the home page's live wall: a working component and a link to its page. *@
+
+<div class="group flex min-h-48 flex-col bg-base-100">
+    <div class="grid flex-1 place-items-center p-6">@ChildContent</div>
+    <a href="@Href" class="flex items-center justify-between border-t border-base-300 px-4 py-2.5 text-sm font-bold transition hover:bg-primary hover:text-primary-content">
+        @Label <Icon Name="@Icons.Material.Filled.ArrowForward" Size="Size.Small" Class="!text-base transition-transform group-hover:translate-x-0.5" />
+    </a>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    [Parameter, EditorRequired] public string Href { get; set; } = "";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

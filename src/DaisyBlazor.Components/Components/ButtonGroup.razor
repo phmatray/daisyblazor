@@ -2,23 +2,31 @@
 
 @* MudButtonGroup replacement. daisyUI .join wrapper. Child buttons get .join-item
    automatically via the ".join > .btn" rule in the daisyUI stylesheet, so just wrap
-   the ChildContent in a .join container. Variant/Color/Size/OverrideStyles are accepted
-   for source compatibility (children carry their own styling). *@
+   the ChildContent in a .join container. With OverrideStyles (default, as in MudBlazor)
+   a non-default group Variant/Color/Size is cascaded to the child Buttons. *@
 
-<div class="@_cls" style="@Style" @attributes="UserAttributes">
-    @ChildContent
-</div>
+<CascadingValue Value="this">
+    <div class="@_cls" style="@Style" @attributes="UserAttributes">
+        @ChildContent
+    </div>
+</CascadingValue>
 
 @code {
+    /// <summary>Buttons rendered inside the daisyUI join container.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Variant applied to child buttons when not Text and <see cref="OverrideStyles"/> is true.</summary>
     [Parameter] public Variant Variant { get; set; } = Variant.Text;
+    /// <summary>Color applied to child buttons when not Default and <see cref="OverrideStyles"/> is true.</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
+    /// <summary>Size applied to child buttons when not Medium and <see cref="OverrideStyles"/> is true.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
 
-    /// <summary>Accepted for MudBlazor source compatibility; ignored.</summary>
-    [Parameter] public bool OverrideStyles { get; set; }
+    /// <summary>When true (default) the group's non-default Variant, Color and Size override those of the child buttons.</summary>
+    [Parameter] public bool OverrideStyles { get; set; } = true;
 
+    /// <summary>Extra CSS classes merged onto the root join element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root join element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

@@ -10,16 +10,32 @@
 </CascadingValue>
 
 @code {
+    /// <summary>The ExpansionPanel children of the group.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Allows several panels open at once; when false (default) panels form a single-open accordion.</summary>
     [Parameter] public bool MultiExpansion { get; set; }
+    /// <summary>Makes every child panel dense (tighter title and content padding).</summary>
     [Parameter] public bool Dense { get; set; }
+    /// <summary>Shadow depth of each panel, on Paper's scale: 0 none, 1 shadow-sm, 2-3 shadow, up to 6 shadow-md, up to 12 shadow-lg, above that shadow-xl.</summary>
     [Parameter] public int Elevation { get; set; } = 1;
+    /// <summary>Extra CSS classes merged onto the root element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
     /// <summary>Shared accordion name used by child panels when single-open.</summary>
     public string GroupName { get; } = $"xp-{Guid.NewGuid():N}";
+
+    internal string ShadowClass => Elevation switch
+    {
+        <= 0 => "",
+        1 => "shadow-sm",
+        <= 3 => "shadow",
+        <= 6 => "shadow-md",
+        <= 12 => "shadow-lg",
+        _ => "shadow-xl"
+    };
 
     private string _cls => CssClass.Merge("flex flex-col gap-2", Class);
 }

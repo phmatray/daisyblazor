@@ -1,0 +1,45 @@
+<DataGrid T="WorkItem" Items="_tasks" Hover="true">
+    <Columns>
+        <TemplateColumn Title="Task" CellClass="min-w-44">
+            <CellTemplate>
+                <div class="flex items-center gap-3">
+                    <Avatar Class="shrink-0" Color="Color.Primary" Size="Size.Small">@context.Item.Initials</Avatar>
+                    <div>
+                        <div class="font-bold">@context.Item.Title</div>
+                        <div class="text-sm opacity-60">@context.Item.Assignee</div>
+                    </div>
+                </div>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn Title="Hours" Sortable="true" SortBy="t => t.Minutes" CellClass="text-right whitespace-nowrap" HeaderClass="text-right">
+            <CellTemplate>
+                <span class="font-mono">@((context.Item.Minutes / 60.0).ToString("N1"))</span>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn Title="Status" Sortable="true" SortBy="t => t.Status" CellClass="whitespace-nowrap">
+            <CellTemplate>
+                <StatusChip Status="context.Item.Status" Map="StatusColors" />
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</DataGrid>
+
+@code {
+    private enum WorkStatus { Done, Review, Todo }
+
+    private static readonly StatusMap StatusColors = StatusMap.For<WorkStatus>()
+        .Add(WorkStatus.Done, Color.Success)
+        .Add(WorkStatus.Review, Color.Info)
+        .Default(Color.Default)
+        .Build();
+
+    private record WorkItem(string Initials, string Title, string Assignee, int Minutes, WorkStatus Status);
+
+    private readonly WorkItem[] _tasks =
+    [
+        new("AS", "Add SSO to the login page", "Ana Silva", 1_140, WorkStatus.Done),
+        new("TB", "Fix invoice PDF totals", "Tom Becker", 420, WorkStatus.Done),
+        new("PN", "Migrate staging to .NET 10", "Priya Nair", 780, WorkStatus.Review),
+        new("LM", "Export reports to CSV", "Lucas Martin", 0, WorkStatus.Todo),
+    ];
+}

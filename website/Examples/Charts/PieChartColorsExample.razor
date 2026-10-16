@@ -1,0 +1,14 @@
+<div class="flex flex-wrap items-center gap-8">
+    <PieChart Data="_traffic" ShowLegend="false" Height="9rem" Width="9rem" Title="Traffic by region" />
+    <PieChart Data="_traffic" Height="9rem" Width="auto" Class="min-w-0 flex-1" Title="With legend" />
+</div>
+
+@code {
+    private readonly ChartDataPoint[] _traffic =
+    [
+        new("Europe", 52, "var(--color-primary)"),
+        new("North America", 18, "var(--color-secondary)"),
+        new("Asia Pacific", 16, "var(--color-accent)"),
+        new("Elsewhere", 14, "var(--color-neutral)"),
+    ];
+}

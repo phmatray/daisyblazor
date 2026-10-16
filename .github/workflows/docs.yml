@@ -1,12 +1,13 @@
 name: docs
 
-# Build the Starlight docs site and deploy it to GitHub Pages.
+# Publish the Blazor WebAssembly docs site (website/) to GitHub Pages.
 on:
   push:
     branches: [main]
     paths:
       - 'website/**'
-      - 'docs/**'
+      - 'src/**'
+      - 'Directory.*.props'
       - '.github/workflows/docs.yml'
   workflow_dispatch:
 
@@ -33,34 +34,21 @@ jobs:
         with:
           global-json-file: global.json
 
-      - name: Setup Node
-        uses: actions/setup-node@v7
-        with:
-          node-version: '24'
-          cache: npm
-          cache-dependency-path: website/package-lock.json
+      # The project compiles its Tailwind CSS with the NuGet's standalone CLI (no Node needed).
+      - name: Publish
+        run: dotnet publish website/DaisyBlazor.Docs.csproj -c Release -o publish
 
-      - name: Build Components (XML docs)
-        run: dotnet build src/DaisyBlazor.Components/DaisyBlazor.Components.csproj -c Release
-
-      - name: Build Charts (XML docs)
-        run: dotnet build src/DaisyBlazor.Charts/DaisyBlazor.Charts.csproj -c Release
-
-      - name: Install dependencies
-        working-directory: website
-        run: npm ci
-
-      - name: Generate API reference
-        run: node website/scripts/gen-api.mjs
-
-      - name: Build site
-        working-directory: website
-        run: npm run build
+      # Serve under /daisyblazor/, let GitHub Pages' 404 boot the SPA for deep links, skip Jekyll.
+      - name: Prepare for GitHub Pages
+        run: |
+          sed -i 's|<base href="/" />|<base href="/daisyblazor/" />|' publish/wwwroot/index.html
+          cp publish/wwwroot/index.html publish/wwwroot/404.html
+          touch publish/wwwroot/.nojekyll
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
-          path: website/dist
+          path: publish/wwwroot
 
   deploy:
     name: Deploy

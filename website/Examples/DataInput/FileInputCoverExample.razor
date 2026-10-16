@@ -1,0 +1,18 @@
+@* The dashed zone is a real drop target: an invisible InputFile covers it, so dropping a CSV on it
+   (or clicking it) picks the file instead of letting the browser open it. *@
+<div class="flex flex-col gap-3">
+    <div class="relative grid aspect-[2/1] place-items-center rounded-box border-2 border-dashed border-base-content hover:bg-base-200">
+        <div class="pointer-events-none text-center">
+            <Icon Name="@Icons.Material.Filled.CloudUpload" Size="Size.Large" />
+            <p class="font-display text-xl font-bold">@(_file ?? "Drop a CSV to import")</p>
+        </div>
+        <InputFile accept=".csv" aria-label="Drop a CSV to import" title=""
+                   class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                   OnChange="e => _file = e.File.Name" />
+    </div>
+    <FileInput Color="Color.Primary" Accept=".csv" Class="w-full" />
+</div>
+
+@code {
+    private string? _file;
+}

@@ -1,0 +1,12 @@
+<FloatingLabel Label="Plan">
+    <select class="select w-full" @bind="_plan">
+        <option value="free">Free</option>
+        <option value="pro">Pro</option>
+        <option value="enterprise">Enterprise</option>
+    </select>
+</FloatingLabel>
+<p class="mt-3 text-sm">Plan: <span class="font-mono">@_plan</span></p>
+
+@code {
+    private string _plan = "pro";
+}

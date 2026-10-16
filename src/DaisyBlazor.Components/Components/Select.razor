@@ -22,13 +22,24 @@
 
     <select class="@_selectCls"
             disabled="@Disabled"
+            required="@Required"
             multiple="@MultiSelection"
+            size="@_size"
+            value="@_selectValue"
             @onchange="OnSelectChanged"
             id="@_id"
+            aria-invalid="@(_hasError ? "true" : null)"
+            aria-describedby="@_describedBy"
             @attributes="UserAttributes">
         @if (!MultiSelection && Clearable)
         {
             <option value="" selected="@(SelectedIndex < 0)">@ClearText</option>
+        }
+        else if (!MultiSelection && SelectedIndex < 0)
+        {
+            @* Nothing chosen: show an empty, unpickable placeholder instead of the browser
+               silently displaying (but not selecting) the first option. *@
+            <option value="" selected disabled hidden></option>
         }
         @for (int i = 0; i < _items.Count; i++)
         {
@@ -36,17 +47,20 @@
             SelectItem<T> item = _items[idx];
             <option value="@idx"
                     disabled="@item.Disabled"
-                    selected="@IsSelected(idx)">@(item.ChildContent ?? RenderText(item.Value))</option>
+                    selected="@IsSelected(idx)"
+                    class="@item.Class"
+                    style="@item.Style"
+                    @attributes="item.UserAttributes">@(item.ChildContent ?? RenderText(item.Value))</option>
         }
     </select>
 
-    @if (_hasError && !string.IsNullOrEmpty(_errorText))
+    @if (_showError)
     {
-        <span class="label-text text-error text-xs mt-1">@_errorText</span>
+        <span id="@_helpId" class="label-text text-error text-xs mt-1">@_errorText</span>
     }
     else if (!string.IsNullOrEmpty(HelperText))
     {
-        <span class="label-text text-xs opacity-70 mt-1">@HelperText</span>
+        <span id="@_helpId" class="label-text text-xs opacity-70 mt-1">@HelperText</span>
     }
 </div>
 
@@ -54,19 +68,33 @@
     private readonly string _generatedId = FieldId.New();
     private string _id => FieldId.Resolve(UserAttributes, _generatedId);
 
+    /// <summary>The selected value in single-selection mode; supports two-way binding with <c>@bind-Value</c>.</summary>
     [Parameter] public T? Value { get; set; }
+    /// <summary>Raised with the newly selected value (or default when cleared) in single-selection mode.</summary>
     [Parameter] public EventCallback<T?> ValueChanged { get; set; }
+    /// <summary>The selected values when <see cref="MultiSelection"/> is on; supports <c>@bind-SelectedValues</c>.</summary>
     [Parameter] public IEnumerable<T>? SelectedValues { get; set; }
+    /// <summary>Raised with the chosen values whenever the selection changes in multi-selection mode.</summary>
     [Parameter] public EventCallback<IEnumerable<T>> SelectedValuesChanged { get; set; }
+    /// <summary>Text rendered in a <c>label</c> above the select, linked to it by id.</summary>
     [Parameter] public string? Label { get; set; }
+    /// <summary>Outlined (default) adds <c>select-bordered</c>; Filled also adds <c>bg-base-200</c>; Text renders a borderless ghost select (<c>select-ghost</c>).</summary>
     [Parameter] public Variant Variant { get; set; } = Variant.Outlined;
+    /// <summary>Spacing preset; <c>Margin.Dense</c> renders the compact <c>select-sm</c> size, like <see cref="Dense"/>.</summary>
     [Parameter] public Margin Margin { get; set; } = Margin.Normal;
+    /// <summary>Renders the compact <c>select-sm</c> size.</summary>
     [Parameter] public bool Dense { get; set; }
+    /// <summary>Disables the native select element.</summary>
     [Parameter] public bool Disabled { get; set; }
+    /// <summary>Adds an empty first option (labelled <see cref="ClearText"/>) that resets the value; single-selection only.</summary>
     [Parameter] public bool Clearable { get; set; }
+    /// <summary>Renders a native multiple select bound through <see cref="SelectedValues"/> instead of <see cref="Value"/>.</summary>
     [Parameter] public bool MultiSelection { get; set; }
+    /// <summary>Appends an asterisk to the label and sets the native HTML <c>required</c> attribute.</summary>
     [Parameter] public bool Required { get; set; }
+    /// <summary>Stretches the wrapper and select to full width (<c>w-full</c>); on by default.</summary>
     [Parameter] public bool FullWidth { get; set; } = true;
+    /// <summary>Hint text shown beneath the select; hidden while an error message is showing.</summary>
     [Parameter] public string? HelperText { get; set; }
 
     /// <summary>Marks the control as invalid (adds <c>select-error</c>).</summary>
@@ -85,11 +113,16 @@
 
     [CascadingParameter] private ServerValidationState? ServerValidation { get; set; }
 
+    /// <summary>Label of the empty option added when <see cref="Clearable"/> is set; empty by default.</summary>
     [Parameter] public string ClearText { get; set; } = "";
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public object? For { get; set; }
+    /// <summary>The <see cref="SelectItem{T}"/> children that define the options.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>Extra CSS classes added to the wrapping <c>fieldset</c> element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the wrapping <c>fieldset</c> element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
@@ -103,6 +136,10 @@
     private bool _hasError => Error || _serverError is not null;
 
     private string? _errorText => ErrorText ?? _serverError;
+
+    private bool _showError => _hasError && !string.IsNullOrEmpty(_errorText);
+    private string _helpId => _id + "-help";
+    private string? _describedBy => _showError || !string.IsNullOrEmpty(HelperText) ? _helpId : null;
 
     internal void RegisterItem(SelectItem<T> item)
     {
@@ -143,10 +180,29 @@
         FullWidth ? "w-full" : null,
         Class);
 
-    private string _selectCls => CssClass.Merge(
+    // Single mode drives selection through the select's value property: the option `selected`
+    // attribute stops taking effect once the user has picked an option (selectedness dirty flag).
+    private string? _selectValue => MultiSelection ? null : SelectedIndex < 0 ? "" : SelectedIndex.ToString();
+
+    // A multiple select is a listbox: show the options as rows (up to 8) rather than one strip.
+    private object? _size => MultiSelection ? Math.Clamp(_items.Count, 2, 8) : null;
+
+    // daisyUI .select is a fixed-height inline-flex control built for a single-value dropdown;
+    // on a <select multiple> it squashes the options into one clipped row. The textarea look
+    // (border, padding, focus ring, auto height) suits a listbox.
+    private string _selectCls => MultiSelection
+        ? CssClass.Merge(
+            "textarea h-auto",
+            Variant == Variant.Filled ? "bg-base-200" : null,
+            Variant == Variant.Text ? "border-0" : null,
+            _isDense ? "textarea-sm" : null,
+            FullWidth ? "w-full" : null,
+            _hasError ? "textarea-error" : null)
+        : CssClass.Merge(
         "select",
         Variant == Variant.Outlined ? "select-bordered" : null,
         Variant == Variant.Filled ? "select-bordered bg-base-200" : null,
+        Variant == Variant.Text ? "select-ghost" : null,
         _isDense ? "select-sm" : null,
         FullWidth ? "w-full" : null,
         _hasError ? "select-error" : null);

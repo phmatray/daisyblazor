@@ -4,23 +4,31 @@
 
 @* MudAutocomplete<T> replacement. A text input with a debounced async search dropdown. *@
 
-<div class="form-control w-full @Class" style="@Style">
+<div class="fieldset w-full @Class" style="@Style">
     @if (!string.IsNullOrEmpty(Label))
     {
-        <label class="label" for="@_id"><span class="label-text">@Label</span></label>
+        <label class="label" for="@_id"><span class="label-text">@Label@(Required ? " *" : null)</span></label>
     }
-    <div class="dropdown w-full @(_open && (_results.Count > 0 || _searched) ? "dropdown-open" : null)">
+    <div class="dropdown w-full @(_listVisible ? "dropdown-open" : null)">
         <label class="input input-bordered flex items-center gap-2 w-full @(Dense ? "input-sm" : null) @(Disabled ? "input-disabled" : null)">
             @if (Adornment == Adornment.Start && !string.IsNullOrEmpty(AdornmentIcon))
             {
                 <Icon Name="@AdornmentIcon" Size="Size.Small" Class="opacity-60" />
             }
             <input type="text" class="grow bg-transparent outline-none"
+                   role="combobox"
+                   aria-autocomplete="list"
+                   aria-expanded="@(_listVisible ? "true" : "false")"
+                   aria-controls="@_listId"
+                   aria-activedescendant="@(_listVisible && _active >= 0 ? OptionId(_active) : null)"
+                   autocomplete="off"
                    placeholder="@Placeholder"
                    value="@_text"
                    disabled="@Disabled"
                    @oninput="OnInput"
                    @onfocus="@(() => _open = true)"
+                   @onblur="Close"
+                   @onkeydown="OnKeyDownAsync"
                    id="@_id"
                    @attributes="UserAttributes" />
             @if (Clearable && (!string.IsNullOrEmpty(_text) || Value is not null))
@@ -35,16 +43,17 @@
             }
         </label>
 
-        @if (_open)
+        @if (_listVisible)
         {
-            <ul class="dropdown-content menu bg-base-100 rounded-box shadow-lg z-50 w-full mt-1 max-h-72 flex-nowrap overflow-y-auto">
+            <ul id="@_listId" role="listbox" aria-label="@Label"
+                class="dropdown-content menu bg-base-100 rounded-box shadow-lg z-50 w-full mt-1 max-h-72 flex-nowrap overflow-y-auto">
                 @if (_loading)
                 {
-                    <li class="disabled"><span class="loading loading-spinner loading-sm"></span></li>
+                    <li role="presentation" class="disabled"><span class="loading loading-spinner loading-sm" aria-label="Loading"></span></li>
                 }
-                else if (_results.Count == 0 && _searched)
+                else if (_results.Count == 0)
                 {
-                    <li class="disabled">
+                    <li role="presentation" class="disabled">
                         @if (NoItemsTemplate is not null)
                         {
                             @NoItemsTemplate
@@ -57,11 +66,17 @@
                 }
                 else
                 {
-                    @foreach (T item in _results)
+                    @for (int i = 0; i < _results.Count; i++)
                     {
-                        T captured = item;
-                        <li>
-                            <button type="button" @onclick="@(() => SelectAsync(captured))">
+                        T captured = _results[i];
+                        int index = i;
+                        @* mousedown is cancelled so the input keeps focus and blur does not close the list before the click lands. *@
+                        <li role="presentation">
+                            <button type="button" role="option" tabindex="-1" id="@OptionId(index)"
+                                    aria-selected="@(index == _active ? "true" : "false")"
+                                    class="@(index == _active ? "menu-active" : null)"
+                                    @onmousedown:preventDefault="true"
+                                    @onclick="@(() => SelectAsync(captured))">
                                 @if (ItemTemplate is not null)
                                 {
                                     @ItemTemplate(captured)
@@ -79,7 +94,7 @@
     </div>
     @if (Required && _touched && Value is null)
     {
-        <label class="label"><span class="label-text-alt text-error">@RequiredError</span></label>
+        <span class="label-text text-error text-xs mt-1">@RequiredError</span>
     }
 </div>
 
@@ -87,32 +102,59 @@
     private readonly string _generatedId = FieldId.New();
     private string _id => FieldId.Resolve(UserAttributes, _generatedId);
 
+    /// <summary>The currently selected item; supports two-way binding with @bind-Value.</summary>
     [Parameter] public T? Value { get; set; }
+    /// <summary>Raised when an item is selected, cleared, or reset by emptying the text.</summary>
     [Parameter] public EventCallback<T?> ValueChanged { get; set; }
+    /// <summary>Text rendered in a daisyUI label above the input.</summary>
     [Parameter] public string? Label { get; set; }
+    /// <summary>Placeholder text shown in the input when it is empty.</summary>
     [Parameter] public string? Placeholder { get; set; }
+    /// <summary>Async search invoked with the typed text and a cancellation token; returns the dropdown results.</summary>
     [Parameter] public Func<string, CancellationToken, Task<IEnumerable<T>>>? SearchFunc { get; set; }
+    /// <summary>Converts an item to its display text; falls back to ToString() when not set.</summary>
     [Parameter] public Func<T, string>? ToStringFunc { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect (the input is always input-bordered).</summary>
     [Parameter] public Variant Variant { get; set; } = Variant.Outlined;
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public Margin Margin { get; set; } = Margin.None;
+    /// <summary>Shows a clear button inside the input that empties the text and resets the value.</summary>
     [Parameter] public bool Clearable { get; set; }
+    /// <summary>Delay in milliseconds after the last keystroke before searching; defaults to 300.</summary>
     [Parameter] public int DebounceInterval { get; set; } = 300;
+    /// <summary>Minimum number of typed characters before the search runs; defaults to 2.</summary>
     [Parameter] public int MinCharacters { get; set; } = 2;
+    /// <summary>Maximum number of results shown in the dropdown; defaults to 20.</summary>
     [Parameter] public int MaxItems { get; set; } = 20;
+    /// <summary>Renders a smaller input using the daisyUI input-sm class.</summary>
     [Parameter] public bool Dense { get; set; }
+    /// <summary>Disables the input and applies the daisyUI input-disabled class.</summary>
     [Parameter] public bool Disabled { get; set; }
+    /// <summary>Shows <see cref="RequiredError"/> once the user has typed and no value is selected.</summary>
     [Parameter] public bool Required { get; set; }
+    /// <summary>Error message shown below the input when <see cref="Required"/> is set and no value is selected.</summary>
     [Parameter] public string? RequiredError { get; set; }
+    /// <summary>Icon rendered inside the input at the side given by <see cref="Adornment"/>.</summary>
     [Parameter] public string? AdornmentIcon { get; set; }
+    /// <summary>Where <see cref="AdornmentIcon"/> is placed (start or end); defaults to none, which hides it.</summary>
     [Parameter] public Adornment Adornment { get; set; } = Adornment.None;
+    /// <summary>Clears the selected value when the user deletes all text from the input.</summary>
     [Parameter] public bool ResetValueOnEmptyText { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public bool CoerceText { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public bool CoerceValue { get; set; }
+    /// <summary>Text shown in the dropdown when a search returns no results; defaults to "No items found".</summary>
     [Parameter] public string NoItemsText { get; set; } = "No items found";
+    /// <summary>Accessible label for the clear button; defaults to "Clear".</summary>
     [Parameter] public string ClearAriaLabel { get; set; } = "Clear";
+    /// <summary>Custom content for each result in the dropdown; defaults to the item's display text.</summary>
     [Parameter] public RenderFragment<T>? ItemTemplate { get; set; }
+    /// <summary>Custom content shown when a search returns no results; overrides <see cref="NoItemsText"/>.</summary>
     [Parameter] public RenderFragment? NoItemsTemplate { get; set; }
+    /// <summary>Extra CSS classes added to the root form-control element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root form-control element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
@@ -123,12 +165,49 @@
     private bool _searched;
     private bool _touched;
     private CancellationTokenSource? _debounceCts;
+    private int _active = -1;
+    // The last value this component rendered text for; an outside change to Value resyncs the text.
+    private T? _syncedValue;
+
+    private string _listId => $"{_id}-listbox";
+    private string OptionId(int index) => $"{_id}-option-{index}";
+
+    // Only show the panel when there is something to show; an empty .dropdown-content would
+    // otherwise appear through daisyUI's :focus-within rule as a blank shadowed box.
+    private bool _listVisible => _open && (_loading || _results.Count > 0 || _searched);
 
     protected override void OnParametersSet()
     {
-        if (Value is not null && string.IsNullOrEmpty(_text))
+        if (!EqualityComparer<T?>.Default.Equals(Value, _syncedValue))
         {
-            _text = FormatItem(Value);
+            _syncedValue = Value;
+            _text = Value is null ? string.Empty : FormatItem(Value);
+        }
+    }
+
+    private void Close()
+    {
+        _open = false;
+        _active = -1;
+    }
+
+    private async Task OnKeyDownAsync(KeyboardEventArgs args)
+    {
+        switch (args.Key)
+        {
+            case "Escape":
+                Close();
+                break;
+            case "ArrowDown" or "ArrowUp" when _results.Count > 0:
+                _open = true;
+                int step = args.Key == "ArrowDown" ? 1 : -1;
+                _active = _active < 0 && step < 0
+                    ? _results.Count - 1
+                    : (_active + step + _results.Count) % _results.Count;
+                break;
+            case "Enter" when _listVisible && _active >= 0 && _active < _results.Count:
+                await SelectAsync(_results[_active]);
+                break;
         }
     }
 
@@ -184,6 +263,7 @@
 
             _results.Clear();
             _results.AddRange(found.Take(MaxItems));
+            _active = -1;
             _searched = true;
         }
         catch (OperationCanceledException)
@@ -200,8 +280,9 @@
     private async Task SelectAsync(T item)
     {
         _text = FormatItem(item);
-        _open = false;
+        Close();
         _results.Clear();
+        _searched = false;
         await SetValueAsync(item);
     }
 
@@ -210,12 +291,14 @@
         _text = string.Empty;
         _results.Clear();
         _searched = false;
+        _active = -1;
         await SetValueAsync(default);
     }
 
     private async Task SetValueAsync(T? value)
     {
         Value = value;
+        _syncedValue = value;
         if (ValueChanged.HasDelegate)
         {
             await ValueChanged.InvokeAsync(value);

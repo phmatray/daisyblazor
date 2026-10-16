@@ -1,0 +1,76 @@
+@* The theme picker: the current theme, and every theme as a swatch rendered in its own colours. *@
+@implements IDisposable
+@inject DocsJs Js
+
+@* The picker is a bare <details>: picking a theme, Esc or a click outside closes it by re-creating it (@key). *@
+<div class="theme-picker" @onkeydown="OnKey">
+<div class="theme-picker-dismiss fixed inset-0 hidden" aria-hidden="true" @onclick="Close"></div>
+<Dropdown @key="_generation" Class="relative z-10" Placement="DropdownPlacement.End" ContentClass="!w-[min(23rem,calc(100vw-2rem))] !p-3 mt-2 !rounded-2xl border border-base-300 text-base-content">
+    <Activator>
+        <span class="flex h-11 items-center gap-2 rounded-full bg-primary-content pl-1.5 pr-3 font-bold text-primary"
+              title="Change theme">
+            <span class="grid size-8 place-items-center rounded-full bg-primary" aria-hidden="true">
+                <span class="size-2.5 rounded-full bg-primary-content"></span>
+            </span>
+            <span class="hidden whitespace-nowrap font-display text-[0.95rem] xl:inline">@Theme</span>
+            <span class="sr-only">Change theme, current: @Theme</span>
+            <Icon Name="@Icons.Material.Filled.ExpandMore" Size="Size.Small" />
+        </span>
+    </Activator>
+    <ChildContent>
+        <div class="flex items-baseline justify-between px-1 pb-2">
+            <span class="font-display text-lg font-semibold">Choose a theme</span>
+            <a href="themes" class="text-sm font-semibold underline decoration-primary decoration-2 underline-offset-4">All @ThemeDeck.Themes.Count →</a>
+        </div>
+        <div class="grid max-h-[60vh] grid-cols-2 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-3">
+            @foreach (string t in ThemeDeck.Themes)
+            {
+                string theme = t;
+                <button type="button" data-theme="@theme"
+                        class="group flex items-center gap-2 rounded-xl bg-base-100 px-2 py-1.5 text-left text-base-content ring-base-content transition hover:ring-2 @(theme == Theme ? "ring-2" : "")"
+                        aria-pressed="@(theme == Theme ? "true" : "false")"
+                        @onclick="e => PutOn(theme, e)">
+                    <span class="relative size-6 shrink-0 rounded-full bg-primary" aria-hidden="true">
+                        <span class="absolute -right-0.5 -bottom-0.5 size-3 rounded-full border-2 border-base-100 bg-secondary"></span>
+                    </span>
+                    <span class="truncate text-[0.8rem] font-semibold">@theme</span>
+                </button>
+            }
+        </div>
+    </ChildContent>
+</Dropdown>
+</div>
+
+@code {
+    [CascadingParameter] public ThemeProvider? Provider { get; set; }
+
+    private string Theme => Provider?.Theme ?? ThemeDeck.Light;
+
+    protected override void OnInitialized()
+    {
+        if (Provider is not null) Provider.ThemeChanged += Refresh;
+    }
+
+    private void Refresh() => InvokeAsync(StateHasChanged);
+
+    private int _generation;
+
+    private void Close() => _generation++;
+
+    private void OnKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape") Close();
+    }
+
+    private async Task PutOn(string theme, MouseEventArgs e)
+    {
+        if (Provider is null) return;
+        Close();
+        await ThemeDeck.PutOnAsync(Provider, Js, theme, e.ClientX, e.ClientY);
+    }
+
+    public void Dispose()
+    {
+        if (Provider is not null) Provider.ThemeChanged -= Refresh;
+    }
+}

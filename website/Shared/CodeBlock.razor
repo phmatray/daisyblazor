@@ -1,0 +1,38 @@
+@* Highlighted code in the theme's neutral, with a copy button. Colours come from the active theme. *@
+@inject DocsJs Js
+
+<div class="code-block group relative overflow-hidden @(Flush ? "" : "rounded-2xl") @Class">
+    @if (Title is not null)
+    {
+        <div class="flex items-center justify-between border-b border-neutral-content/15 px-4 py-2 text-xs font-semibold text-neutral-content/70">
+            <span class="font-mono">@Title</span>
+        </div>
+    }
+    <button type="button" @onclick="CopyAsync"
+            class="btn btn-ghost btn-xs absolute right-2 z-10 @(Title is null ? "top-2" : "top-1") gap-1 bg-neutral text-neutral-content/85 shadow-[-14px_0_10px_var(--color-neutral)] hover:bg-neutral hover:text-neutral-content focus-visible:text-neutral-content"
+            aria-label="@(_copied ? "Copied" : "Copy code")">
+        <Icon Name="@(_copied ? Icons.Material.Filled.Check : Icons.Material.Filled.ContentCopy)" Size="Size.Small" />
+        <span>@(_copied ? "Copied" : "Copy")</span>
+    </button>
+    <pre class="overflow-x-auto px-5 py-4 text-[0.85rem] leading-[1.7] @(Title is null ? "pt-10" : "")"><code>@((MarkupString)RazorHighlighter.Highlight(Code, Language))</code></pre>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Code { get; set; } = "";
+    [Parameter] public string Language { get; set; } = "razor";
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Class { get; set; }
+    /// <summary>Square corners, for code attached to a card.</summary>
+    [Parameter] public bool Flush { get; set; }
+
+    private bool _copied;
+
+    private async Task CopyAsync()
+    {
+        _copied = await Js.Copy(Code);
+        if (!_copied) return;
+        StateHasChanged();
+        await Task.Delay(1600);
+        _copied = false;
+    }
+}

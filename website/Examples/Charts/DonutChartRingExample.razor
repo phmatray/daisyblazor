@@ -1,0 +1,12 @@
+<div class="flex flex-wrap items-center gap-8">
+    <DonutChart Data="_storage" InnerRadiusRatio="0.8" CenterLabel="72%" ShowLegend="false" Height="9rem" Width="9rem" Title="Storage used" />
+    <DonutChart Data="_storage" InnerRadiusRatio="0.35" ShowLegend="false" Height="9rem" Width="9rem" Title="Thick ring" />
+</div>
+
+@code {
+    private readonly ChartDataPoint[] _storage =
+    [
+        new("Used", 3_600, "var(--color-success)"),
+        new("Available", 1_400, "var(--color-base-300)"),
+    ];
+}

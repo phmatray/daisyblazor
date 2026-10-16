@@ -1,0 +1,12 @@
+<div class="flex flex-col gap-3">
+    <p class="font-display text-2xl font-bold leading-none">Launch checklist</p>
+    <Checkbox Label="Run the migrations" Color="Color.Primary" Size="Size.Large" @bind-Value="_a" />
+    <Checkbox Label="Update the changelog" Color="Color.Secondary" Size="Size.Large" @bind-Value="_b" />
+    <Checkbox Label="Notify customers" Color="Color.Tertiary" Size="Size.Large" @bind-Value="_c" />
+</div>
+
+@code {
+    private bool _a = true;
+    private bool _b = true;
+    private bool _c;
+}

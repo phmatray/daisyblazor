@@ -1,0 +1,25 @@
+<div class="space-y-4">
+    <PageHeader Title="Projects" Icon="@Icons.Material.Filled.Folder" Subtitle="12 projects, 4 in progress" HeadingLevel="2">
+        <Actions>
+            <IconButton Icon="@Icons.Material.Filled.Add" Title="New project" Class="bg-primary text-primary-content" />
+        </Actions>
+    </PageHeader>
+    <Divider Class="my-0" />
+    @foreach ((string title, string due, string tone) in _rows)
+    {
+        <div class="flex items-center gap-3">
+            <div class="@tone size-10 shrink-0 rounded-box"></div>
+            <span class="flex-1 font-semibold">@title</span>
+            <span class="text-sm text-base-content/60">@due</span>
+        </div>
+    }
+</div>
+
+@code {
+    private readonly (string Title, string Due, string Tone)[] _rows =
+    [
+        ("Billing revamp", "Q4", "bg-primary"),
+        ("Mobile app", "Q1", "bg-secondary"),
+        ("SSO for Enterprise", "Q2", "bg-accent"),
+    ];
+}

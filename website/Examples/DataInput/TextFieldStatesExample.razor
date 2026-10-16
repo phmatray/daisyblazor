@@ -1,0 +1,14 @@
+<div class="grid w-full gap-x-4 sm:grid-cols-2">
+    <TextField Label="Invoice number" @bind-Value="_invoice" Required="true" HelperText="Shown at the top of the PDF, e.g. INV-2041" />
+    <TextField Label="Year founded" Value="201" Error="true" ErrorText="Use four digits, e.g. 2019." />
+    <TextField Label="Company" Value="Acme Cloud" Disabled="true" />
+    <TextField Label="Region" Value="eu-west-1" ReadOnly="true" />
+    <TextField Label="Password" InputType="InputType.Password" @bind-Value="_password" Immediate="true"
+               HelperText="@($"{_password?.Length ?? 0} characters")" />
+    <TextField Label="Dense" Dense="true" Placeholder="A smaller input" />
+</div>
+
+@code {
+    private string? _invoice = "INV-2041";
+    private string? _password;
+}

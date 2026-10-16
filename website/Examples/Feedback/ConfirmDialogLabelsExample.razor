@@ -1,0 +1,23 @@
+@inject IDialogService DialogService
+
+<div class="flex flex-wrap items-center gap-3">
+    <Button Color="Color.Success" Variant="Variant.Filled" OnClick="PublishAsync">Publier le rapport</Button>
+    <span class="text-sm text-base-content/70">@_status</span>
+</div>
+
+@code {
+    private string _status = "Brouillon";
+
+    private async Task PublishAsync()
+    {
+        IDialogReference dialog = await DialogService.ShowAsync<ConfirmDialog>("Publier ?", new DialogParameters<ConfirmDialog>
+        {
+            { x => x.ContentText, "Le rapport sera visible par toute l’équipe." },
+            { x => x.ButtonText, "Publier" },
+            { x => x.CancelText, "Annuler" },
+            { x => x.Color, Color.Success },
+        });
+
+        _status = (await dialog.Result).Canceled ? "Brouillon" : "Publié";
+    }
+}

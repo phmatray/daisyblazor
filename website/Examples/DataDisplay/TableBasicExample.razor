@@ -1,0 +1,27 @@
+@* Items + HeaderContent (Th) + RowTemplate (Td): the MudTable shape, rendered as a daisyUI table. *@
+<Table Items="_invoices">
+    <HeaderContent>
+        <Th>Invoice</Th>
+        <Th>Customer</Th>
+        <Th>Plan</Th>
+        <Th Class="text-right">Amount</Th>
+    </HeaderContent>
+    <RowTemplate>
+        <Td DataLabel="Invoice" Class="font-semibold">@context.Number</Td>
+        <Td DataLabel="Customer">@context.Customer</Td>
+        <Td DataLabel="Plan">@context.Plan</Td>
+        <Td DataLabel="Amount" Class="text-right font-mono">@context.Amount.ToString("€0.00")</Td>
+    </RowTemplate>
+</Table>
+
+@code {
+    private record Invoice(string Number, string Customer, string Plan, decimal Amount);
+
+    private readonly Invoice[] _invoices =
+    [
+        new("INV-2084", "Northwind Traders", "Enterprise", 1250.00m),
+        new("INV-2085", "Contoso", "Pro", 290.00m),
+        new("INV-2086", "Fabrikam", "Pro", 145.50m),
+        new("INV-2087", "Initech", "Free", 0.00m),
+    ];
+}

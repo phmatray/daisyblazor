@@ -28,11 +28,17 @@
 </div>
 
 @code {
+    /// <summary>Free content rendered after the avatar and content slots.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Avatar slot rendered at the start of the header.</summary>
     [Parameter] public RenderFragment? CardHeaderAvatar { get; set; }
+    /// <summary>Title area rendered next to the avatar, filling the remaining width.</summary>
     [Parameter] public RenderFragment? CardHeaderContent { get; set; }
+    /// <summary>Action buttons pushed to the end of the header.</summary>
     [Parameter] public RenderFragment? CardHeaderActions { get; set; }
+    /// <summary>Extra CSS classes merged onto the root element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 }

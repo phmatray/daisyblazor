@@ -1,0 +1,16 @@
+@* The values are plain hex strings, so they can drive any style. *@
+<div class="grid w-full items-center gap-4 sm:grid-cols-[1fr_auto]">
+    <div class="flex flex-col">
+        <ColorPicker Label="Background" @bind-Value="_background" />
+        <ColorPicker Label="Text" @bind-Value="_ink" />
+    </div>
+    <div class="grid size-40 place-items-center rounded-md border-2 border-base-content p-3 text-center"
+         style="background:@_background; color:@_ink">
+        <span class="font-display text-2xl font-bold leading-tight">Acme Cloud</span>
+    </div>
+</div>
+
+@code {
+    private string? _background = "#f2c14e";
+    private string? _ink = "#1d3557";
+}

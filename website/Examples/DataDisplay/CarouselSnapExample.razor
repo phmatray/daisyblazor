@@ -1,0 +1,20 @@
+@* Snap centres (or end-aligns) each stop; Width sizes the items. *@
+<Carousel Snap="CarouselSnap.Center" Class="w-full gap-4 rounded-box bg-neutral p-4">
+    @foreach ((string title, string env) in _environments)
+    {
+        <CarouselItem Width="60%">
+            <div class="flex h-40 w-full flex-col justify-end rounded-box bg-base-100 p-4">
+                <span class="text-xs uppercase tracking-widest text-base-content/60">@env</span>
+                <span class="font-display text-xl font-bold">@title</span>
+            </div>
+        </CarouselItem>
+    }
+</Carousel>
+
+@code {
+    private readonly (string Title, string Env)[] _environments =
+    [
+        ("Billing API", "production"), ("Customer portal", "staging"),
+        ("Admin dashboard", "dev"), ("Mobile app", "production"),
+    ];
+}

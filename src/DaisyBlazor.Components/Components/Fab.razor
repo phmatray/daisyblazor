@@ -4,19 +4,24 @@
    The trigger is a focusable div (tabindex="0") — required for CSS focus-within to work
    on all browsers. When Flower is true the speed-dial items radiate outward; otherwise
    they stack vertically. When ShowClose is true a .fab-close overlay appears while open
-   so clicking outside collapses the menu. *@
+   so clicking outside collapses the menu. Open state is pure CSS (:focus-within); the
+   root mirrors it via focusin/focusout so the trigger can expose aria-expanded. *@
 
-<div class="@_cls" style="@Style" @attributes="UserAttributes">
+<div class="@_cls" style="@Style" @onfocusin="() => _expanded = true" @onfocusout="() => _expanded = false"
+     @attributes="UserAttributes">
     @* Focusable trigger — tabindex + role required for cross-browser focus-within *@
-    <div tabindex="0" role="button" class="@_triggerCls" aria-label="@AriaLabel">
+    <div tabindex="0" role="button" class="@_triggerCls" aria-label="@AriaLabel"
+         aria-haspopup="true" aria-expanded="@(_expanded ? "true" : "false")">
         <Icon Name="@_icon" />
     </div>
 
     @if (ShowClose)
     {
-        @* fab-close must NOT be focusable so it collapses on click without re-opening *@
-        <div class="fab-close">
-            <span class="@_closeCls" role="button" aria-label="@CloseAriaLabel">
+        @* fab-close must NOT be focusable: clicking it drops focus out of the fab, which collapses it.
+           So it is a pointer-only affordance and hidden from assistive tech; keyboard users collapse
+           the speed dial by tabbing out of it (focus leaving the fab), the native equivalent. *@
+        <div class="fab-close" aria-hidden="true">
+            <span class="@_closeCls" title="@CloseAriaLabel">
                 <Icon Name="@Icons.Material.Filled.Close" />
             </span>
         </div>
@@ -35,7 +40,7 @@
     /// </summary>
     [Parameter] public string? AriaLabel { get; set; }
 
-    /// <summary>Accessible name for the close/dismiss overlay control. Defaults to "Close".</summary>
+    /// <summary>Tooltip (title) of the pointer-only close overlay control. Defaults to "Close".</summary>
     [Parameter] public string? CloseAriaLabel { get; set; } = "Close";
 
     /// <summary>Semantic color applied to the trigger button.</summary>
@@ -56,9 +61,20 @@
     /// </summary>
     [Parameter] public bool ShowClose { get; set; } = true;
 
+    /// <summary>
+    /// When true (default) the fab is fixed to the viewport corner (daisyUI .fab).
+    /// When false it is positioned absolute, in the corner of its nearest positioned ancestor
+    /// (give the container <c>relative</c>), e.g. to keep it inside a card or demo box.
+    /// </summary>
+    [Parameter] public bool Fixed { get; set; } = true;
+
+    /// <summary>Extra CSS classes added to the fab root.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the fab root.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
+
+    private bool _expanded;
 
     private string _icon => !string.IsNullOrWhiteSpace(Icon)
         ? Icon!
@@ -67,6 +83,7 @@
     private string _cls => CssClass.Merge(
         "fab",
         Flower ? "fab-flower" : null,
+        Fixed ? null : "absolute",
         Class);
 
     private string _triggerCls => CssClass.Merge(

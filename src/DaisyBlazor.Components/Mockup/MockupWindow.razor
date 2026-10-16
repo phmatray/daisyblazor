@@ -7,7 +7,11 @@
 <div class="@_cls" style="@Style" @attributes="UserAttributes">
     @if (!string.IsNullOrEmpty(Title))
     {
-        <div class="flex items-center gap-2 px-4 py-2 border-b border-base-300">
+        @* Positioned onto the ::before traffic-light row (padding-top 1.25rem, dots 0.75rem tall)
+           rather than stacked as a second bar under it; the 6rem start padding clears the dots.
+           Geometry is inline so it needs no safelisted utilities. *@
+        <div class="pointer-events-none absolute flex items-center justify-center"
+             style="inset-inline:0;top:1.25rem;height:.75rem;padding-inline:6rem 1rem">
             <span class="text-sm font-medium truncate">@Title</span>
         </div>
     }
@@ -26,15 +30,17 @@
     /// <summary>Optional window title shown in the title bar.</summary>
     [Parameter] public string? Title { get; set; }
 
-    /// <summary>Optional border color token applied as <c>border-{token}</c>; defaults to base-300.</summary>
+    /// <summary>Optional border color token applied as <c>border-{token}</c> on a 1px border; defaults to base-300.</summary>
     [Parameter] public Color BorderColor { get; set; } = Color.Default;
 
+    /// <summary>Extra CSS classes merged onto the <c>.mockup-window</c> element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the <c>.mockup-window</c> element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
     private string _cls => CssClass.Merge(
-        "mockup-window",
+        "mockup-window border",
         CssClass.ColorToken(BorderColor) is { } t ? $"border-{t}" : "border-base-300",
         Class);
 }

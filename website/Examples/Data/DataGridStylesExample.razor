@@ -1,0 +1,32 @@
+<div class="mb-4 flex flex-wrap gap-x-6 gap-y-2">
+    <Switch @bind-Value="_dense" Color="Color.Primary">Dense</Switch>
+    <Switch @bind-Value="_striped" Color="Color.Primary">Striped</Switch>
+    <Switch @bind-Value="_bordered" Color="Color.Primary">Bordered</Switch>
+    <Switch @bind-Value="_loading" Color="Color.Primary">Loading</Switch>
+</div>
+
+<DataGrid T="Plan" Items="_plans" Dense="_dense" Striped="_striped" Bordered="_bordered"
+          Loading="_loading" SkeletonRows="4" Hover="true">
+    <Columns>
+        <PropertyColumn T="Plan" TProperty="string" Property="p => p.Name" Title="Plan" />
+        <PropertyColumn T="Plan" TProperty="int" Property="p => p.Accounts" Title="Accounts" Format="N0" />
+        <PropertyColumn T="Plan" TProperty="double" Property="p => p.Share" Title="Share" Format="P0" />
+    </Columns>
+</DataGrid>
+
+@code {
+    private bool _dense;
+    private bool _striped = true;
+    private bool _bordered = true;
+    private bool _loading;
+
+    private record Plan(string Name, int Accounts, double Share);
+
+    private readonly Plan[] _plans =
+    [
+        new("Free", 48_200, 0.41),
+        new("Pro", 39_900, 0.34),
+        new("Team", 21_100, 0.18),
+        new("Enterprise", 8_300, 0.07),
+    ];
+}

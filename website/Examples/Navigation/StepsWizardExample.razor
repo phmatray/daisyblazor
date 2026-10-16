@@ -1,0 +1,19 @@
+@* Completed paints step-primary, Active paints step-secondary. *@
+<div class="flex w-full flex-col gap-5">
+    <Steps Class="w-full">
+        @for (int i = 0; i < _labels.Length; i++)
+        {
+            string label = _labels[i];
+            <Step Completed="i < _current" Active="i == _current">@label</Step>
+        }
+    </Steps>
+    <div class="flex justify-center gap-2">
+        <Button Variant="Variant.Outlined" Size="Size.Small" Disabled="_current == 0" OnClick="() => _current--">Back</Button>
+        <Button Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Disabled="_current == _labels.Length - 1" OnClick="() => _current++">Next</Button>
+    </div>
+</div>
+
+@code {
+    private int _current = 1;
+    private readonly string[] _labels = ["Basket", "Shipping", "Payment", "Confirm"];
+}

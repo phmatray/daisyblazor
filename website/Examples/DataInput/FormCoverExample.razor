@@ -1,0 +1,12 @@
+<Form>
+    <p class="font-display text-2xl font-bold leading-none">Join the beta</p>
+    <TextField Label="Name" @bind-Value="_name" Margin="Margin.None" Dense="true" />
+    <TextField Label="Email" Value="@("mei@")" Error="true" ErrorText="That address looks unfinished." Margin="Margin.None" Dense="true" />
+    <Checkbox Label="Email me the release notes" Color="Color.Primary" @bind-Value="_notes" />
+    <Button Color="Color.Primary" Variant="Variant.Filled" FullWidth="true">Sign me up</Button>
+</Form>
+
+@code {
+    private string? _name = "Mei Chen";
+    private bool _notes = true;
+}

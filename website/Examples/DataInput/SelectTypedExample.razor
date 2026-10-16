@@ -1,0 +1,18 @@
+<div class="grid w-full gap-x-4 sm:grid-cols-2">
+    <Select T="int" Label="Seats" @bind-Value="_seats">
+        <SelectItem Value="10">10 seats</SelectItem>
+        <SelectItem Value="50">50 seats</SelectItem>
+        <SelectItem Value="100">100 seats</SelectItem>
+    </Select>
+    <Select T="DayOfWeek" Label="Deploy day" @bind-Value="_day">
+        <SelectItem Value="DayOfWeek.Monday" />
+        <SelectItem Value="DayOfWeek.Wednesday" />
+        <SelectItem Value="DayOfWeek.Friday" />
+    </Select>
+</div>
+<p class="mt-3 font-mono text-sm">seats=@_seats · day=@_day</p>
+
+@code {
+    private int _seats = 50;
+    private DayOfWeek _day = DayOfWeek.Wednesday;
+}

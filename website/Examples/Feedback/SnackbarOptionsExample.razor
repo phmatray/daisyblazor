@@ -1,0 +1,21 @@
+@inject ISnackbar Snackbar
+
+<div class="flex flex-wrap gap-3">
+    <Button Variant="Variant.Outlined" OnClick="Sticky">Stays 30 s</Button>
+    <Button Variant="Variant.Outlined" OnClick="Brief">Brief, no close button</Button>
+    <Button Variant="Variant.Outlined" OnClick="Repeat">Allow duplicates</Button>
+    <Button Variant="Variant.Text" OnClick="Snackbar.Clear">Clear all</Button>
+</div>
+
+@code {
+    private void Sticky() => Snackbar.Add("Export finished. Review it before you share it.", Severity.Info,
+        o => o.VisibleStateDuration = 30_000);
+
+    private void Brief() => Snackbar.Add("Copied link", Severity.Success, o =>
+    {
+        o.VisibleStateDuration = 2000;
+        o.ShowCloseIcon = false;
+    });
+
+    private void Repeat() => Snackbar.Add("Task added", Severity.Normal, o => o.PreventDuplicates = false);
+}

@@ -1,0 +1,41 @@
+<DataGrid T="Account" ServerDataFunc="LoadAsync" RowsPerPage="5" Hover="true">
+    <Columns>
+        <PropertyColumn T="Account" TProperty="int" Property="a => a.Rank" Title="#" />
+        <PropertyColumn T="Account" TProperty="string" Property="a => a.Company" Title="Company" />
+        <PropertyColumn T="Account" TProperty="int" Property="a => a.ActiveUsers" Title="Active users" Format="N0" />
+    </Columns>
+    <PagerContent>
+        <DataGridPager T="Account" PageSizeOptions="[5, 10]" />
+    </PagerContent>
+</DataGrid>
+
+@code {
+    private record Account(int Rank, string Company, int ActiveUsers);
+
+    private static readonly string[] Companies =
+    [
+        "Globex", "Northwind Traders", "Contoso", "Fabrikam", "Umbrella Corp",
+        "Initech", "Adventure Works", "Tailspin Toys", "Wide World Importers", "Litware",
+        "Proseware", "Woodgrove Bank",
+    ];
+
+    // Stands in for a database or API: the grid only asks for the page it is showing.
+    private static readonly Account[] Database = Companies
+        .Select((n, i) => new Account(i + 1, n, 48_000 - i * 3_100))
+        .ToArray();
+
+    private async Task<GridData<Account>> LoadAsync(GridState<Account> state)
+    {
+        await Task.Delay(300);
+        IEnumerable<Account> rows = Database;
+        foreach (SortDefinition<Account> sort in state.SortDefinitions)
+        {
+            rows = sort.Descending ? rows.OrderByDescending(sort.SortFunc) : rows.OrderBy(sort.SortFunc);
+        }
+        return new GridData<Account>
+        {
+            Items = rows.Skip(state.Page * state.PageSize).Take(state.PageSize).ToList(),
+            TotalItems = Database.Length,
+        };
+    }
+}

@@ -1,0 +1,39 @@
+<Autocomplete T="Customer" Label="Customer" Placeholder="Search a name or plan, e.g. “pro”"
+              @bind-Value="_customer" SearchFunc="SearchAsync" ToStringFunc="c => c.Name"
+              MinCharacters="1" DebounceInterval="150" NoItemsText="No matching customer">
+    <ItemTemplate Context="c">
+        <span class="flex w-full justify-between gap-3">
+            <span>@c.Name <span class="opacity-60">— @c.Plan</span></span>
+            <span class="font-mono text-xs opacity-60">@c.Since</span>
+        </span>
+    </ItemTemplate>
+</Autocomplete>
+<p class="mt-3 text-sm">
+    @if (_customer is null)
+    {
+        <span class="opacity-60">Nothing picked yet.</span>
+    }
+    else
+    {
+        <span>Picked <b>@_customer.Name</b> on @_customer.Plan (customer since @_customer.Since)</span>
+    }
+</p>
+
+@code {
+    private record Customer(string Name, string Plan, int Since);
+
+    private Customer? _customer;
+
+    private static readonly Customer[] Customers =
+    [
+        new("Northwind Traders", "Enterprise", 2019),
+        new("Contoso", "Pro", 2021),
+        new("Fabrikam", "Pro", 2022),
+        new("Globex", "Enterprise", 2018),
+        new("Initech", "Free", 2024),
+    ];
+
+    private static Task<IEnumerable<Customer>> SearchAsync(string text, CancellationToken token) =>
+        Task.FromResult(Customers.Where(c => c.Name.Contains(text, StringComparison.OrdinalIgnoreCase)
+                                          || c.Plan.Contains(text, StringComparison.OrdinalIgnoreCase)));
+}

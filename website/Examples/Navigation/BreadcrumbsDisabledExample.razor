@@ -1,0 +1,12 @@
+<Breadcrumbs Items="_crumbs" />
+
+@code {
+    // "Archive" has an Href but is Disabled, so it renders as dimmed text instead of a link.
+    private readonly List<BreadcrumbItem> _crumbs =
+    [
+        new("Billing", "components/breadcrumbs"),
+        new("Archive", "components/breadcrumbs", Disabled: true),
+        new("2024", "components/breadcrumbs"),
+        new("Invoice INV-4012", null),
+    ];
+}

@@ -1,0 +1,17 @@
+<div class="flex flex-col gap-1">
+    <Select T="string" Label="Plan" @bind-Value="_plan" Margin="Margin.None">
+        <SelectItem Value="@("Free")" />
+        <SelectItem Value="@("Pro")" />
+        <SelectItem Value="@("Enterprise")" />
+    </Select>
+    <Select T="int" Label="Seats" @bind-Value="_seats" Margin="Margin.None">
+        <SelectItem Value="10">10 seats</SelectItem>
+        <SelectItem Value="50">50 seats</SelectItem>
+    </Select>
+    <p class="mt-3 border-t-2 border-base-content pt-2 font-display text-2xl font-bold">@_plan · @_seats seats</p>
+</div>
+
+@code {
+    private string? _plan = "Pro";
+    private int _seats = 10;
+}

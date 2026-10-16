@@ -1,0 +1,28 @@
+<div class="flex flex-col gap-3">
+    <Card Outlined="true">
+        @if (_tasks.Count == 0)
+        {
+            <EmptyState Icon="@Icons.Material.Filled.Assignment" Message="No tasks yet" Subtitle="Add a task to plan your sprint." />
+        }
+        else
+        {
+            <ul class="divide-y divide-base-300">
+                @foreach (string task in _tasks)
+                {
+                    <li class="px-4 py-3">@task</li>
+                }
+            </ul>
+        }
+    </Card>
+    <div class="flex gap-2">
+        <Button Size="Size.Small" Variant="Variant.Outlined" OnClick="Add">Add task</Button>
+        <Button Size="Size.Small" Variant="Variant.Text" OnClick="_tasks.Clear">Clear</Button>
+    </div>
+</div>
+
+@code {
+    private static readonly string[] SampleTasks = ["Set up the CI pipeline", "Write the API docs", "Fix the login bug", "Review the pull request"];
+    private readonly List<string> _tasks = [];
+
+    private void Add() => _tasks.Add(SampleTasks[_tasks.Count % SampleTasks.Length]);
+}

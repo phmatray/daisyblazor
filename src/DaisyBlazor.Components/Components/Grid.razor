@@ -7,11 +7,17 @@
 </div>
 
 @code {
+    /// <summary>Grid cells, typically Item components spanning the 12 columns.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Gap between cells as a Tailwind <c>gap-*</c> step; defaults to 6.</summary>
     [Parameter] public int Spacing { get; set; } = 6;
+    /// <summary>Horizontal distribution of cells (Tailwind <c>justify-*</c>); unset by default.</summary>
     [Parameter] public Justify? Justify { get; set; }
+    /// <summary>Vertical alignment of cells (Tailwind <c>items-*</c>); unset by default.</summary>
     [Parameter] public AlignItems? AlignItems { get; set; }
+    /// <summary>Additional CSS classes merged onto the <c>grid grid-cols-12</c> container.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the grid container.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

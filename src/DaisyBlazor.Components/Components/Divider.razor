@@ -5,18 +5,21 @@
 <div class="@_cls" style="@Style" @attributes="UserAttributes">@ChildContent</div>
 
 @code {
+    /// <summary>Optional text or markup shown in the middle of the divider line.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>Renders a vertical divider (between horizontally-laid-out siblings).</summary>
     [Parameter] public bool Vertical { get; set; }
 
-    /// <summary>Prevents the divider from stretching to fill the flex cross axis.</summary>
+    /// <summary>Stretches the divider to fill the flex container cross axis (<c>self-stretch</c>), e.g. full height between flex children.</summary>
     [Parameter] public bool FlexItem { get; set; }
 
     /// <summary>Accepted for MudBlazor compatibility; visual style is fixed.</summary>
     [Parameter] public object? DividerType { get; set; }
 
+    /// <summary>Extra CSS classes added to the divider.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the divider.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

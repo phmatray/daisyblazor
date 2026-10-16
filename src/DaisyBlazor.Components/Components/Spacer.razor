@@ -5,7 +5,9 @@
 <div class="@CssClass.Merge("flex-1", Class)" style="@Style" @attributes="UserAttributes"></div>
 
 @code {
+    /// <summary>Additional CSS classes merged onto the <c>flex-1</c> filler.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the filler element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 }

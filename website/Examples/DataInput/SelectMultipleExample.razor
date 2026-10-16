@@ -1,0 +1,13 @@
+<Select T="string" Label="Regions" MultiSelection="true" @bind-SelectedValues="_regions"
+        HelperText="Hold Ctrl (or ⌘) to pick several.">
+    <SelectItem Value="@("Europe")" />
+    <SelectItem Value="@("North America")" />
+    <SelectItem Value="@("South America")" />
+    <SelectItem Value="@("Asia Pacific")" />
+    <SelectItem Value="@("Africa")" />
+</Select>
+<p class="mt-3 text-sm">Selected: <span class="font-mono">@string.Join(", ", _regions)</span></p>
+
+@code {
+    private IEnumerable<string> _regions = ["Europe", "Asia Pacific"];
+}

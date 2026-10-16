@@ -1,0 +1,36 @@
+<div class="flex flex-col gap-4">
+    <div class="flex items-center gap-4">
+        @if (_loading)
+        {
+            <Skeleton SkeletonType="SkeletonType.Circle" Width="3.5rem" Height="3.5rem" />
+            <div class="flex flex-1 flex-col gap-2">
+                <Skeleton Width="40%" Height="1.1rem" />
+                <Skeleton Width="25%" Height="0.8rem" />
+            </div>
+        }
+        else
+        {
+            <Avatar Color="Color.Primary" Size="Size.Large">AS</Avatar>
+            <div>
+                <p class="font-bold">Ana Silva</p>
+                <p class="text-sm text-base-content/70">Product designer · Lisbon</p>
+            </div>
+        }
+    </div>
+    <div>
+        <Button Size="Size.Small" Variant="Variant.Outlined" OnClick="ReloadAsync">Reload</Button>
+    </div>
+</div>
+
+@code {
+    private bool _loading = true;
+
+    protected override Task OnInitializedAsync() => ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        _loading = true;
+        await Task.Delay(1500);
+        _loading = false;
+    }
+}

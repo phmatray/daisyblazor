@@ -1,0 +1,45 @@
+@* Previous / next page along the reading order: guides, then components. *@
+@inject NavigationManager Nav
+
+@if (_prev is not null || _next is not null)
+{
+    <nav class="mt-20 grid gap-3 border-t-2 border-base-content pt-6 sm:grid-cols-2" aria-label="Pagination">
+        @if (_prev is not null)
+        {
+            <a href="@_prev.Value.Url" class="group rounded-2xl p-4 transition hover:bg-base-200">
+                <span class="text-sm font-semibold text-base-content/65">← Previous</span>
+                <span class="block font-display text-2xl font-semibold group-hover:underline group-hover:decoration-primary group-hover:underline-offset-4">@_prev.Value.Title</span>
+            </a>
+        }
+        else
+        {
+            <span></span>
+        }
+        @if (_next is not null)
+        {
+            <a href="@_next.Value.Url" class="group rounded-2xl p-4 text-right transition hover:bg-base-200">
+                <span class="text-sm font-semibold text-base-content/65">Next →</span>
+                <span class="block font-display text-2xl font-semibold group-hover:underline group-hover:decoration-primary group-hover:underline-offset-4">@_next.Value.Title</span>
+            </a>
+        }
+    </nav>
+}
+
+@code {
+    private (string Title, string Url)? _prev;
+    private (string Title, string Url)? _next;
+
+    protected override void OnParametersSet()
+    {
+        List<(string Title, string Url)> order =
+        [
+            .. Guides.All.Select(g => (g.Title, g.Url)),
+            ("All components", "components"),
+            .. DocRegistry.All.Select(d => (d.Name, d.Url)),
+        ];
+        string path = Nav.ToBaseRelativePath(Nav.Uri).Split('#', '?')[0].TrimEnd('/');
+        int i = order.FindIndex(o => string.Equals(o.Url, path, StringComparison.OrdinalIgnoreCase));
+        _prev = i > 0 ? order[i - 1] : null;
+        _next = i >= 0 && i < order.Count - 1 ? order[i + 1] : null;
+    }
+}

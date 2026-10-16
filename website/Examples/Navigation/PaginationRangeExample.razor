@@ -1,0 +1,9 @@
+@* BoundaryCount pages stay pinned at each end, MiddleCount pages surround the current one. *@
+<div class="flex flex-col items-start gap-3">
+    <Pagination Count="40" @bind-Selected="_page" ShowFirstButton="true" ShowLastButton="true" Color="Color.Primary" />
+    <Pagination Count="40" @bind-Selected="_page" BoundaryCount="2" MiddleCount="5" />
+</div>
+
+@code {
+    private int _page = 18;
+}

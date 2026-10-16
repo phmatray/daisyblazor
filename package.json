@@ -2,7 +2,7 @@
   "name": "daisyblazor-workspace",
   "version": "0.1.0",
   "private": true,
-  "description": "Repo dev tooling: Tailwind CLI for the gallery and scripts/gen-styles.mjs. The daisyui version here is the one gen-styles.mjs vendors into the NuGet preset (Renovate bumps it).",
+  "description": "Repo dev tooling for scripts/gen-styles.mjs (Tailwind scanner + design system). The daisyui version here is the one gen-styles.mjs vendors into the NuGet preset (Renovate bumps it).",
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.0",
     "daisyui": "5.7.50",

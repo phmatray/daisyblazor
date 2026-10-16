@@ -1,0 +1,16 @@
+<div class="flex flex-wrap items-center gap-4">
+    <ToggleGroup T="string" @bind-Value="_view" Color="Color.Secondary">
+        <ToggleItem Value="@("grid")" Icon="@Icons.Material.Filled.GridView" aria-label="Grid" />
+        <ToggleItem Value="@("list")" Icon="@Icons.Material.Filled.ViewList" aria-label="List" />
+    </ToggleGroup>
+    <ToggleGroup T="string" @bind-Value="_sort" Color="Color.Secondary">
+        <ToggleItem Value="@("name")" Icon="@Icons.Material.Filled.Person" Text="Name" />
+        <ToggleItem Value="@("date")" Icon="@Icons.Material.Filled.CalendarMonth" Text="Date" />
+        <ToggleItem Value="@("priority")" Icon="@Icons.Material.Filled.Star" Text="Priority" />
+    </ToggleGroup>
+</div>
+
+@code {
+    private string? _view = "grid";
+    private string? _sort = "date";
+}

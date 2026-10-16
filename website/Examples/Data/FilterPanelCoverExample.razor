@@ -1,0 +1,10 @@
+<FilterPanel Title="Find accounts" ActiveFilters="_active" OnApply="() => { }" OnClear="() => _active = []"
+             OnRemoveFilter="f => _active = _active.Where(x => x != f).ToList()" Class="mb-0">
+    <Item xs="12">
+        <TextField Label="Company" Value="Contoso" />
+    </Item>
+</FilterPanel>
+
+@code {
+    private List<ActiveFilter> _active = [new("plan", "Pro"), new("region", "Europe")];
+}

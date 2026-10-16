@@ -1,0 +1,24 @@
+@* daisyUI's CSS-only validation: the browser's own :invalid state colours the input once the user has touched it. *@
+<div class="flex max-w-md flex-col gap-1">
+    <fieldset class="fieldset">
+        <label class="label" for="validator-email">Work email</label>
+        <Validator Hint="Enter a valid email address.">
+            <input id="validator-email" type="email" class="input validator w-full" placeholder="ana@acme.cloud" required
+                   @bind="_email" @bind:event="oninput" />
+        </Validator>
+    </fieldset>
+    <fieldset class="fieldset">
+        <label class="label" for="validator-invoice">Invoice number</label>
+        <Validator>
+            <input id="validator-invoice" type="text" class="input validator w-full" placeholder="INV- and 4 digits" required
+                   pattern="INV-[0-9]{4}" @bind="_invoice" @bind:event="oninput" />
+            <ValidatorHint>Use the form “INV-2041”.</ValidatorHint>
+        </Validator>
+    </fieldset>
+</div>
+<p class="mt-3 font-mono text-sm">email=@(_email ?? "") · invoice=@(_invoice ?? "")</p>
+
+@code {
+    private string? _email;
+    private string? _invoice = "inv-2041";
+}

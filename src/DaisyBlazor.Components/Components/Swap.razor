@@ -1,11 +1,12 @@
 @namespace DaisyBlazor
 
-@* daisyUI swap toggle. Renders a <label class="swap"> wrapping a hidden checkbox,
+@* daisyUI swap toggle. Renders a <label class="swap"> wrapping a checkbox (visually hidden by
+   daisyUI's appearance:none, but still focusable so the swap works from the keyboard),
    a .swap-on child and a .swap-off child. Animation modifier:
    swap-rotate (SwapAnimation.Rotate) or swap-flip (SwapAnimation.Flip). *@
 
 <label class="@_cls" style="@Style" @attributes="UserAttributes">
-    <input type="checkbox" class="hidden" checked="@Active" @onchange="OnCheckboxChanged" />
+    <input type="checkbox" checked="@Active" aria-label="@AriaLabel" @onchange="OnCheckboxChanged" />
     <div class="swap-on">@On</div>
     <div class="swap-off">@Off</div>
 </label>
@@ -23,10 +24,15 @@
     /// <summary>Content shown when the swap is inactive (unchecked).</summary>
     [Parameter] public RenderFragment? Off { get; set; }
 
+    /// <summary>Accessible name of the toggle, read by screen readers (the On/Off content is usually an icon).</summary>
+    [Parameter] public string? AriaLabel { get; set; }
+
     /// <summary>Animation applied to the swap transition.</summary>
     [Parameter] public SwapAnimation Animation { get; set; } = SwapAnimation.None;
 
+    /// <summary>Extra CSS classes merged onto the swap label.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the swap label.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

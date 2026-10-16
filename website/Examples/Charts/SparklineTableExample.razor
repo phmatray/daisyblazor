@@ -1,0 +1,29 @@
+<SimpleTable Dense="true">
+    <thead>
+        <tr><th>Service</th><th>Last 7 days</th><th class="text-right">Requests</th></tr>
+    </thead>
+    <tbody>
+        @foreach (Row row in _rows)
+        {
+            <tr>
+                <td class="font-bold">@row.Service</td>
+                <td><Sparkline Data="row.Daily" Area="true" Color="@(row.Rising ? "var(--color-success)" : "var(--color-error)")" Width="6rem" /></td>
+                <td class="text-right font-mono">@row.Daily.Sum().ToString("N0")</td>
+            </tr>
+        }
+    </tbody>
+</SimpleTable>
+
+@code {
+    private record Row(string Service, double[] Daily)
+    {
+        public bool Rising => Daily[^1] >= Daily[0];
+    }
+
+    private readonly Row[] _rows =
+    [
+        new("Billing API", [4_100, 4_600, 5_200, 5_050, 6_300, 7_100, 7_800]),
+        new("Auth service", [6_200, 5_900, 6_100, 5_400, 5_200, 4_900, 4_700]),
+        new("Search", [2_300, 2_500, 2_450, 2_900, 3_300, 3_200, 3_900]),
+    ];
+}

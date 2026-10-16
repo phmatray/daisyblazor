@@ -1,0 +1,13 @@
+<LineChart Title="Active users by region (thousands)" Labels="_months" Series="_regions" Smooth="true" ShowPoints="false" />
+
+@code {
+    private readonly string[] _months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+
+    // Each series gets the next palette colour: primary, secondary, accent…
+    private readonly ChartSeries[] _regions =
+    [
+        new("Europe", [92, 104, 118, 111, 136, 158]),
+        new("North America", [64, 71, 88, 97, 94, 121]),
+        new("Asia Pacific", [40, 38, 52, 61, 70, 66]),
+    ];
+}

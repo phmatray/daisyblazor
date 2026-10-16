@@ -7,18 +7,33 @@
    CascadingTypeParameter lets a <Radio> infer T from this parent, so a radio that sets no
    Value/Option of its own — the "none" case for a nullable selection — needs no T="..." annotation. *@
 
-<div class="@_cls" style="@Style" role="radiogroup" @attributes="UserAttributes">
+<div class="@_cls" style="@Style" role="radiogroup"
+     aria-labelledby="@(string.IsNullOrEmpty(Label) ? null : _labelId)" @attributes="UserAttributes">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        @* w-full keeps the caption on its own line in the horizontal (flex-wrap) layout too. *@
+        <span id="@_labelId" class="w-full text-sm font-semibold">@Label</span>
+    }
     <CascadingValue Value="this" IsFixed="true">
         @ChildContent
     </CascadingValue>
 </div>
 
 @code {
+    /// <summary>The currently selected option (two-way bindable).</summary>
     [Parameter] public T? Value { get; set; }
+    /// <summary>Raised when a child Radio is selected.</summary>
     [Parameter] public EventCallback<T?> ValueChanged { get; set; }
+    /// <summary>Visible caption for the group; also names the radiogroup for assistive technology (aria-labelledby).</summary>
+    [Parameter] public string? Label { get; set; }
+    /// <summary>Lays the radios out in a wrapping row instead of the default vertical stack.</summary>
+    [Parameter] public bool Horizontal { get; set; }
+    /// <summary>The Radio components of the group, stacked vertically unless Horizontal is set.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the root element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
@@ -34,5 +49,7 @@
         StateHasChanged();
     }
 
-    private string _cls => CssClass.Merge("flex flex-col gap-1", Class);
+    private readonly string _labelId = $"radiogroup-label-{Guid.NewGuid():N}";
+
+    private string _cls => CssClass.Merge(Horizontal ? "flex flex-row flex-wrap gap-4" : "flex flex-col gap-1", Class);
 }

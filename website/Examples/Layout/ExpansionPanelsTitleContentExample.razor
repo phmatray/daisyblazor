@@ -1,0 +1,23 @@
+<ExpansionPanels>
+    @foreach ((string title, int tasks, string due) in _projects)
+    {
+        <ExpansionPanel>
+            <TitleContent>
+                <span class="flex-1">@title</span>
+                <Badge Inline="true" Color="Color.Secondary">@due</Badge>
+            </TitleContent>
+            <ChildContent>
+                @tasks open tasks, assigned across the team.
+            </ChildContent>
+        </ExpansionPanel>
+    }
+</ExpansionPanels>
+
+@code {
+    private readonly (string Title, int Tasks, string Due)[] _projects =
+    [
+        ("Billing revamp", 12, "Q4"),
+        ("Mobile app", 10, "Q1"),
+        ("SSO for Enterprise", 11, "Q2"),
+    ];
+}

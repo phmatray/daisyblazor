@@ -6,35 +6,51 @@
 <div class="@_fieldsetCls" style="@Style">
     @if (!string.IsNullOrEmpty(Label))
     {
-        <label class="label">
+        <label class="label" for="@_id">
             <span class="label-text">@Label</span>
         </label>
     }
-    <label class="@_wrapperCls">
+    @* A div, not a label: a wrapping label would add the hex text to the input's accessible name. *@
+    <div class="@_wrapperCls">
         <input type="color"
+               id="@_id"
                class="w-8 h-8 p-0 border-0 bg-transparent cursor-pointer"
                value="@_hex"
                disabled="@Disabled"
                @onchange="OnChange"
                @attributes="UserAttributes" />
         <span class="grow font-mono text-sm">@_current</span>
-    </label>
+    </div>
 </div>
 
 @code {
+    /// <summary>Selected color as a hex string; takes precedence over <see cref="Value"/>.</summary>
     [Parameter] public string? Text { get; set; }
+    /// <summary>Raised with the new hex string when the user picks a color (supports <c>@bind-Text</c>).</summary>
     [Parameter] public EventCallback<string?> TextChanged { get; set; }
+    /// <summary>Alias of <see cref="Text"/> for <c>@bind-Value</c>; used when Text is null.</summary>
     [Parameter] public string? Value { get; set; }
+    /// <summary>Raised with the new hex string when the user picks a color (supports <c>@bind-Value</c>).</summary>
     [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    /// <summary>Optional label text rendered above the input.</summary>
     [Parameter] public string? Label { get; set; }
+    /// <summary>Disables the native color input.</summary>
     [Parameter] public bool Disabled { get; set; }
+    /// <summary>Stretches the fieldset and input to full width (<c>w-full</c>); defaults to true.</summary>
     [Parameter] public bool FullWidth { get; set; } = true;
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public PickerVariant PickerVariant { get; set; } = PickerVariant.Inline;
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public ColorPickerView ColorPickerView { get; set; } = ColorPickerView.Spectrum;
 
+    /// <summary>Additional CSS classes merged onto the outer <c>fieldset</c>.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the outer <c>fieldset</c>.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
+
+    private readonly string _generatedId = FieldId.New();
+    private string _id => FieldId.Resolve(UserAttributes, _generatedId);
 
     private string? _current => Text ?? Value;
 

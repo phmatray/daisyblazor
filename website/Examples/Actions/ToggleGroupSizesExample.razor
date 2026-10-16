@@ -1,0 +1,22 @@
+@* T can be any type: here the day ranges are ints. *@
+<div class="flex flex-col items-start gap-3">
+    <ToggleGroup T="int" @bind-Value="_days" Size="Size.Small" Color="Color.Tertiary">
+        <ToggleItem Value="7" Text="7 days" />
+        <ToggleItem Value="30" Text="30 days" />
+        <ToggleItem Value="90" Text="90 days" />
+    </ToggleGroup>
+    <ToggleGroup T="int" @bind-Value="_days" Color="Color.Tertiary">
+        <ToggleItem Value="7" Text="7 days" />
+        <ToggleItem Value="30" Text="30 days" />
+        <ToggleItem Value="90" Text="90 days" />
+    </ToggleGroup>
+    <ToggleGroup T="int" @bind-Value="_days" Size="Size.Large" Color="Color.Tertiary">
+        <ToggleItem Value="7" Text="7 days" />
+        <ToggleItem Value="30" Text="30 days" />
+        <ToggleItem Value="90" Text="90 days" />
+    </ToggleGroup>
+</div>
+
+@code {
+    private int _days = 30;
+}

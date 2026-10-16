@@ -1,0 +1,13 @@
+<div class="grid w-full gap-4 sm:grid-cols-2">
+    <TextField Label="Full name" Placeholder="e.g. Priya Nair" @bind-Value="_name" />
+    <TextField Label="Company" Placeholder="e.g. Contoso" @bind-Value="_company" />
+</div>
+<p class="mt-3 text-sm">
+    Signing up: <span class="font-mono">@(_name ?? "…")</span> — <span class="font-mono">@(_company ?? "…")</span>
+</p>
+<p class="text-xs opacity-60">Both fields update the summary as you type.</p>
+
+@code {
+    private string? _name = "Priya Nair";
+    private string? _company;
+}

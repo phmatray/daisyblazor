@@ -1,10 +1,12 @@
 @namespace DaisyBlazor
+@using System.Globalization
 
 @* daisyUI .radial-progress driven by CSS custom properties: --value, --size, --thickness.
    Color is applied via text-{token}. role=progressbar with aria-valuenow/min/max. *@
 
 <div class="@_cls" style="@_style" role="progressbar"
-     aria-valuenow="@Value" aria-valuemin="0" aria-valuemax="100"
+     aria-valuenow="@_valueText" aria-valuemin="0" aria-valuemax="100"
+     aria-label="@AriaLabel"
      @attributes="UserAttributes">
     @if (ChildContent is not null)
     {
@@ -12,12 +14,13 @@
     }
     else
     {
-        @($"{Value}%")
+        @* Scales with the ring so small sizes do not collide with the stroke; 5rem keeps 1rem. *@
+        <span style="font-size:calc(var(--size) / 5)">@($"{Math.Round(_value).ToString(CultureInfo.InvariantCulture)}%")</span>
     }
 </div>
 
 @code {
-    /// <summary>Progress value between 0 and 100. Maps to the CSS --value custom property.</summary>
+    /// <summary>Progress value between 0 and 100 (clamped). Maps to the CSS --value custom property.</summary>
     [Parameter] public double Value { get; set; }
 
     /// <summary>
@@ -35,18 +38,30 @@
     /// <summary>Color token for the ring and label text (maps to text-primary, text-success, etc.).</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
 
-    /// <summary>Custom inner content; defaults to "@Value%" when not provided.</summary>
+    /// <summary>Accessible name of the progressbar (aria-label), e.g. "Storage used".</summary>
+    [Parameter] public string? AriaLabel { get; set; }
+
+    /// <summary>Custom inner content; defaults to the rounded "@Value%" when not provided.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the .radial-progress element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS appended after the --value/--size/--thickness custom properties.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
+
+    private double _value => double.IsNaN(Value) ? 0 : Math.Clamp(Value, 0, 100);
+
+    // Invariant so fr-FR does not write "--value:44,5", which breaks the ring.
+    private string _valueText => _value.ToString(CultureInfo.InvariantCulture);
 
     private string _cls
     {
         get
         {
-            string? token = CssClass.ColorToken(Color);
+            // Dark/Surface would map to neutral, which is close to base-100 on dark themes and
+            // makes the ring vanish; base-content stays readable on all of them.
+            string? token = Color is Color.Dark or Color.Surface ? "base-content" : CssClass.ColorToken(Color);
             string? colorClass = token is { } t ? $"text-{t}" : null;
             return CssClass.Merge("radial-progress", colorClass, Class);
         }
@@ -56,12 +71,17 @@
     {
         get
         {
-            string cssVars = $"--value:{Value};";
+            string cssVars = $"--value:{_valueText};";
 
             string size = string.IsNullOrEmpty(SizeRem) ? "5rem" : SizeRem!;
             cssVars += $"--size:{size};";
 
-            if (!string.IsNullOrEmpty(Thickness))
+            // daisyUI draws rounded end caps even at 0%; a zero thickness hides that stray dot.
+            if (_value <= 0)
+            {
+                cssVars += "--thickness:0px;";
+            }
+            else if (!string.IsNullOrEmpty(Thickness))
             {
                 cssVars += $"--thickness:{Thickness};";
             }

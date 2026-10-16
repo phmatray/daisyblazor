@@ -1,0 +1,11 @@
+<DonutChart Title="Signups by channel" Data="_channels" CenterLabel="2.4 k" Height="13rem" />
+
+@code {
+    private readonly ChartDataPoint[] _channels =
+    [
+        new("Organic search", 1_150),
+        new("Referral", 610),
+        new("Paid ads", 380),
+        new("Social", 260),
+    ];
+}

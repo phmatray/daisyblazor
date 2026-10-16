@@ -28,5 +28,20 @@ public enum MaskShape
     Diamond,
 
     /// <summary>Pentagon clip (<c>mask-pentagon</c>).</summary>
-    Pentagon
+    Pentagon,
+
+    /// <summary>Flat-top hexagon clip (<c>mask-hexagon-2</c>).</summary>
+    Hexagon2,
+
+    /// <summary>Decagon clip (<c>mask-decagon</c>).</summary>
+    Decagon,
+
+    /// <summary>Downward triangle clip (<c>mask-triangle-2</c>).</summary>
+    Triangle2,
+
+    /// <summary>Left-pointing triangle clip (<c>mask-triangle-3</c>).</summary>
+    Triangle3,
+
+    /// <summary>Right-pointing triangle clip (<c>mask-triangle-4</c>).</summary>
+    Triangle4
 }

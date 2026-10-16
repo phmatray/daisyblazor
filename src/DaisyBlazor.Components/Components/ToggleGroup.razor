@@ -3,40 +3,45 @@
 @attribute [CascadingTypeParameter(nameof(T))]
 
 @* MudToggleGroup<T> replacement. A segmented control (daisyUI .join of buttons).
-   Single-selection two-way binding via Value/ValueChanged. *@
+   Single selection binds Value/ValueChanged; MultiSelection binds Values/ValuesChanged.
+   Not IsFixed: the group re-render must reach every item so the highlight moves. *@
 
-<CascadingValue Value="this" IsFixed="true">
+<CascadingValue Value="this">
     <div class="@_cls" style="@Style" role="group" @attributes="UserAttributes">
         @ChildContent
     </div>
 </CascadingValue>
 
 @code {
+    /// <summary>The <see cref="ToggleItem{T}"/> buttons rendered inside the <c>join</c> group.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>The currently selected item value; supports two-way binding with <c>@bind-Value</c>.</summary>
     [Parameter] public T? Value { get; set; }
+    /// <summary>Raised with the new value when the user selects an item.</summary>
     [Parameter] public EventCallback<T?> ValueChanged { get; set; }
+    /// <summary>The selected values when <see cref="SelectionMode"/> is MultiSelection; supports <c>@bind-Values</c>.</summary>
+    [Parameter] public IEnumerable<T?>? Values { get; set; }
+    /// <summary>Raised with the new set of values when an item is toggled in MultiSelection mode.</summary>
+    [Parameter] public EventCallback<IEnumerable<T?>?> ValuesChanged { get; set; }
+    /// <summary>SingleSelection (default) selects one item; ToggleSelection also lets a click on the selected item clear it; MultiSelection toggles items in <see cref="Values"/>.</summary>
     [Parameter] public SelectionMode SelectionMode { get; set; } = SelectionMode.SingleSelection;
+    /// <summary>Color of the selected item button (e.g. <c>btn-primary</c>); defaults to Primary.</summary>
     [Parameter] public Color Color { get; set; } = Color.Primary;
+    /// <summary>Button size of the items: Small maps to <c>btn-sm</c>, Large to <c>btn-lg</c>.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
+    /// <summary>Shows a check icon before the content of the selected item(s).</summary>
     [Parameter] public bool CheckMark { get; set; }
+    /// <summary>Disables every item in the group and ignores selection.</summary>
     [Parameter] public bool Disabled { get; set; }
+    /// <summary>Extra CSS classes added to the <c>join</c> container.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the <c>join</c> container.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
     private string _cls => CssClass.Merge("join", Class);
 
-    internal string ActiveColor => Color switch
-    {
-        Color.Primary => "btn-primary",
-        Color.Secondary => "btn-secondary",
-        Color.Tertiary => "btn-accent",
-        Color.Info => "btn-info",
-        Color.Success => "btn-success",
-        Color.Warning => "btn-warning",
-        Color.Error => "btn-error",
-        _ => "btn-active"
-    };
+    internal string ActiveColor => CssClass.ButtonColor(Color) is { Length: > 0 } c ? c : "btn-active";
 
     internal string SizeClass => Size switch
     {
@@ -45,13 +50,34 @@
         _ => string.Empty
     };
 
-    internal bool IsSelected(T? value) => EqualityComparer<T?>.Default.Equals(Value, value);
+    internal bool IsSelected(T? value) => SelectionMode == SelectionMode.MultiSelection
+        ? Values?.Contains(value) ?? false
+        : EqualityComparer<T?>.Default.Equals(Value, value);
 
     internal async Task SelectAsync(T? value)
     {
         if (Disabled)
         {
             return;
+        }
+
+        if (SelectionMode == SelectionMode.MultiSelection)
+        {
+            List<T?> next = Values?.ToList() ?? new();
+            if (!next.Remove(value))
+            {
+                next.Add(value);
+            }
+
+            Values = next;
+            await ValuesChanged.InvokeAsync(next);
+            StateHasChanged();
+            return;
+        }
+
+        if (SelectionMode == SelectionMode.ToggleSelection && IsSelected(value))
+        {
+            value = default;
         }
 
         Value = value;

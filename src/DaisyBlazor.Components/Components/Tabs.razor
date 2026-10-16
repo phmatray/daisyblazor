@@ -18,7 +18,8 @@
                 @* WAI-ARIA tabs: each tab declares its selected state and is linked to the shared
                    panel; the panel is labelled back by the active tab (aria-labelledby below).
                    Roving tabindex: only the selected tab is in the tab order; arrows move between tabs. *@
-                <button role="tab"
+                <button @attributes="tab.UserAttributes"
+                        role="tab"
                         type="button"
                         id="@TabId(tab)"
                         tabindex="@(isActive ? "0" : "-1")"
@@ -26,6 +27,7 @@
                         aria-controls="@PanelId"
                         @ref="_tabRefs[tab]"
                         class="@TabButtonClass(tab)"
+                        style="@tab.Style"
                         disabled="@tab.Disabled"
                         aria-disabled="@(tab.Disabled ? "true" : null)"
                         @onclick="() => SetActive(tab)">
@@ -34,10 +36,12 @@
             }
         </div>
 
-        @* Active tab panel *@
+        @* Active tab panel. daisyUI hides .tab-content unless it follows the active radio/tab;
+           this panel sits beside the tablist (correct ARIA), so the safelisted `block` utility
+           (utilities layer beats daisyUI's components layer) shows it without scoped CSS. *@
         @if (_activeTab is not null)
         {
-            <div role="tabpanel" id="@PanelId" aria-labelledby="@TabId(_activeTab)" tabindex="0" class="tab-content">
+            <div role="tabpanel" id="@PanelId" aria-labelledby="@TabId(_activeTab)" tabindex="0" class="@_panelCls">
                 @_activeTab.ChildContent
             </div>
         }
@@ -78,7 +82,9 @@
     /// <summary>Size of the tab buttons.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
 
+    /// <summary>Extra CSS classes merged onto the outer <c>w-full</c> container.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the outer container.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
@@ -99,10 +105,22 @@
 
     private string _cls => CssClass.Merge("w-full", Class);
 
+    // daisyUI styles the panel via `.tabs-lift > .tab-content` / `.tabs-box > .tab-content`, which needs the
+    // panel inside .tabs; ours sits outside the tablist (ARIA), so apply the equivalent surface explicitly.
+    // Lift: the panel's top border closes the lifted tab; its top-start corner is square under the first tab.
+    private string _panelCls => Variant switch
+    {
+        TabsVariant.Lift => CssClass.Merge(
+            "tab-content block -mt-px border border-base-300 bg-base-100 rounded-box p-6",
+            _activeTab is not null && _tabs.IndexOf(_activeTab) == 0 ? "rounded-ss-none" : null),
+        TabsVariant.Border => "tab-content block",
+        _ => "tab-content block mt-1 border border-base-300 bg-base-100 rounded-box p-6"
+    };
+
     private string TabButtonClass(Tab tab)
     {
         bool isActive = _activeTab == tab;
-        return CssClass.Merge("tab", isActive ? "tab-active" : null);
+        return CssClass.Merge("tab", isActive ? "tab-active" : null, tab.Class);
     }
 
     /// <summary>Called by each <see cref="Tab"/> during OnInitialized to register itself.</summary>

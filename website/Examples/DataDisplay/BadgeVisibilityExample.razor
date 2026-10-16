@@ -1,0 +1,11 @@
+<div class="flex flex-wrap items-center gap-6">
+    <Badge Content="_unread" Visible="_unread > 0" Color="Color.Secondary">
+        <IconButton Icon="@Icons.Material.Filled.Mail" Title="Messages" />
+    </Badge>
+    <Button Variant="Variant.Outlined" OnClick="() => _unread++">New message</Button>
+    <Button Variant="Variant.Text" OnClick="() => _unread = 0">Mark all read</Button>
+</div>
+
+@code {
+    private int _unread = 2;
+}

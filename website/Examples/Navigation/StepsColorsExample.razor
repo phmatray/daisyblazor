@@ -1,0 +1,11 @@
+@* Color overrides Completed/Active; DataContent replaces the step number with a symbol.
+   overflow-x-auto lets the five steps scroll on narrow screens instead of clipping. *@
+<div class="w-full overflow-x-auto">
+    <Steps Class="w-full min-w-max">
+        <Step Color="Color.Success" DataContent="✓">Build</Step>
+        <Step Color="Color.Success" DataContent="✓">Tests</Step>
+        <Step Color="Color.Warning" DataContent="!">Security scan</Step>
+        <Step Color="Color.Error" DataContent="✕">Staging</Step>
+        <Step DataContent="●">Production</Step>
+    </Steps>
+</div>

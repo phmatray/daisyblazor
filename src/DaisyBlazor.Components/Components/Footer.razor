@@ -2,7 +2,7 @@
 
 @* daisyUI footer component. Uses .footer, optional .footer-center, and
    .footer-horizontal / .footer-vertical for direction. Accepts <nav> sections
-   as ChildContent. Background colour via Color (bg-*). *@
+   as ChildContent. Background colour via Color (bg-* plus the matching text-*-content). *@
 
 <footer class="@_cls" style="@Style" @attributes="UserAttributes">
     @ChildContent
@@ -12,7 +12,7 @@
     /// <summary>Content of the footer, typically one or more &lt;nav&gt; sections.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    /// <summary>Adds .footer-center to centre-align all items.</summary>
+    /// <summary>Adds .footer-center to centre-align all items. Sections stack unless <see cref="Horizontal"/> is true.</summary>
     [Parameter] public bool Center { get; set; }
 
     /// <summary>
@@ -22,13 +22,15 @@
     /// </summary>
     [Parameter] public bool? Horizontal { get; set; }
 
-    /// <summary>daisyUI / Tailwind semantic colour for the footer background (e.g. Color.Neutral).</summary>
+    /// <summary>daisyUI / Tailwind semantic colour for the footer background (e.g. Color.Dark); also sets the matching content text colour.</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
 
     /// <summary>Padding utility class applied to the footer. Defaults to "p-10".</summary>
     [Parameter] public string Padding { get; set; } = "p-10";
 
+    /// <summary>Extra CSS classes merged onto the <c>&lt;footer&gt;</c> element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the <c>&lt;footer&gt;</c> element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
@@ -37,11 +39,16 @@
         get
         {
             string? token = CssClass.ColorToken(Color);
-            return token is { } t ? $"bg-{t}" : null;
+            return token is { } t ? $"bg-{t} text-{t}-content" : null;
         }
     }
 
-    private string? _directionClass => Horizontal switch
+    // daisyUI inverts the flow under .footer-center: footer-horizontal + footer-center stacks the
+    // sections (row dense), footer-vertical + footer-center lays them out side by side. Map
+    // Horizontal accordingly so Center stacks unless Horizontal is explicitly true.
+    private string? _directionClass => Center
+        ? (Horizontal == true ? "footer-vertical" : "footer-horizontal")
+        : Horizontal switch
     {
         true  => "footer-horizontal",
         false => "footer-vertical",

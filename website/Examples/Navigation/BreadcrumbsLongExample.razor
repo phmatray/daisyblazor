@@ -1,0 +1,15 @@
+<div class="w-full max-w-xs rounded-box bg-base-200 px-4">
+    <Breadcrumbs Items="_crumbs" />
+</div>
+
+@code {
+    private readonly List<BreadcrumbItem> _crumbs =
+    [
+        new("Home", "components/breadcrumbs"),
+        new("Customers", "components/breadcrumbs"),
+        new("Northwind Traders", "components/breadcrumbs"),
+        new("Billing", "components/breadcrumbs"),
+        new("Invoices", "components/breadcrumbs"),
+        new("INV-2024-0042", null),
+    ];
+}

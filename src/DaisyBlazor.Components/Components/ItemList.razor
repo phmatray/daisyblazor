@@ -9,9 +9,13 @@
 </ul>
 
 @code {
+    /// <summary>The <see cref="ListItem"/> entries rendered in the list.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Renders compact items (menu-sm).</summary>
     [Parameter] public bool Dense { get; set; }
+    /// <summary>Extra CSS classes added to the menu list.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the menu list.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

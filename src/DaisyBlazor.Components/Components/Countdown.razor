@@ -1,51 +1,72 @@
 @namespace DaisyBlazor
 
-@* daisyUI .countdown display component. Renders one or more animated digit cells using
+@* daisyUI .countdown display component. Renders one animated number cell using
    the CSS custom-property trick: <span class="countdown"><span style="--value:NN;"></span></span>.
-   Value is clamped to 0-99. Use the Digits helper to split a larger number into cells. *@
+   Value is clamped to 0-999; MinDigits emits --digits (e.g. 2 for a clock's "09").
+   Use the Digits helper to split a number of seconds into hour/minute/second cells. *@
 
-<span class="@_cls" style="@Style" @attributes="UserAttributes">
-    <span style="--value:@_clamped;">@_clamped</span>
-</span>
-
-@if (!string.IsNullOrEmpty(Label))
+@if (string.IsNullOrEmpty(Label))
 {
-    <span class="text-xs text-center block">@Label</span>
+    @_countdown
+}
+else
+{
+    <span class="inline-flex flex-col items-center">
+        @_countdown
+        <span class="text-xs text-center">@Label</span>
+    </span>
 }
 
 @code {
     /// <summary>
-    /// The countdown value to display. Clamped to the range 0–99 (daisyUI supports 0–99).
+    /// The countdown value to display. Clamped to the range 0–999 (daisyUI v5 supports 0–999).
     /// </summary>
     [Parameter] public int Value { get; set; }
+
+    /// <summary>
+    /// Minimum number of digits shown, zero-padding smaller values (emits daisyUI's <c>--digits</c>).
+    /// Use <c>2</c> for clock cells so 9 reads "09". Values outside 1–3 are clamped; null keeps daisyUI's default (1).
+    /// </summary>
+    [Parameter] public int? MinDigits { get; set; }
 
     /// <summary>
     /// Optional label rendered below the countdown digit (e.g. "sec", "min", "hours").
     /// </summary>
     [Parameter] public string? Label { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the countdown element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the countdown element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
-    private int _clamped => Math.Clamp(Value, 0, 99);
+    private int _clamped => Math.Clamp(Value, 0, 999);
+
+    private string _valueStyle => MinDigits is int d
+        ? $"--value:{_clamped};--digits:{Math.Clamp(d, 1, 3)};"
+        : $"--value:{_clamped};";
 
     private string _cls => CssClass.Merge("countdown", Class);
 
+    // daisyUI hides the inner text (visibility:hidden) and paints digits with ::before/::after,
+    // so the value reaches assistive tech through aria-label + aria-live.
+    private RenderFragment _countdown => @<span class="@_cls" style="@Style" @attributes="UserAttributes">
+        <span style="@_valueStyle" aria-live="polite" aria-label="@_clamped">@_clamped</span>
+    </span>;
+
     /// <summary>
-    /// Splits <paramref name="value"/> into an array of digit pairs suitable for rendering
-    /// multiple <see cref="Countdown"/> components side-by-side (e.g. hours + minutes + seconds).
-    /// Each element is clamped to 0–99. Values above 99 in any single cell are clamped.
+    /// Splits <paramref name="value"/> into [hours, minutes, seconds] suitable for rendering
+    /// multiple <see cref="Countdown"/> components side-by-side. Hours are clamped to 0–999.
     /// Example: <c>Countdown.Digits(3723)</c> → <c>[1, 2, 3]</c> (hours=1, min=2, sec=3).
     /// </summary>
     /// <param name="value">Total seconds (non-negative).</param>
-    /// <returns>Array of [hours, minutes, seconds], each clamped to 0–99.</returns>
+    /// <returns>Array of [hours, minutes, seconds].</returns>
     public static int[] Digits(int value)
     {
         int total = Math.Max(0, value);
-        int hours = Math.Clamp(total / 3600, 0, 99);
-        int minutes = Math.Clamp((total % 3600) / 60, 0, 99);
-        int seconds = Math.Clamp(total % 60, 0, 99);
+        int hours = Math.Clamp(total / 3600, 0, 999);
+        int minutes = (total % 3600) / 60;
+        int seconds = total % 60;
         return [hours, minutes, seconds];
     }
 }

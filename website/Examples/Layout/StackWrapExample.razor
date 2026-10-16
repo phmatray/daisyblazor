@@ -1,0 +1,11 @@
+<Stack Row="true" Wrap="true" Spacing="2" AlignItems="AlignItems.Center">
+    @foreach (string tag in _tags)
+    {
+        <Chip Text="@tag" Variant="Variant.Outlined" Color="Color.Primary" />
+    }
+</Stack>
+
+@code {
+    private readonly string[] _tags =
+        ["Billing", "Onboarding", "API", "Mobile", "Security", "Performance", "Dashboard", "Integrations", "Docs", "Bug"];
+}

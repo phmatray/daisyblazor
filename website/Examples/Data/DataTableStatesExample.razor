@@ -1,0 +1,34 @@
+<div class="mb-4 flex flex-wrap gap-2">
+    <Button Size="Size.Small" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Refresh" OnClick="ReloadAsync">Reload</Button>
+    <Button Size="Size.Small" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.DeleteSweep" OnClick="() => _items = []">Empty it</Button>
+</div>
+
+<DataTable T="Signup" Items="_items" Loading="_loading" SkeletonRows="3"
+           EmptyIcon="@Icons.Material.Filled.Inbox" EmptyMessage="No signups yet for this plan">
+    <Columns>
+        <PropertyColumn T="Signup" TProperty="string" Property="s => s.Customer" Title="Customer" />
+        <PropertyColumn T="Signup" TProperty="string" Property="s => s.Plan" Title="Plan" />
+    </Columns>
+</DataTable>
+
+@code {
+    private record Signup(string Customer, string Plan);
+
+    private static readonly Signup[] Sample =
+    [
+        new("Ana Silva", "Pro, annual"),
+        new("Tom Becker", "Free"),
+        new("Priya Nair", "Enterprise"),
+    ];
+
+    private Signup[] _items = Sample;
+    private bool _loading;
+
+    private async Task ReloadAsync()
+    {
+        _loading = true;
+        await Task.Delay(1200);
+        _items = Sample;
+        _loading = false;
+    }
+}

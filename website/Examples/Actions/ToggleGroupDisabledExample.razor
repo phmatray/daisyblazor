@@ -1,0 +1,15 @@
+<div class="flex flex-wrap items-center gap-4">
+    <ToggleGroup T="string" @bind-Value="_plan">
+        <ToggleItem Value="@("free")" Text="Free" />
+        <ToggleItem Value="@("pro")" Text="Pro" />
+        <ToggleItem Value="@("enterprise")" Text="Enterprise" Disabled="true" />
+    </ToggleGroup>
+    <ToggleGroup T="string" Value="@("monthly")" Disabled="true">
+        <ToggleItem Value="@("monthly")" Text="Monthly" />
+        <ToggleItem Value="@("yearly")" Text="Yearly" />
+    </ToggleGroup>
+</div>
+
+@code {
+    private string? _plan = "pro";
+}

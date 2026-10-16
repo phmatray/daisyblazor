@@ -5,26 +5,39 @@
 
 @if (Indeterminate)
 {
-    <progress class="@_cls" style="@Style" @attributes="UserAttributes"></progress>
+    <progress class="@_cls" style="@Style" aria-label="@AriaLabel" @attributes="UserAttributes"></progress>
 }
 else
 {
-    <progress class="@_cls" value="@Value" max="@Max" style="@Style" @attributes="UserAttributes"></progress>
+    @* <progress> has no min attribute, so the range is shifted to start at 0. *@
+    <progress class="@_cls" value="@(Math.Clamp(Value - Min, 0, _range))" max="@_range" style="@Style" aria-label="@AriaLabel" @attributes="UserAttributes"></progress>
 }
 
 @code {
+    /// <summary>Current progress value, rendered as the progress element value; ignored when indeterminate.</summary>
     [Parameter] public double Value { get; set; }
+    /// <summary>Minimum value of the progress bar; the bar fills (Value - Min) / (Max - Min).</summary>
     [Parameter] public double Min { get; set; }
+    /// <summary>Maximum value of the progress bar; defaults to 100.</summary>
     [Parameter] public double Max { get; set; } = 100;
+    /// <summary>Renders a valueless progress element that daisyUI animates as indeterminate.</summary>
     [Parameter] public bool Indeterminate { get; set; }
+    /// <summary>Semantic color mapped to progress-{color} (e.g. progress-primary).</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
 
     /// <summary>Accepted for MudBlazor compatibility; daisyUI progress has no striped style.</summary>
     [Parameter] public bool Striped { get; set; }
+    /// <summary>Adds rounded-full to the progress bar; visible only in themes whose --radius-box is smaller than the bar height.</summary>
     [Parameter] public bool Rounded { get; set; }
+    /// <summary>Bar height: Small maps to h-1, Large to h-4, Medium (default) uses the daisyUI height.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
 
+    /// <summary>Accessible name announced for the progress bar (aria-label).</summary>
+    [Parameter] public string? AriaLabel { get; set; }
+
+    /// <summary>Extra CSS classes merged onto the root element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
@@ -37,12 +50,15 @@ else
         Color.Success => "progress-success",
         Color.Warning => "progress-warning",
         Color.Error => "progress-error",
+        Color.Dark or Color.Surface => "progress-neutral",
         _ => string.Empty
     };
 
+    private double _range => Math.Max(Max - Min, 0);
+
     private string _sizeClass => Size switch
     {
-        Size.Small => "h-1.5",
+        Size.Small => "h-1",
         Size.Large => "h-4",
         _ => string.Empty
     };

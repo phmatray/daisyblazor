@@ -1,0 +1,12 @@
+<BarChart Title="Traffic by region (k requests per day)" Data="_regions" Horizontal="true" Height="14rem" />
+
+@code {
+    private readonly ChartDataPoint[] _regions =
+    [
+        new("Europe", 1_240),
+        new("US", 980),
+        new("APAC", 760),
+        new("LatAm", 610),
+        new("Africa", 420),
+    ];
+}

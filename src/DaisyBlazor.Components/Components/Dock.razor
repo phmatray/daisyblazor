@@ -14,7 +14,12 @@
     /// <summary>Controls the dock height via daisyUI size modifiers (dock-xs … dock-xl). Null means no modifier (default daisyUI size).</summary>
     [Parameter] public DockSize? Size { get; set; }
 
+    /// <summary>When true (default) the dock is fixed to the viewport bottom; false places it inline (position: relative).</summary>
+    [Parameter] public bool Fixed { get; set; } = true;
+
+    /// <summary>Extra CSS classes merged onto the <c>.dock</c> element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the <c>.dock</c> element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
@@ -28,5 +33,5 @@
         _ => null
     };
 
-    private string _cls => CssClass.Merge("dock", _sizeClass, Class);
+    private string _cls => CssClass.Merge("dock", _sizeClass, Fixed ? null : "relative", Class);
 }

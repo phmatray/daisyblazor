@@ -1,0 +1,18 @@
+<Tabs @bind-ActiveIndex="_index" Variant="TabsVariant.Lift" Size="Size.Large" Class="[&>.tab-content]:block">
+    <Tab Title="Monthly">
+        <div class="rounded-b-box bg-primary p-5 text-primary-content">
+            <p class="text-2xl font-bold leading-tight">Pro · €29 per seat</p>
+            <p class="mt-1 text-sm opacity-80">Billed every month</p>
+        </div>
+    </Tab>
+    <Tab Title="Yearly">
+        <div class="rounded-b-box bg-secondary p-5 text-secondary-content">
+            <p class="text-2xl font-bold leading-tight">Pro · €290 per seat</p>
+            <p class="mt-1 text-sm opacity-80">Two months free</p>
+        </div>
+    </Tab>
+</Tabs>
+
+@code {
+    private int _index;
+}

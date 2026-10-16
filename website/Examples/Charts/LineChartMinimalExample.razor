@@ -1,0 +1,11 @@
+<LineChart Labels="_weeks" Series="_activeUsers" ShowGrid="false" ShowLegend="false" Height="10rem" />
+
+@code {
+    private readonly string[] _weeks = ["W1", "W2", "W3", "W4", "W5", "W6", "W7", "W8"];
+
+    // Weekly active users (thousands) in the eight weeks after launch.
+    private readonly ChartSeries[] _activeUsers =
+    [
+        new("Active users", [42, 58, 71, 86, 94, 100, 99, 93], "var(--color-accent)"),
+    ];
+}

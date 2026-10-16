@@ -7,7 +7,8 @@
 <li class="@Class" style="@Style" @attributes="UserAttributes">
     @if (!string.IsNullOrEmpty(Href))
     {
-        <a href="@Href" class="@_innerCls">
+        @* Disabled link: drop href so it leaves the tab order and can't be activated by keyboard. *@
+        <a href="@(Disabled ? null : Href)" class="@_innerCls" role="@(Disabled ? "link" : null)" aria-disabled="@(Disabled ? "true" : null)">
             @ItemInner
         </a>
     }
@@ -19,27 +20,36 @@
     }
     else
     {
-        <div class="@_innerCls">
+        <div class="@_innerCls" aria-disabled="@(Disabled ? "true" : null)">
             @ItemInner
         </div>
     }
 </li>
 
 @code {
+    /// <summary>Custom item content; takes precedence over <see cref="Text"/>.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Icon name rendered as a small <see cref="DaisyBlazor.Icon"/> before the content.</summary>
     [Parameter] public string? Icon { get; set; }
+    /// <summary>Plain text shown when no <see cref="ChildContent"/> is provided.</summary>
     [Parameter] public string? Text { get; set; }
+    /// <summary>When set, renders the item as an <c>&lt;a&gt;</c> link to this URL.</summary>
     [Parameter] public string? Href { get; set; }
+    /// <summary>Adds <c>menu-disabled</c>, dims the item and suppresses <see cref="OnClick"/>.</summary>
     [Parameter] public bool Disabled { get; set; }
+    /// <summary>Arbitrary tag for the caller's own use; the component never reads it.</summary>
     [Parameter] public object? Value { get; set; }
+    /// <summary>Click handler; when set (and no <see cref="Href"/>), the item renders as a button.</summary>
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    /// <summary>Extra CSS classes applied to the <c>&lt;li&gt;</c> element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the <c>&lt;li&gt;</c> element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
     private string _innerCls => CssClass.Merge(
         "flex items-center gap-2 w-full text-left",
-        Disabled ? "menu-disabled pointer-events-none opacity-50" : null);
+        Disabled ? "menu-disabled pointer-events-none" : null);   // menu-disabled already dims; no extra opacity
 
     private RenderFragment ItemInner => @<text>
         @if (!string.IsNullOrEmpty(Icon))

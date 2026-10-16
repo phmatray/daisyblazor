@@ -1,0 +1,28 @@
+<div class="flex flex-col gap-2">
+    <Checkbox Label="Sprint 14 — all tasks" Color="Color.Secondary" Value="_tasks.All(t => t.On)" ValueChanged="SetAll"
+              Indeterminate="_tasks.Any(t => t.On) && !_tasks.All(t => t.On)" />
+    <div class="ml-7 flex flex-col gap-2">
+        @foreach (Todo t in _tasks)
+        {
+            <Checkbox Label="@t.Title" Color="Color.Secondary" Size="Size.Small" @bind-Value="t.On" />
+        }
+    </div>
+</div>
+<p class="mt-3 text-sm">@_tasks.Count(t => t.On) of @_tasks.Count tasks done</p>
+
+@code {
+    private class Todo(string title, bool on)
+    {
+        public string Title { get; } = title;
+        public bool On { get; set; } = on;
+    }
+
+    private readonly List<Todo> _tasks =
+    [
+        new("Fix the login redirect", true),
+        new("Add CSV export", true),
+        new("Write the release notes", false),
+    ];
+
+    private void SetAll(bool on) => _tasks.ForEach(t => t.On = on);
+}

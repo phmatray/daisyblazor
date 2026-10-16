@@ -1,0 +1,18 @@
+<div class="flex flex-col gap-2">
+    @foreach ((string title, int stars) in Reviews)
+    {
+        <div class="flex flex-wrap items-center justify-between gap-2">
+            <span>@title</span>
+            <Rating Value="stars" ReadOnly="true" Size="Size.Small" />
+        </div>
+    }
+</div>
+
+@code {
+    private static readonly (string, int)[] Reviews =
+    [
+        ("Onboarding", 5),
+        ("Documentation", 4),
+        ("Billing page", 3),
+    ];
+}

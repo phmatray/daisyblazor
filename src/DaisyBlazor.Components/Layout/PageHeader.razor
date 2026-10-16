@@ -2,9 +2,10 @@
 
 @* PageHeader: title + optional subtitle on the left, optional action slot on the right. *@
 
-<Stack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center"
+@* Wrap so the actions drop below the title on narrow screens instead of overflowing. *@
+<Stack Row="true" Wrap="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center"
        Class="@Class" Style="@Style" @attributes="UserAttributes">
-    <Stack Spacing="0">
+    <Stack Spacing="0" Class="min-w-0">
         <Typography Typo="@(Typo.h1 + Math.Clamp(HeadingLevel, 1, 6) - 1)" Class="@(string.IsNullOrEmpty(Icon) ? null : "flex items-center gap-2")">
             @if (!string.IsNullOrEmpty(Icon))
             {
@@ -14,12 +15,12 @@
         </Typography>
         @if (Subtitle is not null)
         {
-            <Typography Typo="Typo.body2" Color="Color.Secondary">@Subtitle</Typography>
+            <Typography Typo="Typo.body2" Class="text-base-content/70">@Subtitle</Typography>
         }
     </Stack>
     @if (Actions is not null)
     {
-        <Stack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+        <Stack Row="true" Wrap="true" Spacing="2" AlignItems="AlignItems.Center">
             @Actions
         </Stack>
     }

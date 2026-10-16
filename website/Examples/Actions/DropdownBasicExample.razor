@@ -1,0 +1,14 @@
+@* The activator sits inside a <summary>, so style a span as the button: a <Button> there would swallow the click. *@
+<div class="min-h-56">
+    <Dropdown>
+        <Activator>
+            <span class="btn btn-primary">Export <Icon Name="@Icons.Material.Filled.ExpandMore" /></span>
+        </Activator>
+        <ChildContent>
+            <li><a>As CSV</a></li>
+            <li><a>As JSON</a></li>
+            <li><a>As PDF</a></li>
+            <li class="menu-disabled"><a>As Excel (Pro plan)</a></li>
+        </ChildContent>
+    </Dropdown>
+</div>

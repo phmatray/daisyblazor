@@ -1,0 +1,21 @@
+<DataTable T="Plan" Items="_plans" Dense="true" PageSizeOptions="[4]">
+    <Columns>
+        <PropertyColumn T="Plan" TProperty="string" Property="p => p.Name" Title="Plan" />
+        <PropertyColumn T="Plan" TProperty="int" Property="p => p.Seats" Title="Seats" Format="N0" />
+    </Columns>
+    <Actions>
+        <IconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Color="Color.Primary" Title="Open" />
+    </Actions>
+</DataTable>
+
+@code {
+    private record Plan(string Name, int Seats);
+
+    private readonly Plan[] _plans =
+    [
+        new("Free", 5_000),
+        new("Pro", 1_500),
+        new("Team", 1_000),
+        new("Enterprise", 500),
+    ];
+}

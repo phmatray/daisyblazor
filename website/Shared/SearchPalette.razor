@@ -1,0 +1,145 @@
+@* ⌘K palette over guides, components, examples and parameters. Native <dialog> for focus trapping and Esc. *@
+@implements IAsyncDisposable
+@inject SearchIndex Index
+@inject DocsJs Js
+@inject NavigationManager Nav
+
+<dialog @ref="_dialog" class="modal modal-top sm:modal-middle" aria-label="Search the documentation" @onclose="OnClosed">
+    <div class="modal-box mx-auto mt-4 w-[min(42rem,calc(100vw-2rem))] max-w-none overflow-hidden rounded-3xl p-0 sm:mt-0">
+        @* Arrows and Enter drive the list: prevent their default for the key actually pressed (a Blazor
+           preventDefault flag would apply the previous key's decision and eat the next letter). *@
+        <div class="sleeve flex items-center gap-3 px-5 py-4"
+             onkeydown="if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') event.preventDefault()">
+            <Icon Name="@Icons.Material.Filled.Search" />
+            <input @ref="_input" type="search" value="@_query" @oninput="OnInput" @onkeydown="OnKey"
+                   class="w-full bg-transparent font-display text-xl font-semibold text-primary-content outline-none placeholder:text-primary-content/85"
+                   placeholder="Button, Color, theming, MudDialog…" aria-label="Search" autocomplete="off" spellcheck="false"
+                   role="combobox" aria-expanded="true" aria-controls="search-results"
+                   aria-activedescendant="@(_hits.Count > 0 ? $"hit-{_active}" : null)" />
+            <Kbd Size="Size.Small" Class="text-base-content">Esc</Kbd>
+        </div>
+        <ul id="search-results" role="listbox" class="max-h-[min(60vh,28rem)] overflow-y-auto p-2">
+            @if (_hits.Count == 0)
+            {
+                <li class="px-4 py-10 text-center text-base-content/70">
+                    Nothing matches “@_query”. Try a component name like <b>Tabs</b> or a parameter like <b>Variant</b>.
+                </li>
+            }
+            @for (int i = 0; i < _hits.Count; i++)
+            {
+                int index = i;
+                SearchHit hit = _hits[i];
+                <li id="hit-@index" @ref="_hitRefs[index]" role="option" aria-selected="@(index == _active ? "true" : "false")"
+                    @onmousemove="() => _active = index" @onclick="() => Go(hit)"
+                    class="flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-2.5 @(index == _active ? "bg-primary text-primary-content" : "")">
+                    <span class="grid size-9 shrink-0 place-items-center rounded-xl @(index == _active ? "bg-primary-content/15" : "bg-base-200")">
+                        <Icon Name="@KindIcon(hit.Kind)" Size="Size.Small" />
+                    </span>
+                    <span class="min-w-0">
+                        <span class="block truncate font-bold @(hit.Kind == HitKind.Parameter ? "font-mono text-[0.9rem]" : "")">@hit.Title</span>
+                        <span class="block truncate text-sm @(index == _active ? "text-primary-content/80" : "text-base-content/65")">@hit.Context</span>
+                    </span>
+                    <span class="ml-auto shrink-0 text-xs font-bold opacity-70">@KindLabel(hit.Kind)</span>
+                </li>
+            }
+        </ul>
+        <div class="flex items-center gap-4 border-t border-base-300 px-5 py-2.5 text-xs text-base-content/65">
+            <span class="flex items-center gap-1"><Kbd Size="Size.Small">↑</Kbd><Kbd Size="Size.Small">↓</Kbd> to move</span>
+            <span class="flex items-center gap-1"><Kbd Size="Size.Small">Enter</Kbd> to open</span>
+            <span class="ml-auto">@DocRegistry.All.Count components indexed</span>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop"><button aria-label="Close search">close</button></form>
+</dialog>
+
+@code {
+    private ElementReference _dialog;
+    private ElementReference _input;
+    private string _query = "";
+    private IReadOnlyList<SearchHit> _hits = [];
+    private int _active;
+    private readonly Dictionary<int, ElementReference> _hitRefs = [];
+    private bool _scrollToActive;
+    private DotNetObjectReference<SearchPalette>? _self;
+    private IJSObjectReference? _shortcuts;
+
+    protected override void OnInitialized() => _hits = Index.Query("");
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_scrollToActive && _hitRefs.TryGetValue(_active, out ElementReference active))
+        {
+            _scrollToActive = false;
+            await Js.ScrollIntoView(active);
+        }
+        if (!firstRender) return;
+        _self = DotNetObjectReference.Create(this);
+        _shortcuts = await Js.RegisterShortcuts(_self);
+    }
+
+    [JSInvokable]
+    public async Task OpenSearch() => await Open();
+
+    public async Task Open()
+    {
+        await Js.ShowModal(_dialog);
+        await Js.Focus(_input);
+    }
+
+    private void OnInput(ChangeEventArgs e)
+    {
+        _query = e.Value?.ToString() ?? "";
+        _hits = Index.Query(_query);
+        _active = 0;
+    }
+
+    private async Task OnKey(KeyboardEventArgs e)
+    {
+        if (_hits.Count == 0) return;
+        _scrollToActive = e.Key is "ArrowDown" or "ArrowUp";
+        switch (e.Key)
+        {
+            case "ArrowDown": _active = (_active + 1) % _hits.Count; break;
+            case "ArrowUp": _active = (_active - 1 + _hits.Count) % _hits.Count; break;
+            case "Enter": await Go(_hits[_active]); break;
+        }
+    }
+
+    private async Task Go(SearchHit hit)
+    {
+        await Js.CloseModal(_dialog);
+        Nav.NavigateTo(hit.Url);
+    }
+
+    private void OnClosed()
+    {
+        _query = "";
+        _hits = Index.Query("");
+        _active = 0;
+    }
+
+    private static string KindIcon(HitKind k) => k switch
+    {
+        HitKind.Guide => Icons.Material.Filled.MenuBook,
+        HitKind.Component => Icons.Material.Filled.Widgets,
+        HitKind.Parameter => Icons.Material.Filled.Tune,
+        _ => Icons.Material.Filled.Tag,
+    };
+
+    private static string KindLabel(HitKind k) => k switch
+    {
+        HitKind.Guide => "Guide",
+        HitKind.Component => "Component",
+        HitKind.Parameter => "Parameter",
+        _ => "Section",
+    };
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_shortcuts is not null)
+        {
+            try { await _shortcuts.InvokeVoidAsync("dispose"); await _shortcuts.DisposeAsync(); } catch (JSDisconnectedException) { }
+        }
+        _self?.Dispose();
+    }
+}

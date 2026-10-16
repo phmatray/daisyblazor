@@ -1,0 +1,17 @@
+<Autocomplete T="string" Label="Customer" Placeholder="Type “co” or “in”…" Clearable="true"
+              AdornmentIcon="@Icons.Material.Filled.Search" Adornment="Adornment.Start"
+              @bind-Value="_customer" SearchFunc="SearchAsync" />
+<p class="mt-3 text-sm">Selected: <span class="font-mono">@(_customer ?? "(none)")</span></p>
+
+@code {
+    private string? _customer;
+
+    private static readonly string[] Customers =
+    [
+        "Northwind Traders", "Contoso", "Fabrikam", "Globex", "Initech",
+        "Umbrella Corp", "Wide World Importers", "Adventure Works", "Tailspin Toys", "Litware",
+    ];
+
+    private static Task<IEnumerable<string>> SearchAsync(string text, CancellationToken token) =>
+        Task.FromResult(Customers.Where(c => c.Contains(text, StringComparison.OrdinalIgnoreCase)));
+}

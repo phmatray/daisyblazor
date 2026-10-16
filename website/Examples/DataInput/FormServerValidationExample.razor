@@ -1,0 +1,34 @@
+@* ServerValidation shows errors returned by an API. Inputs with a FieldName light up by themselves;
+   FieldError reports for anything else. Field names match case-insensitively and by last segment. *@
+@using DaisyBlazor.Validation
+
+<ServerValidation State="_errors">
+    <div class="grid w-full gap-x-4 sm:grid-cols-2">
+        <TextField Label="Project name" FieldName="Name" @bind-Value="_name" />
+        <NumericField T="int" Label="Seats" FieldName="Seats" @bind-Value="_seats" />
+    </div>
+    <fieldset class="fieldset">
+        <legend class="fieldset-legend">Your rating</legend>
+        <Rating @bind-Value="_stars" />
+        <FieldError For="Stars" />
+    </fieldset>
+</ServerValidation>
+
+<div class="mt-4 flex flex-wrap gap-2">
+    <Button Color="Color.Error" Variant="Variant.Filled" Size="Size.Small" OnClick="Reject">Simulate a 400 from the API</Button>
+    <Button Variant="Variant.Outlined" Size="Size.Small" OnClick="_errors.Clear">Clear errors</Button>
+</div>
+
+@code {
+    private readonly ServerValidationState _errors = new();
+    private string? _name;
+    private int _seats;
+    private int _stars;
+
+    private void Reject() => _errors.SetErrors(
+    [
+        ("request.Name", "A project name is required."),
+        ("Seats", "Add at least one seat."),
+        ("Stars", "Rate your experience before you send feedback."),
+    ]);
+}

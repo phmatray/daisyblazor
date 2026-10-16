@@ -5,9 +5,9 @@
 
 @if (!string.IsNullOrEmpty(Href))
 {
-    @* A disabled link is not navigable: drop href, expose it as aria-disabled and out of the tab order. *@
-    <a href="@(Disabled ? null : Href)" target="@Target" class="@_cls" style="@Style"
-       aria-disabled="@(Disabled ? "true" : null)" tabindex="@(Disabled ? "-1" : null)" @attributes="UserAttributes">
+    @* A disabled (or loading) link is not navigable: drop href, expose it as aria-disabled and out of the tab order. *@
+    <a href="@(_inert ? null : Href)" target="@Target" class="@_cls" style="@Style"
+       aria-disabled="@(_inert ? "true" : null)" tabindex="@(_inert ? "-1" : null)" @attributes="UserAttributes">
         @ButtonInner
     </a>
 }
@@ -20,21 +20,39 @@ else
 }
 
 @code {
+    [CascadingParameter] private ButtonGroup? Group { get; set; }
+
+    /// <summary>Button label or content, rendered between the optional start and end icons.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Semantic color mapped to btn-{color} (e.g. btn-primary); Default adds no color class.</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
+    /// <summary>Visual style: Outlined maps to btn-outline, Text (default) to btn-ghost, Filled to a solid button.</summary>
     [Parameter] public Variant Variant { get; set; } = Variant.Text;
+    /// <summary>Button size: Small maps to btn-sm, Large to btn-lg, Medium (default) adds no class.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
+    /// <summary>Icon name rendered before the content; replaced by the spinner while loading.</summary>
     [Parameter] public string? StartIcon { get; set; }
+    /// <summary>Icon name rendered after the content; hidden while loading.</summary>
     [Parameter] public string? EndIcon { get; set; }
+    /// <summary>When set, renders an &lt;a&gt; link with this URL instead of a &lt;button&gt;.</summary>
     [Parameter] public string? Href { get; set; }
+    /// <summary>Link target (e.g. "_blank") applied to the &lt;a&gt; when Href is set.</summary>
     [Parameter] public string? Target { get; set; }
+    /// <summary>Disables the button; links lose their href and get btn-disabled and aria-disabled.</summary>
     [Parameter] public bool Disabled { get; set; }
+    /// <summary>Shows a loading spinner in place of the start icon and disables the button.</summary>
     [Parameter] public bool Loading { get; set; }
+    /// <summary>Stretches the button to the full container width via btn-block.</summary>
     [Parameter] public bool FullWidth { get; set; }
+    /// <summary>Stops the click event from propagating to parent elements (button mode only).</summary>
     [Parameter] public bool StopPropagation { get; set; }
+    /// <summary>HTML button type attribute (button, submit or reset); defaults to button.</summary>
     [Parameter] public ButtonType ButtonType { get; set; } = ButtonType.Button;
+    /// <summary>Raised when the button is clicked; not raised while disabled or loading.</summary>
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    /// <summary>Extra CSS classes merged onto the root element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
@@ -45,29 +63,41 @@ else
         _ => "button"
     };
 
+    private bool _inert => Disabled || Loading;
+
+    // Icons and spinner follow the button size so they don't look undersized on btn-lg.
+    private Size _iconSize => Size == Size.Large ? Size.Medium : Size.Small;
+
+    private string _spinnerCls => Size switch
+    {
+        Size.Small => "loading loading-spinner loading-xs",
+        Size.Large => "loading loading-spinner loading-md",
+        _ => "loading loading-spinner loading-sm"
+    };
+
     private string _cls => CssClass.Merge(
         "btn",
-        CssClass.ButtonColor(Color),
-        CssClass.ButtonVariant(Variant),
-        CssClass.ButtonSize(Size),
+        CssClass.ButtonColor(Group is { OverrideStyles: true, Color: not Color.Default } g1 ? g1.Color : Color),
+        CssClass.ButtonVariant(Group is { OverrideStyles: true, Variant: not Variant.Text } g2 ? g2.Variant : Variant),
+        CssClass.ButtonSize(Group is { OverrideStyles: true, Size: not Size.Medium } g3 ? g3.Size : Size),
         FullWidth ? "btn-block" : null,
-        Disabled && !string.IsNullOrEmpty(Href) ? "btn-disabled" : null,
+        _inert && !string.IsNullOrEmpty(Href) ? "btn-disabled" : null,
         "gap-2 normal-case",
         Class);
 
     private RenderFragment ButtonInner => @<text>
         @if (Loading)
         {
-            <span class="loading loading-spinner loading-sm"></span>
+            <span class="@_spinnerCls"></span>
         }
         else if (!string.IsNullOrEmpty(StartIcon))
         {
-            <Icon Name="@StartIcon" Size="Size.Small" />
+            <Icon Name="@StartIcon" Size="@_iconSize" />
         }
         @ChildContent
         @if (!Loading && !string.IsNullOrEmpty(EndIcon))
         {
-            <Icon Name="@EndIcon" Size="Size.Small" />
+            <Icon Name="@EndIcon" Size="@_iconSize" />
         }
     </text>;
 

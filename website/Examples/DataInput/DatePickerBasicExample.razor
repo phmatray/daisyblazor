@@ -1,0 +1,17 @@
+<div class="grid w-full gap-x-4 sm:grid-cols-2">
+    <DatePicker Label="Sprint start" @bind-Date="_start" />
+    <DatePicker Label="Release date" @bind-Date="_release" Clearable="true" Placeholder="Not scheduled" />
+</div>
+<p class="mt-3 text-sm">
+    Start <span class="font-mono">@(_start?.ToString("d MMM yyyy") ?? "—")</span>,
+    release <span class="font-mono">@(_release?.ToString("d MMM yyyy") ?? "—")</span>
+    @if (_start is { } s && _release is { } r)
+    {
+        <span>: <b>@((r - s).Days) days</b> in between.</span>
+    }
+</p>
+
+@code {
+    private DateTime? _start = new DateTime(2026, 3, 2);
+    private DateTime? _release = new DateTime(2026, 4, 20);
+}

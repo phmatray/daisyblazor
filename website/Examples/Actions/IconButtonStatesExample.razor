@@ -1,0 +1,11 @@
+<div class="flex flex-wrap items-center gap-2">
+    <IconButton Icon="@Icons.Material.Filled.Favorite" Color="@(_liked ? Color.Error : Color.Inherit)"
+                aria-label="Like" aria-pressed="@(_liked ? "true" : "false")" OnClick="() => _liked = !_liked" />
+    <span class="mr-4 text-sm">@(_liked ? "Added to favorites" : "Tap the heart")</span>
+    <IconButton Icon="@Icons.Material.Filled.Edit" Disabled="true" aria-label="Edit (locked)" />
+    <IconButton Icon="@Icons.Material.Filled.OpenInNew" Href="https://daisyui.com" Target="_blank" aria-label="Open daisyUI" />
+</div>
+
+@code {
+    private bool _liked;
+}

@@ -27,7 +27,8 @@
                     }
                     else
                     {
-                        <span class="@_spanCls(item)" aria-current="@ariaCurrent">
+                        <span class="@_spanCls(item)" aria-current="@ariaCurrent"
+                              aria-disabled="@(item.Disabled ? "true" : null)">
                             @if (!string.IsNullOrEmpty(item.Icon))
                             {
                                 <Icon Name="@item.Icon" Size="Size.Small" />
@@ -42,12 +43,15 @@
 </nav>
 
 @code {
+    /// <summary>Trail entries, each rendered as a link (when it has an Href and is enabled) or plain text.</summary>
     [Parameter] public List<BreadcrumbItem>? Items { get; set; }
 
     /// <summary>Accepted for MudBlazor source compatibility; ignored.</summary>
     [Parameter] public string? Separator { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the root breadcrumbs &lt;nav&gt; element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root breadcrumbs &lt;nav&gt; element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
@@ -55,5 +59,7 @@
 
     private string _spanCls(BreadcrumbItem item) => CssClass.Merge(
         "flex items-center gap-1",
-        item.Disabled ? "opacity-50" : null);
+        // opacity-50 dropped below WCAG AA text contrast; 70% stays readable (about 5.5:1 on the light
+        // theme) and, unlike a base-content token, still follows the trail's colour on tinted surfaces.
+        item.Disabled ? "opacity-70" : null);
 }

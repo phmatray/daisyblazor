@@ -1,0 +1,11 @@
+@* ChildContent replaces Label when the text needs markup. *@
+<Switch Color="Color.Secondary" @bind-Value="_twoFactor">
+    <span>
+        <b>Two-factor authentication</b>
+        <span class="block text-xs opacity-60">@(_twoFactor ? "A code is required at sign-in" : "Password only")</span>
+    </span>
+</Switch>
+
+@code {
+    private bool _twoFactor = true;
+}

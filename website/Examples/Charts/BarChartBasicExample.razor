@@ -1,0 +1,11 @@
+<BarChart Title="Accounts by plan, 2026" Data="_accounts" />
+
+@code {
+    private readonly ChartDataPoint[] _accounts =
+    [
+        new("Free", 48_200),
+        new("Pro", 39_900),
+        new("Team", 21_100),
+        new("Enterprise", 8_300),
+    ];
+}

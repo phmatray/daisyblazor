@@ -13,7 +13,9 @@
     /// <summary>CSS width for the item (e.g. "100%", "300px"); applied as inline style.</summary>
     [Parameter] public string? Width { get; set; }
 
+    /// <summary>Extra CSS classes added to the carousel item.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style appended after the width.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

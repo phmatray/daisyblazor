@@ -1,0 +1,25 @@
+<div class="flex flex-col gap-4">
+    <Breadcrumbs Items="_crumbs" Class="font-semibold" />
+    <div class="rounded-box bg-primary p-5 text-primary-content">
+        <p class="text-xs font-bold uppercase tracking-widest opacity-80">Project · Sprint 14</p>
+        <p class="mt-1 text-3xl font-bold leading-tight">Checkout redesign</p>
+        <p class="mt-2 text-sm opacity-80">Contoso · due 30 June</p>
+    </div>
+    <Breadcrumbs Items="_short" Class="opacity-70" />
+</div>
+
+@code {
+    private readonly List<BreadcrumbItem> _crumbs =
+    [
+        new("Home", "components/breadcrumbs", Icon: Icons.Material.Filled.Home),
+        new("Projects", "components/breadcrumbs", Icon: Icons.Material.Filled.Folder),
+        new("Checkout", null),
+    ];
+
+    private readonly List<BreadcrumbItem> _short =
+    [
+        new("Customers", "components/breadcrumbs"),
+        new("Contoso", "components/breadcrumbs"),
+        new("Projects", null),
+    ];
+}

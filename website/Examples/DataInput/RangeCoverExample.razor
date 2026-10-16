@@ -1,0 +1,18 @@
+@* Resource limits for one environment. *@
+<div class="flex flex-col gap-4">
+    @foreach ((string resource, Color color) in Resources)
+    {
+        string key = resource;
+        <div>
+            <div class="flex justify-between text-sm font-extrabold uppercase tracking-widest">
+                <span>@key</span><span class="font-mono">@_levels[key]</span>
+            </div>
+            <Range Value="_levels[key]" ValueChanged="v => _levels[key] = v" Color="color" Class="w-full" />
+        </div>
+    }
+</div>
+
+@code {
+    private static readonly (string, Color)[] Resources = [("CPU", Color.Primary), ("Memory", Color.Secondary), ("Storage", Color.Tertiary)];
+    private readonly Dictionary<string, double> _levels = new() { ["CPU"] = 72, ["Memory"] = 45, ["Storage"] = 60 };
+}

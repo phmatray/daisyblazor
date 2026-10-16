@@ -3,7 +3,7 @@
 @* daisyUI theme-controller: a CSS-only mechanism that sets the page's data-theme attribute
    via the :checked selector on an <input class="theme-controller">.
    - Checkbox variant: unchecked = browser/default theme; checked = Value theme.
-     Wrap a <Swap> (or any label content) in ChildContent for a visual toggle.
+     For an icon toggle set HideInput="true" and Class="swap", with swap-on/swap-off children.
    - Radio variant: selecting this input activates the Value theme; inputs sharing
      the same Name form a mutually-exclusive group covering any number of themes.
    No JavaScript is needed; daisyUI's CSS handles data-theme propagation entirely.
@@ -53,12 +53,22 @@
     [Parameter] public EventCallback<bool> CheckedChanged { get; set; }
 
     /// <summary>
-    /// Content rendered inside the wrapping label — typically a <see cref="Swap"/> component
-    /// showing themed icons, or a plain text label for radio variants.
+    /// When true the input is visually hidden (no toggle or radio is drawn) so the label content
+    /// alone acts as the control. Use it for daisyUI's icon swap: set <c>Class="swap swap-rotate"</c>
+    /// and put elements with the <c>swap-on</c> / <c>swap-off</c> classes in <see cref="ChildContent"/>.
+    /// </summary>
+    [Parameter] public bool HideInput { get; set; }
+
+    /// <summary>
+    /// Content rendered inside the wrapping label: a text label, or <c>swap-on</c> / <c>swap-off</c>
+    /// icons together with <see cref="HideInput"/>. Do not nest a <see cref="Swap"/> component: its
+    /// own checkbox would take the click instead of the theme-controller input.
     /// </summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the root wrapping &lt;label&gt; element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root wrapping &lt;label&gt; element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
@@ -70,7 +80,7 @@
         _                        => "checkbox"
     };
 
-    private string _inputCls => Type switch
+    private string _inputCls => HideInput ? "theme-controller hidden" : Type switch
     {
         ThemeControllerType.Radio => "theme-controller radio",
         _                        => "theme-controller toggle"

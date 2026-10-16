@@ -1,0 +1,21 @@
+@* Dock is position: fixed by design; Class="relative" keeps it inside this preview. *@
+<div class="w-full overflow-hidden rounded-box border border-base-300 bg-base-200">
+    <p class="p-6 text-sm">Current tab: <strong>@_labels[_active]</strong></p>
+    <Dock Class="relative">
+        @for (int i = 0; i < _labels.Length; i++)
+        {
+            int index = i;
+            <DockItem Icon="@_icons[index]" Label="@_labels[index]" Active="_active == index" OnClick="() => _active = index" />
+        }
+    </Dock>
+</div>
+
+@code {
+    private int _active;
+    private readonly string[] _labels = ["Home", "Search", "Projects", "Profile"];
+    private readonly string[] _icons =
+    [
+        Icons.Material.Filled.Home, Icons.Material.Filled.Search,
+        Icons.Material.Filled.Folder, Icons.Material.Filled.Person,
+    ];
+}

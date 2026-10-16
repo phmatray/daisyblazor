@@ -1,0 +1,51 @@
+@* The back of the sleeve: credits, catalogue number, links. *@
+
+<footer class="sleeve">
+    <div class="mx-auto grid max-w-[1500px] gap-10 px-4 py-14 sm:px-8 md:grid-cols-[1fr_auto_auto_auto] lg:px-14">
+        <div class="max-w-sm">
+            <div class="flex items-center gap-2.5">
+                <DaisyMark Class="size-9" />
+                <span class="font-display text-2xl font-bold">daisy<span class="sleeve-soft">Blazor</span></span>
+            </div>
+            <p class="sleeve-muted mt-4 text-sm leading-relaxed">
+                daisyUI v5 components for Blazor, with a MudBlazor-compatible API. This site is a Blazor WebAssembly
+                app built with DaisyBlazor itself. MIT licensed.
+            </p>
+        </div>
+        <div>
+            <span class="sleeve-muted mb-3 block text-sm font-bold">Guides</span>
+            <ul class="space-y-1.5 text-sm font-bold">
+                @foreach (GuideDoc g in Guides.All.Take(5))
+                {
+                    <li><a class="hover:underline hover:underline-offset-4" href="@g.Url">@g.Title</a></li>
+                }
+            </ul>
+        </div>
+        <div>
+            <span class="sleeve-muted mb-3 block text-sm font-bold">Components</span>
+            <ul class="space-y-1.5 text-sm font-bold">
+                <li><a class="hover:underline hover:underline-offset-4" href="components">All components</a></li>
+                <li><a class="hover:underline hover:underline-offset-4" href="themes">The @ThemeDeck.Themes.Count themes</a></li>
+                <li><a class="hover:underline hover:underline-offset-4" href="components/button">Button playground</a></li>
+            </ul>
+        </div>
+        <div>
+            <span class="sleeve-muted mb-3 block text-sm font-bold">Elsewhere</span>
+            <ul class="space-y-1.5 text-sm font-bold">
+                <li><a class="hover:underline hover:underline-offset-4" href="https://github.com/phmatray/daisyblazor" target="_blank" rel="noopener">GitHub</a></li>
+                <li><a class="hover:underline hover:underline-offset-4" href="https://www.nuget.org/packages/DaisyBlazor.Components" target="_blank" rel="noopener">NuGet</a></li>
+                <li><a class="hover:underline hover:underline-offset-4" href="https://github.com/phmatray/daisyblazor/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a></li>
+                <li><a class="hover:underline hover:underline-offset-4" href="https://daisyui.com" target="_blank" rel="noopener">daisyUI</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-2 border-t border-primary-content/20 px-4 py-5 text-xs font-semibold sm:px-8 lg:px-14">
+        <span>DaisyBlazor v@(Version) · Tailwind CSS v4 · daisyUI v5 · .NET 10</span>
+        <span class="sleeve-muted">© Philippe Matray and contributors</span>
+    </div>
+</footer>
+
+@code {
+    private static readonly string Version =
+        typeof(Button).Assembly.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "";
+}

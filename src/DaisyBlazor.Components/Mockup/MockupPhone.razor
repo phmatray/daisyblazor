@@ -15,7 +15,9 @@
     /// <summary>Content rendered inside the phone display area.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>Additional CSS classes merged onto the <c>mockup-phone</c> element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the <c>mockup-phone</c> element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

@@ -3,7 +3,7 @@
 @* A single speed-dial action inside a <Fab>. Wraps a .btn .btn-circle .btn-lg button and
    an optional .tooltip label. Place as ChildContent of <Fab>. *@
 
-<div class="@_wrapCls">
+<div>
     @if (!string.IsNullOrWhiteSpace(Tooltip))
     {
         <div class="@_tooltipCls" data-tip="@Tooltip">
@@ -35,11 +35,17 @@
     /// <summary>Click callback.</summary>
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
 
+    /// <summary>Accessible name of the icon-only button. Defaults to <see cref="Tooltip"/>.</summary>
+    [Parameter] public string? AriaLabel { get; set; }
+
+    /// <summary>Extra CSS classes merged onto the action button itself (like Style and extra attributes).</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the action button itself.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
-    private string _wrapCls => CssClass.Merge(Class);
+    private string? _ariaLabel => !string.IsNullOrWhiteSpace(AriaLabel) ? AriaLabel
+        : !string.IsNullOrWhiteSpace(Tooltip) ? Tooltip : null;
 
     private string _tooltipCls => CssClass.Merge(
         "tooltip",
@@ -55,11 +61,13 @@
         "btn",
         "btn-circle",
         "btn-lg",
-        CssClass.ButtonColor(Color));
+        CssClass.ButtonColor(Color),
+        Class);
 
     private RenderFragment _button => @<button type="button"
         class="@_btnCls"
         style="@Style"
+        aria-label="@_ariaLabel"
         @onclick="OnClick"
         @attributes="UserAttributes">
         @if (ChildContent is not null)

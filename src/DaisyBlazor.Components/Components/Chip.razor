@@ -5,20 +5,38 @@
    Non-generic on purpose: `Value` is a caller-owned tag this component never reads, so a type
    parameter only forced a T="..." onto call sites that just wanted a label. *@
 
-@if (OnClick.HasDelegate)
+@* With a close button the root stays a span, so the main action and the close action are two
+   sibling buttons rather than a button nested in a button (invalid, and unreachable by keyboard). *@
+@if (OnClick.HasDelegate && !OnClose.HasDelegate)
 {
     <button type="button" class="@_cls" style="@Style" @onclick="OnClickHandler" @attributes="UserAttributes">
-        @ChipInner
+        @ChipLabel
     </button>
 }
 else
 {
     <span class="@_cls" style="@Style" @attributes="UserAttributes">
-        @ChipInner
+        @if (OnClick.HasDelegate)
+        {
+            <button type="button" class="inline-flex items-center gap-1" @onclick="OnClickHandler">
+                @ChipLabel
+            </button>
+        }
+        else
+        {
+            @ChipLabel
+        }
+        @if (OnClose.HasDelegate)
+        {
+            <button type="button" class="btn btn-ghost btn-xs btn-circle -mr-1" aria-label="@_closeLabel" @onclick="OnCloseHandler" @onclick:stopPropagation="true">
+                <Icon Name="@(string.IsNullOrEmpty(CloseIcon) ? Icons.Material.Filled.Close : CloseIcon)" Size="Size.Small" />
+            </button>
+        }
     </span>
 }
 
 @code {
+    /// <summary>Chip content; when set it replaces <see cref="Text"/>.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>Backing value for selection scenarios. Untyped — the chip never reads it; it is
@@ -28,8 +46,11 @@ else
     /// <summary>Text shown when no ChildContent is supplied.</summary>
     [Parameter] public string? Text { get; set; }
 
+    /// <summary>Semantic color mapped to the daisyUI badge-{color} class; defaults to no color class.</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
+    /// <summary>Badge size: Small maps to badge-sm, Large to badge-lg; Medium (default) adds no class.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
+    /// <summary>Visual style: Outlined maps to badge-outline, Text to badge-soft; Filled (default) adds none.</summary>
     [Parameter] public Variant Variant { get; set; } = Variant.Filled;
 
     /// <summary>Leading icon ligature.</summary>
@@ -38,12 +59,15 @@ else
     /// <summary>Close icon ligature for the optional close button.</summary>
     [Parameter] public string? CloseIcon { get; set; }
 
+    /// <summary>Click handler; when set the chip renders as a &lt;button&gt; instead of a &lt;span&gt;.</summary>
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
 
     /// <summary>Raised when the close button is clicked; rendering it requires a delegate.</summary>
     [Parameter] public EventCallback<Chip> OnClose { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the root badge element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root badge element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
@@ -62,7 +86,9 @@ else
         "gap-1",
         Class);
 
-    private RenderFragment ChipInner => @<text>
+    private string _closeLabel => string.IsNullOrEmpty(Text) ? "Remove" : $"Remove {Text}";
+
+    private RenderFragment ChipLabel => @<text>
         @if (!string.IsNullOrEmpty(Icon))
         {
             <Icon Name="@Icon" Size="Size.Small" />
@@ -74,12 +100,6 @@ else
         else
         {
             @Text
-        }
-        @if (OnClose.HasDelegate)
-        {
-            <button type="button" class="btn btn-ghost btn-xs btn-circle -mr-1" @onclick="OnCloseHandler" @onclick:stopPropagation="true">
-                <Icon Name="@(string.IsNullOrEmpty(CloseIcon) ? Icons.Material.Filled.Close : CloseIcon)" Size="Size.Small" />
-            </button>
         }
     </text>;
 

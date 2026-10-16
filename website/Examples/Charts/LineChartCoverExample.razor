@@ -1,0 +1,15 @@
+<div>
+    <p class="font-display text-3xl font-bold leading-none">371 k</p>
+    <p class="mb-3 text-sm opacity-60">page views in September</p>
+    <LineChart Labels="_months" Series="_series" Smooth="true" ShowLegend="false" Height="11rem" />
+</div>
+
+@code {
+    private readonly string[] _months = ["J", "F", "M", "A", "M", "J", "J", "A", "S"];
+
+    private readonly ChartSeries[] _series =
+    [
+        new("Web", [182, 196, 240, 228, 265, 310, 342, 298, 371]),
+        new("Mobile", [90, 112, 105, 140, 151, 148, 190, 205, 226]),
+    ];
+}

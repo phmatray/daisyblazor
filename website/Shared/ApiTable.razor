@@ -1,0 +1,97 @@
+@* The parameters of one component, reflected at runtime with defaults and XML-doc summaries. *@
+@inject XmlDocs Docs
+
+<section class="mb-12" aria-labelledby="@_id">
+    <div class="mb-1 flex flex-wrap items-baseline gap-x-4">
+        <h3 id="@_id" class="font-mono text-xl font-semibold">&lt;@ApiReflector.ComponentName(Component)&gt;</h3>
+        <span class="text-sm text-base-content/65">@Component.Namespace</span>
+    </div>
+    @if (_summary is not null)
+    {
+        <p class="mb-4 max-w-[70ch] text-base-content/80">@_summary</p>
+    }
+
+    @foreach (IGrouping<ParamKind, ParamInfo> group in _params.GroupBy(p => p.Kind))
+    {
+        <h4 class="mb-2 text-sm font-bold text-base-content/70">@GroupTitle(group.Key)</h4>
+        <ul class="mb-6 divide-y divide-base-300 border-y-2 border-base-content md:hidden">
+            @foreach (ParamInfo p in group)
+            {
+                <li class="py-3">
+                    <div class="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+                        <span class="font-mono font-semibold">@p.Name</span>
+                        <span class="font-mono text-[0.8rem] text-base-content/75 [overflow-wrap:anywhere]">@p.TypeName</span>
+                    </div>
+                    @if (group.Key == ParamKind.Property && p.Default is not null)
+                    {
+                        <div class="mt-0.5 font-mono text-[0.8rem] text-base-content/75">= @p.Default</div>
+                    }
+                    @if (p.Summary is not null)
+                    {
+                        <p class="mt-1 text-[0.92rem] text-base-content/85">@p.Summary</p>
+                    }
+                </li>
+            }
+        </ul>
+        <div class="mb-6 hidden overflow-x-auto md:block">
+            <table class="w-full min-w-[40rem] table-fixed text-[0.92rem]">
+                
+                <thead>
+                    <tr class="border-b-2 border-base-content text-left">
+                        <th class="w-[24%] py-2 pr-4 font-bold">Name</th>
+                        <th class="w-[22%] py-2 pr-4 font-bold">Type</th>
+                        @if (group.Key == ParamKind.Property)
+                        {
+                            <th class="w-[18%] py-2 pr-4 font-bold">Default</th>
+                        }
+                        @if (_described)
+                        {
+                            <th class="py-2 font-bold">Description</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (ParamInfo p in group)
+                    {
+                        <tr class="border-b border-base-300 align-top">
+                            <td class="py-2.5 pr-4 font-mono font-semibold [overflow-wrap:anywhere]">@p.Name</td>
+                            <td class="py-2.5 pr-4 font-mono text-[0.85rem] text-base-content/80 [overflow-wrap:anywhere]">@p.TypeName</td>
+                            @if (group.Key == ParamKind.Property)
+                            {
+                                <td class="py-2.5 pr-4 font-mono text-[0.85rem] text-base-content/80 [overflow-wrap:anywhere]">@(p.Default ?? "—")</td>
+                            }
+                            @if (_described)
+                            {
+                                <td class="py-2.5 text-base-content/85">@(p.Summary ?? "")</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public Type Component { get; set; } = null!;
+
+    private IReadOnlyList<ParamInfo> _params = [];
+    private string? _summary;
+    private string _id = "";
+    private bool _described;
+
+    protected override void OnParametersSet()
+    {
+        _params = ApiReflector.Parameters(Component, Docs);
+        _summary = Docs.Summary(Component);
+        _described = _params.Any(p => p.Summary is not null);
+        _id = "api-" + Slugify.Of(ApiReflector.TagName(Component));
+    }
+
+    private static string GroupTitle(ParamKind k) => k switch
+    {
+        ParamKind.Event => "Events",
+        ParamKind.Content => "Content",
+        _ => "Parameters",
+    };
+}

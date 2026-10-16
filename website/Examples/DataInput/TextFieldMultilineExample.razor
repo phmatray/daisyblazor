@@ -1,0 +1,7 @@
+<TextField Label="Release notes" Lines="4" @bind-Value="_notes" Immediate="true"
+           Placeholder="What changed in this release…"
+           HelperText="@($"{_notes?.Length ?? 0} / 280 characters")" />
+
+@code {
+    private string? _notes = "Faster dashboard loading, a new CSV export and a fix for the login redirect.";
+}

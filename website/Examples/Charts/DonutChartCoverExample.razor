@@ -1,0 +1,13 @@
+<div class="flex justify-center">
+    <DonutChart Data="_channels" CenterLabel="2.4 k" ShowLegend="false" InnerRadiusRatio="0.55" Height="15rem" Width="15rem" />
+</div>
+
+@code {
+    private readonly ChartDataPoint[] _channels =
+    [
+        new("Organic search", 1_150),
+        new("Referral", 610),
+        new("Paid ads", 380),
+        new("Social", 260),
+    ];
+}

@@ -1,0 +1,22 @@
+<div class="flex flex-col items-center gap-8">
+    <Indicator Vertical="IndicatorVertical.Bottom" Horizontal="IndicatorHorizontal.End">
+        <Item><Badge Inline="true" Color="Color.Success" Class="badge-lg">● Online</Badge></Item>
+        <ChildContent>
+            <img src="https://img.daisyui.com/images/profile/demo/spiderperson@192.webp" alt="Tom Becker" class="h-36 w-36 rounded-full object-cover" />
+        </ChildContent>
+    </Indicator>
+    <div class="flex items-center gap-8">
+        <Indicator>
+            <Item><Badge Inline="true" Color="Color.Primary">8</Badge></Item>
+            <ChildContent><div class="grid h-14 w-14 place-items-center rounded-box bg-base-200"><Icon Name="@Icons.Material.Filled.Mail" /></div></ChildContent>
+        </Indicator>
+        <Indicator>
+            <Item><Status Color="Color.Success" Size="StatusSize.Large" Animated="true" /></Item>
+            <ChildContent><div class="grid h-14 w-14 place-items-center rounded-box bg-base-200"><Icon Name="@Icons.Material.Filled.Cloud" /></div></ChildContent>
+        </Indicator>
+        <Indicator>
+            <Item><Badge Inline="true" Color="Color.Secondary">new</Badge></Item>
+            <ChildContent><div class="grid h-14 w-14 place-items-center rounded-box bg-base-200"><Icon Name="@Icons.Material.Filled.Receipt" /></div></ChildContent>
+        </Indicator>
+    </div>
+</div>

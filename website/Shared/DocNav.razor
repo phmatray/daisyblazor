@@ -1,0 +1,38 @@
+@* Side navigation: guides, then every category with its components. *@
+
+<nav class="text-[0.95rem]" aria-label="Documentation sections">
+    <span class="mb-2 block text-sm font-bold text-base-content/60">Guides</span>
+    <ul class="mb-7 space-y-0.5">
+        @foreach (GuideDoc g in Guides.All)
+        {
+            <li><NavLink href="@g.Url" Match="NavLinkMatch.All" class="@LinkClass">@g.Title</NavLink></li>
+        }
+    </ul>
+
+    <span class="mb-2 block text-sm font-bold text-base-content/60">
+        <NavLink href="components" Match="NavLinkMatch.All" class="hover:text-base-content">Components</NavLink>
+    </span>
+    @foreach (IGrouping<Category, ComponentDoc> group in DocRegistry.ByCategory())
+    {
+        <div class="mb-4">
+            <a href="@($"components#{group.Key.Slug()}")"
+               class="flex items-baseline justify-between py-1 font-bold hover:underline hover:decoration-primary hover:decoration-2 hover:underline-offset-4">
+                @group.Key.Title() <span class="text-xs font-semibold tabular-nums text-base-content/55">@group.Count()</span>
+            </a>
+            <ul class="ml-1 space-y-px border-l-2 border-base-300 pl-3">
+                @foreach (ComponentDoc d in group)
+                {
+                    <li><NavLink href="@d.Url" Match="NavLinkMatch.All" class="@SubLinkClass">@d.Name</NavLink></li>
+                }
+            </ul>
+        </div>
+    }
+</nav>
+
+@code {
+    private const string LinkClass =
+        "block rounded-full px-3 py-1 -ml-3 font-semibold text-base-content/80 hover:bg-base-200 hover:text-base-content [&.active]:bg-primary [&.active]:text-primary-content";
+
+    private const string SubLinkClass =
+        "relative block py-0.5 text-base-content/70 hover:text-base-content [&.active]:font-bold [&.active]:text-base-content [&.active]:before:absolute [&.active]:before:-left-[1.05rem] [&.active]:before:top-1/2 [&.active]:before:size-2.5 [&.active]:before:-translate-y-1/2 [&.active]:before:rounded-full [&.active]:before:bg-primary";
+}

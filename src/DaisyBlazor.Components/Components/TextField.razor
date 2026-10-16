@@ -24,9 +24,11 @@
                   @oninput="OnInput"
                   @onkeyup="OnKeyUpHandler"
                   id="@_id"
+                  aria-invalid="@(_hasError ? "true" : null)"
+                  aria-describedby="@_describedBy"
                   @attributes="UserAttributes"></textarea>
     }
-    else if (Adornment != Adornment.None && (!string.IsNullOrEmpty(AdornmentIcon) || !string.IsNullOrEmpty(AdornmentText)))
+    else if (Clearable || (Adornment != Adornment.None && (!string.IsNullOrEmpty(AdornmentIcon) || !string.IsNullOrEmpty(AdornmentText))))
     {
         <label class="@_inputWrapperCls">
             @if (Adornment == Adornment.Start)
@@ -43,7 +45,15 @@
                    @oninput="OnInput"
                    @onkeyup="OnKeyUpHandler"
                    id="@_id"
+                   aria-invalid="@(_hasError ? "true" : null)"
+                   aria-describedby="@_describedBy"
                    @attributes="UserAttributes" />
+            @if (Clearable && !string.IsNullOrEmpty(Value) && !Disabled && !ReadOnly)
+            {
+                <button type="button" class="btn btn-ghost btn-xs btn-circle" @onclick="ClearAsync" tabindex="-1" aria-label="Clear">
+                    <Icon Name="@Icons.Material.Filled.Clear" Size="Size.Small" />
+                </button>
+            }
             @if (Adornment == Adornment.End)
             {
                 @AdornmentInner
@@ -62,16 +72,18 @@
                @oninput="OnInput"
                @onkeyup="OnKeyUpHandler"
                id="@_id"
+               aria-invalid="@(_hasError ? "true" : null)"
+               aria-describedby="@_describedBy"
                @attributes="UserAttributes" />
     }
 
-    @if (_hasError && !string.IsNullOrEmpty(_errorText))
+    @if (_showError)
     {
-        <span class="label-text text-error text-xs mt-1">@_errorText</span>
+        <span id="@_helpId" class="label-text text-error text-xs mt-1">@_errorText</span>
     }
     else if (!string.IsNullOrEmpty(HelperText))
     {
-        <span class="label-text text-xs opacity-70 mt-1">@HelperText</span>
+        <span id="@_helpId" class="label-text text-xs opacity-70 mt-1">@HelperText</span>
     }
 </div>
 
@@ -79,27 +91,49 @@
     private readonly string _generatedId = FieldId.New();
     private string _id => FieldId.Resolve(UserAttributes, _generatedId);
 
+    /// <summary>The current text value; bind with <c>@bind-Value</c>.</summary>
     [Parameter] public string? Value { get; set; }
+    /// <summary>Raised on every keystroke (the <c>input</c> event) with the new text.</summary>
     [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    /// <summary>Label text rendered above the field; an asterisk is appended when Required.</summary>
     [Parameter] public string? Label { get; set; }
+    /// <summary>Placeholder text shown when the field is empty.</summary>
     [Parameter] public string? Placeholder { get; set; }
+    /// <summary>Outlined (default) draws the daisyUI border; Filled adds a bg-base-200 background; Text renders a borderless ghost field (input-ghost).</summary>
     [Parameter] public Variant Variant { get; set; } = Variant.Outlined;
+    /// <summary>Margin.Dense renders the small size (input-sm), same as Dense; defaults to Normal.</summary>
     [Parameter] public Margin Margin { get; set; } = Margin.Normal;
+    /// <summary>When true renders the small size (input-sm / textarea-sm).</summary>
     [Parameter] public bool Dense { get; set; }
+    /// <summary>Disables the input or textarea.</summary>
     [Parameter] public bool Disabled { get; set; }
+    /// <summary>Makes the input or textarea read-only.</summary>
     [Parameter] public bool ReadOnly { get; set; }
+    /// <summary>Sets the HTML required attribute and appends an asterisk to the label.</summary>
     [Parameter] public bool Required { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public string? RequiredError { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect (value always updates on each keystroke).</summary>
     [Parameter] public bool Immediate { get; set; }
+    /// <summary>Raised on each keyup event in the field.</summary>
     [Parameter] public EventCallback<KeyboardEventArgs> OnKeyUp { get; set; }
+    /// <summary>When true (default) the field and its fieldset span the full width (w-full).</summary>
     [Parameter] public bool FullWidth { get; set; } = true;
+    /// <summary>Renders a clear button inside a single-line input while it has a value (not on multi-line, disabled or read-only fields).</summary>
     [Parameter] public bool Clearable { get; set; }
+    /// <summary>Number of visible rows; values above 1 render a textarea instead of an input. Defaults to 1.</summary>
     [Parameter] public int Lines { get; set; } = 1;
+    /// <summary>Where AdornmentIcon/AdornmentText render: Start or End inside the input; None (default) hides them.</summary>
     [Parameter] public Adornment Adornment { get; set; } = Adornment.None;
+    /// <summary>Icon name rendered as the adornment at the Adornment position.</summary>
     [Parameter] public string? AdornmentIcon { get; set; }
+    /// <summary>Text rendered as the adornment at the Adornment position.</summary>
     [Parameter] public string? AdornmentText { get; set; }
+    /// <summary>Hint text shown below the field when there is no error message.</summary>
     [Parameter] public string? HelperText { get; set; }
+    /// <summary>When true applies the error style (input-error / textarea-error).</summary>
     [Parameter] public bool Error { get; set; }
+    /// <summary>Error message shown below the field (in place of HelperText) when the field is in error.</summary>
     [Parameter] public string? ErrorText { get; set; }
 
     /// <summary>
@@ -111,13 +145,16 @@
     [Parameter] public string? FieldName { get; set; }
 
     [CascadingParameter] private ServerValidationState? ServerValidation { get; set; }
+    /// <summary>HTML input type to render (text, password, email, number, date, ...). Defaults to Text.</summary>
     [Parameter] public InputType InputType { get; set; } = InputType.Text;
     /// <summary>Validation expression (MudBlazor compat; not used for HTML rendering).</summary>
     [Parameter] public object? For { get; set; }
-    /// <summary>Input mask (MudBlazor compat; ignored).</summary>
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect (no masking is applied).</summary>
     [Parameter] public object? Mask { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the outer fieldset.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the outer fieldset.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
@@ -130,6 +167,10 @@
     private bool _hasError => Error || _serverError is not null;
 
     private string? _errorText => ErrorText ?? _serverError;
+
+    private bool _showError => _hasError && !string.IsNullOrEmpty(_errorText);
+    private string _helpId => _id + "-help";
+    private string? _describedBy => _showError || !string.IsNullOrEmpty(HelperText) ? _helpId : null;
 
     private string _htmlType => InputType switch
     {
@@ -157,6 +198,7 @@
         "input",
         Variant == Variant.Outlined ? "input-bordered" : null,
         Variant == Variant.Filled ? "input-bordered bg-base-200" : null,
+        Variant == Variant.Text ? "input-ghost" : null,
         _isDense ? "input-sm" : null,
         FullWidth ? "w-full" : null,
         _hasError ? "input-error" : null);
@@ -165,6 +207,7 @@
         "input",
         Variant == Variant.Outlined ? "input-bordered" : null,
         Variant == Variant.Filled ? "input-bordered bg-base-200" : null,
+        Variant == Variant.Text ? "input-ghost" : null,
         _isDense ? "input-sm" : null,
         FullWidth ? "w-full" : null,
         _hasError ? "input-error" : null,
@@ -174,6 +217,7 @@
         "textarea",
         Variant == Variant.Outlined ? "textarea-bordered" : null,
         Variant == Variant.Filled ? "textarea-bordered bg-base-200" : null,
+        Variant == Variant.Text ? "textarea-ghost" : null,
         _isDense ? "textarea-sm" : null,
         FullWidth ? "w-full" : null,
         _hasError ? "textarea-error" : null);
@@ -192,6 +236,12 @@
     private async Task OnInput(ChangeEventArgs args)
     {
         Value = args.Value?.ToString();
+        await ValueChanged.InvokeAsync(Value);
+    }
+
+    private async Task ClearAsync()
+    {
+        Value = null;
         await ValueChanged.InvokeAsync(Value);
     }
 

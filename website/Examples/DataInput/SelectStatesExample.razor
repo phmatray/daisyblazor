@@ -1,0 +1,14 @@
+<div class="grid w-full gap-x-4 sm:grid-cols-3">
+    <Select T="string" Label="Workspace" Value="@("Acme")" Disabled="true">
+        <SelectItem Value="@("Acme")" />
+    </Select>
+    <Select T="string" Label="Country" Required="true" Error="true" ErrorText="Pick a billing country.">
+        <SelectItem Value="@("")">—</SelectItem>
+        <SelectItem Value="@("FR")">France</SelectItem>
+        <SelectItem Value="@("BE")">Belgium</SelectItem>
+    </Select>
+    <Select T="string" Label="Plan" Value="@("Pro")" Dense="true">
+        <SelectItem Value="@("Free")" />
+        <SelectItem Value="@("Pro")" />
+    </Select>
+</div>

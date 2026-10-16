@@ -1,0 +1,12 @@
+<BarChart Title="Support tickets by type" Data="_tickets" Height="12rem" />
+
+@code {
+    // Any CSS colour works per point; theme tokens keep it right in every theme.
+    private readonly ChartDataPoint[] _tickets =
+    [
+        new("Bug", 18, ChartPalette.FromColor(Color.Error)),
+        new("Billing", 11, ChartPalette.FromColor(Color.Warning)),
+        new("How-to", 6, ChartPalette.FromColor(Color.Info)),
+        new("Feature request", 4, "var(--color-neutral)"),
+    ];
+}

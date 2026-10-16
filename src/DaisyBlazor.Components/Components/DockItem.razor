@@ -5,7 +5,7 @@
 
 @if (!string.IsNullOrEmpty(Href))
 {
-    <a href="@Href" class="@_cls" style="@Style" aria-label="@_ariaLabel" @attributes="UserAttributes">
+    <a href="@Href" class="@_cls" style="@Style" aria-label="@_ariaLabel" aria-current="@(Active ? "page" : null)" @attributes="UserAttributes">
         @if (!string.IsNullOrEmpty(Icon))
         {
             <Icon Name="@Icon" />
@@ -18,7 +18,7 @@
 }
 else
 {
-    <button type="button" class="@_cls" style="@Style" aria-label="@_ariaLabel" @onclick="OnClick" @attributes="UserAttributes">
+    <button type="button" class="@_cls" style="@Style" aria-label="@_ariaLabel" aria-current="@(Active ? "true" : null)" @onclick="OnClick" @attributes="UserAttributes">
         @if (!string.IsNullOrEmpty(Icon))
         {
             <Icon Name="@Icon" />
@@ -31,7 +31,7 @@ else
 }
 
 @code {
-    /// <summary>Marks this item as the currently active/selected dock entry.</summary>
+    /// <summary>Marks this item as the currently active/selected dock entry (dock-active; aria-current="page" on links, "true" on buttons).</summary>
     [Parameter] public bool Active { get; set; }
 
     /// <summary>Optional text label rendered below the icon via the daisyUI .dock-label class.</summary>
@@ -52,7 +52,9 @@ else
     /// <summary>Click handler used when the item is rendered as a &lt;button&gt; (ignored when Href is set).</summary>
     [Parameter] public EventCallback OnClick { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the root &lt;a&gt; or &lt;button&gt; element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root &lt;a&gt; or &lt;button&gt; element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

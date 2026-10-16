@@ -15,7 +15,9 @@
     /// When false (default) the steps are rendered horizontally (<c>steps-horizontal</c>).</summary>
     [Parameter] public bool Vertical { get; set; }
 
+    /// <summary>Extra CSS classes added to the <c>steps</c> list.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the <c>steps</c> list.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

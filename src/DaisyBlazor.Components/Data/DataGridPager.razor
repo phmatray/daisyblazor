@@ -8,7 +8,7 @@
 {
     <div class="@CssClass.Merge("flex flex-wrap items-center justify-end gap-4 px-2 py-2 text-sm", Class)"
          style="@Style" @attributes="UserAttributes">
-        <div class="flex items-center gap-2">
+        <label class="flex items-center gap-2">
             <span class="text-base-content/70">@RowsPerPageText</span>
             <select class="select select-bordered select-sm w-20" @onchange="OnPageSizeChanged">
                 @foreach (int option in Grid.PageSizeOptions)
@@ -16,7 +16,7 @@
                     <option value="@option" selected="@(option == Grid.EffectivePageSize)">@option</option>
                 }
             </select>
-        </div>
+        </label>
 
         <span class="text-base-content/70">
             @Grid.FirstItemIndex-@Grid.LastItemIndex @InfoSeparatorText @Grid.TotalItems
@@ -59,7 +59,9 @@
     /// <summary>Accessible label for the next-page navigation button.</summary>
     [Parameter] public string NextPageText { get; set; } = "Next page";
 
+    /// <summary>Extra CSS classes added to the pager bar.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the pager bar.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

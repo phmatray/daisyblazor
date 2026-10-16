@@ -1,0 +1,16 @@
+<div class="flex flex-col gap-3">
+    <ErrorAlert Message="@_error" Class="" />
+    @if (_error is null)
+    {
+        <p class="text-sm text-base-content/70">Message is null, so nothing is rendered.</p>
+    }
+    <div>
+        <Button Size="Size.Small" Variant="Variant.Outlined" OnClick="Toggle">Toggle error</Button>
+    </div>
+</div>
+
+@code {
+    private string? _error;
+
+    private void Toggle() => _error = _error is null ? "The uploaded file is larger than 20 MB." : null;
+}

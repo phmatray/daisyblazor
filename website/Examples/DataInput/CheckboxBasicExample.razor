@@ -1,0 +1,10 @@
+<div class="flex flex-col gap-2">
+    <Checkbox Label="Email me the invoice" Color="Color.Primary" @bind-Value="_invoice" />
+    <Checkbox Label="Send a copy to billing" Color="Color.Primary" @bind-Value="_billing" />
+</div>
+<p class="mt-3 font-mono text-sm">invoice=@_invoice · billing=@_billing</p>
+
+@code {
+    private bool _invoice = true;
+    private bool _billing;
+}

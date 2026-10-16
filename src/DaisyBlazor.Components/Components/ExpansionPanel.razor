@@ -3,8 +3,8 @@
 @* MudExpansionPanel replacement. daisyUI .collapse .collapse-arrow via <details> for
    server-friendly, no-JS expand/collapse. *@
 
-<details class="@_cls" name="@_name" open="@IsExpanded" style="@Style" @attributes="UserAttributes">
-    <summary class="collapse-title flex items-center gap-2 font-medium">
+<details class="@_cls" name="@_name" open="@IsExpanded" style="@Style" @ontoggle="OnToggle" @attributes="UserAttributes">
+    <summary class="@_titleCls">
         @if (!string.IsNullOrEmpty(Icon))
         {
             <Icon Name="@Icon" Size="Size.Small" />
@@ -18,7 +18,7 @@
             <span>@Text</span>
         }
     </summary>
-    <div class="collapse-content">
+    <div class="@_contentCls">
         @ChildContent
     </div>
 </details>
@@ -26,15 +26,21 @@
 @code {
     [CascadingParameter] private ExpansionPanels? Parent { get; set; }
 
+    /// <summary>Content shown in the daisyUI collapse-content area when the panel is expanded.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Custom header content for the collapse-title; takes precedence over <see cref="Text"/>.</summary>
     [Parameter] public RenderFragment? TitleContent { get; set; }
+    /// <summary>Plain header text shown in the collapse-title when <see cref="TitleContent"/> is not set.</summary>
     [Parameter] public string? Text { get; set; }
+    /// <summary>Icon name rendered before the header text in the collapse-title.</summary>
     [Parameter] public string? Icon { get; set; }
+    /// <summary>Tightens the title and content padding; also on when the parent <see cref="ExpansionPanels.Dense"/> is set.</summary>
     [Parameter] public bool Dense { get; set; }
 
     /// <summary>Whether the panel is expanded. Both MudBlazor names are supported.</summary>
     [Parameter] public bool IsExpanded { get; set; }
 
+    /// <summary>Alias of <see cref="IsExpanded"/> for MudBlazor compatibility; reads and writes the same state.</summary>
     [Parameter]
     public bool Expanded
     {
@@ -42,14 +48,51 @@
         set => IsExpanded = value;
     }
 
+    /// <summary>Raised with the new state when the user opens or closes the panel; enables two-way binding of <see cref="IsExpanded"/>.</summary>
+    [Parameter] public EventCallback<bool> IsExpandedChanged { get; set; }
+
+    /// <summary>Alias of <see cref="IsExpandedChanged"/> for MudBlazor compatibility; enables two-way binding of <see cref="Expanded"/>.</summary>
+    [Parameter] public EventCallback<bool> ExpandedChanged { get; set; }
+
+    /// <summary>Extra CSS classes merged onto the root collapse element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root &lt;details&gt; element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
     // Single-open accordion: share the parent group name. Multi-open: omit name.
     private string? _name => Parent is { MultiExpansion: false } p ? p.GroupName : null;
 
+    private bool _dense => Dense || Parent is { Dense: true };
+
     private string _cls => CssClass.Merge(
         "collapse collapse-arrow bg-base-100 border border-base-300 rounded-box",
+        Parent?.ShadowClass,
         Class);
+
+    private string _titleCls => CssClass.Merge(
+        "collapse-title flex items-center gap-2 font-medium",
+        _dense ? "min-h-0 py-2 text-sm" : null);
+
+    private string _contentCls => CssClass.Merge("collapse-content", _dense ? "text-sm" : null);
+
+    // Mirror of the <details> open state. Blazor's toggle event carries no state, but toggle
+    // fires on every open change (the element is created closed, so an initially open panel
+    // fires one too), so flipping tracks the DOM. When the mirror no longer matches IsExpanded
+    // the change came from the user (or a sibling opening in a single-open group): adopt it.
+    // ponytail: two changes inside one task coalesce into one event; read details.open via JS if that bites.
+    private bool _domOpen;
+
+    private async Task OnToggle()
+    {
+        _domOpen = !_domOpen;
+        if (_domOpen == IsExpanded)
+        {
+            return;
+        }
+
+        IsExpanded = _domOpen;
+        await IsExpandedChanged.InvokeAsync(IsExpanded);
+        await ExpandedChanged.InvokeAsync(IsExpanded);
+    }
 }

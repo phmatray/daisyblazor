@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
     <SupportedPlatform Include="browser" />
   </ItemGroup>
 

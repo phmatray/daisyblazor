@@ -9,14 +9,23 @@
 </a>
 
 @code {
+    /// <summary>Content rendered inside the link.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>URL the link points to; defaults to "#" when null.</summary>
     [Parameter] public string? Href { get; set; }
+    /// <summary>The anchor's target attribute, e.g. "_blank".</summary>
     [Parameter] public string? Target { get; set; }
+    /// <summary>Link color mapped to link-primary, link-secondary, etc. (Tertiary maps to link-accent); defaults to Primary.</summary>
     [Parameter] public Color Color { get; set; } = Color.Primary;
+    /// <summary>Underline behavior: Hover (default, link-hover), Always (underline) or None (no-underline).</summary>
     [Parameter] public Underline Underline { get; set; } = Underline.Hover;
+    /// <summary>Typography style applied as a text utility class; defaults to body1.</summary>
     [Parameter] public Typo Typo { get; set; } = Typo.body1;
+    /// <summary>Raised when the link is clicked.</summary>
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    /// <summary>Extra CSS classes merged onto the &lt;a&gt; element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the &lt;a&gt; element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

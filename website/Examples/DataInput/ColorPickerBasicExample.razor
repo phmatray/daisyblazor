@@ -1,0 +1,9 @@
+<div class="flex w-full flex-wrap items-end gap-4">
+    <ColorPicker Label="Brand colour" @bind-Value="_color" FullWidth="false" />
+    <ColorPicker Label="Default colour (locked)" Value="#2a9d8f" Disabled="true" FullWidth="false" />
+</div>
+<p class="mt-3 text-sm">Bound value: <span class="font-mono font-bold">@_color</span></p>
+
+@code {
+    private string? _color = "#e4572e";
+}

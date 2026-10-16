@@ -1,16 +1,20 @@
 @namespace DaisyBlazor
 
 @* MudTd replacement. Plain <td> passthrough; DataLabel becomes a data-label attribute
-   (used by responsive/stacked table CSS). *@
+   (kept for MudTd parity; DaisyBlazor ships no stacked-table CSS, so it is a hook for your own). *@
 
 <td class="@Class" style="@Style" data-label="@DataLabel" @attributes="UserAttributes">
     @ChildContent
 </td>
 
 @code {
+    /// <summary>The cell content.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Emitted as the <c>data-label</c> attribute, a hook for custom responsive CSS. DaisyBlazor itself ships no stacked table layout, so it has no visual effect on its own.</summary>
     [Parameter] public string? DataLabel { get; set; }
+    /// <summary>CSS classes applied to the <c>td</c> element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the <c>td</c> element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 }

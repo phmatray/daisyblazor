@@ -1,0 +1,137 @@
+@* The page masthead: the active theme's primary floods it, the component itself is shown live as the
+   cover, the page sections are listed for quick jumps, and the next theme peeks from the edge as a
+   colour wheel you can click to switch. *@
+@implements IDisposable
+@inject DocsJs Js
+
+<section class="sleeve relative overflow-hidden" aria-labelledby="page-title">
+    <button type="button" data-theme="@Next" @onclick="PutOnNext"
+            class="disc-button absolute -right-16 -top-20 size-36 cursor-pointer rounded-full sm:-right-24 sm:-top-10 sm:size-64 lg:-right-28 lg:top-6 lg:size-[22rem] xl:-right-24 2xl:size-[26rem]"
+            aria-label="Try the next theme: @Next" title="Try the next theme: @Next">
+        <span class="disc absolute inset-0 shadow-[0_18px_40px_-18px_rgb(0_0_0/0.45)]">
+            <span class="disc-label" aria-hidden="true">
+                <span class="hidden text-[0.65rem] font-semibold opacity-70 lg:block">Try theme</span>
+                <span class="hidden max-w-[6.5rem] break-words text-xs font-bold leading-tight lg:block">@Next</span>
+            </span>
+        </span>
+    </button>
+
+    <div class="relative z-10 mx-auto grid max-w-[1500px] gap-10 px-4 pb-10 pt-6 sm:px-8 xl:grid-cols-[minmax(0,1fr)_auto] lg:gap-16 lg:px-14 lg:pb-14 lg:pt-10 @(Portrait is null ? "" : "lg:pr-[17rem] 2xl:pr-[19rem]")">
+        <div class="flex min-w-0 flex-col">
+            @if (Trail is not null)
+            {
+                <nav aria-label="Breadcrumb" class="sleeve-muted mb-4 flex flex-wrap items-center gap-1.5 text-sm font-semibold">
+                    @foreach ((string label, string? href) in Trail)
+                    {
+                        if (href is null)
+                        {
+                            <span aria-current="page" class="text-primary-content">@label</span>
+                        }
+                        else
+                        {
+                            <a href="@href" class="hover:underline hover:underline-offset-4">@label</a>
+                            <span aria-hidden="true">/</span>
+                        }
+                    }
+                </nav>
+            }
+
+            <h1 id="page-title" tabindex="-1"
+                class="font-display font-bold leading-[0.92] tracking-[-0.03em] outline-none @(Large ? "text-[clamp(3.5rem,9vw,7.5rem)]" : "text-[clamp(2.75rem,6.5vw,5.5rem)]")">
+                @Title
+            </h1>
+
+            @if (Lede is not null)
+            {
+                <div class="mt-5 max-w-[40rem] text-lg leading-relaxed sm:text-xl">@Lede</div>
+            }
+
+            @if (Chips is not null)
+            {
+                <div class="mt-6 flex flex-wrap gap-2">@Chips</div>
+            }
+
+            @if (Releases)
+            {
+                <div class="mt-6 flex flex-wrap items-center gap-2" role="group" aria-label="Switch theme">
+                    @foreach (string t in ThemeDeck.Themes.Take(8))
+                    {
+                        string theme = t;
+                        bool on = theme == Current;
+                        <button type="button" data-theme="@theme" @onclick="e => PutOn(theme, e)"
+                                class="size-7 rounded-full border-[3px] bg-primary transition hover:scale-110 @(on ? "border-base-content ring-2 ring-base-100" : "border-base-100")"
+                                aria-label="Switch to the @theme theme" aria-pressed="@(on ? "true" : "false")" title="@theme"></button>
+                    }
+                    <a href="themes" class="ml-1 text-sm font-bold underline decoration-2 underline-offset-4">+@(ThemeDeck.Themes.Count - 8) more themes</a>
+                </div>
+            }
+
+            @if (Tracks is { Count: > 0 })
+            {
+                <nav aria-label="On this page" class="mt-10 lg:mt-auto lg:pt-12">
+                    <span class="mb-2 block text-sm font-bold">On this page</span>
+                    <ul class="flex max-w-2xl flex-wrap gap-2">
+                        @foreach (Track t in Tracks)
+                        {
+                            <li><a class="track" href="@($"{Path}#{t.Id}")">@t.Title</a></li>
+                        }
+                    </ul>
+                </nav>
+            }
+        </div>
+
+        @if (Portrait is not null)
+        {
+            <figure class="relative z-10 w-full max-w-[24rem] self-center justify-self-start xl:w-[22rem] xl:justify-self-end">
+                <figcaption class="sr-only">@(PortraitCaption ?? "Cover")</figcaption>
+                <div class="grid place-items-center overflow-hidden rounded-md bg-base-100 p-6 text-base-content sm:aspect-square">
+                    <div class="w-full">@Portrait</div>
+                </div>
+            </figure>
+        }
+    </div>
+</section>
+
+@code {
+    [CascadingParameter] public ThemeProvider? Provider { get; set; }
+    [Inject] private NavigationManager Nav { get; set; } = null!;
+
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public RenderFragment? Lede { get; set; }
+    [Parameter] public RenderFragment? Chips { get; set; }
+    [Parameter] public RenderFragment? Portrait { get; set; }
+    [Parameter] public string? PortraitCaption { get; set; }
+    [Parameter] public IReadOnlyList<Track>? Tracks { get; set; }
+    [Parameter] public IReadOnlyList<(string Label, string? Href)>? Trail { get; set; }
+    [Parameter] public bool Large { get; set; }
+    /// <summary>Show the row of theme swatches under the lede.</summary>
+    [Parameter] public bool Releases { get; set; } = true;
+
+    private string Path => Nav.ToBaseRelativePath(Nav.Uri).Split('#')[0];
+    private string Current => Provider?.Theme ?? ThemeDeck.Light;
+    private string Next => ThemeDeck.Next(Current);
+
+    protected override void OnInitialized()
+    {
+        if (Provider is not null) Provider.ThemeChanged += Refresh;
+    }
+
+    private void Refresh() => InvokeAsync(StateHasChanged);
+
+    private async Task PutOn(string theme, MouseEventArgs e)
+    {
+        if (Provider is null) return;
+        await ThemeDeck.PutOnAsync(Provider, Js, theme, e.ClientX, e.ClientY);
+    }
+
+    private async Task PutOnNext(MouseEventArgs e)
+    {
+        if (Provider is null) return;
+        await ThemeDeck.PutOnAsync(Provider, Js, Next, e.ClientX, e.ClientY);
+    }
+
+    public void Dispose()
+    {
+        if (Provider is not null) Provider.ThemeChanged -= Refresh;
+    }
+}

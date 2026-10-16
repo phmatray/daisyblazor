@@ -1,0 +1,28 @@
+<DataGrid T="Order" Items="_orders" Hover="true" Striped="true" RowsPerPage="4"
+          RowClick="args => _selected = args.Item" RowStyle="cursor: pointer;">
+    <Columns>
+        <PropertyColumn T="Order" TProperty="string" Property="o => o.Number" Title="Order" />
+        <PropertyColumn T="Order" TProperty="string" Property="o => o.Customer" Title="Customer" />
+        <PropertyColumn T="Order" TProperty="int" Property="o => o.Seats" Title="Seats" />
+    </Columns>
+    <PagerContent>
+        <DataGridPager T="Order" PageSizeOptions="[4, 8, 12]" />
+    </PagerContent>
+</DataGrid>
+
+<p class="mt-3 text-sm">
+    Selected: <strong>@(_selected is null ? "click a row" : $"{_selected.Number} · {_selected.Customer}")</strong>
+</p>
+
+@code {
+    private record Order(string Number, string Customer, int Seats);
+
+    private static readonly string[] Customers =
+        ["Northwind Traders", "Contoso", "Fabrikam", "Globex", "Initech", "Umbrella Corp"];
+
+    private readonly Order[] _orders = Enumerable.Range(1, 11)
+        .Select(i => new Order($"#ORD-{1020 + i}", Customers[i % Customers.Length], 5 * (i % 5 + 1)))
+        .ToArray();
+
+    private Order? _selected;
+}

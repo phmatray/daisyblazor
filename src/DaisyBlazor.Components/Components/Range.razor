@@ -7,10 +7,11 @@
 <input type="range"
        class="@_cls"
        style="@Style"
-       min="@Min"
-       max="@Max"
-       step="@Step"
-       value="@Value"
+       min="@Inv(Min)"
+       max="@Inv(Max)"
+       step="@Inv(Step)"
+       value="@Inv(Value)"
+       aria-label="@Label"
        @oninput="OnInput"
        @attributes="UserAttributes" />
 
@@ -30,13 +31,18 @@
     /// <summary>Granularity of each step. Defaults to 1.</summary>
     [Parameter] public double Step { get; set; } = 1;
 
+    /// <summary>Accessible name of the slider, emitted as <c>aria-label</c> (not rendered visibly).</summary>
+    [Parameter] public string? Label { get; set; }
+
     /// <summary>Semantic color applied as range-{token} (e.g. range-primary).</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
 
     /// <summary>Size of the slider thumb: Small → range-sm, Medium → range-md, Large → range-lg.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
 
+    /// <summary>Extra CSS classes added to the range input.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the range input.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
@@ -61,6 +67,9 @@
         _colorClass,
         _sizeClass,
         Class);
+
+    // input type=range only accepts "." decimals, so never format with the (browser) current culture.
+    private static string Inv(double v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
     private async Task OnInput(ChangeEventArgs e)
     {

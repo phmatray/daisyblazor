@@ -1,0 +1,11 @@
+<Select T="string" Label="Plan" @bind-Value="_plan" Clearable="true" ClearText="Choose a plan…"
+        HelperText="@($"Selected: {_plan ?? "none"}")">
+    <SelectItem Value="@("Free")">Free</SelectItem>
+    <SelectItem Value="@("Pro")">Pro</SelectItem>
+    <SelectItem Value="@("Enterprise")">Enterprise</SelectItem>
+    <SelectItem Value="@("Legacy")" Disabled="true">Legacy (no longer offered)</SelectItem>
+</Select>
+
+@code {
+    private string? _plan = "Pro";
+}

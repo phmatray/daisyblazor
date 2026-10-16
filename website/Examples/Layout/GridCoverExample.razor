@@ -1,0 +1,22 @@
+<Grid Spacing="2">
+    <Item xs="12">
+        <div class="flex items-baseline justify-between rounded-box bg-neutral px-3 py-2 text-neutral-content">
+            <span class="font-display text-lg font-bold">Top accounts</span>
+            <span class="text-xs font-semibold">Top 6</span>
+        </div>
+    </Item>
+    @foreach ((string tone, int n) in _tiles)
+    {
+        <Item xs="4">
+            <div class="@tone grid aspect-square place-items-center rounded-box font-display text-3xl font-bold">@n</div>
+        </Item>
+    }
+</Grid>
+
+@code {
+    private readonly (string Tone, int N)[] _tiles =
+    [
+        ("bg-primary text-primary-content", 1), ("bg-secondary text-secondary-content", 2), ("bg-accent text-accent-content", 3),
+        ("bg-base-300", 4), ("bg-primary text-primary-content", 5), ("bg-secondary text-secondary-content", 6),
+    ];
+}

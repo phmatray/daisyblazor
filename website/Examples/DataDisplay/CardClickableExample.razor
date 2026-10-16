@@ -1,0 +1,15 @@
+@* With OnClick the card becomes a focusable button: Enter and Space activate it too. *@
+<div class="flex flex-wrap items-center gap-6">
+    <Card Outlined="true" OnClick="() => _deploys++" Class="w-56 cursor-pointer transition hover:border-primary">
+        <CardContent>
+            <Icon Name="@Icons.Material.Filled.RocketLaunch" Size="Size.Large" Color="Color.Primary" />
+            <h3 class="card-title">Deploy to staging</h3>
+            <p class="text-sm text-base-content/60">Click or press Enter to deploy</p>
+        </CardContent>
+    </Card>
+    <p class="text-lg">Deployed <strong>@_deploys</strong> times</p>
+</div>
+
+@code {
+    private int _deploys;
+}

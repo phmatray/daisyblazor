@@ -1,0 +1,32 @@
+<div class="flex flex-col gap-2">
+    <div class="flex items-baseline justify-between px-1">
+        <span class="font-display text-xl font-bold">Top customers</span>
+        <span class="text-xs font-bold uppercase tracking-widest text-base-content/60">Week 12</span>
+    </div>
+    <Table Items="_top" Striped="true" Dense="true" Class="rounded-box bg-base-200">
+        <HeaderContent>
+            <Th>#</Th>
+            <Th>Customer</Th>
+            <Th><span class="sr-only">Trend</span></Th>
+        </HeaderContent>
+        <RowTemplate>
+            <Td class="font-mono text-base font-bold text-primary">@context.Rank</Td>
+            <Td class="font-semibold">@context.Customer</Td>
+            <Td class="text-right">
+                <Icon Name="@(context.Up ? Icons.Material.Filled.TrendingUp : Icons.Material.Filled.TrendingDown)"
+                      Color="@(context.Up ? Color.Success : Color.Error)" Size="Size.Small" />
+                <span class="sr-only">@(context.Up ? "Up" : "Down")</span>
+            </Td>
+        </RowTemplate>
+    </Table>
+</div>
+
+@code {
+    private record Entry(int Rank, string Customer, bool Up);
+
+    private readonly Entry[] _top =
+    [
+        new(1, "Northwind Traders", true), new(2, "Contoso", false), new(3, "Fabrikam", true),
+        new(4, "Globex", true), new(5, "Umbrella Corp", false),
+    ];
+}

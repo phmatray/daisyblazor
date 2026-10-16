@@ -1,0 +1,37 @@
+<DataGrid T="AccountEntry" Items="_accounts" Dense="true" Bordered="true">
+    <Columns>
+        <PropertyColumn T="AccountEntry" TProperty="int" Property="e => e.Pos" Title="#" Sortable="false"
+                        CellClass="font-display text-xl font-bold text-primary" />
+        <TemplateColumn Title="Top accounts">
+            <CellTemplate>
+                <div class="font-bold leading-tight">@context.Item.Company</div>
+                <div class="text-xs opacity-60">@context.Item.Owner</div>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn CellClass="text-right">
+            <CellTemplate>
+                @if (context.Item.Up)
+                {
+                    <Icon Name="@Icons.Material.Filled.ArrowUpward" Size="Size.Small" Class="text-success" />
+                }
+                else
+                {
+                    <Icon Name="@Icons.Material.Filled.ArrowDownward" Size="Size.Small" Class="text-error" />
+                }
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</DataGrid>
+
+@code {
+    private record AccountEntry(int Pos, string Company, string Owner, bool Up);
+
+    private readonly AccountEntry[] _accounts =
+    [
+        new(1, "Globex", "Ana Silva", true),
+        new(2, "Northwind Traders", "Tom Becker", true),
+        new(3, "Contoso", "Priya Nair", false),
+        new(4, "Fabrikam", "Lucas Martin", true),
+        new(5, "Umbrella Corp", "Mei Chen", false),
+    ];
+}

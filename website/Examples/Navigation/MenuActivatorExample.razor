@@ -1,0 +1,15 @@
+@* ActivatorContent receives a MenuActivator: call context.ToggleAsync from any trigger. *@
+<div class="min-h-44">
+    <Menu>
+        <ActivatorContent>
+            <Button Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" OnClick="context.ToggleAsync">
+                New
+            </Button>
+        </ActivatorContent>
+        <ChildContent>
+            <MenuItem Icon="@Icons.Material.Filled.ViewKanban">Project</MenuItem>
+            <MenuItem Icon="@Icons.Material.Filled.Folder">Folder</MenuItem>
+            <MenuItem Icon="@Icons.Material.Filled.Assignment">Task</MenuItem>
+        </ChildContent>
+    </Menu>
+</div>

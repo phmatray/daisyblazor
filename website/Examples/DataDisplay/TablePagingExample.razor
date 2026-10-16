@@ -1,0 +1,25 @@
+@* RowsPerPage pages the rows client-side; a TablePager in PagerContent drives it. *@
+<Table Items="_deployments" RowsPerPage="4" Striped="true">
+    <HeaderContent>
+        <Th>Date</Th>
+        <Th>Service</Th>
+        <Th>Environment</Th>
+    </HeaderContent>
+    <RowTemplate>
+        <Td class="font-mono">@context.Date.ToString("dd MMM")</Td>
+        <Td>@context.Service</Td>
+        <Td>@context.Environment</Td>
+    </RowTemplate>
+    <PagerContent>
+        <TablePager PageSizeOptions="[4, 8, 12]" />
+    </PagerContent>
+</Table>
+
+@code {
+    private record Deployment(DateOnly Date, string Service, string Environment);
+
+    private static readonly string[] Services = ["Billing API", "Customer portal", "Admin dashboard", "Auth service", "Search", "Notifications", "File uploads", "Reports", "Webhooks", "Mobile API"];
+
+    private readonly Deployment[] _deployments = [.. Services.Select((service, i) =>
+        new Deployment(new DateOnly(2026, 3, 4).AddDays(i * 3), service, i % 2 == 0 ? "Production" : "Staging"))];
+}

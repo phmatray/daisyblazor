@@ -1,0 +1,19 @@
+<div class="flex flex-wrap gap-2">
+    @foreach (Shipment status in Enum.GetValues<Shipment>())
+    {
+        <StatusChip Status="status" Map="ShipmentStatus" />
+    }
+</div>
+
+@code {
+    private enum Shipment { Processing, Shipped, Delivered, Delayed, Lost }
+
+    // Declare the status → colour/icon mapping once and reuse it in lists, cards and detail views.
+    private static readonly StatusMap ShipmentStatus = StatusMap.For<Shipment>()
+        .Add(Shipment.Processing, Color.Info, Icons.Material.Filled.Autorenew)
+        .Add(Shipment.Shipped, Color.Primary, Icons.Material.Filled.LocalShipping)
+        .Add(Shipment.Delivered, Color.Success, Icons.Material.Filled.CheckCircle)
+        .Add(Shipment.Delayed, Color.Warning, Icons.Material.Filled.Schedule)
+        .Add(Shipment.Lost, Color.Error, Icons.Material.Filled.Error)
+        .Build();
+}

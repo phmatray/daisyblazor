@@ -1,0 +1,10 @@
+<LineChart Title="Monthly signups" Labels="_months" Series="_signups" />
+
+@code {
+    private readonly string[] _months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"];
+
+    private readonly ChartSeries[] _signups =
+    [
+        new("Signups", [182, 196, 240, 228, 265, 310, 342, 298, 371]),
+    ];
+}

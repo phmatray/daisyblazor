@@ -2,7 +2,7 @@
 
 @* daisyUI .list-row row inside a <List>. Renders a <li class="list-row">.
    When Icon, Title, or Subtitle are supplied the component emits a ready-made
-   three-column layout using list-col-grow and list-col-wrap; otherwise raw
+   three-column layout (icon, list-col-grow text, trailing column); otherwise raw
    ChildContent is rendered so callers can compose their own columns. *@
 
 <li class="@_cls" style="@Style" @attributes="UserAttributes">
@@ -26,7 +26,7 @@
         </div>
         @if (TrailingContent is not null)
         {
-            <div class="list-col-wrap">
+            <div>
                 @TrailingContent
             </div>
         }
@@ -45,7 +45,8 @@
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>
-    /// Optional trailing slot rendered in a list-col-wrap column on the right.
+    /// Optional trailing slot rendered as a column on the right of the row (e.g. a badge or an action).
+    /// For a line that wraps beneath the row, compose ChildContent with a <c>list-col-wrap</c> element.
     /// Only used together with the Icon/Title/Subtitle convenience layout.
     /// </summary>
     [Parameter] public RenderFragment? TrailingContent { get; set; }
@@ -59,7 +60,9 @@
     /// <summary>Secondary / caption text shown beneath the title.</summary>
     [Parameter] public string? Subtitle { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the list-row element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the list-row element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

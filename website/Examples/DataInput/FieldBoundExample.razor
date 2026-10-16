@@ -1,0 +1,8 @@
+<div class="grid w-full gap-x-4 sm:grid-cols-2">
+    <TextField Label="Project name" @bind-Value="_name" Immediate="true" />
+    <Field Label="As shown on the badge">@(string.IsNullOrWhiteSpace(_name) ? "Untitled" : _name.ToUpperInvariant())</Field>
+</div>
+
+@code {
+    private string? _name = "Customer portal";
+}

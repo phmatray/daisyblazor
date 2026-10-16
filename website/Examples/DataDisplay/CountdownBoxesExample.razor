@@ -1,0 +1,14 @@
+@* Style the cells with ordinary utilities: size, font and surface are up to you. *@
+<div class="grid auto-cols-max grid-flow-col gap-3 text-center">
+    @foreach ((int value, string label) in _parts)
+    {
+        <div class="flex flex-col items-center rounded-box bg-neutral p-3 text-neutral-content">
+            <Countdown Value="value" Class="font-mono text-4xl" />
+            <span class="text-xs uppercase tracking-widest">@label</span>
+        </div>
+    }
+</div>
+
+@code {
+    private readonly (int, string)[] _parts = [(15, "days"), (10, "hours"), (24, "min"), (39, "sec")];
+}

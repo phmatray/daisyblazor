@@ -1,0 +1,9 @@
+@* Half masks clip the left (1) or right (2) half: pair them for a half-star score. *@
+<div class="flex items-center">
+    @for (int i = 1; i <= 10; i++)
+    {
+        <Mask Shape="MaskShape.Star2" Half="@(i % 2 == 1 ? 1 : 2)"
+              Class="@($"h-8 w-4 {(i <= 7 ? "bg-warning" : "bg-base-300")}")" />
+    }
+    <span class="ml-3 font-semibold">3.5 / 5</span>
+</div>

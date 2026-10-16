@@ -1,0 +1,22 @@
+<List Class="w-full bg-base-200">
+    <li class="flex items-baseline justify-between px-4 pb-1 pt-3">
+        <span class="font-display text-lg font-bold">Sprint 14</span>
+        <span class="text-xs uppercase tracking-widest opacity-60">4 tasks</span>
+    </li>
+    @foreach ((int n, string title, string estimate) in _tasks)
+    {
+        <ListRow Class="items-center py-2.5">
+            <span class="font-mono text-xl font-bold text-primary">@n.ToString("00")</span>
+            <span class="list-col-grow truncate font-semibold">@title</span>
+            <span class="font-mono text-sm opacity-60">@estimate</span>
+        </ListRow>
+    }
+</List>
+
+@code {
+    private readonly (int, string, string)[] _tasks =
+    [
+        (1, "Add SSO to the admin app", "5d"), (2, "Fix invoice rounding", "1d"),
+        (3, "Export users to CSV", "2d"), (4, "Upgrade to .NET 10", "3d"),
+    ];
+}

@@ -28,15 +28,19 @@
                aria-label="@(string.IsNullOrEmpty(Label) ? Placeholder : null)"
                disabled="@Disabled"
                readonly="@(ReadOnly || !Editable)"
+               tabindex="@(_pickerFocusable ? "-1" : null)"
                @onchange="OnTextChange"
                @attributes="UserAttributes" />
         <span class="dz-date__pick">
             <Icon Name="@(AdornmentIcon ?? Icons.Material.Filled.CalendarToday)" Size="Size.Small" Class="opacity-60" />
             @if (!Disabled && !ReadOnly)
             {
+                @* Mouse-only behind the glyph while the text field is the keyboard path; with
+                   Editable=false it becomes the focusable, labelled keyboard path itself. *@
                 <input type="date"
-                       tabindex="-1"
-                       aria-hidden="true"
+                       tabindex="@(_pickerFocusable ? null : "-1")"
+                       aria-hidden="@(_pickerFocusable ? null : "true")"
+                       aria-label="@(_pickerFocusable ? Label ?? Placeholder ?? "Date" : null)"
                        value="@_isoValue"
                        min="@_minIso"
                        max="@_maxIso"
@@ -47,16 +51,27 @@
 </div>
 
 @code {
+    /// <summary>The selected date; two-way bindable with @bind-Date.</summary>
     [Parameter] public DateTime? Date { get; set; }
+    /// <summary>Raised with the new date when the user picks or types a valid date.</summary>
     [Parameter] public EventCallback<DateTime?> DateChanged { get; set; }
+    /// <summary>Alias of <see cref="Date"/> for @bind-Value; used when <see cref="Date"/> is null.</summary>
     [Parameter] public DateTime? Value { get; set; }
+    /// <summary>Raised with the new date alongside <see cref="DateChanged"/>.</summary>
     [Parameter] public EventCallback<DateTime?> ValueChanged { get; set; }
+    /// <summary>Label text rendered above the field.</summary>
     [Parameter] public string? Label { get; set; }
+    /// <summary>Placeholder text for the empty field; defaults to the active date format.</summary>
     [Parameter] public string? Placeholder { get; set; }
+    /// <summary>Outlined (default) adds input-bordered; Filled adds input-bordered bg-base-200; Text renders a borderless ghost input (input-ghost).</summary>
     [Parameter] public Variant Variant { get; set; } = Variant.Outlined;
+    /// <summary>Margin.Dense renders the compact input-sm field, same as <see cref="Dense"/>.</summary>
     [Parameter] public Margin Margin { get; set; } = Margin.Normal;
+    /// <summary>Renders the compact input-sm field.</summary>
     [Parameter] public bool Dense { get; set; }
+    /// <summary>Disables the text field and hides the calendar picker.</summary>
     [Parameter] public bool Disabled { get; set; }
+    /// <summary>Makes the text field read-only and hides the calendar picker.</summary>
     [Parameter] public bool ReadOnly { get; set; }
 
     /// <summary>When false, the date can only be chosen from the picker, not typed.</summary>
@@ -65,8 +80,11 @@
     /// <summary>When true, emptying the text clears the date; otherwise an empty entry snaps back.</summary>
     [Parameter] public bool Clearable { get; set; }
 
+    /// <summary>Stretches the field to its container width (w-full); true by default.</summary>
     [Parameter] public bool FullWidth { get; set; } = true;
+    /// <summary>Earliest selectable date; earlier typed entries are rejected and the picker is limited.</summary>
     [Parameter] public DateTime? MinDate { get; set; }
+    /// <summary>Latest selectable date; later typed entries are rejected and the picker is limited.</summary>
     [Parameter] public DateTime? MaxDate { get; set; }
 
     /// <summary>
@@ -75,11 +93,16 @@
     /// </summary>
     [Parameter] public string? DateFormat { get; set; }
 
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
+    /// <summary>Icon ligature shown over the calendar picker; defaults to the calendar icon.</summary>
     [Parameter] public string? AdornmentIcon { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public object? For { get; set; }
 
+    /// <summary>Extra CSS classes added to the outer fieldset.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the outer fieldset.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
@@ -87,6 +110,9 @@
 
     /// <summary>Re-keys the text input so a rejected entry snaps back to the bound date.</summary>
     private int _textVersion;
+
+    /// <summary>Editable=false leaves the native picker as the only way to set a date, so it takes focus.</summary>
+    private bool _pickerFocusable => !Editable && !Disabled && !ReadOnly;
 
     private bool _isDense => Dense || Margin == Margin.Dense;
 
@@ -111,6 +137,7 @@
         "input",
         Variant == Variant.Outlined ? "input-bordered" : null,
         Variant == Variant.Filled ? "input-bordered bg-base-200" : null,
+        Variant == Variant.Text ? "input-ghost" : null,
         _isDense ? "input-sm" : null,
         FullWidth ? "w-full" : null);
 

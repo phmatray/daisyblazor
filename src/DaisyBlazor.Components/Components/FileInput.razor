@@ -4,14 +4,33 @@
    color modifier (file-input-primary, file-input-secondary, etc.), ghost modifier
    (file-input-ghost), and size modifier (file-input-sm, file-input-md, file-input-lg). *@
 
-<InputFile class="@_cls"
-           style="@Style"
-           multiple="@Multiple"
-           accept="@Accept"
-           OnChange="OnChange"
-           @attributes="UserAttributes" />
+@if (string.IsNullOrEmpty(Label))
+{
+    @_input
+}
+else
+{
+    <fieldset class="fieldset">
+        <label class="label" for="@_id">@Label</label>
+        @_input
+    </fieldset>
+}
 
 @code {
+    private RenderFragment _input => @<InputFile class="@_cls"
+                                                 style="@Style"
+                                                 multiple="@Multiple"
+                                                 accept="@Accept"
+                                                 OnChange="OnChange"
+                                                 id="@(string.IsNullOrEmpty(Label) ? null : _id)"
+                                                 @attributes="UserAttributes" />;
+
+    private readonly string _generatedId = FieldId.New();
+    private string _id => FieldId.Resolve(UserAttributes, _generatedId);
+
+    /// <summary>Optional label rendered above the input in a fieldset and associated with it via <c>for</c>/<c>id</c>.</summary>
+    [Parameter] public string? Label { get; set; }
+
     /// <summary>Semantic color applied as file-input-{token} (e.g. file-input-primary).</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
 
@@ -30,7 +49,9 @@
     /// <summary>Raised when the user selects one or more files.</summary>
     [Parameter] public EventCallback<InputFileChangeEventArgs> OnChange { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the file input.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the file input.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

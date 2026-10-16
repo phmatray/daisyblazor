@@ -1,0 +1,29 @@
+@* Striped is table-zebra, Dense is table-sm, Hover highlights the row under the pointer. *@
+<Table Items="_customers" Striped="true" Dense="true" Hover="true">
+    <HeaderContent>
+        <Th>#</Th>
+        <Th>Customer</Th>
+        <Th>Seats</Th>
+        <Th>Trend</Th>
+    </HeaderContent>
+    <RowTemplate>
+        <Td class="font-mono">@context.Rank</Td>
+        <Td>@context.Customer</Td>
+        <Td>@context.Seats</Td>
+        <Td>
+            <Chip Size="Size.Small" Variant="Variant.Text" Color="@(context.Up ? Color.Success : Color.Error)"
+                  Icon="@(context.Up ? Icons.Material.Filled.TrendingUp : Icons.Material.Filled.TrendingDown)"
+                  Text="@(context.Up ? "up" : "down")" />
+        </Td>
+    </RowTemplate>
+</Table>
+
+@code {
+    private record Entry(int Rank, string Customer, int Seats, bool Up);
+
+    private readonly Entry[] _customers =
+    [
+        new(1, "Northwind Traders", 42, true), new(2, "Contoso", 31, false),
+        new(3, "Fabrikam", 18, true), new(4, "Globex", 12, false), new(5, "Initech", 8, true),
+    ];
+}

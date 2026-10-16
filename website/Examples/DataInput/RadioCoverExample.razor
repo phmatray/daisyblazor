@@ -1,0 +1,12 @@
+<div class="flex flex-col gap-3">
+    <p class="text-xs font-extrabold uppercase tracking-[0.2em]">Replicas</p>
+    <RadioGroup T="int" @bind-Value="_replicas">
+        <Radio Option="1" Color="Color.Primary" Size="Size.Large"><span class="font-display text-3xl font-bold">1</span></Radio>
+        <Radio Option="3" Color="Color.Primary" Size="Size.Large"><span class="font-display text-3xl font-bold">3</span></Radio>
+        <Radio Option="5" Color="Color.Primary" Size="Size.Large"><span class="font-display text-3xl font-bold">5</span></Radio>
+    </RadioGroup>
+</div>
+
+@code {
+    private int _replicas = 3;
+}

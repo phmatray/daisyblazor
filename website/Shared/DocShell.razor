@@ -1,0 +1,91 @@
+@* A docs page: the sleeve, then navigation | reading column | now-playing contents. *@
+@implements IAsyncDisposable
+@inject DocsJs Js
+
+<PageTitle>@(PageTitle ?? Title) · DaisyBlazor</PageTitle>
+
+<Sleeve Title="@Title" Lede="Lede" Chips="Chips" Portrait="Portrait" PortraitCaption="@PortraitCaption" Tracks="Tracks" Trail="Trail" />
+
+<div class="mx-auto grid max-w-[1500px] gap-10 px-4 pb-24 pt-10 sm:px-8 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-14 lg:px-14 lg:pt-14 xl:grid-cols-[15rem_minmax(0,1fr)_12rem]">
+    <aside class="hidden lg:block" aria-label="Documentation">
+        <div class="sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto pb-10 pr-2">
+            <DocNav />
+        </div>
+    </aside>
+
+    <main id="content" class="min-w-0" tabindex="-1">
+        @ChildContent
+        <PrevNext />
+    </main>
+
+    @if (Tracks is { Count: > 1 })
+    {
+        <nav class="hidden xl:block" aria-label="On this page">
+            <div class="sticky top-6">
+                <span class="mb-3 block text-sm font-bold text-base-content/60">On this page</span>
+                <ol class="space-y-0.5 border-l-2 border-base-300">
+                    @for (int i = 0; i < Tracks.Count; i++)
+                    {
+                        Track t = Tracks[i];
+                        bool on = t.Id == _active;
+                        <li>
+                            <a href="@($"{Path}#{t.Id}")"
+                               class="-ml-0.5 flex gap-2 border-l-2 py-1 pl-3 text-sm transition @(on ? "border-primary font-bold text-base-content" : "border-transparent text-base-content/65 hover:text-base-content")">
+                                @t.Title
+                            </a>
+                        </li>
+                    }
+                </ol>
+            </div>
+        </nav>
+    }
+</div>
+
+@code {
+    [Inject] private NavigationManager Nav { get; set; } = null!;
+
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string? PageTitle { get; set; }
+    [Parameter] public RenderFragment? Lede { get; set; }
+    [Parameter] public RenderFragment? Chips { get; set; }
+    [Parameter] public RenderFragment? Portrait { get; set; }
+    [Parameter] public string? PortraitCaption { get; set; }
+    [Parameter] public IReadOnlyList<Track>? Tracks { get; set; }
+    [Parameter] public IReadOnlyList<(string Label, string? Href)>? Trail { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string? _active;
+    private string _observed = "";
+    private DotNetObjectReference<DocShell>? _self;
+    private IJSObjectReference? _spy;
+
+    private string Path => Nav.ToBaseRelativePath(Nav.Uri).Split('#')[0];
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        string key = Path + string.Join(',', Tracks?.Select(t => t.Id) ?? []);
+        if (Tracks is not { Count: > 1 } || key == _observed) return;
+        _observed = key;
+        _active = Tracks[0].Id;
+        _self ??= DotNetObjectReference.Create(this);
+        if (_spy is not null) await _spy.InvokeVoidAsync("dispose");
+        _spy = await Js.ObserveSections(_self, Tracks.Select(t => t.Id));
+    }
+
+    [JSInvokable]
+    public void OnSectionVisible(string id)
+    {
+        if (_active == id) return;
+        _active = id;
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_spy is not null)
+        {
+            try { await _spy.InvokeVoidAsync("dispose"); await _spy.DisposeAsync(); } catch (JSDisconnectedException) { }
+        }
+        _self?.Dispose();
+    }
+}

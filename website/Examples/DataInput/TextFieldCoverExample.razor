@@ -1,0 +1,11 @@
+<div class="flex flex-col gap-1">
+    <TextField Label="Name" @bind-Value="_name" Margin="Margin.None" />
+    <TextField Label="Company" @bind-Value="_company" Margin="Margin.None"
+               Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Business" />
+    <TextField Label="Year founded" Value="201" Error="true" ErrorText="Four digits, please." Margin="Margin.None" />
+</div>
+
+@code {
+    private string? _name = "Lucas Martin";
+    private string? _company = "Fabrikam";
+}

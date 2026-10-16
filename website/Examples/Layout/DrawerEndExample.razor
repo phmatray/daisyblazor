@@ -1,0 +1,27 @@
+<div class="h-72 overflow-hidden rounded-box border-2 border-base-300">
+    <Drawer @bind-Open="_open" End="true" Class="h-full">
+        <SideContent>
+            <div class="min-h-full w-60 space-y-3 bg-base-200 p-4">
+                <p class="font-semibold">Notifications</p>
+                @foreach (string item in _notifications)
+                {
+                    <p class="flex items-center gap-2 text-sm">
+                        <Icon Name="@Icons.Material.Filled.Notifications" Size="Size.Small" Color="Color.Primary" /> @item
+                    </p>
+                }
+                <Button Size="Size.Small" Variant="Variant.Outlined" OnClick="() => _open = false">Close</Button>
+            </div>
+        </SideContent>
+        <ChildContent>
+            <div class="p-4">
+                <Button Color="Color.Secondary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Notifications"
+                        OnClick="() => _open = !_open">Inbox</Button>
+            </div>
+        </ChildContent>
+    </Drawer>
+</div>
+
+@code {
+    private bool _open;
+    private readonly string[] _notifications = ["Deploy to production finished", "Invoice INV-4821 paid", "Mei Chen joined Contoso", "New support ticket #318"];
+}

@@ -17,7 +17,9 @@
     /// <summary>Apply the daisyUI shadow utility to the stats container.</summary>
     [Parameter] public bool Shadow { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the .stats container.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the .stats container.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
