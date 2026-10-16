@@ -1,0 +1,27 @@
+<div class="h-72 overflow-hidden rounded-box border-2 border-base-300">
+    <Drawer @bind-Open="_open" End="true" Class="h-full">
+        <SideContent>
+            <div class="min-h-full w-60 space-y-3 bg-base-200 p-4">
+                <p class="font-semibold">Up next</p>
+                @foreach (string track in _queue)
+                {
+                    <p class="flex items-center gap-2 text-sm">
+                        <Icon Name="@Icons.Material.Filled.MusicNote" Size="Size.Small" Color="Color.Primary" /> @track
+                    </p>
+                }
+                <Button Size="Size.Small" Variant="Variant.Outlined" OnClick="() => _open = false">Close</Button>
+            </div>
+        </SideContent>
+        <ChildContent>
+            <div class="p-4">
+                <Button Color="Color.Secondary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.QueueMusic"
+                        OnClick="() => _open = !_open">Queue</Button>
+            </div>
+        </ChildContent>
+    </Drawer>
+</div>
+
+@code {
+    private bool _open;
+    private readonly string[] _queue = ["Bonjour bonjour", "La plage d'hiver", "Mon ami Pierrot", "Twist à Saint-Malo"];
+}

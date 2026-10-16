@@ -1,0 +1,18 @@
+<div class="flex flex-wrap items-center gap-6">
+    @foreach ((string initials, string name, string tone) in _artists)
+    {
+        <div class="flex items-center gap-3">
+            <Mask Shape="MaskShape.Squircle" Class="@($"grid size-14 place-items-center font-display text-lg font-bold {tone}")">@initials</Mask>
+            <span class="font-semibold">@name</span>
+        </div>
+    }
+</div>
+
+@code {
+    private readonly (string Initials, string Name, string Tone)[] _artists =
+    [
+        ("LC", "Les Comètes", "bg-primary text-primary-content"),
+        ("SV", "Sylvie Vasseur", "bg-secondary text-secondary-content"),
+        ("JM", "Jean Marchand", "bg-accent text-accent-content"),
+    ];
+}

@@ -1,0 +1,23 @@
+<div class="h-64 overflow-hidden rounded-box border-2 border-base-300">
+    <Drawer Open="true" Class="h-full">
+        <SideContent>
+            <div class="flex min-h-full w-24 flex-col items-center gap-3 bg-primary py-4 text-primary-content">
+                <Icon Name="@Icons.Material.Filled.Album" Size="Size.Large" />
+                <Icon Name="@Icons.Material.Filled.QueueMusic" />
+                <Icon Name="@Icons.Material.Filled.Radio" />
+                <Icon Name="@Icons.Material.Filled.Favorite" />
+            </div>
+        </SideContent>
+        <ChildContent>
+            <div class="space-y-3 p-4">
+                <p class="font-display text-xl font-bold">Library</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="aspect-square rounded-box bg-secondary"></div>
+                    <div class="aspect-square rounded-box bg-accent"></div>
+                    <div class="aspect-square rounded-box bg-neutral"></div>
+                    <div class="aspect-square rounded-box bg-base-300"></div>
+                </div>
+            </div>
+        </ChildContent>
+    </Drawer>
+</div>

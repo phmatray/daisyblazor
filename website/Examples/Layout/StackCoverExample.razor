@@ -1,0 +1,14 @@
+<Stack Row="true" AlignItems="AlignItems.End" Justify="Justify.Center" Spacing="2" Class="h-64">
+    @foreach ((string tone, string height) in _bars)
+    {
+        <div class="@tone @height w-7 rounded-t-full"></div>
+    }
+</Stack>
+
+@code {
+    private readonly (string Tone, string Height)[] _bars =
+    [
+        ("bg-primary", "h-24"), ("bg-secondary", "h-44"), ("bg-accent", "h-32"), ("bg-primary", "h-60"),
+        ("bg-secondary", "h-36"), ("bg-accent", "h-52"), ("bg-primary", "h-20"),
+    ];
+}
