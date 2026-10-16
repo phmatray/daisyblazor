@@ -7,7 +7,8 @@
 <li class="@Class" style="@Style" @attributes="UserAttributes">
     @if (!string.IsNullOrEmpty(Href))
     {
-        <a href="@Href" class="@_innerCls">
+        @* Disabled link: drop href so it leaves the tab order and can't be activated by keyboard. *@
+        <a href="@(Disabled ? null : Href)" class="@_innerCls" role="@(Disabled ? "link" : null)" aria-disabled="@(Disabled ? "true" : null)">
             @ItemInner
         </a>
     }
@@ -19,7 +20,7 @@
     }
     else
     {
-        <div class="@_innerCls">
+        <div class="@_innerCls" aria-disabled="@(Disabled ? "true" : null)">
             @ItemInner
         </div>
     }
@@ -48,7 +49,7 @@
 
     private string _innerCls => CssClass.Merge(
         "flex items-center gap-2 w-full text-left",
-        Disabled ? "menu-disabled pointer-events-none opacity-50" : null);
+        Disabled ? "menu-disabled pointer-events-none" : null);   // menu-disabled already dims; no extra opacity
 
     private RenderFragment ItemInner => @<text>
         @if (!string.IsNullOrEmpty(Icon))

@@ -5,18 +5,19 @@
    Color:       status-primary  status-secondary  status-accent  status-info  status-success  status-warning  status-error  status-neutral
    Size:        status-xs  status-sm  status-md  status-lg  status-xl
    Animation:   wraps the dot in an inline-grid with an animate-ping overlay layer (CSS-only, no JS).
-                daisyUI v5 pattern: <span class="inline-grid"><span class="status ... [col-start-1] [row-start-1] animate-ping opacity-75"></span><span class="status ... [col-start-1] [row-start-1]"></span></span> *@
+                Both layers share one grid cell via inline `grid-area:1/1` (no utility class to purge or safelist).
+   A11y:        with AriaLabel the root gets role="img" (a generic span can't carry a name); the ping layer is aria-hidden. *@
 
 @if (Animated)
 {
-    <span class="@_wrapperCls" style="@Style" @attributes="UserAttributes" aria-label="@AriaLabel">
-        <span class="@_dotCls [col-start-1] [row-start-1] animate-ping opacity-75"></span>
-        <span class="@_dotCls [col-start-1] [row-start-1]"></span>
+    <span class="@_wrapperCls" style="@Style" @attributes="UserAttributes" role="@_role" aria-label="@AriaLabel">
+        <span class="@_dotCls animate-ping opacity-75" style="grid-area:1/1" aria-hidden="true"></span>
+        <span class="@_dotCls" style="grid-area:1/1"></span>
     </span>
 }
 else
 {
-    <span class="@_cls" style="@Style" @attributes="UserAttributes" aria-label="@AriaLabel"></span>
+    <span class="@_cls" style="@Style" @attributes="UserAttributes" role="@_role" aria-label="@AriaLabel"></span>
 }
 
 @code {
@@ -37,6 +38,8 @@ else
     /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
+
+    private string? _role => string.IsNullOrEmpty(AriaLabel) ? null : "img";
 
     private string? _colorClass =>
         CssClass.ColorToken(Color) is { } t ? $"status-{t}" : null;

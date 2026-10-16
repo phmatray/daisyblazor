@@ -4,7 +4,7 @@
    Adds a step-{color} class for semantic color via ColorToken, and sets the
    data-content attribute when DataContent is provided (custom marker symbol). *@
 
-<li class="@_cls" style="@Style" data-content="@DataContent" @attributes="UserAttributes">
+<li class="@_cls" style="@Style" data-content="@_dataContent" aria-current="@(Active && !Completed ? "step" : null)" @attributes="UserAttributes">
     @ChildContent
 </li>
 
@@ -22,12 +22,14 @@
     [Parameter] public string? DataContent { get; set; }
 
     /// <summary>Convenience shortcut: marks the step as completed by applying <c>step-primary</c>
-    /// when no explicit <see cref="Color"/> is set. Ignored when <see cref="Color"/> is not Default.</summary>
+    /// when no explicit <see cref="Color"/> is set, and a check-mark marker when no
+    /// <see cref="DataContent"/> is set.</summary>
     [Parameter] public bool Completed { get; set; }
 
     /// <summary>Convenience shortcut: marks the step as the currently active step.
-    /// Applies <c>step-secondary</c> when no explicit <see cref="Color"/> is set and
-    /// <see cref="Completed"/> is false. Ignored when <see cref="Color"/> is not Default.</summary>
+    /// Applies the same <c>step-primary</c> as <see cref="Completed"/> (daisyUI only colours the
+    /// connector between same-colour steps, so the progress line reaches the current step) but keeps
+    /// the numeric marker, and sets <c>aria-current="step"</c>.</summary>
     [Parameter] public bool Active { get; set; }
 
     /// <summary>Extra CSS classes added to the step item.</summary>
@@ -47,19 +49,16 @@
             }
 
             // Convenience booleans only apply when no explicit Color is set.
-            if (Completed)
+            if (Completed || Active)
             {
                 return "step-primary";
-            }
-
-            if (Active)
-            {
-                return "step-secondary";
             }
 
             return null;
         }
     }
+
+    private string? _dataContent => DataContent ?? (Completed ? "✓" : null);
 
     private string _cls => CssClass.Merge(
         "step",

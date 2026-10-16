@@ -43,7 +43,17 @@
 
     [CascadingParameter] private RadioGroup<T>? Parent { get; set; }
 
-    private T? _option => Option is not null ? Option : Value;
+    // Option wins only when the caller supplied it: for value types an unset Option is default(T),
+    // never null, so a null check alone would always ignore Value.
+    private bool _hasOption;
+
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        _hasOption = parameters.TryGetValue<T?>(nameof(Option), out _);
+        return base.SetParametersAsync(parameters);
+    }
+
+    private T? _option => _hasOption && Option is not null ? Option : Value;
 
     private bool _checked => Parent?.IsSelected(_option) ?? false;
 

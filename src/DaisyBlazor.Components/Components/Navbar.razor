@@ -52,9 +52,9 @@
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>
-    /// Background color of the navbar. Maps to daisyUI semantic bg utilities:
+    /// Background color of the navbar, paired with its readable foreground:
     /// <see cref="Color.Default"/> -> <c>bg-base-100</c>,
-    /// <see cref="Color.Primary"/> -> <c>bg-primary</c>, etc.
+    /// <see cref="Color.Primary"/> -> <c>bg-primary text-primary-content</c>, etc.
     /// </summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
 
@@ -75,7 +75,7 @@
         get
         {
             string? token = CssClass.ColorToken(Color);
-            return token is not null ? $"bg-{token}" : "bg-base-100";
+            return token is not null ? $"bg-{token} text-{token}-content" : "bg-base-100";
         }
     }
 

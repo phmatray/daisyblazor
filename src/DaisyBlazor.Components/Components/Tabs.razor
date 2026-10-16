@@ -18,7 +18,8 @@
                 @* WAI-ARIA tabs: each tab declares its selected state and is linked to the shared
                    panel; the panel is labelled back by the active tab (aria-labelledby below).
                    Roving tabindex: only the selected tab is in the tab order; arrows move between tabs. *@
-                <button role="tab"
+                <button @attributes="tab.UserAttributes"
+                        role="tab"
                         type="button"
                         id="@TabId(tab)"
                         tabindex="@(isActive ? "0" : "-1")"
@@ -26,6 +27,7 @@
                         aria-controls="@PanelId"
                         @ref="_tabRefs[tab]"
                         class="@TabButtonClass(tab)"
+                        style="@tab.Style"
                         disabled="@tab.Disabled"
                         aria-disabled="@(tab.Disabled ? "true" : null)"
                         @onclick="() => SetActive(tab)">
@@ -118,7 +120,7 @@
     private string TabButtonClass(Tab tab)
     {
         bool isActive = _activeTab == tab;
-        return CssClass.Merge("tab", isActive ? "tab-active" : null);
+        return CssClass.Merge("tab", isActive ? "tab-active" : null, tab.Class);
     }
 
     /// <summary>Called by each <see cref="Tab"/> during OnInitialized to register itself.</summary>
