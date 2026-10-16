@@ -26,7 +26,7 @@
     /// <summary>Optional window title shown in the title bar.</summary>
     [Parameter] public string? Title { get; set; }
 
-    /// <summary>Optional border color token applied as <c>border-{token}</c>; defaults to base-300.</summary>
+    /// <summary>Optional border color token applied as <c>border-{token}</c> on a 1px border; defaults to base-300.</summary>
     [Parameter] public Color BorderColor { get; set; } = Color.Default;
 
     /// <summary>Extra CSS classes merged onto the <c>.mockup-window</c> element.</summary>
@@ -36,7 +36,7 @@
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
     private string _cls => CssClass.Merge(
-        "mockup-window",
+        "mockup-window border",
         CssClass.ColorToken(BorderColor) is { } t ? $"border-{t}" : "border-base-300",
         Class);
 }

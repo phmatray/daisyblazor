@@ -6,13 +6,13 @@
 
 <div class="@_cls" style="@Style" @attributes="UserAttributes">
     <div class="mockup-browser-toolbar">
-        @if (!string.IsNullOrEmpty(Url))
-        {
-            <div class="input">@Url</div>
-        }
         @if (Toolbar is not null)
         {
             @Toolbar
+        }
+        else if (!string.IsNullOrEmpty(Url))
+        {
+            <div class="input">@Url</div>
         }
     </div>
     @if (ChildContent is not null)
@@ -27,13 +27,13 @@
     /// <summary>Content rendered inside the browser display area.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    /// <summary>Optional URL string shown in the address bar input.</summary>
+    /// <summary>Optional URL string shown in the address bar input; ignored when <see cref="Toolbar"/> is set.</summary>
     [Parameter] public string? Url { get; set; }
 
     /// <summary>Optional custom toolbar content; rendered inside the toolbar bar instead of the default URL input.</summary>
     [Parameter] public RenderFragment? Toolbar { get; set; }
 
-    /// <summary>Optional border color token applied as <c>border-{token}</c>; defaults to no extra border class.</summary>
+    /// <summary>Optional border color token applied as <c>border-{token}</c>; defaults to <c>border-base-300</c>. A 1px border is always drawn.</summary>
     [Parameter] public Color BorderColor { get; set; } = Color.Default;
 
     /// <summary>Extra CSS classes added to the <c>mockup-browser</c> element.</summary>
@@ -43,7 +43,7 @@
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
     private string _cls => CssClass.Merge(
-        "mockup-browser",
+        "mockup-browser border",
         CssClass.ColorToken(BorderColor) is { } t ? $"border-{t}" : "border-base-300",
         Class);
 }
