@@ -5,13 +5,13 @@
 
 @if (TitleContent is not null)
 {
-    <div class="@_titleCls">
+    <div id="@_titleId" class="@_titleCls">
         @TitleContent
     </div>
 }
 else if (!string.IsNullOrEmpty(_title))
 {
-    <h3 class="@_titleCls">@_title</h3>
+    <h3 id="@_titleId" class="@_titleCls">@_title</h3>
 }
 
 <div class="@_bodyCls">
@@ -45,6 +45,8 @@ else if (!string.IsNullOrEmpty(_title))
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
     private string? _title => !string.IsNullOrEmpty(Title) ? Title : DialogInstance?.Title;
+
+    private string? _titleId => (DialogInstance as DialogReference)?.TitleId;
 
     private RenderFragment? _actions => DialogActions ?? Actions;
 
