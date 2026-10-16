@@ -1,0 +1,16 @@
+<div class="space-y-6">
+    @foreach (int spacing in new[] { 1, 4, 8 })
+    {
+        <div>
+            <p class="mb-2 font-mono text-sm">Spacing="@spacing"</p>
+            <Grid Spacing="spacing">
+                @for (int i = 0; i < 6; i++)
+                {
+                    <Item xs="2">
+                        <div class="h-10 rounded-box bg-primary"></div>
+                    </Item>
+                }
+            </Grid>
+        </div>
+    }
+</div>

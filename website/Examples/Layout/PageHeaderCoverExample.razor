@@ -1,0 +1,25 @@
+<div class="space-y-4">
+    <PageHeader Title="Releases" Icon="@Icons.Material.Filled.LibraryMusic" Subtitle="12 albums, 1962 to 1971" HeadingLevel="2">
+        <Actions>
+            <IconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" Title="New release" Class="btn-primary" />
+        </Actions>
+    </PageHeader>
+    <Divider Class="my-0" />
+    @foreach ((string title, string year, string tone) in _rows)
+    {
+        <div class="flex items-center gap-3">
+            <div class="@tone size-10 shrink-0 rounded-box"></div>
+            <span class="flex-1 font-semibold">@title</span>
+            <span class="text-sm text-base-content/60">@year</span>
+        </div>
+    }
+</div>
+
+@code {
+    private readonly (string Title, string Year, string Tone)[] _rows =
+    [
+        ("Ciné-club", "1966", "bg-primary"),
+        ("La plage d'hiver", "1967", "bg-secondary"),
+        ("Au revoir, Paris", "1969", "bg-accent"),
+    ];
+}

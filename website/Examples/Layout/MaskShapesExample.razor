@@ -1,0 +1,9 @@
+<div class="flex flex-wrap gap-5">
+    @foreach (MaskShape shape in Enum.GetValues<MaskShape>())
+    {
+        <div class="flex flex-col items-center gap-2">
+            <Mask Shape="shape" Class="size-20 bg-primary" />
+            <span class="font-mono text-xs">@shape</span>
+        </div>
+    }
+</div>

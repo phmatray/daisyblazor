@@ -1,0 +1,9 @@
+<div class="grid grid-cols-2 gap-5 rounded-box bg-base-200 p-5 sm:grid-cols-3">
+    @foreach (int elevation in new[] { 0, 1, 3, 6, 12, 24 })
+    {
+        <Paper Elevation="elevation" Class="p-4 text-center">
+            <p class="font-display text-2xl font-bold">@elevation</p>
+            <p class="text-xs text-base-content/60">Elevation</p>
+        </Paper>
+    }
+</div>

@@ -1,0 +1,11 @@
+<Stack Row="true" Wrap="true" Spacing="2" AlignItems="AlignItems.Center">
+    @foreach (string genre in _genres)
+    {
+        <Chip Text="@genre" Variant="Variant.Outlined" Color="Color.Primary" />
+    }
+</Stack>
+
+@code {
+    private readonly string[] _genres =
+        ["Yé-yé", "Chanson", "Bossa nova", "Surf rock", "Northern soul", "Exotica", "Psych pop", "Baroque pop", "Jazz manouche", "Twist"];
+}

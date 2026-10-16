@@ -1,0 +1,23 @@
+<ExpansionPanels>
+    @foreach ((string title, int tracks, string year) in _albums)
+    {
+        <ExpansionPanel>
+            <TitleContent>
+                <span class="flex-1">@title</span>
+                <Badge Inline="true" Color="Color.Secondary">@year</Badge>
+            </TitleContent>
+            <ChildContent>
+                @tracks tracks, remastered from the original tapes.
+            </ChildContent>
+        </ExpansionPanel>
+    }
+</ExpansionPanels>
+
+@code {
+    private readonly (string Title, int Tracks, string Year)[] _albums =
+    [
+        ("Ciné-club", 12, "1966"),
+        ("La plage d'hiver", 10, "1967"),
+        ("Au revoir, Paris", 11, "1969"),
+    ];
+}

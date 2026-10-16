@@ -1,0 +1,16 @@
+<div class="grid gap-4 md:grid-cols-2">
+    <DetailCard Title="Customer" Icon="@Icons.Material.Filled.Person">
+        <DetailRow Label="Name" Value="Sylvie Vasseur" />
+        <DetailRow Label="Email" Value="sylvie@example.com" />
+        <DetailRow Label="Member since" Value="2019" />
+    </DetailCard>
+    <DetailCard Title="Delivery" Icon="@Icons.Material.Filled.LocalShipping" Dense="false" Elevation="0" Class="border border-base-300">
+        <DetailRow Label="Carrier" Value="Colissimo" />
+        <DetailRow Label="Status">
+            <ValueContent>
+                <Badge Inline="true" Color="Color.Info">In transit</Badge>
+            </ValueContent>
+        </DetailRow>
+        <DetailRow Label="Expected" Value="Thursday" />
+    </DetailCard>
+</div>
