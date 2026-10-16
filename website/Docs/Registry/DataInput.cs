@@ -8,10 +8,10 @@ public static partial class DocRegistry
     private static partial IEnumerable<ComponentDoc> DataInput() =>
     [
         new("TextField", Category.DataInput,
-            "A labelled text input bound to a string, with helper and error text, adornments and a multi-line mode (Lines > 1 renders a textarea). Updates on change by default, or on every keystroke with Immediate.",
+            "A labelled text input bound to a string, with helper and error text, adornments and a multi-line mode (Lines > 1 renders a textarea). The bound value updates on every keystroke.",
             [typeof(TextField)],
             [
-                new("Binding", "@bind-Value is two-way; Immediate pushes each keystroke instead of waiting for the field to lose focus.", typeof(TextFieldBasicExample)),
+                new("Binding", "@bind-Value is two-way and pushes each keystroke, so anything bound to the value updates as the user types.", typeof(TextFieldBasicExample)),
                 new("Adornments", "Adornment places an AdornmentIcon or AdornmentText at the start or end of the input.", typeof(TextFieldAdornmentsExample)),
                 new("Multi-line", "Any Lines value above 1 swaps the input for a textarea of that many rows.", typeof(TextFieldMultilineExample)),
                 new("States", "Required, Error with ErrorText, Disabled, ReadOnly, Dense, and InputType for password, email and friends.", typeof(TextFieldStatesExample)),
@@ -222,7 +222,7 @@ public static partial class DocRegistry
             DaisyClass = "input",
             MudEquivalent = "MudDatePicker",
             Portrait = typeof(DatePickerCoverExample),
-            Playground = new(typeof(DatePicker), "Label", "Placeholder", "DateFormat", "Color", "Dense", "Disabled", "ReadOnly", "Editable", "Clearable")
+            Playground = new(typeof(DatePicker), "Label", "Placeholder", "DateFormat", "Dense", "Disabled", "ReadOnly", "Editable", "Clearable")
             {
                 Initial = new Dictionary<string, object?> { ["Label"] = "Release date" },
             },

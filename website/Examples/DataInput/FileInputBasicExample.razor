@@ -6,7 +6,7 @@
     }
     else
     {
-        <span>Selected <span class="font-mono">@_name</span> (@(_size / 1024) KB)</span>
+        <span>Selected <span class="font-mono">@_name</span> (@(_size < 1024 ? $"{_size} B" : $"{_size / 1024d:0.#} KB"))</span>
     }
 </p>
 

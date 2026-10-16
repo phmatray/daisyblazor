@@ -2,7 +2,7 @@
 <div class="grid w-full gap-x-4 sm:grid-cols-2">
     <DatePicker Label="Trial ends (next 30 days)" @bind-Date="_trialEnd"
                 MinDate="DateTime.Today" MaxDate="DateTime.Today.AddDays(30)" />
-    <DatePicker Label="Contract start (ISO format)" @bind-Date="_contract" DateFormat="yyyy-MM-dd" Color="Color.Primary" />
+    <DatePicker Label="Contract start (ISO format)" @bind-Date="_contract" DateFormat="yyyy-MM-dd" />
 </div>
 <p class="mt-3 font-mono text-sm">trial=@(_trialEnd?.ToString("yyyy-MM-dd") ?? "null") · contract=@(_contract?.ToString("yyyy-MM-dd") ?? "null")</p>
 
