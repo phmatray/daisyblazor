@@ -1,15 +1,20 @@
 @namespace DaisyBlazor.Feedback
 
-@* MudBlazor EmptyState replacement. Centered icon + message + optional subtitle. *@
+@* MudBlazor EmptyState replacement. Centered icon + message + optional subtitle and actions.
+   Muted base-content (not Color.Secondary, which is a brand colour in many themes). *@
 
-<Stack AlignItems="AlignItems.Center" Spacing="2" Class="p-8">
+<Stack AlignItems="AlignItems.Center" Spacing="2" Class="p-8 text-center">
     @if (Icon is not null)
     {
-        <Icon Name="@Icon" Size="Size.Large" Color="Color.Secondary" />
+        <Icon Name="@Icon" Size="Size.Large" Class="text-base-content/40" Style="font-size:3rem;" />
     }
-    <Typography Typo="Typo.body1" Color="Color.Secondary">@Message</Typography>
+    <Typography Typo="Typo.body1" Class="font-medium text-center">@Message</Typography>
     @if (Subtitle is not null)
     {
-        <Typography Typo="Typo.body2" Color="Color.Secondary">@Subtitle</Typography>
+        <Typography Typo="Typo.body2" Class="text-base-content/60 text-center">@Subtitle</Typography>
+    }
+    @if (ChildContent is not null)
+    {
+        <div class="mt-2 flex flex-wrap justify-center gap-2">@ChildContent</div>
     }
 </Stack>

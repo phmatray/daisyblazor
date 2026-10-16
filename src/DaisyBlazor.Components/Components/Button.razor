@@ -5,9 +5,9 @@
 
 @if (!string.IsNullOrEmpty(Href))
 {
-    @* A disabled link is not navigable: drop href, expose it as aria-disabled and out of the tab order. *@
-    <a href="@(Disabled ? null : Href)" target="@Target" class="@_cls" style="@Style"
-       aria-disabled="@(Disabled ? "true" : null)" tabindex="@(Disabled ? "-1" : null)" @attributes="UserAttributes">
+    @* A disabled (or loading) link is not navigable: drop href, expose it as aria-disabled and out of the tab order. *@
+    <a href="@(_inert ? null : Href)" target="@Target" class="@_cls" style="@Style"
+       aria-disabled="@(_inert ? "true" : null)" tabindex="@(_inert ? "-1" : null)" @attributes="UserAttributes">
         @ButtonInner
     </a>
 }
@@ -63,29 +63,41 @@ else
         _ => "button"
     };
 
+    private bool _inert => Disabled || Loading;
+
+    // Icons and spinner follow the button size so they don't look undersized on btn-lg.
+    private Size _iconSize => Size == Size.Large ? Size.Medium : Size.Small;
+
+    private string _spinnerCls => Size switch
+    {
+        Size.Small => "loading loading-spinner loading-xs",
+        Size.Large => "loading loading-spinner loading-md",
+        _ => "loading loading-spinner loading-sm"
+    };
+
     private string _cls => CssClass.Merge(
         "btn",
         CssClass.ButtonColor(Group is { OverrideStyles: true, Color: not Color.Default } g1 ? g1.Color : Color),
         CssClass.ButtonVariant(Group is { OverrideStyles: true, Variant: not Variant.Text } g2 ? g2.Variant : Variant),
         CssClass.ButtonSize(Group is { OverrideStyles: true, Size: not Size.Medium } g3 ? g3.Size : Size),
         FullWidth ? "btn-block" : null,
-        Disabled && !string.IsNullOrEmpty(Href) ? "btn-disabled" : null,
+        _inert && !string.IsNullOrEmpty(Href) ? "btn-disabled" : null,
         "gap-2 normal-case",
         Class);
 
     private RenderFragment ButtonInner => @<text>
         @if (Loading)
         {
-            <span class="loading loading-spinner loading-sm"></span>
+            <span class="@_spinnerCls"></span>
         }
         else if (!string.IsNullOrEmpty(StartIcon))
         {
-            <Icon Name="@StartIcon" Size="Size.Small" />
+            <Icon Name="@StartIcon" Size="@_iconSize" />
         }
         @ChildContent
         @if (!Loading && !string.IsNullOrEmpty(EndIcon))
         {
-            <Icon Name="@EndIcon" Size="Size.Small" />
+            <Icon Name="@EndIcon" Size="@_iconSize" />
         }
     </text>;
 

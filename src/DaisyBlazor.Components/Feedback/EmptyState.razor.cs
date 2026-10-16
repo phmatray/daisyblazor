@@ -18,4 +18,8 @@ public partial class EmptyState
     /// <summary>Optional secondary line shown beneath the message.</summary>
     [Parameter]
     public string? Subtitle { get; set; }
+
+    /// <summary>Optional actions (for example an "Add" button) rendered centred beneath the text.</summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
 }
