@@ -1,9 +1,10 @@
 @namespace DaisyBlazor
 
 @* MudSkeleton replacement. daisyUI .skeleton placeholder block.
-   Width/Height become inline dimensions. *@
+   Width/Height become inline dimensions. Text is a pill one line tall unless Height says
+   otherwise. Decorative, so hidden from assistive tech: put aria-busy on the loading region. *@
 
-<div class="@_cls" style="@_style" @attributes="UserAttributes"></div>
+<div class="@_cls" style="@_style" aria-hidden="true" @attributes="UserAttributes"></div>
 
 @code {
     /// <summary>CSS width (e.g. "100%", "200px"); applied as inline style.</summary>
@@ -26,7 +27,7 @@
 
     private string _cls => CssClass.Merge(
         "skeleton",
-        SkeletonType == SkeletonType.Circle ? "rounded-full" : null,
+        SkeletonType is SkeletonType.Circle or SkeletonType.Text ? "rounded-full" : null,
         Class);
 
     private string _style
@@ -42,6 +43,11 @@
             if (!string.IsNullOrEmpty(Height))
             {
                 dimensions += $"height:{Height};";
+            }
+            else if (SkeletonType == SkeletonType.Text)
+            {
+                // A text line with no explicit height would otherwise collapse to 0px.
+                dimensions += "min-height:1em;";
             }
 
             return $"{dimensions}{Style}";
