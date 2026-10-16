@@ -4,8 +4,8 @@
    not to this component (which is also named NavLink). *@
 
 @* MudNavLink replacement (named NavMenuLink to avoid the framework NavLink clash). Renders a Blazor NavLink styled as a daisyUI menu link.
-   The framework NavLink applies the "active" class when the route matches; daisyUI's
-   .menu styles ".menu li > a.active" so the active state is highlighted automatically. *@
+   The framework NavLink applies ActiveClass (and aria-current="page") when the route matches;
+   daisyUI 5's .menu highlights ".menu-active", so that is the class emitted. *@
 
 @if (Disabled)
 {
@@ -16,7 +16,7 @@
 else
 {
     <Microsoft.AspNetCore.Components.Routing.NavLink href="@Href" Match="Match" target="@Target"
-                   class="@_cls" ActiveClass="active" style="@Style" @attributes="UserAttributes">
+                   class="@_cls" ActiveClass="menu-active" style="@Style" @attributes="UserAttributes">
         @LinkInner
     </Microsoft.AspNetCore.Components.Routing.NavLink>
 }

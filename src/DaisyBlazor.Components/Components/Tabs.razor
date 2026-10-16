@@ -1,4 +1,5 @@
 @namespace DaisyBlazor
+@using Microsoft.JSInterop
 
 @* Tabs container. daisyUI .tabs with variant modifiers tabs-box | tabs-border | tabs-lift
    and sizes tabs-xs | tabs-sm | tabs-md | tabs-lg | tabs-xl.
@@ -10,17 +11,20 @@
 
     <div class="@_cls" style="@Style" @attributes="UserAttributes">
         @* Tab button row *@
-        <div role="tablist" class="tabs @_variantClass @_sizeClass">
+        <div role="tablist" class="tabs @_variantClass @_sizeClass" @ref="_tabList" @onkeydown="OnTabListKeyDown" @onfocusin="OnTabListFocusIn">
             @foreach (Tab tab in _tabs)
             {
                 bool isActive = _activeTab == tab;
                 @* WAI-ARIA tabs: each tab declares its selected state and is linked to the shared
-                   panel; the panel is labelled back by the active tab (aria-labelledby below). *@
+                   panel; the panel is labelled back by the active tab (aria-labelledby below).
+                   Roving tabindex: only the selected tab is in the tab order; arrows move between tabs. *@
                 <button role="tab"
                         type="button"
                         id="@TabId(tab)"
+                        tabindex="@(isActive ? "0" : "-1")"
                         aria-selected="@(isActive ? "true" : "false")"
                         aria-controls="@PanelId"
+                        @ref="_tabRefs[tab]"
                         class="@TabButtonClass(tab)"
                         disabled="@tab.Disabled"
                         aria-disabled="@(tab.Disabled ? "true" : null)"
@@ -42,7 +46,13 @@
 
 @code {
     private readonly List<Tab> _tabs = new();
+    private readonly Dictionary<Tab, ElementReference> _tabRefs = new();
     private Tab? _activeTab;
+    private ElementReference _tabList;
+    private bool _focusActiveTab;
+    private bool _scrollGuardInstalled;
+
+    [Inject] private IJSRuntime JS { get; set; } = null!;
 
     // Per-instance id prefix so the tab buttons and the panel can reference each other (WAI-ARIA).
     private readonly string _id = "tabs-" + Guid.NewGuid().ToString("N")[..8];
@@ -115,6 +125,7 @@
     public void UnregisterTab(Tab tab)
     {
         _tabs.Remove(tab);
+        _tabRefs.Remove(tab);
         if (_activeTab == tab)
         {
             _activeTab = _tabs.Count > 0 ? _tabs[0] : null;
@@ -137,6 +148,72 @@
         if (index >= 0 && index < _tabs.Count)
         {
             await SetActive(_tabs[index]);
+        }
+    }
+
+    // WAI-ARIA tabs keyboard pattern (automatic activation): arrows wrap, Home/End jump; disabled tabs are skipped.
+    private async Task OnTabListKeyDown(KeyboardEventArgs e)
+    {
+        List<Tab> enabled = _tabs.Where(t => !t.Disabled).ToList();
+        if (enabled.Count == 0)
+        {
+            return;
+        }
+
+        int i = Math.Max(0, _activeTab is null ? 0 : enabled.IndexOf(_activeTab));
+        Tab? target = e.Key switch
+        {
+            "ArrowRight" => enabled[(i + 1) % enabled.Count],
+            "ArrowLeft" => enabled[(i - 1 + enabled.Count) % enabled.Count],
+            "Home" => enabled[0],
+            "End" => enabled[^1],
+            _ => null
+        };
+
+        if (target is not null)
+        {
+            _focusActiveTab = true;
+            await SetActive(target);
+        }
+    }
+
+    // Loaded on first focus (not first render) so pages that never focus the tabs never touch JS.
+    private async Task OnTabListFocusIn()
+    {
+        if (_scrollGuardInstalled)
+        {
+            return;
+        }
+
+        _scrollGuardInstalled = true;
+        try
+        {
+            // Stop Arrow/Home/End from scrolling the page while the tab list has focus.
+            await using IJSObjectReference module = await JS.InvokeAsync<IJSObjectReference>(
+                "import", "./_content/DaisyBlazor.Components/tabs.js");
+            await module.InvokeVoidAsync("preventNavKeyScroll", _tabList);
+        }
+        catch (Exception ex) when (ex is JSException or JSDisconnectedException or InvalidOperationException)
+        {
+            // JS unavailable (prerender / disconnected circuit): keys still work, the page may just scroll.
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_focusActiveTab || _activeTab is null || !_tabRefs.TryGetValue(_activeTab, out ElementReference el))
+        {
+            return;
+        }
+
+        _focusActiveTab = false;
+        try
+        {
+            await el.FocusAsync();
+        }
+        catch (Exception ex) when (ex is JSException or JSDisconnectedException or InvalidOperationException)
+        {
+            // JS unavailable (prerender / disconnected circuit): selection still moved, focus did not.
         }
     }
 

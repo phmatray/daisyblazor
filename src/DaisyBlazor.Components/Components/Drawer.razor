@@ -1,27 +1,55 @@
 @namespace DaisyBlazor
+@using Microsoft.JSInterop
 
 @* daisyUI drawer layout component. Uses the CSS-only checkbox toggle pattern.
    Root: .drawer (.drawer-end when End=true, .drawer-open when Open=true).
-   Children: .drawer-toggle (hidden checkbox), .drawer-content (main), .drawer-side (.drawer-overlay + side panel). *@
+   Children: .drawer-toggle (hidden checkbox), .drawer-content (main), .drawer-side (.drawer-overlay + side panel).
+   A11y: optional built-in toggle button (ToggleContent) with aria-expanded/aria-controls, Escape closes,
+   focus moves into the side panel on open and back to the toggle on close, and the closed panel is inert. *@
 
 <div class="@_cls" style="@Style" @attributes="UserAttributes">
     <input id="@Id"
            type="checkbox"
            class="drawer-toggle"
            checked="@Open"
+           tabindex="@(ToggleContent is null ? null : "-1")"
+           aria-hidden="@(ToggleContent is null ? null : "true")"
            @onchange="OnCheckedChanged" />
 
     <div class="drawer-content">
+        @if (ToggleContent is not null)
+        {
+            <button type="button"
+                    class="@ToggleClass"
+                    aria-controls="@SideId"
+                    aria-expanded="@(Open ? "true" : "false")"
+                    @ref="_toggle"
+                    @onclick="ToggleAsync">
+                @ToggleContent
+            </button>
+        }
         @ChildContent
     </div>
 
-    <div class="drawer-side">
+    @* The closed panel is inert so its links leave the tab order (daisyUI's visibility transition lags).
+       Skipped when a responsive drawer-open class (e.g. lg:drawer-open) keeps the panel visible. *@
+    <div class="drawer-side"
+         id="@SideId"
+         tabindex="-1"
+         style="outline:none"
+         inert="@(!Open && !_persistent)"
+         @ref="_side"
+         @onkeydown="OnSideKeyDown">
         <label for="@Id" aria-label="close sidebar" class="drawer-overlay"></label>
         @SideContent
     </div>
 </div>
 
 @code {
+    private ElementReference _toggle;
+    private ElementReference _side;
+    private bool? _renderedOpen;
+
     /// <summary>The main content rendered inside the drawer-content region.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
@@ -31,7 +59,7 @@
     /// <summary>Whether the drawer is currently open (two-way bindable).</summary>
     [Parameter] public bool Open { get; set; }
 
-    /// <summary>Raised when the open state changes (checkbox toggle or overlay click).</summary>
+    /// <summary>Raised when the open state changes (toggle, overlay click, or Escape).</summary>
     [Parameter] public EventCallback<bool> OpenChanged { get; set; }
 
     /// <summary>When true, the drawer slides in from the right end instead of the left.</summary>
@@ -40,9 +68,24 @@
     /// <summary>Unique id for the hidden checkbox used to drive the CSS toggle. Defaults to a generated value.</summary>
     [Parameter] public string Id { get; set; } = $"drawer-{Guid.NewGuid():N}";
 
+    /// <summary>
+    /// Content of an accessible built-in toggle button rendered at the top of the drawer-content region
+    /// (a real button exposing aria-expanded/aria-controls). When set, the hidden checkbox leaves the tab order.
+    /// </summary>
+    [Parameter] public RenderFragment? ToggleContent { get; set; }
+
+    /// <summary>CSS classes of the built-in toggle button (e.g. add <c>lg:hidden</c> for a responsive drawer).</summary>
+    [Parameter] public string ToggleClass { get; set; } = "btn drawer-button";
+
     [Parameter] public string? Class { get; set; }
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
+
+    /// <summary>Element id of the side panel; point a custom toggle's <c>aria-controls</c> at it.</summary>
+    public string SideId => $"{Id}-side";
+
+    // A responsive drawer-open utility (lg:drawer-open) keeps the panel visible while Open is false.
+    private bool _persistent => Class?.Contains("drawer-open", StringComparison.Ordinal) == true;
 
     private string _cls => CssClass.Merge(
         "drawer",
@@ -50,9 +93,50 @@
         Open ? "drawer-open" : null,
         Class);
 
-    private async Task OnCheckedChanged(ChangeEventArgs e)
+    /// <summary>Opens or closes the drawer and raises <see cref="OpenChanged"/>.</summary>
+    public async Task SetOpenAsync(bool open)
     {
-        bool newValue = e.Value is bool b ? b : false;
-        await OpenChanged.InvokeAsync(newValue);
+        if (Open == open)
+        {
+            return;
+        }
+
+        Open = open;
+        await OpenChanged.InvokeAsync(open);
+    }
+
+    /// <summary>Toggles the drawer open state.</summary>
+    public Task ToggleAsync() => SetOpenAsync(!Open);
+
+    private Task OnCheckedChanged(ChangeEventArgs e) => SetOpenAsync(e.Value is bool b && b);
+
+    private Task OnSideKeyDown(KeyboardEventArgs e) =>
+        e.Key == "Escape" && Open ? SetOpenAsync(false) : Task.CompletedTask;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Move focus only on an open-state transition, never on first render (e.g. a persistent sidebar).
+        bool? previous = _renderedOpen;
+        _renderedOpen = Open;
+        if (previous is null || previous == Open)
+        {
+            return;
+        }
+
+        try
+        {
+            if (Open)
+            {
+                await _side.FocusAsync();
+            }
+            else if (ToggleContent is not null)
+            {
+                await _toggle.FocusAsync();
+            }
+        }
+        catch (Exception ex) when (ex is JSException or JSDisconnectedException or InvalidOperationException)
+        {
+            // JS unavailable (prerender / disconnected circuit): focus management is best-effort.
+        }
     }
 }
