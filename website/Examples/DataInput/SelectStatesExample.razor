@@ -1,0 +1,14 @@
+<div class="grid w-full gap-x-4 sm:grid-cols-3">
+    <Select T="string" Label="Label" Value="@("Barclay")" Disabled="true">
+        <SelectItem Value="@("Barclay")" />
+    </Select>
+    <Select T="string" Label="Country" Required="true" Error="true" ErrorText="Pick a country of release.">
+        <SelectItem Value="@("")">—</SelectItem>
+        <SelectItem Value="@("FR")">France</SelectItem>
+        <SelectItem Value="@("BE")">Belgium</SelectItem>
+    </Select>
+    <Select T="string" Label="Sleeve" Value="@("Gatefold")" Dense="true">
+        <SelectItem Value="@("Single")" />
+        <SelectItem Value="@("Gatefold")" />
+    </Select>
+</div>

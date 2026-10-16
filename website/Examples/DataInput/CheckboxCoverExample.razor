@@ -1,0 +1,12 @@
+<div class="flex flex-col gap-3">
+    <p class="font-display text-2xl font-bold leading-none">Side A</p>
+    <Checkbox Label="Comment te dire adieu" Color="Color.Primary" Size="Size.Large" @bind-Value="_a" />
+    <Checkbox Label="Mon amie la rose" Color="Color.Secondary" Size="Size.Large" @bind-Value="_b" />
+    <Checkbox Label="Le temps de l'amour" Color="Color.Tertiary" Size="Size.Large" @bind-Value="_c" />
+</div>
+
+@code {
+    private bool _a = true;
+    private bool _b = true;
+    private bool _c;
+}

@@ -1,0 +1,9 @@
+<Rating @bind-Value="_stars" />
+<p class="mt-2 text-sm">
+    Your review: <span class="font-mono font-bold">@_stars / 5</span>
+    <span class="opacity-60">(click the current star again to clear)</span>
+</p>
+
+@code {
+    private int _stars = 4;
+}

@@ -1,0 +1,22 @@
+<FileInput OnChange="OnChange" Class="w-full" />
+<p class="mt-3 text-sm">
+    @if (_name is null)
+    {
+        <span class="opacity-60">No file chosen yet.</span>
+    }
+    else
+    {
+        <span>Selected <span class="font-mono">@_name</span> (@(_size / 1024) KB)</span>
+    }
+</p>
+
+@code {
+    private string? _name;
+    private long _size;
+
+    private void OnChange(InputFileChangeEventArgs e)
+    {
+        _name = e.File.Name;
+        _size = e.File.Size;
+    }
+}

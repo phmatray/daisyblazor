@@ -1,0 +1,12 @@
+@* MinDate/MaxDate constrain the calendar; DateFormat controls how the text field reads and writes. *@
+<div class="grid w-full gap-x-4 sm:grid-cols-2">
+    <DatePicker Label="Pre-order from (next 30 days)" @bind-Date="_preorder"
+                MinDate="DateTime.Today" MaxDate="DateTime.Today.AddDays(30)" />
+    <DatePicker Label="Concert (ISO format)" @bind-Date="_concert" DateFormat="yyyy-MM-dd" Color="Color.Primary" />
+</div>
+<p class="mt-3 font-mono text-sm">preorder=@(_preorder?.ToString("yyyy-MM-dd") ?? "null") · concert=@(_concert?.ToString("yyyy-MM-dd") ?? "null")</p>
+
+@code {
+    private DateTime? _preorder = DateTime.Today.AddDays(7);
+    private DateTime? _concert = new DateTime(1967, 6, 21);
+}

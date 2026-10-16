@@ -1,0 +1,17 @@
+<Autocomplete T="string" Label="Artist" Placeholder="Type “fr” or “ga”…" Clearable="true"
+              AdornmentIcon="@Icons.Material.Filled.Search" Adornment="Adornment.Start"
+              @bind-Value="_artist" SearchFunc="SearchAsync" />
+<p class="mt-3 text-sm">Selected: <span class="font-mono">@(_artist ?? "(none)")</span></p>
+
+@code {
+    private string? _artist;
+
+    private static readonly string[] Artists =
+    [
+        "France Gall", "Françoise Hardy", "Serge Gainsbourg", "Sylvie Vartan", "Jacques Dutronc",
+        "Brigitte Bardot", "Johnny Hallyday", "Sheila", "Claude François", "Jane Birkin",
+    ];
+
+    private static Task<IEnumerable<string>> SearchAsync(string text, CancellationToken token) =>
+        Task.FromResult(Artists.Where(a => a.Contains(text, StringComparison.OrdinalIgnoreCase)));
+}

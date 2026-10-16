@@ -1,0 +1,18 @@
+@* A three-band equaliser. *@
+<div class="flex flex-col gap-4">
+    @foreach ((string band, Color color) in Bands)
+    {
+        string key = band;
+        <div>
+            <div class="flex justify-between text-sm font-extrabold uppercase tracking-widest">
+                <span>@key</span><span class="font-mono">@_levels[key]</span>
+            </div>
+            <Range Value="_levels[key]" ValueChanged="v => _levels[key] = v" Color="color" Class="w-full" />
+        </div>
+    }
+</div>
+
+@code {
+    private static readonly (string, Color)[] Bands = [("Bass", Color.Primary), ("Mid", Color.Secondary), ("Treble", Color.Tertiary)];
+    private readonly Dictionary<string, double> _levels = new() { ["Bass"] = 72, ["Mid"] = 45, ["Treble"] = 60 };
+}

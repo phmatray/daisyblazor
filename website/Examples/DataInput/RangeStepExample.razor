@@ -1,0 +1,12 @@
+<div class="flex w-full flex-col gap-2">
+    <div class="flex justify-between text-sm font-bold">
+        <span>Pitch</span>
+        <span class="font-mono">@(_pitch > 0 ? "+" : "")@_pitch.ToString("F1") %</span>
+    </div>
+    <Range @bind-Value="_pitch" Min="-8" Max="8" Step="0.5" Color="Color.Secondary" Class="w-full" />
+    <div class="flex justify-between font-mono text-xs opacity-60"><span>−8</span><span>0</span><span>+8</span></div>
+</div>
+
+@code {
+    private double _pitch = 1.5;
+}

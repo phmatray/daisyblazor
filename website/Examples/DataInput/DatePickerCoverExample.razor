@@ -1,0 +1,13 @@
+<div class="flex flex-col gap-1">
+    <DatePicker Label="Session" @bind-Date="_session" Margin="Margin.None" DateFormat="dd/MM/yyyy" />
+    <DatePicker Label="Release" @bind-Date="_release" Margin="Margin.None" DateFormat="dd/MM/yyyy" />
+    <div class="mt-3 flex items-baseline justify-between border-t-2 border-base-content pt-2">
+        <span class="text-sm font-bold uppercase tracking-widest">In the shops in</span>
+        <span class="font-display text-3xl font-bold">@(((_release ?? DateTime.Today) - (_session ?? DateTime.Today)).Days) days</span>
+    </div>
+</div>
+
+@code {
+    private DateTime? _session = new DateTime(1966, 3, 14);
+    private DateTime? _release = new DateTime(1966, 5, 2);
+}

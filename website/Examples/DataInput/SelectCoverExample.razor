@@ -1,0 +1,17 @@
+<div class="flex flex-col gap-1">
+    <Select T="string" Label="Format" @bind-Value="_format" Margin="Margin.None">
+        <SelectItem Value="@("12″ LP")" />
+        <SelectItem Value="@("7″ EP")" />
+        <SelectItem Value="@("7″ single")" />
+    </Select>
+    <Select T="int" Label="Speed" @bind-Value="_rpm" Margin="Margin.None">
+        <SelectItem Value="33">33⅓ rpm</SelectItem>
+        <SelectItem Value="45">45 rpm</SelectItem>
+    </Select>
+    <p class="mt-3 border-t-2 border-base-content pt-2 font-display text-2xl font-bold">@_format · @_rpm</p>
+</div>
+
+@code {
+    private string? _format = "7″ EP";
+    private int _rpm = 45;
+}

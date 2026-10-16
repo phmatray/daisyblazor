@@ -1,0 +1,15 @@
+<RadioGroup T="Color" @bind-Value="_color">
+    <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+        <Radio Option="Color.Primary" Color="Color.Primary" Label="Primary" />
+        <Radio Option="Color.Secondary" Color="Color.Secondary" Label="Secondary" />
+        <Radio Option="Color.Tertiary" Color="Color.Tertiary" Label="Accent" />
+        <Radio Option="Color.Success" Color="Color.Success" Label="Success" Size="Size.Small" />
+        <Radio Option="Color.Warning" Color="Color.Warning" Label="Warning" Size="Size.Small" />
+        <Radio Option="Color.Error" Color="Color.Error" Label="Error" Size="Size.Small" />
+    </div>
+</RadioGroup>
+<p class="mt-3 font-mono text-sm">Color.@_color</p>
+
+@code {
+    private Color _color = Color.Tertiary;
+}
