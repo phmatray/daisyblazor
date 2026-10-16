@@ -16,7 +16,7 @@ public partial class KpiCard
     public string Value { get; set; } = null!;
 
     /// <summary>
-    /// CSS color used for the left border and the value text. Defaults to the active daisyUI
+    /// CSS color used for the left border (the value text keeps the base text colour for contrast). Defaults to the active daisyUI
     /// theme's <c>--color-primary</c> token so the tile stays on-palette; pass any CSS colour to override.
     /// </summary>
     [Parameter]

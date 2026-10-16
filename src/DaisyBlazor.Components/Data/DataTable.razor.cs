@@ -53,6 +53,14 @@ public partial class DataTable<T>
     [Parameter]
     public int[] PageSizeOptions { get; set; } = [10, 25, 50];
 
+    /// <summary>Initial rows per page. Defaults to the first entry of <see cref="PageSizeOptions"/>.</summary>
+    [Parameter]
+    public int? RowsPerPage { get; set; }
+
+    /// <summary>Header text of the <see cref="Actions"/> column. Defaults to <c>"Actions"</c>.</summary>
+    [Parameter]
+    public string ActionsTitle { get; set; } = "Actions";
+
     /// <summary>Additional CSS classes applied to the grid.</summary>
     [Parameter]
     public string? Class { get; set; }
@@ -66,6 +74,20 @@ public partial class DataTable<T>
     public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
     private DataGrid<T>? _grid;
+    private int _rowsPerPage;
+    private int? _lastRowsPerPage;
+    private bool _pageSizeSeeded;
+
+    protected override void OnParametersSet()
+    {
+        // Seed once (and again only if the caller changes RowsPerPage); afterwards the pager owns it.
+        if (!_pageSizeSeeded || RowsPerPage != _lastRowsPerPage)
+        {
+            _rowsPerPage = RowsPerPage ?? (PageSizeOptions is { Length: > 0 } ? PageSizeOptions[0] : 10);
+            _lastRowsPerPage = RowsPerPage;
+            _pageSizeSeeded = true;
+        }
+    }
 
     /// <summary>Current sort definitions (proxied from the underlying grid).</summary>
     public Dictionary<string, SortDefinition<T>> SortDefinitions

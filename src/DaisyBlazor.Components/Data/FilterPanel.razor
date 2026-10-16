@@ -9,9 +9,9 @@
                 <Icon Name="@Icons.Material.Filled.FilterList" Class="mr-2" />
                 @(Title ?? "Filters")
             </Typography>
-            @if (HasActiveFilters)
+            @if (HasActiveFilters && OnReset.HasDelegate)
             {
-                <Button Variant="Variant.Text" Color="Color.Secondary" OnClick="OnClear"
+                <Button Variant="Variant.Text" Color="Color.Secondary" OnClick="OnReset"
                         StartIcon="@Icons.Material.Filled.Clear">
                     @ResetLabel
                 </Button>
@@ -52,5 +52,5 @@
 </Paper>
 
 @code {
-    private string _paperClass => CssClass.Merge("p-4 mb-4", Class);
+    private string _paperClass => CssClass.Merge("p-4", Class);
 }

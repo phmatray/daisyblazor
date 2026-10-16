@@ -8,7 +8,9 @@
 @* MudDataGrid<T> replacement. daisyUI .table with sortable header + paged body.
    Columns register themselves via the cascaded grid reference. *@
 
-<CascadingValue Value="this" IsFixed="true">
+@* Not IsFixed: the pager reads grid state (page, totals), so it must re-render with the grid even
+   when its own parameters are all strings. Columns render no markup, so the extra renders are free. *@
+<CascadingValue Value="this">
     @* Column declarations render no markup; they register themselves with the grid. *@
     @Columns
     @ChildContent
@@ -23,9 +25,9 @@
                             SortDirection dir = GetSortDirection(column);
                             @if (column.CanSort)
                             {
-                                <th class="@CssClass.Merge("cursor-pointer select-none", column.HeaderClass)"
-                                    @onclick="@(() => ToggleSortAsync(column))">
-                                    <span class="inline-flex items-center gap-1">
+                                <th class="@column.HeaderClass" aria-sort="@AriaSort(dir)">
+                                    <button type="button" class="inline-flex items-center gap-1 cursor-pointer select-none"
+                                            @onclick="@(() => ToggleSortAsync(column))">
                                         @column.Title
                                         @if (dir == SortDirection.Ascending)
                                         {
@@ -35,7 +37,12 @@
                                         {
                                             <Icon Name="@Icons.Material.Filled.ArrowDropDown" Size="Size.Small" />
                                         }
-                                    </span>
+                                        else
+                                        {
+                                            @* Faded affordance so unsorted sortable columns read as clickable. *@
+                                            <Icon Name="@Icons.Material.Filled.ArrowDropDown" Size="Size.Small" Class="opacity-50" />
+                                        }
+                                    </button>
                                 </th>
                             }
                             else
@@ -111,6 +118,13 @@
 </CascadingValue>
 
 @code {
+    private static string AriaSort(SortDirection dir) => dir switch
+    {
+        SortDirection.Ascending => "ascending",
+        SortDirection.Descending => "descending",
+        _ => "none"
+    };
+
     private int _columnCount => Math.Max(1, _columns.Count);
 
     private string _wrapperClass => CssClass.Merge(

@@ -14,6 +14,7 @@
           Elevation="@Elevation"
           SkeletonRows="@SkeletonRows"
           PageSizeOptions="@PageSizeOptions"
+          @bind-RowsPerPage="_rowsPerPage"
           Class="@Class"
           Style="@Style"
           @attributes="UserAttributes">
@@ -21,7 +22,7 @@
         @Columns
         @if (Actions is not null)
         {
-            <TemplateColumn T="T" Sortable="false" CellClass="text-right">
+            <TemplateColumn T="T" Title="@ActionsTitle" Sortable="false" HeaderClass="text-right" CellClass="text-right whitespace-nowrap">
                 <CellTemplate Context="cell">
                     <Stack Row="true" Spacing="0" Justify="Justify.FlexEnd">
                         @Actions(cell.Item)
@@ -32,8 +33,8 @@
     </Columns>
     <NoRecordsContent>
         <Stack AlignItems="AlignItems.Center" Spacing="2" Class="p-8">
-            <Icon Name="@(EmptyIcon ?? Icons.Material.Filled.SearchOff)" Size="Size.Large" Color="Color.Secondary" />
-            <Typography Typo="Typo.body1" Color="Color.Secondary">@(EmptyMessage ?? "No records found")</Typography>
+            <Icon Name="@(EmptyIcon ?? Icons.Material.Filled.SearchOff)" Size="Size.Large" Class="text-base-content/60" />
+            <Typography Typo="Typo.body1" Class="text-base-content/60">@(EmptyMessage ?? "No records found")</Typography>
         </Stack>
     </NoRecordsContent>
     <LoadingContent>

@@ -4,7 +4,8 @@
 
 <Paper Class="@_paperClass" Style="@($"border-left: 4px solid {Color}; height: 100%;{Style}")" Elevation="2" @attributes="UserAttributes">
     <Typography Typo="Typo.caption" Style="opacity: 0.7;">@Label</Typography>
-    <Typography Typo="Typo.h4" Class="mt-1" Style="@($"color: {Color};")">@Value</Typography>
+    @* Value stays in the base text colour: accent colours (warning, success) fail contrast as text on light themes. *@
+    <Typography Typo="Typo.h4" Class="mt-1">@Value</Typography>
     @if (!string.IsNullOrEmpty(Subtitle))
     {
         <Typography Typo="Typo.caption" Style="opacity: 0.5;" Class="mt-1">@Subtitle</Typography>
