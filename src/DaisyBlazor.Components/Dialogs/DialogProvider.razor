@@ -2,23 +2,30 @@
 @using Microsoft.AspNetCore.Components.Rendering
 @implements IDisposable
 @inject IDialogService DialogService
+@inject IJSRuntime JS
 
 @* Host for IDialogService. Mount once near the app root. Renders each shown dialog inside a
-   daisyUI <dialog class="modal" open> + .modal-box, cascading an IMudDialogInstance. *@
+   daisyUI <dialog class="modal" open> + .modal-box, cascading an IMudDialogInstance. Once
+   interactive, dialog.js promotes it to a real modal via showModal() (focus moved in, background
+   inert, Escape) and restores focus to the opener on close. Without JS (prerender) the open
+   <dialog> still renders and Escape is handled by the keydown fallback. *@
 
 @foreach (DialogReference dialog in _dialogs)
 {
-    <dialog class="modal modal-open" open @key="dialog.Id">
+    <dialog class="modal modal-open" open @key="dialog.Id" @ref="_elements[dialog.Id]"
+            @oncancel="@(() => OnEscape(dialog))" @oncancel:preventDefault
+            @onkeydown="@(e => OnKeyDown(e, dialog))">
         <div class="@ModalBoxCss(dialog)"
-             role="dialog"
+             role="@Role(dialog)"
              aria-modal="true"
+             aria-labelledby="@dialog.TitleId"
              aria-label="@AriaLabel(dialog)">
             @if (ShowCloseButton(dialog))
             {
                 <button type="button"
                         class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
                         @onclick="@(() => dialog.Cancel())"
-                        aria-label="Close">
+                        aria-label="@CloseLabel">
                     <Icon Name="@Icons.Material.Filled.Close" Size="Size.Small" />
                 </button>
             }
@@ -27,13 +34,19 @@
             </CascadingValue>
         </div>
         <form method="dialog" class="modal-backdrop" @onclick="@(() => OnBackdrop(dialog))">
-            <button type="button" tabindex="-1">close</button>
+            <button type="button" tabindex="-1">@CloseLabel</button>
         </form>
     </dialog>
 }
 
 @code {
+    /// <summary>Accessible label of the close (x) button. Override to localise; defaults to "Close".</summary>
+    [Parameter] public string CloseLabel { get; set; } = "Close";
+
     private readonly List<DialogReference> _dialogs = [];
+    private readonly Dictionary<Guid, ElementReference> _elements = [];
+    private readonly HashSet<Guid> _opened = [];
+    private IJSObjectReference? _module;
 
     protected override void OnInitialized()
     {
@@ -43,6 +56,18 @@
     public void Dispose()
     {
         DialogService.OnDialogShown -= HandleShown;
+        _ = DisposeModuleAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        foreach (DialogReference dialog in _dialogs.ToArray())
+        {
+            if (_elements.TryGetValue(dialog.Id, out ElementReference element) && _opened.Add(dialog.Id))
+            {
+                await InvokeJsAsync("open", element);
+            }
+        }
     }
 
     private void HandleShown(DialogReference reference)
@@ -55,8 +80,63 @@
     private void HandleClosed(DialogReference reference)
     {
         reference.OnClose -= HandleClosed;
-        _dialogs.Remove(reference);
-        InvokeAsync(StateHasChanged);
+        InvokeAsync(async () =>
+        {
+            // Close the native modal first so focus can return to the opener (the rest of the
+            // page is inert while it is open), then drop it from the render tree.
+            if (_opened.Remove(reference.Id) && _elements.TryGetValue(reference.Id, out ElementReference element))
+            {
+                await InvokeJsAsync("close", element);
+            }
+
+            _dialogs.Remove(reference);
+            _elements.Remove(reference.Id);
+            StateHasChanged();
+        });
+    }
+
+    private void OnEscape(DialogReference dialog)
+    {
+        if (dialog.Options.CloseOnEscapeKey != false)
+        {
+            dialog.Cancel();
+        }
+    }
+
+    private void OnKeyDown(KeyboardEventArgs e, DialogReference dialog)
+    {
+        if (e.Key == "Escape")
+        {
+            OnEscape(dialog);
+        }
+    }
+
+    private async Task InvokeJsAsync(string identifier, ElementReference element)
+    {
+        try
+        {
+            _module ??= await JS.InvokeAsync<IJSObjectReference>(
+                "import", "./_content/DaisyBlazor.Components/dialog.js");
+            await _module.InvokeVoidAsync(identifier, element);
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or InvalidOperationException or JSException)
+        {
+            // Prerender / disconnected circuit / JS unavailable: the inline <dialog open> fallback stays.
+        }
+    }
+
+    private async Task DisposeModuleAsync()
+    {
+        try
+        {
+            if (_module is not null)
+            {
+                await _module.DisposeAsync();
+            }
+        }
+        catch (JSDisconnectedException)
+        {
+        }
     }
 
     private void OnBackdrop(DialogReference dialog)
@@ -70,11 +150,18 @@
     private static bool ShowCloseButton(DialogReference dialog) =>
         dialog.Options.CloseButton == true;
 
-    // Names the dialog for assistive technology. The title element itself lives inside the
-    // hosted component (Dialog.razor), so we surface the reference's title string as an
-    // aria-label here; returns null (attribute omitted) when no title was supplied.
+    // aria-labelledby points at the title Dialog.razor renders (id = TitleId). aria-label is only
+    // the fallback for hosted components that render no Dialog title (an unresolved
+    // aria-labelledby is ignored by the accessible-name computation).
     private static string? AriaLabel(DialogReference dialog) =>
         string.IsNullOrEmpty(dialog.Title) ? null : dialog.Title;
+
+    // Confirmations (MessageBoxDialog, ConfirmDialog) are alertdialogs unless the caller says otherwise.
+    private static string Role(DialogReference dialog) =>
+        dialog.Options.AlertDialog
+        ?? (dialog.ComponentType == typeof(MessageBoxDialog) || dialog.ComponentType == typeof(ConfirmDialog))
+            ? "alertdialog"
+            : "dialog";
 
     private static string ModalBoxCss(DialogReference dialog) => CssClass.Merge(
         "modal-box relative",

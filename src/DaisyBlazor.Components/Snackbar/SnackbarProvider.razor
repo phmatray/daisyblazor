@@ -3,24 +3,29 @@
 @inject ISnackbar Snackbar
 
 @* MudSnackbarProvider replacement. Renders queued toasts bottom-end and auto-dismisses each
-   after its VisibleStateDuration. Place once in MainLayout (or App). *@
+   after its VisibleStateDuration (paused while the toast is hovered or focused, WCAG 2.2.1).
+   Place once in MainLayout (or App). The container is the single live region: it turns
+   assertive while an error/warning is shown, polite otherwise; toasts carry no role of their
+   own so each message is announced once. *@
 
 <div class="@CssClass.Merge("toast toast-end toast-bottom z-50", Class)"
      style="@Style"
-     role="status"
-     aria-live="polite"
-     aria-atomic="true"
+     aria-live="@Politeness"
      @attributes="UserAttributes">
     @foreach (SnackbarMessage message in Snackbar.Shown)
     {
-        <div class="@AlertClass(message.Severity)" role="alert" @key="message.Id">
+        <div class="@AlertClass(message.Severity)" @key="message.Id"
+             @onmouseenter="() => Pause(message, hover: true)"
+             @onmouseleave="() => Resume(message, hover: true)"
+             @onfocusin="() => Pause(message, hover: false)"
+             @onfocusout="() => Resume(message, hover: false)">
             <Icon Name="@SeverityIcon(message.Severity)" Size="Size.Small" />
             <span>@message.Message</span>
             @if (message.Options.ShowCloseIcon)
             {
                 <button type="button"
                         class="btn btn-ghost btn-xs btn-circle"
-                        aria-label="Close"
+                        aria-label="@CloseLabel"
                         @onclick="() => Snackbar.Remove(message)">
                     <Icon Name="@Icons.Material.Filled.Close" Size="Size.Small" />
                 </button>
@@ -34,7 +39,24 @@
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
-    private readonly HashSet<Guid> _scheduled = [];
+    /// <summary>Accessible label of each toast's close button. Override to localise; defaults to "Close".</summary>
+    [Parameter] public string CloseLabel { get; set; } = "Close";
+
+    // Auto-dismiss state per toast: the countdown is cancelled while hovered/focused and resumes
+    // with the remaining time once neither applies.
+    private sealed class DismissTimer
+    {
+        public CancellationTokenSource? Cts;
+        public long StartedAt;
+        public int RemainingMs;
+        public bool Hovered;
+        public bool Focused;
+    }
+
+    private readonly Dictionary<Guid, DismissTimer> _timers = [];
+
+    private string Politeness =>
+        Snackbar.Shown.Any(m => m.Severity is Severity.Error or Severity.Warning) ? "assertive" : "polite";
 
     protected override void OnInitialized()
     {
@@ -52,31 +74,82 @@
 
     private void ScheduleDismissals()
     {
-        foreach (SnackbarMessage message in Snackbar.Shown)
+        IReadOnlyList<SnackbarMessage> shown = Snackbar.Shown;
+        foreach (Guid gone in _timers.Keys.Where(id => shown.All(m => m.Id != id)).ToArray())
         {
-            if (!_scheduled.Add(message.Id))
+            _timers[gone].Cts?.Cancel();
+            _timers.Remove(gone);
+        }
+
+        foreach (SnackbarMessage message in shown)
+        {
+            if (_timers.ContainsKey(message.Id))
             {
                 continue;
             }
 
-            int duration = message.Options.VisibleStateDuration > 0
-                ? message.Options.VisibleStateDuration
-                : 5000;
-
-            _ = DismissAfterAsync(message, duration);
+            DismissTimer timer = new()
+            {
+                RemainingMs = message.Options.VisibleStateDuration > 0 ? message.Options.VisibleStateDuration : 5000
+            };
+            _timers[message.Id] = timer;
+            Start(message, timer);
         }
     }
 
-    private async Task DismissAfterAsync(SnackbarMessage message, int delayMs)
+    private void Start(SnackbarMessage message, DismissTimer timer)
+    {
+        timer.Cts = new CancellationTokenSource();
+        timer.StartedAt = Environment.TickCount64;
+        _ = DismissAfterAsync(message, timer.RemainingMs, timer.Cts.Token);
+    }
+
+    private void Pause(SnackbarMessage message, bool hover)
+    {
+        if (!_timers.TryGetValue(message.Id, out DismissTimer? timer))
+        {
+            return;
+        }
+
+        timer.Hovered |= hover;
+        timer.Focused |= !hover;
+
+        if (timer.Cts is not null)
+        {
+            timer.Cts.Cancel();
+            timer.Cts = null;
+            timer.RemainingMs -= (int)(Environment.TickCount64 - timer.StartedAt);
+        }
+    }
+
+    private void Resume(SnackbarMessage message, bool hover)
+    {
+        if (!_timers.TryGetValue(message.Id, out DismissTimer? timer))
+        {
+            return;
+        }
+
+        timer.Hovered &= !hover;
+        timer.Focused &= hover;
+
+        if (timer.Cts is null && !timer.Hovered && !timer.Focused)
+        {
+            // Leave a moment to finish reading rather than vanishing the instant the pointer leaves.
+            timer.RemainingMs = Math.Max(timer.RemainingMs, 1000);
+            Start(message, timer);
+        }
+    }
+
+    private async Task DismissAfterAsync(SnackbarMessage message, int delayMs, CancellationToken token)
     {
         try
         {
-            await Task.Delay(delayMs);
+            await Task.Delay(delayMs, token);
             Snackbar.Remove(message);
         }
-        finally
+        catch (TaskCanceledException)
         {
-            _scheduled.Remove(message.Id);
+            // Paused or removed.
         }
     }
 
@@ -101,5 +174,9 @@
     public void Dispose()
     {
         Snackbar.OnChange -= HandleChange;
+        foreach (DismissTimer timer in _timers.Values)
+        {
+            timer.Cts?.Cancel();
+        }
     }
 }

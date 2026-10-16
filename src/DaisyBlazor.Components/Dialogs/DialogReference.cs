@@ -29,6 +29,9 @@ public sealed class DialogReference : IDialogReference, IMudDialogInstance
     /// <summary>Unique id of this dialog instance.</summary>
     public Guid Id { get; }
 
+    /// <summary>DOM id of the title element, referenced by the modal's <c>aria-labelledby</c>.</summary>
+    public string TitleId => $"dialog-{Id:N}-title";
+
     /// <inheritdoc cref="IMudDialogInstance.Title" />
     public string Title { get; }
 
