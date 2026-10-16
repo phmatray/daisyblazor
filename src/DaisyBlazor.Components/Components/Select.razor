@@ -22,7 +22,10 @@
 
     <select class="@_selectCls"
             disabled="@Disabled"
+            required="@Required"
             multiple="@MultiSelection"
+            size="@_size"
+            value="@_selectValue"
             @onchange="OnSelectChanged"
             id="@_id"
             aria-invalid="@(_hasError ? "true" : null)"
@@ -32,13 +35,22 @@
         {
             <option value="" selected="@(SelectedIndex < 0)">@ClearText</option>
         }
+        else if (!MultiSelection && SelectedIndex < 0)
+        {
+            @* Nothing chosen: show an empty, unpickable placeholder instead of the browser
+               silently displaying (but not selecting) the first option. *@
+            <option value="" selected disabled hidden></option>
+        }
         @for (int i = 0; i < _items.Count; i++)
         {
             int idx = i;
             SelectItem<T> item = _items[idx];
             <option value="@idx"
                     disabled="@item.Disabled"
-                    selected="@IsSelected(idx)">@(item.ChildContent ?? RenderText(item.Value))</option>
+                    selected="@IsSelected(idx)"
+                    class="@item.Class"
+                    style="@item.Style"
+                    @attributes="item.UserAttributes">@(item.ChildContent ?? RenderText(item.Value))</option>
         }
     </select>
 
@@ -78,7 +90,7 @@
     [Parameter] public bool Clearable { get; set; }
     /// <summary>Renders a native multiple select bound through <see cref="SelectedValues"/> instead of <see cref="Value"/>.</summary>
     [Parameter] public bool MultiSelection { get; set; }
-    /// <summary>Appends an asterisk to the label; does not set the HTML <c>required</c> attribute or validate.</summary>
+    /// <summary>Appends an asterisk to the label and sets the native HTML <c>required</c> attribute.</summary>
     [Parameter] public bool Required { get; set; }
     /// <summary>Stretches the wrapper and select to full width (<c>w-full</c>); on by default.</summary>
     [Parameter] public bool FullWidth { get; set; } = true;
@@ -168,7 +180,25 @@
         FullWidth ? "w-full" : null,
         Class);
 
-    private string _selectCls => CssClass.Merge(
+    // Single mode drives selection through the select's value property: the option `selected`
+    // attribute stops taking effect once the user has picked an option (selectedness dirty flag).
+    private string? _selectValue => MultiSelection ? null : SelectedIndex < 0 ? "" : SelectedIndex.ToString();
+
+    // A multiple select is a listbox: show the options as rows (up to 8) rather than one strip.
+    private object? _size => MultiSelection ? Math.Clamp(_items.Count, 2, 8) : null;
+
+    // daisyUI .select is a fixed-height inline-flex control built for a single-value dropdown;
+    // on a <select multiple> it squashes the options into one clipped row. The textarea look
+    // (border, padding, focus ring, auto height) suits a listbox.
+    private string _selectCls => MultiSelection
+        ? CssClass.Merge(
+            "textarea h-auto",
+            Variant == Variant.Filled ? "bg-base-200" : null,
+            Variant == Variant.Text ? "border-0" : null,
+            _isDense ? "textarea-sm" : null,
+            FullWidth ? "w-full" : null,
+            _hasError ? "textarea-error" : null)
+        : CssClass.Merge(
         "select",
         Variant == Variant.Outlined ? "select-bordered" : null,
         Variant == Variant.Filled ? "select-bordered bg-base-200" : null,

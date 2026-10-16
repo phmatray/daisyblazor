@@ -42,10 +42,19 @@ else
     [Parameter] public string? Style { get; set; }
     /// <summary>The text content.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
+    /// <summary>Text alignment: <c>left</c>/<c>start</c>, <c>center</c>, <c>right</c>/<c>end</c> or <c>justify</c> (case-insensitive); anything else adds no class.</summary>
     [Parameter] public string? Align { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
     private string _element => CssClass.TypographyElement(Typo);
-    private string _cls => CssClass.Merge(CssClass.Typography(Typo), CssClass.TextColor(Color), Class);
+    private string _cls => CssClass.Merge(CssClass.Typography(Typo), CssClass.TextColor(Color), _alignCls, Class);
+
+    private string? _alignCls => Align?.Trim().ToLowerInvariant() switch
+    {
+        "left" or "start" => "text-left",
+        "center" => "text-center",
+        "right" or "end" => "text-right",
+        "justify" => "text-justify",
+        _ => null,
+    };
 }

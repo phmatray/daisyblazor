@@ -45,7 +45,7 @@
                 {
                     @foreach ((T item, int capturedIndex) in _pageItems.Select((x, i) => (x, i)))
                     {
-                        <tr class="@(OnRowClick.HasDelegate ? "cursor-pointer hover:bg-base-200" : null)"
+                        <tr class="@_rowCls"
                             @onclick="@(() => RaiseRowClick(item, capturedIndex))">
                             @RowTemplate?.Invoke(item)
                         </tr>
@@ -68,7 +68,7 @@
     [Parameter] public IEnumerable<T>? Items { get; set; }
     /// <summary>Applies the daisyUI <c>table-sm</c> class for compact rows.</summary>
     [Parameter] public bool Dense { get; set; }
-    /// <summary>Highlights the hovered body row with a <c>bg-base-200</c> background.</summary>
+    /// <summary>Highlights the hovered body row (daisyUI <c>row-hover</c>: base-200, base-300 on striped rows).</summary>
     [Parameter] public bool Hover { get; set; }
     /// <summary>Applies the daisyUI <c>table-zebra</c> class for alternating row colors.</summary>
     [Parameter] public bool Striped { get; set; }
@@ -101,9 +101,13 @@
     private string _cls => CssClass.Merge(
         "table",
         Dense ? "table-sm" : null,
-        Hover ? "[&_tbody_tr:hover]:bg-base-200" : null,
         Striped ? "table-zebra" : null,
         Class);
+
+    // daisyUI row-hover steps up to base-300 on zebra rows, so the highlight stays visible when Striped.
+    private string? _rowCls => CssClass.Merge(
+        Hover || OnRowClick.HasDelegate ? "row-hover" : null,
+        OnRowClick.HasDelegate ? "cursor-pointer" : null) is { Length: > 0 } c ? c : null;
 
     private IReadOnlyList<T> _allItems => Items?.ToList() ?? new List<T>();
 

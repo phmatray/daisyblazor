@@ -25,7 +25,8 @@
 
     /// <summary>
     /// Tailwind min-height utility applied to the root element.
-    /// Defaults to <c>"min-h-screen"</c>. Pass e.g. <c>"min-h-96"</c> for a shorter hero.
+    /// Defaults to <c>"min-h-screen"</c>. Pass e.g. <c>"min-h-96"</c> for a shorter hero, or
+    /// <c>null</c>/empty for no minimum height.
     /// </summary>
     [Parameter] public string? MinHeight { get; set; } = "min-h-screen";
 
@@ -45,19 +46,23 @@
 
     private string _cls => CssClass.Merge(
         "hero",
-        string.IsNullOrEmpty(MinHeight) ? "min-h-screen" : MinHeight,
+        MinHeight,
         Class);
 
     private string _contentCls => CssClass.Merge(
         "hero-content",
         ContentClass);
 
+    // Escape for a double-quoted CSS string so quotes/backslashes/newlines in the URL can't break out.
+    private static string CssString(string s) => s
+        .Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\a ").Replace("\r", "");
+
     private string _rootStyle
     {
         get
         {
             string backgroundStyle = !string.IsNullOrEmpty(BackgroundImage)
-                ? $"background-image:url('{BackgroundImage}');"
+                ? $"background-image:url(\"{CssString(BackgroundImage)}\");"
                 : string.Empty;
 
             return string.IsNullOrEmpty(Style)

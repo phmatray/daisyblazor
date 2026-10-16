@@ -13,9 +13,9 @@
     /// <summary>Option text; when omitted the parent Select renders the Value as text.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    /// <summary>Accepted for compatibility; currently has no effect (the parent Select renders the option).</summary>
+    /// <summary>CSS classes applied to the rendered <c>option</c>.</summary>
     [Parameter] public string? Class { get; set; }
-    /// <summary>Accepted for compatibility; currently has no effect (the parent Select renders the option).</summary>
+    /// <summary>Inline styles applied to the rendered <c>option</c>.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

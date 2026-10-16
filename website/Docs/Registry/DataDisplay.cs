@@ -162,7 +162,7 @@ public static partial class DocRegistry
             "A vertical daisyUI list of rows. ListRow offers a ready Icon/Title/Subtitle layout or free columns; ListItem keeps MudListItem's Icon, Text, Href and OnClick.",
             [typeof(List), typeof(ListRow), typeof(ListItem)],
             [
-                new("Rows", "Icon, Title and Subtitle build the row; TrailingContent wraps onto its own line underneath (daisyUI list-col-wrap).", typeof(ListRowsExample)),
+                new("Rows", "Icon, Title and Subtitle build the row; TrailingContent adds a column on the right, here a status badge.", typeof(ListRowsExample)),
                 new("Custom columns", "Without the convenience parameters, ListRow lays out your own columns; list-col-grow takes the space.", typeof(ListCustomExample)),
                 new("Items", "ListItem renders a link or a button with an icon, and can be Disabled.", typeof(ListItemsExample)),
             ])
