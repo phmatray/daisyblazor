@@ -42,7 +42,8 @@ public static class CssClass
         Color.Warning => "warning",
         Color.Error => "error",
         Color.Dark => "neutral",
-        Color.Surface => "neutral",
+        // Surface is MudBlazor's light card surface: no colour modifier, so components fall back
+        // to their base-100/base-200 look instead of duplicating Dark.
         _ => null
     };
 
@@ -67,8 +68,9 @@ public static class CssClass
     };
 
     /// <summary>Badge color class, e.g. "badge-success".</summary>
+    /// <remarks>Default maps to badge-ghost (filled base-200) so it stays visible on base-100 surfaces.</remarks>
     public static string BadgeColor(Color color) =>
-        ColorToken(color) is { } t ? $"badge-{t}" : string.Empty;
+        ColorToken(color) is { } t ? $"badge-{t}" : color == Color.Default ? "badge-ghost" : string.Empty;
 
     /// <summary>Badge size class.</summary>
     public static string BadgeSize(Size size) => size switch
@@ -98,7 +100,8 @@ public static class CssClass
         Color.Success => "text-success",
         Color.Warning => "text-warning",
         Color.Error => "text-error",
-        Color.Dark => "text-neutral",
+        // Not text-neutral: on dark themes neutral is close to base-100 and the glyph vanishes.
+        Color.Dark => "text-base-content",
         Color.Surface => "text-base-content/70",
         _ => null
     };
