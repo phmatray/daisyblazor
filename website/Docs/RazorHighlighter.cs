@@ -16,8 +16,18 @@ public static partial class RazorHighlighter
         "css" => Tokens(code, Css()),
         "bash" or "shell" or "sh" => Tokens(code, Shell()),
         "xml" or "html" => Tokens(code, Markup()),
-        _ => Tokens(code, Razor()),
+        _ => RazorWithCode(code),
     };
+
+    /// <summary>Markup gets the Razor tokenizer (no C# keywords, so prose stays prose); an @code block gets C#.</summary>
+    private static string RazorWithCode(string code)
+    {
+        int at = code.IndexOf("@code", StringComparison.Ordinal);
+        if (at < 0) return Tokens(code, Razor());
+        return Tokens(code[..at], Razor())
+            + "<span class=\"tok-razor\">@code</span>"
+            + Tokens(code[(at + 5)..], CSharp());
+    }
 
     private static string Tokens(string code, Regex rx)
     {
@@ -54,9 +64,7 @@ public static partial class RazorHighlighter
         + """|(?<str>"(?:[^"\\\n]|\\.)*")"""
         + """|(?<razor>@(?:code|page|inject|using|inherits|implements|typeparam|attribute|rendermode|layout|namespace|foreach|if|else|for|while|switch|bind(?::\w+)?|on\w+(?::\w+)?|ref|key)\b|@[A-Za-z_][\w.]*(?:\([^)\n]*\))?|@\(|@\{)"""
         + """|(?<tag></?[A-Za-z][\w.:-]*|/?>)"""
-        + """|(?<attr>\b[A-Za-z_][\w:-]*(?==))"""
-        + """|(?<kw>\b(?:""" + CsKeywords + """)\b)"""
-        + """|(?<num>\b\d+(?:\.\d+)?[mdfMDF]?\b)""")]
+        + """|(?<attr>\b[A-Za-z_][\w:-]*(?==))""")]
     private static partial Regex Razor();
 
     [GeneratedRegex(

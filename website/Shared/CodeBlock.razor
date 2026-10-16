@@ -9,12 +9,12 @@
         </div>
     }
     <button type="button" @onclick="CopyAsync"
-            class="btn btn-ghost btn-xs absolute right-2 @(Title is null ? "top-2" : "top-1") gap-1 text-neutral-content/80 opacity-70 hover:bg-neutral-content/10 hover:opacity-100 focus-visible:opacity-100"
+            class="btn btn-ghost btn-xs absolute right-2 z-10 @(Title is null ? "top-2" : "top-1") gap-1 bg-neutral text-neutral-content/85 shadow-[-14px_0_10px_var(--color-neutral)] hover:bg-neutral hover:text-neutral-content focus-visible:text-neutral-content"
             aria-label="@(_copied ? "Copied" : "Copy code")">
         <Icon Name="@(_copied ? Icons.Material.Filled.Check : Icons.Material.Filled.ContentCopy)" Size="Size.Small" />
         <span>@(_copied ? "Copied" : "Copy")</span>
     </button>
-    <pre class="overflow-x-auto px-5 py-4 text-[0.85rem] leading-[1.7]"><code>@((MarkupString)RazorHighlighter.Highlight(Code, Language))</code></pre>
+    <pre class="overflow-x-auto px-5 py-4 text-[0.85rem] leading-[1.7] @(Title is null ? "pt-11 sm:pt-4" : "")"><code>@((MarkupString)RazorHighlighter.Highlight(Code, Language))</code></pre>
 </div>
 
 @code {

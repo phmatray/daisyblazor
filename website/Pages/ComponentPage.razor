@@ -53,14 +53,11 @@ else
                             <p>@_doc.MigrationNote</p>
                         }
                     </div>
-                    <Diff AspectClass="aspect-[16/5]" Class="mt-6 w-full max-w-3xl rounded-2xl border-2 border-base-content">
-                        <Item1>
-                            <div class="grid h-full place-items-center bg-base-200 font-mono text-sm sm:text-base">&lt;@_doc.MudEquivalent …&gt;</div>
-                        </Item1>
-                        <Item2>
-                            <div class="grid h-full place-items-center bg-primary font-mono text-sm text-primary-content sm:text-base">&lt;@ApiReflector.TagName(_doc.Types[0]) …&gt;</div>
-                        </Item2>
-                    </Diff>
+                    <div class="mt-6 flex flex-wrap items-center gap-3 font-mono text-sm sm:text-base" aria-label="@_doc.MudEquivalent becomes @ApiReflector.TagName(_doc.Types[0])">
+                        <span class="rounded-full border-2 border-base-300 px-4 py-2 text-base-content/70 line-through decoration-2">&lt;@_doc.MudEquivalent&gt;</span>
+                        <Icon Name="@Icons.Material.Filled.ArrowForward" />
+                        <span class="rounded-full bg-primary px-4 py-2 font-semibold text-primary-content">&lt;@ApiReflector.TagName(_doc.Types[0])&gt;</span>
+                    </div>
                 </section>
             }
         </ChildContent>

@@ -30,7 +30,7 @@
     @* ── The catalogue, live ─────────────────────────────────────────────── *@
     <section id="components" class="mx-auto max-w-[1500px] scroll-mt-6 px-4 py-20 sm:px-8 lg:px-14 lg:py-28">
         <div class="mb-10 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:items-end">
-            <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]">The whole catalogue, playing live.</h2>
+            <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]"><span class="mr-[0.25em] text-primary" aria-hidden="true">1</span>The whole catalogue, playing live.</h2>
             <p class="text-lg text-base-content/80">
                 Every tile is a real component running in your browser through WebAssembly, organised by daisyUI's own
                 taxonomy. Click through for examples, source, a playground and the API.
@@ -92,7 +92,7 @@
     <section id="playground" class="scroll-mt-6 border-y-2 border-base-content bg-base-200">
         <div class="mx-auto grid max-w-[1500px] gap-10 px-4 py-20 sm:px-8 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-16 lg:px-14 lg:py-28">
             <div>
-                <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]">Turn every knob.</h2>
+                <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]"><span class="mr-[0.25em] text-primary" aria-hidden="true">2</span>Turn every knob.</h2>
                 <p class="mt-5 text-lg text-base-content/80">
                     Each component page carries a playground. Its controls are built from DaisyBlazor's own inputs, generated
                     from the component's parameters, and the Razor underneath rewrites itself as you go. Copy it when it sounds right.
@@ -108,10 +108,10 @@
     </section>
 
     @* ── The crate ──────────────────────────────────────────────────────── *@
-    <section id="themes" class="scroll-mt-6 py-20 lg:py-28">
+    <section id="themes" class="scroll-mt-6 bg-neutral py-20 text-neutral-content lg:py-28">
         <div class="mx-auto mb-10 grid max-w-[1500px] gap-4 px-4 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:items-end lg:px-14">
-            <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]">@ThemeDeck.Themes.Count releases in the crate.</h2>
-            <p class="text-lg text-base-content/80">
+            <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]"><span class="mr-[0.25em] text-primary" aria-hidden="true">3</span>@ThemeDeck.Themes.Count releases in the crate.</h2>
+            <p class="text-lg text-neutral-content/85">
                 Every daisyUI theme ships in the preset, plus two of our own. Put one on: this whole site follows, and so does your
                 app through <code class="font-mono text-[0.9em]">ThemeProvider</code>.
             </p>
@@ -126,7 +126,7 @@
             }
         </ul>
         <div class="mx-auto max-w-[1500px] px-4 sm:px-8 lg:px-14">
-            <a href="themes" class="inline-flex items-center gap-2 font-bold underline decoration-primary decoration-2 underline-offset-4">
+            <a href="themes" class="inline-flex items-center gap-2 font-bold underline decoration-2 underline-offset-4">
                 Browse the crate <Icon Name="@Icons.Material.Filled.ArrowForward" Size="Size.Small" />
             </a>
         </div>
@@ -136,7 +136,7 @@
     <section id="migration" class="scroll-mt-6 border-t-2 border-base-content">
         <div class="mx-auto grid max-w-[1500px] gap-10 px-4 py-20 sm:px-8 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-16 lg:px-14 lg:py-28">
             <div>
-                <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]">Leave MudBlazor one rename at a time.</h2>
+                <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]"><span class="mr-[0.25em] text-primary" aria-hidden="true">4</span>Leave MudBlazor one rename at a time.</h2>
                 <p class="mt-5 text-lg text-base-content/80">
                     The same parameter names, the same <code class="font-mono text-[0.9em]">Color</code>, <code class="font-mono text-[0.9em]">Variant</code>
                     and <code class="font-mono text-[0.9em]">Size</code> enums, <code class="font-mono text-[0.9em]">Icons.Material.*</code>,
@@ -146,8 +146,8 @@
                 <a href="migration" class="btn mt-7 rounded-full border-2 border-base-content bg-transparent px-6 hover:bg-base-content hover:text-base-100">Read the migration guide</a>
             </div>
             <div class="grid min-w-0 gap-4 xl:grid-cols-2">
-                <CodeBlock Title="Before · MudBlazor" Code="@MudSample" />
-                <CodeBlock Title="After · DaisyBlazor" Code="@DaisySample" />
+                <CodeBlock Title="Side A · MudBlazor" Code="@MudSample" />
+                <CodeBlock Title="Side B · DaisyBlazor" Code="@DaisySample" />
             </div>
         </div>
     </section>
@@ -156,7 +156,7 @@
     <section id="charts" class="scroll-mt-6 border-t-2 border-base-content bg-base-200">
         <div class="mx-auto max-w-[1500px] px-4 py-20 sm:px-8 lg:px-14 lg:py-28">
             <div class="mb-10 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:items-end">
-                <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]">Charts that change with the record.</h2>
+                <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]"><span class="mr-[0.25em] text-primary" aria-hidden="true">5</span>Charts that change with the record.</h2>
                 <p class="text-lg text-base-content/80">
                     Line, area, bar, pie, donut and sparkline, rendered as plain SVG with theme colours. No JavaScript charting
                     runtime. Switch the theme and watch them follow.
@@ -180,7 +180,7 @@
     <section id="no-npm" class="scroll-mt-6 border-t-2 border-base-content">
         <div class="mx-auto grid max-w-[1500px] gap-10 px-4 py-20 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16 lg:px-14 lg:py-28">
             <div>
-                <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]">No Node. No npm.</h2>
+                <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]"><span class="mr-[0.25em] text-primary" aria-hidden="true">6</span>No Node. No npm.</h2>
                 <p class="mt-5 max-w-xl text-lg text-base-content/80">
                     The NuGet package carries the preset (daisyUI, the themes, a safelist of every class the components emit) and
                     can run the Tailwind standalone CLI on build. One property in your project file, one import in your stylesheet.
@@ -293,6 +293,11 @@
                 <Chip Color="Color.Secondary" Size="Size.Small" Variant="Variant.Outlined" Text="1965" />
             </div>
             <Sparkline Data="_wave" Area="true" Width="100%" Height="2.5rem" Title="Waveform" />
+            <ol class="divide-y divide-base-300 border-t border-base-300 text-sm">
+                <li class="flex justify-between py-1.5 font-bold"><span>1 · Poupée de cire</span><span class="tabular-nums">2:31</span></li>
+                <li class="flex justify-between py-1.5 text-base-content/75"><span>2 · Laisse tomber les filles</span><span class="tabular-nums">2:12</span></li>
+                <li class="flex justify-between py-1.5 text-base-content/75"><span>3 · Sacré Charlemagne</span><span class="tabular-nums">2:04</span></li>
+            </ol>
         </div>
     };
 

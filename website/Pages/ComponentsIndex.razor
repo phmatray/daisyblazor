@@ -19,8 +19,8 @@
                         Type? cover = d.Portrait ?? d.Examples.FirstOrDefault()?.Component;
                         <li>
                             <a href="@d.Url" class="group flex h-full flex-col overflow-hidden rounded-2xl border-2 border-base-content transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-18px_rgb(0_0_0/0.5)]">
-                                <div class="pointer-events-none grid h-44 place-items-center overflow-hidden bg-base-100 p-5" inert>
-                                    <div class="w-full origin-center scale-[0.85]">
+                                <div class="pointer-events-none grid h-48 place-items-center overflow-hidden bg-base-100 p-4" inert>
+                                    <div class="w-full origin-center scale-[0.78]">
                                         @if (cover is not null)
                                         {
                                             <DynamicComponent Type="cover" />

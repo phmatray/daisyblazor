@@ -13,14 +13,14 @@
     </div>
 
     <div class="overflow-hidden rounded-2xl border-2 border-base-content">
-        <div class="grid lg:grid-cols-[minmax(0,1fr)_20rem]">
-            <div class="grid min-h-72 place-items-center bg-base-100 p-8 sm:p-12">
+        <div>
+            <div class="grid min-h-56 place-items-center bg-base-100 p-8 sm:p-12">
                 <div class="flex max-w-full flex-wrap items-center justify-center">
                     <DynamicComponent @key="_renderKey" Type="Spec.Component" Parameters="_rendered" />
                 </div>
             </div>
 
-            <div class="max-h-[34rem] space-y-5 overflow-y-auto border-t-2 border-base-content bg-base-200 p-5 lg:border-l-2 lg:border-t-0">
+            <div class="grid gap-x-6 gap-y-5 border-t-2 border-base-content bg-base-200 p-5 sm:grid-cols-2 xl:grid-cols-3">
                 @if (Spec.ChildText is not null)
                 {
                     <TextField Label="ChildContent" Value="@_childText" ValueChanged="v => SetChild(v)" Immediate="true" Margin="Margin.None" />

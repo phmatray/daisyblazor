@@ -75,21 +75,35 @@
     .disc {
         border-radius: 9999px;
         background:
-            radial-gradient(circle at center,
-                var(--color-primary) 0 14%,
-                var(--color-base-100) 14% 15.5%,
-                transparent 15.5%),
             repeating-radial-gradient(circle at center,
                 color-mix(in oklab, var(--color-primary) 92%, black) 0 2px,
                 var(--color-primary) 2px 5px);
         transition: transform 900ms cubic-bezier(.16, 1, .3, 1);
     }
 
+    /* The printed label of the next release. */
+    .disc-label {
+        position: absolute;
+        inset: 31%;
+        display: grid;
+        place-content: center;
+        gap: .15rem;
+        border-radius: 9999px;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        text-align: center;
+        font-family: var(--font-display);
+        line-height: 1;
+        box-shadow: 0 0 0 .35rem color-mix(in oklab, var(--color-primary) 80%, black);
+    }
+
     .disc-button:hover .disc,
     .disc-button:focus-visible .disc { transform: rotate(160deg) translateX(-12px); }
 
     /* Ink on the sleeve: secondary text tinted from the ground's own ink, never grey. */
-    .sleeve-muted { color: color-mix(in oklab, var(--color-primary-content) 72%, var(--color-primary)); }
+    .sleeve-muted { color: var(--color-primary-content); }
+    /* Large type only (logotype): 3:1 is enough there. */
+    .sleeve-soft { color: color-mix(in oklab, var(--color-primary-content) 75%, var(--color-primary)); }
 
     /* Pills for small controls; the track block. */
     .track {
@@ -105,7 +119,6 @@
     .track > b {
         font-family: var(--font-display);
         font-weight: 600;
-        opacity: .7;
     }
 
     .track:hover { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 2px; }

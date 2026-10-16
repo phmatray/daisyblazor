@@ -2,7 +2,7 @@
 
 <nav class="grid gap-6 pt-4 sm:grid-cols-2" aria-label="Mobile">
     <div>
-        <span class="sleeve-muted mb-2 block text-xs font-extrabold uppercase tracking-[0.2em]">Start here</span>
+        <span class="sleeve-muted mb-2 block text-sm font-bold">Side A · Guides</span>
         <ul class="space-y-1 font-bold">
             @foreach (GuideDoc g in Guides.All)
             {
@@ -12,7 +12,7 @@
         </ul>
     </div>
     <div>
-        <span class="sleeve-muted mb-2 block text-xs font-extrabold uppercase tracking-[0.2em]">Components</span>
+        <span class="sleeve-muted mb-2 block text-sm font-bold">Side B · Components</span>
         <ul class="space-y-1 font-bold">
             <li><a href="components">All components</a></li>
             @foreach (IGrouping<Category, ComponentDoc> group in DocRegistry.ByCategory())

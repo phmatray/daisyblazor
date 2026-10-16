@@ -13,9 +13,29 @@
 
     @foreach (IGrouping<ParamKind, ParamInfo> group in _params.GroupBy(p => p.Kind))
     {
-        <div class="mb-6 overflow-x-auto">
+        <h4 class="mb-2 text-sm font-bold text-base-content/70">@GroupTitle(group.Key)</h4>
+        <ul class="mb-6 divide-y divide-base-300 border-y-2 border-base-content md:hidden">
+            @foreach (ParamInfo p in group)
+            {
+                <li class="py-3">
+                    <div class="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+                        <span class="font-mono font-semibold">@p.Name</span>
+                        <span class="font-mono text-[0.8rem] text-base-content/75">@p.TypeName</span>
+                    </div>
+                    @if (group.Key == ParamKind.Property && p.Default is not null)
+                    {
+                        <div class="mt-0.5 font-mono text-[0.8rem] text-base-content/75">= @p.Default</div>
+                    }
+                    @if (p.Summary is not null)
+                    {
+                        <p class="mt-1 text-[0.92rem] text-base-content/85">@p.Summary</p>
+                    }
+                </li>
+            }
+        </ul>
+        <div class="mb-6 hidden overflow-x-auto md:block">
             <table class="w-full min-w-[40rem] text-[0.92rem]">
-                <caption class="pb-2 text-left text-xs font-extrabold uppercase tracking-[0.2em] text-base-content/60">@GroupTitle(group.Key)</caption>
+                
                 <thead>
                     <tr class="border-b-2 border-base-content text-left">
                         <th class="w-[24%] py-2 pr-4 font-bold">Name</th>
@@ -24,7 +44,10 @@
                         {
                             <th class="w-[18%] py-2 pr-4 font-bold">Default</th>
                         }
-                        <th class="py-2 font-bold">Description</th>
+                        @if (_described)
+                        {
+                            <th class="py-2 font-bold">Description</th>
+                        }
                     </tr>
                 </thead>
                 <tbody>
@@ -37,7 +60,10 @@
                             {
                                 <td class="py-2.5 pr-4 font-mono text-[0.85rem] text-base-content/80">@(p.Default ?? "—")</td>
                             }
-                            <td class="py-2.5 text-base-content/85">@(p.Summary ?? "")</td>
+                            @if (_described)
+                            {
+                                <td class="py-2.5 text-base-content/85">@(p.Summary ?? "")</td>
+                            }
                         </tr>
                     }
                 </tbody>
@@ -52,11 +78,13 @@
     private IReadOnlyList<ParamInfo> _params = [];
     private string? _summary;
     private string _id = "";
+    private bool _described;
 
     protected override void OnParametersSet()
     {
         _params = ApiReflector.Parameters(Component, Docs);
         _summary = Docs.Summary(Component);
+        _described = _params.Any(p => p.Summary is not null);
         _id = "api-" + Slugify.Of(ApiReflector.TagName(Component));
     }
 
