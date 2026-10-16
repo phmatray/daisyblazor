@@ -5,18 +5,18 @@
    Open state is controlled in C# (no JS) so ActivatorContent's menu.ToggleAsync works
    for server rendering. A transparent backdrop closes the menu on outside click. *@
 
-<div class="@_rootCls" style="@Style" @attributes="UserAttributes">
+<div class="@_rootCls" style="@Style" @onkeydown="OnKeyDown" @attributes="UserAttributes">
     @if (ActivatorContent is not null)
     {
         @ActivatorContent(_activator)
     }
     else if (!string.IsNullOrEmpty(Icon))
     {
-        <IconButton Icon="@Icon" Size="Size" @onclick="ToggleAsync" />
+        <IconButton Icon="@Icon" Size="Size" @onclick="ToggleAsync" aria-haspopup="menu" aria-expanded="@_expanded" />
     }
     else
     {
-        <button type="button" class="btn btn-ghost gap-1" @onclick="ToggleAsync">
+        <button type="button" class="btn btn-ghost gap-1" aria-haspopup="menu" aria-expanded="@_expanded" @onclick="ToggleAsync">
             @Label
             <Icon Name="@Icons.Material.Filled.ArrowDropDown" Size="Size.Small" />
         </button>
@@ -26,7 +26,7 @@
     {
         @* Backdrop captures outside clicks to dismiss the menu. *@
         <div class="fixed inset-0 z-[1]" @onclick="CloseAsync"></div>
-        <ul tabindex="0" class="@_listCls">
+        <ul role="menu" class="@_listCls">
             <CascadingValue Value="this" IsFixed="true">
                 @ChildContent
             </CascadingValue>
@@ -84,6 +84,11 @@
         StateHasChanged();
         return Task.CompletedTask;
     }
+
+    private string _expanded => _open ? "true" : "false";
+
+    // Escape dismisses the open menu, from the trigger or from any item.
+    private Task OnKeyDown(KeyboardEventArgs e) => _open && e.Key == "Escape" ? CloseAsync() : Task.CompletedTask;
 
     /// <summary>Called by child MenuItems after activation to dismiss the menu.</summary>
     internal Task NotifyItemClickedAsync() => CloseAsync();

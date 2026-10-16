@@ -1,9 +1,0 @@
-/* daisyUI v5 keeps `.tab-content` at `display:none` unless it immediately follows the active
-   `.tab` (its CSS-only / radio-input activation model). This component instead tracks the active
-   tab in C# and renders the single active panel as a sibling of the `tablist` (correct ARIA: a
-   `tabpanel` placed beside the `tablist`), so daisyUI's adjacency selector never matches and the
-   panel would stay hidden. Since the active panel is already selected in C#, force it visible.
-   Scoped specificity ([b-*]) beats daisyUI's base `.tab-content { display:none }`. */
-.tab-content {
-    display: block;
-}

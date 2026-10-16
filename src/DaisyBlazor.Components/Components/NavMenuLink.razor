@@ -9,7 +9,7 @@
 
 @if (Disabled)
 {
-    <span class="@_disabledCls" style="@Style" @attributes="UserAttributes">
+    <span role="link" aria-disabled="true" class="@_disabledCls" style="@Style" @attributes="UserAttributes">
         @LinkInner
     </span>
 }

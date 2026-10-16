@@ -34,10 +34,12 @@
             }
         </div>
 
-        @* Active tab panel *@
+        @* Active tab panel. daisyUI hides .tab-content unless it follows the active radio/tab;
+           this panel sits beside the tablist (correct ARIA), so the safelisted `block` utility
+           (utilities layer beats daisyUI's components layer) shows it without scoped CSS. *@
         @if (_activeTab is not null)
         {
-            <div role="tabpanel" id="@PanelId" aria-labelledby="@TabId(_activeTab)" tabindex="0" class="tab-content">
+            <div role="tabpanel" id="@PanelId" aria-labelledby="@TabId(_activeTab)" tabindex="0" class="tab-content block">
                 @_activeTab.ChildContent
             </div>
         }

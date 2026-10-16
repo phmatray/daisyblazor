@@ -4,6 +4,11 @@
 
 <div class="@_cls" data-tip="@Text" style="@Style" @attributes="UserAttributes">
     @ChildContent
+    @* data-tip lives in a pseudo-element that assistive tech never reads; this copy is announced. *@
+    @if (!string.IsNullOrEmpty(Text))
+    {
+        <span class="sr-only">@Text</span>
+    }
 </div>
 
 @code {
@@ -19,6 +24,12 @@
     /// <summary>Accepted for MudBlazor compatibility; daisyUI tooltips always show an arrow.</summary>
     [Parameter] public bool Arrow { get; set; }
 
+    /// <summary>Semantic colour of the tip (tooltip-{color}); Default adds no colour class.</summary>
+    [Parameter] public Color Color { get; set; } = Color.Default;
+
+    /// <summary>Keeps the tip visible without hover or focus (tooltip-open).</summary>
+    [Parameter] public bool Open { get; set; }
+
     /// <summary>Extra CSS classes merged onto the root tooltip element.</summary>
     [Parameter] public string? Class { get; set; }
     /// <summary>Inline CSS styles applied to the root tooltip element.</summary>
@@ -33,5 +44,10 @@
         _ => "tooltip-top"
     };
 
-    private string _cls => CssClass.Merge("tooltip", _placementClass, Class);
+    private string _cls => CssClass.Merge(
+        "tooltip",
+        _placementClass,
+        CssClass.ColorToken(Color) is { } t ? $"tooltip-{t}" : null,
+        Open ? "tooltip-open" : null,
+        Class);
 }

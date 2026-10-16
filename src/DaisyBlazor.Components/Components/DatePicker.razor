@@ -28,15 +28,19 @@
                aria-label="@(string.IsNullOrEmpty(Label) ? Placeholder : null)"
                disabled="@Disabled"
                readonly="@(ReadOnly || !Editable)"
+               tabindex="@(_pickerFocusable ? "-1" : null)"
                @onchange="OnTextChange"
                @attributes="UserAttributes" />
         <span class="dz-date__pick">
             <Icon Name="@(AdornmentIcon ?? Icons.Material.Filled.CalendarToday)" Size="Size.Small" Class="opacity-60" />
             @if (!Disabled && !ReadOnly)
             {
+                @* Mouse-only behind the glyph while the text field is the keyboard path; with
+                   Editable=false it becomes the focusable, labelled keyboard path itself. *@
                 <input type="date"
-                       tabindex="-1"
-                       aria-hidden="true"
+                       tabindex="@(_pickerFocusable ? null : "-1")"
+                       aria-hidden="@(_pickerFocusable ? null : "true")"
+                       aria-label="@(_pickerFocusable ? Label ?? Placeholder ?? "Date" : null)"
                        value="@_isoValue"
                        min="@_minIso"
                        max="@_maxIso"
@@ -106,6 +110,9 @@
 
     /// <summary>Re-keys the text input so a rejected entry snaps back to the bound date.</summary>
     private int _textVersion;
+
+    /// <summary>Editable=false leaves the native picker as the only way to set a date, so it takes focus.</summary>
+    private bool _pickerFocusable => !Editable && !Disabled && !ReadOnly;
 
     private bool _isDense => Dense || Margin == Margin.Dense;
 
