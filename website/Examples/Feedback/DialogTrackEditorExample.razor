@@ -1,0 +1,19 @@
+@* A dialog component: wrap the content in <Dialog> and close through the cascaded IMudDialogInstance.
+   Rendered here on its own; the next example opens it through IDialogService. *@
+
+<Dialog>
+    <DialogContent>
+        <TextField Label="Track title" @bind-Value="Title" Immediate="true" />
+    </DialogContent>
+    <DialogActions>
+        <Button Variant="Variant.Text" OnClick="() => MudDialog?.Cancel()">Cancel</Button>
+        <Button Color="Color.Primary" Variant="Variant.Filled" Disabled="string.IsNullOrWhiteSpace(Title)"
+                OnClick="() => MudDialog?.Close(DialogResult.Ok(Title))">Rename</Button>
+    </DialogActions>
+</Dialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance? MudDialog { get; set; }
+
+    [Parameter] public string? Title { get; set; } = "La Javanaise";
+}

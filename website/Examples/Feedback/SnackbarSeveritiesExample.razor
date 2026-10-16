@@ -1,0 +1,9 @@
+@inject ISnackbar Snackbar
+
+<div class="flex flex-wrap gap-3">
+    <Button Variant="Variant.Outlined" OnClick="@(() => Snackbar.Add("Added to your crate"))">Normal</Button>
+    <Button Color="Color.Info" Variant="Variant.Filled" OnClick="@(() => Snackbar.Add("Side B is up next", Severity.Info))">Info</Button>
+    <Button Color="Color.Success" Variant="Variant.Filled" OnClick="@(() => Snackbar.Add("Order #1967 shipped", Severity.Success))">Success</Button>
+    <Button Color="Color.Warning" Variant="Variant.Filled" OnClick="@(() => Snackbar.Add("Only one copy left", Severity.Warning))">Warning</Button>
+    <Button Color="Color.Error" Variant="Variant.Filled" OnClick="@(() => Snackbar.Add("Payment declined", Severity.Error))">Error</Button>
+</div>

@@ -1,0 +1,26 @@
+@inject IDialogService DialogService
+
+<div class="flex flex-wrap items-center gap-3">
+    <Button Variant="Variant.Outlined" OnClick="InfoAsync">OK only</Button>
+    <Button Color="Color.Primary" Variant="Variant.Filled" OnClick="YesNoAsync">Yes / No / Cancel</Button>
+    <span class="text-sm text-base-content/70">Result: <strong>@_result</strong></span>
+</div>
+
+@code {
+    private string _result = "none yet";
+
+    private async Task InfoAsync()
+    {
+        await DialogService.ShowMessageBoxAsync("Pre-order confirmed", "We will email you when “Histoire de Melody Nelson” ships.");
+        _result = "acknowledged";
+    }
+
+    private async Task YesNoAsync()
+    {
+        bool? answer = await DialogService.ShowMessageBoxAsync(
+            "Save changes?", "You edited the tracklist of this playlist.",
+            yesText: "Save", noText: "Discard", cancelText: "Cancel");
+
+        _result = answer switch { true => "saved", false => "discarded", null => "cancelled" };
+    }
+}
