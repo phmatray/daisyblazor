@@ -10,7 +10,7 @@
 <div class="@_fieldsetCls" style="@Style">
     @if (!string.IsNullOrEmpty(Label))
     {
-        <label class="label">
+        <label class="label" for="@_id">
             <span class="label-text">@Label@(Required ? " *" : null)</span>
         </label>
     }
@@ -24,6 +24,7 @@
             disabled="@Disabled"
             multiple="@MultiSelection"
             @onchange="OnSelectChanged"
+            id="@_id"
             @attributes="UserAttributes">
         @if (!MultiSelection && Clearable)
         {
@@ -50,6 +51,9 @@
 </div>
 
 @code {
+    private readonly string _generatedId = FieldId.New();
+    private string _id => FieldId.Resolve(UserAttributes, _generatedId);
+
     [Parameter] public T? Value { get; set; }
     [Parameter] public EventCallback<T?> ValueChanged { get; set; }
     [Parameter] public IEnumerable<T>? SelectedValues { get; set; }

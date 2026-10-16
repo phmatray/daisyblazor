@@ -7,7 +7,7 @@
 <div class="@_fieldsetCls" style="@Style">
     @if (!string.IsNullOrEmpty(Label))
     {
-        <label class="label">
+        <label class="label" for="@_id">
             <span class="label-text">@Label@(Required ? " *" : null)</span>
         </label>
     }
@@ -30,6 +30,7 @@
                    step="@_stepStr"
                    value="@_displayValue"
                    @onchange="OnChange"
+                   id="@_id"
                    @attributes="UserAttributes" />
             @if (Adornment == Adornment.End)
             {
@@ -50,6 +51,7 @@
                step="@_stepStr"
                value="@_displayValue"
                @onchange="OnChange"
+               id="@_id"
                @attributes="UserAttributes" />
     }
 
@@ -64,6 +66,9 @@
 </div>
 
 @code {
+    private readonly string _generatedId = FieldId.New();
+    private string _id => FieldId.Resolve(UserAttributes, _generatedId);
+
     [Parameter] public T? Value { get; set; }
     [Parameter] public EventCallback<T?> ValueChanged { get; set; }
     [Parameter] public string? Label { get; set; }
