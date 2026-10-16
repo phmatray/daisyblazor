@@ -1,0 +1,39 @@
+<FilterPanel ActiveFilters="_active" OnApply="Apply" OnClear="Clear" OnRemoveFilter="Remove">
+    <Item xs="12" sm="6">
+        <TextField Label="Artist" Placeholder="Françoise Hardy" @bind-Value="_artist" />
+    </Item>
+    <Item xs="12" sm="6">
+        <Select T="string" Label="Format" @bind-Value="_format">
+            <SelectItem T="string" Value="@("Vinyl")">Vinyl</SelectItem>
+            <SelectItem T="string" Value="@("CD")">CD</SelectItem>
+            <SelectItem T="string" Value="@("Digital")">Digital</SelectItem>
+        </Select>
+    </Item>
+</FilterPanel>
+
+@code {
+    private string? _artist;
+    private string? _format = "Vinyl";
+    private List<ActiveFilter> _active = [new("format", "Format: Vinyl")];
+
+    private void Apply()
+    {
+        _active = [];
+        if (!string.IsNullOrWhiteSpace(_artist)) _active.Add(new("artist", $"Artist: {_artist}"));
+        if (_format is not null) _active.Add(new("format", $"Format: {_format}"));
+    }
+
+    private void Clear()
+    {
+        _artist = null;
+        _format = null;
+        _active = [];
+    }
+
+    private void Remove(ActiveFilter filter)
+    {
+        if (filter.Key == "artist") _artist = null;
+        if (filter.Key == "format") _format = null;
+        _active.Remove(filter);
+    }
+}

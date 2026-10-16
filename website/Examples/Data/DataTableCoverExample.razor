@@ -1,0 +1,21 @@
+<DataTable T="Pressing" Items="_pressings" Dense="true" PageSizeOptions="[4]">
+    <Columns>
+        <PropertyColumn T="Pressing" TProperty="string" Property="p => p.Colour" Title="Pressing" />
+        <PropertyColumn T="Pressing" TProperty="int" Property="p => p.Copies" Title="Copies" Format="N0" />
+    </Columns>
+    <Actions>
+        <IconButton Icon="@Icons.Material.Filled.PlayArrow" Size="Size.Small" Color="Color.Primary" Title="Play" />
+    </Actions>
+</DataTable>
+
+@code {
+    private record Pressing(string Colour, int Copies);
+
+    private readonly Pressing[] _pressings =
+    [
+        new("Black 180 g", 5_000),
+        new("Cherry red", 1_500),
+        new("Lemon yellow", 1_000),
+        new("Picture disc", 500),
+    ];
+}

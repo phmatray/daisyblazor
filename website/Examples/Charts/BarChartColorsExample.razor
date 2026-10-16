@@ -1,0 +1,12 @@
+<BarChart Title="Returns by reason" Data="_returns" Height="12rem" />
+
+@code {
+    // Any CSS colour works per point; theme tokens keep it right in every theme.
+    private readonly ChartDataPoint[] _returns =
+    [
+        new("Warped", 18, ChartPalette.FromColor(Color.Error)),
+        new("Scratched", 11, ChartPalette.FromColor(Color.Warning)),
+        new("Wrong sleeve", 6, ChartPalette.FromColor(Color.Info)),
+        new("Changed mind", 4, "var(--color-neutral)"),
+    ];
+}

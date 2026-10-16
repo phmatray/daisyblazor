@@ -1,0 +1,21 @@
+<DataGrid T="Release" Items="_releases" Hover="true">
+    <Columns>
+        <PropertyColumn T="Release" TProperty="string" Property="r => r.Title" Title="Title" />
+        <PropertyColumn T="Release" TProperty="string" Property="r => r.Artist" Title="Artist" />
+        <PropertyColumn T="Release" TProperty="int" Property="r => r.Year" Title="Year" />
+        <PropertyColumn T="Release" TProperty="decimal" Property="r => r.Price" Title="Price" Format="0.00 €" />
+    </Columns>
+</DataGrid>
+
+@code {
+    private record Release(string Title, string Artist, int Year, decimal Price);
+
+    private readonly Release[] _releases =
+    [
+        new("Comment te dire adieu", "Françoise Hardy", 1968, 24.90m),
+        new("Poupée de cire", "France Gall", 1965, 19.50m),
+        new("Initials B.B.", "Serge Gainsbourg", 1968, 29.00m),
+        new("Le Temps de l'amour", "Jacques Dutronc", 1962, 18.00m),
+        new("Bang Bang", "Sheila", 1966, 21.40m),
+    ];
+}

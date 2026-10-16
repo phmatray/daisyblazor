@@ -1,0 +1,11 @@
+<PieChart Title="Revenue share by format" Data="_formats" Height="13rem" />
+
+@code {
+    private readonly ChartDataPoint[] _formats =
+    [
+        new("Vinyl", 41),
+        new("Digital", 34),
+        new("CD", 18),
+        new("Cassette", 7),
+    ];
+}

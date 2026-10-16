@@ -1,0 +1,21 @@
+<div class="space-y-5">
+    <div>
+        <p class="text-xs font-bold uppercase tracking-widest opacity-60">Poupée de cire</p>
+        <div class="flex items-end justify-between gap-3">
+            <span class="font-display text-4xl font-bold leading-none">7.8 k</span>
+            <Sparkline Data="_rising" Area="true" Width="8rem" Height="3rem" StrokeWidth="3" />
+        </div>
+    </div>
+    <div>
+        <p class="text-xs font-bold uppercase tracking-widest opacity-60">La Javanaise</p>
+        <div class="flex items-end justify-between gap-3">
+            <span class="font-display text-4xl font-bold leading-none">4.7 k</span>
+            <Sparkline Data="_falling" Area="true" Width="8rem" Height="3rem" StrokeWidth="3" Color="var(--color-secondary)" />
+        </div>
+    </div>
+</div>
+
+@code {
+    private readonly double[] _rising = [41, 46, 52, 50, 63, 71, 78];
+    private readonly double[] _falling = [62, 59, 61, 54, 52, 49, 47];
+}

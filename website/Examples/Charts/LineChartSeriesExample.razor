@@ -1,0 +1,13 @@
+<LineChart Title="Streams by artist (thousands)" Labels="_months" Series="_artists" Smooth="true" ShowPoints="false" />
+
+@code {
+    private readonly string[] _months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+
+    // Each series gets the next palette colour: primary, secondary, accent…
+    private readonly ChartSeries[] _artists =
+    [
+        new("Françoise Hardy", [92, 104, 118, 111, 136, 158]),
+        new("France Gall", [64, 71, 88, 97, 94, 121]),
+        new("Jacques Dutronc", [40, 38, 52, 61, 70, 66]),
+    ];
+}

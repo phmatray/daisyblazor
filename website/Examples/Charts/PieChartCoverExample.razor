@@ -1,0 +1,13 @@
+<div class="flex justify-center">
+    <PieChart Data="_formats" ShowLegend="false" Height="15rem" Width="15rem" />
+</div>
+
+@code {
+    private readonly ChartDataPoint[] _formats =
+    [
+        new("Vinyl", 41),
+        new("Digital", 34),
+        new("CD", 18),
+        new("Cassette", 7),
+    ];
+}

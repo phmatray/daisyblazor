@@ -1,0 +1,12 @@
+<LineChart Area="true" Title="Units by format (thousands)" Labels="_months" Series="_formats" ShowPoints="true" />
+
+@code {
+    private readonly string[] _months = ["Apr", "May", "Jun", "Jul", "Aug", "Sep"];
+
+    private readonly ChartSeries[] _formats =
+    [
+        new("Digital", [41, 44, 47, 52, 50, 58]),
+        new("Vinyl", [28, 30, 35, 33, 38, 42]),
+        new("CD", [19, 17, 18, 15, 14, 13]),
+    ];
+}

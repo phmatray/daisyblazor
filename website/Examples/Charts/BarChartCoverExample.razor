@@ -1,0 +1,14 @@
+<div>
+    <p class="mb-2 font-display text-2xl font-bold leading-tight">Vinyl is back</p>
+    <BarChart Labels="_years" Series="_series" ShowLegend="false" Height="12rem" />
+</div>
+
+@code {
+    private readonly string[] _years = ["'21", "'22", "'23", "'24", "'25", "'26"];
+
+    private readonly ChartSeries[] _series =
+    [
+        new("Vinyl", [21, 27, 33, 38, 44, 48]),
+        new("CD", [34, 30, 27, 24, 22, 21]),
+    ];
+}

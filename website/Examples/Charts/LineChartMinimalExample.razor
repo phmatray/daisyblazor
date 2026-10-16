@@ -1,0 +1,11 @@
+<LineChart Labels="_weeks" Series="_position" ShowGrid="false" ShowLegend="false" Height="10rem" />
+
+@code {
+    private readonly string[] _weeks = ["W1", "W2", "W3", "W4", "W5", "W6", "W7", "W8"];
+
+    // Chart climb of "Poupée de cire" (score = 101 − position, so up is better).
+    private readonly ChartSeries[] _position =
+    [
+        new("Chart score", [42, 58, 71, 86, 94, 100, 99, 93], "var(--color-accent)"),
+    ];
+}

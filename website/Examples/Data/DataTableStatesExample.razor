@@ -1,0 +1,34 @@
+<div class="mb-4 flex flex-wrap gap-2">
+    <Button Size="Size.Small" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Refresh" OnClick="ReloadAsync">Reload</Button>
+    <Button Size="Size.Small" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.DeleteSweep" OnClick="() => _items = []">Empty it</Button>
+</div>
+
+<DataTable T="Preorder" Items="_items" Loading="_loading" SkeletonRows="3"
+           EmptyIcon="@Icons.Material.Filled.Album" EmptyMessage="No pre-orders yet for this pressing">
+    <Columns>
+        <PropertyColumn T="Preorder" TProperty="string" Property="p => p.Customer" Title="Customer" />
+        <PropertyColumn T="Preorder" TProperty="string" Property="p => p.Edition" Title="Edition" />
+    </Columns>
+</DataTable>
+
+@code {
+    private record Preorder(string Customer, string Edition);
+
+    private static readonly Preorder[] Sample =
+    [
+        new("Camille Moreau", "Red splatter 180 g"),
+        new("Hugo Lefèvre", "Black 180 g"),
+        new("Inès Garnier", "Picture disc"),
+    ];
+
+    private Preorder[] _items = Sample;
+    private bool _loading;
+
+    private async Task ReloadAsync()
+    {
+        _loading = true;
+        await Task.Delay(1200);
+        _items = Sample;
+        _loading = false;
+    }
+}

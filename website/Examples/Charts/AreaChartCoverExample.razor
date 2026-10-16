@@ -1,0 +1,15 @@
+<div>
+    <p class="text-xs font-bold uppercase tracking-widest opacity-60">Listening hours</p>
+    <p class="mb-3 font-display text-3xl font-bold leading-none">Side A, all summer</p>
+    <LineChart Area="true" Labels="_months" Series="_series" Smooth="true" ShowPoints="false" ShowLegend="false" ShowGrid="false" Height="10rem" />
+</div>
+
+@code {
+    private readonly string[] _months = ["May", "Jun", "Jul", "Aug", "Sep"];
+
+    private readonly ChartSeries[] _series =
+    [
+        new("Side A", [30, 52, 81, 96, 74]),
+        new("Side B", [12, 20, 34, 41, 38]),
+    ];
+}
