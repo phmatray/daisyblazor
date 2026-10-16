@@ -1,5 +1,188 @@
 @page "/css-preset"
 
-<DocShell Title="CSS preset">
-    <Lede>Coming up.</Lede>
+<DocShell Title="CSS preset" Tracks="G.Tracks" Trail="G.Trail" Portrait="Portrait" PortraitCaption="Styles/main.css">
+    <Lede>
+        A Tailwind CSS v4 + daisyUI v5 preset ships inside the <code>DaisyBlazor.Components</code> NuGet package. Nothing comes from npm:
+        the preset bundles daisyUI itself, and the package can run the Tailwind standalone CLI for you.
+    </Lede>
+    <ChildContent>
+        <div class="prose-doc">
+            @H(0)
+            <p>The preset does three jobs:</p>
+            <ol>
+                <li><strong>Enables daisyUI</strong>: a vendored copy of daisyUI's standalone bundle, so no <code>npm install daisyui</code>.</li>
+                <li>
+                    <strong>Registers themes</strong>: the two neutral DaisyBlazor defaults, <code>daisyblazor</code> (light, the default) and
+                    <code>daisyblazor-dark</code> (dark, <code>prefers-color-scheme: dark</code>), plus all 35 built-in daisyUI v5 themes
+                    (<code>light</code>, <code>dark</code>, <code>cupcake</code>, <code>synthwave</code>, <code>dracula</code>, <code>nord</code>,
+                    <code>business</code>, <code>night</code>, <code>dim</code>, <code>sunset</code>, <code>abyss</code>, <code>silk</code>, …).
+                </li>
+                <li><strong>Safelists every class the components emit</strong> so they survive Tailwind's purge (see <a href="css-preset#@G.Tracks[7].Id">below</a>).</li>
+            </ol>
+
+            @H(1)
+            <p>On every build, the package copies the preset into your project's <code>obj/daisyblazor/</code> folder. Turn on the CSS build in your <code>.csproj</code>:</p>
+            <CodeBlock Language="xml" Title="MyApp.csproj" Code="@Csproj" />
+            <p>and write <code>Styles/main.css</code>:</p>
+            <CodeBlock Language="css" Title="Styles/main.css" Code="@MainCss" />
+            <p>Then every <code>dotnet build</code> runs this:</p>
+        </div>
+        <div class="mt-5 max-w-[70ch] overflow-x-auto rounded-2xl border border-base-300 bg-base-100 p-6">
+            <Steps Class="w-full text-sm">
+                <Step Color="Color.Primary" Completed="true">Preset copied to <code>obj/daisyblazor/</code></Step>
+                <Step Color="Color.Primary" Completed="true">Tailwind CLI compiles <code>Styles/main.css</code></Step>
+                <Step Color="Color.Primary" Completed="true"><code>wwwroot/css/app.css</code></Step>
+            </Steps>
+        </div>
+        <div class="prose-doc mt-5">
+            <p>
+                The first build downloads the pinned <a href="https://github.com/tailwindlabs/tailwindcss/releases">Tailwind CSS standalone CLI</a>
+                into a per-user cache (<code>~/.local/share/daisyblazor/tailwind/&lt;version&gt;/</code> on Linux,
+                <code>%LOCALAPPDATA%\daisyblazor\tailwind\&lt;version&gt;\</code> on Windows); later builds reuse it. Link the output in your host
+                page. The <code>dotnet new daisyblazor</code> template wires all of this for you (see <a href="getting-started">Getting started</a>).
+            </p>
+
+            @H(2)
+            <table>
+                <thead><tr><th>MSBuild property</th><th>Default</th><th>Purpose</th></tr></thead>
+                <tbody>
+                    <tr><td><code>DaisyBlazorBuildCss</code></td><td><code>false</code></td><td>Compile the CSS on build with the Tailwind standalone CLI.</td></tr>
+                    <tr><td><code>DaisyBlazorCssInput</code></td><td><code>Styles/main.css</code></td><td>Tailwind entry stylesheet.</td></tr>
+                    <tr><td><code>DaisyBlazorCssOutput</code></td><td><code>wwwroot/css/app.css</code></td><td>Compiled stylesheet.</td></tr>
+                    <tr><td><code>DaisyBlazorTailwindVersion</code></td><td>the version the package was tested with</td><td>Tailwind CLI release to download.</td></tr>
+                    <tr><td><code>DaisyBlazorTailwindPath</code></td><td>the cached download</td><td>Use your own Tailwind binary (offline builds, musl Linux).</td></tr>
+                    <tr><td><code>DaisyBlazorStylesDir</code></td><td><code>obj/daisyblazor/</code></td><td>Where the preset is copied.</td></tr>
+                </tbody>
+            </table>
+            <p>
+                Already building CSS with the npm <code>tailwindcss</code> CLI or Vite? Leave <code>DaisyBlazorBuildCss</code> off and just import
+                <code>obj/daisyblazor/preset.css</code> from your stylesheet: the copy happens either way.
+            </p>
+
+            @H(3)
+            <p>
+                The 35 built-in themes add weight. If you only need <code>daisyblazor</code> / <code>daisyblazor-dark</code> (optionally plus your
+                own theme blocks), import <code>preset-core.css</code> instead. It is identical apart from the theme list:
+            </p>
+            <CodeBlock Language="css" Title="Styles/main.css" Code="@CoreCss" />
+
+            @H(4)
+            <p>
+                If you declare <strong>all</strong> your themes yourself, import just <code>safelist.css</code> and enable daisyUI with your own
+                theme list, using the bundles the package copied next to it:
+            </p>
+            <CodeBlock Language="css" Title="Styles/main.css" Code="@SafelistCss" />
+
+            @H(5)
+            <p>
+                Both forms of <code>@@source</code> glob work on Tailwind v4.1+ (verified on 4.3): a brace group such as
+                <code>@@source "./Components/**/*.{razor,cs}";</code>, or one line per extension. The template uses one line per extension,
+                which also works on older 4.0.x builds.
+            </p>
+
+            @H(6)
+            <p>
+                Tailwind v4 scans for <code>@@source</code> and <code>@@import</code> <strong>tokens even inside CSS comments</strong>. If you put
+                a literal <code>@@source "..."</code> or <code>@@import "..."</code> at-rule inside a <code>/* … */</code> block as documentation,
+                Tailwind will try to resolve it and can fail the build (or pull in unexpected files).
+            </p>
+            <Alert Severity="Severity.Warning" Dense="true">
+                Never place those at-rule literals inside comments. To document an optional source glob in a comment, write it as plain prose
+                (e.g. <code>source "&lt;path&gt;"</code> without the leading <code>@@</code>) and tell the reader to turn it into a real at-rule.
+            </Alert>
+
+            @H(7)
+            <p>
+                The NuGet package ships compiled components, not their <code>.razor</code>/<code>.cs</code> sources, so Tailwind in your app cannot
+                scan them. <code>safelist.css</code> therefore force-generates, with <code>@@source inline(...)</code>:
+            </p>
+            <ul>
+                <li>
+                    the classes composed <strong>dynamically in C#</strong> (colour/size variants such as <code>btn-primary</code>,
+                    <code>alert-soft</code>, <code>loading-spinner</code>, the 12-column grid/span/gap utilities, <code>mask-*</code>,
+                    <code>tooltip-*</code>, …), and
+                </li>
+                <li>
+                    <strong>every literal class</strong> used in the component markup (<code>menu</code>, <code>modal</code>, <code>navbar</code>,
+                    <code>drawer</code>, …). This block is generated from the component sources by <code>scripts/gen-styles.mjs</code>, and CI fails
+                    if it goes stale.
+                </li>
+            </ul>
+            <p>So you do <strong>not</strong> need any <code>@@source</code> glob pointing at the DaisyBlazor packages.</p>
+
+            @H(8)
+            <p>
+                The <code>Icon</code> component and the <code>Icons.Material.*</code> constants render
+                <a href="https://fonts.google.com/icons">Material Symbols</a> <strong>ligatures</strong>: the font turns a name like
+                <code>check_circle</code> into the glyph. The preset can't bundle a webfont, so load it once in your host page
+                (<code>App.razor</code> or <code>index.html</code>):
+            </p>
+            <CodeBlock Language="xml" Title="App.razor" Code="@Font" />
+            <p>Without it, icons render as their literal ligature text.</p>
+            <p>See also: <a href="getting-started">Getting started</a> for the full install walkthrough, and <a href="theming">Theming</a> for the themes the preset registers and how to switch or extend them.</p>
+        </div>
+    </ChildContent>
 </DocShell>
+
+@code {
+    private static readonly GuideDoc G = Guides.Get("css-preset");
+
+    private static RenderFragment H(int i) => __builder =>
+    {
+        <h2 id="@G.Tracks[i].Id" class="scroll-mt-6 font-display">@G.Tracks[i].Title</h2>
+    };
+
+    private static readonly RenderFragment Portrait = __builder =>
+    {
+        <div class="space-y-4">
+            <span class="block font-display text-4xl font-bold leading-none">One import.</span>
+            <MockupCode Class="min-w-0 bg-neutral text-[0.8rem] text-neutral-content">
+                <pre data-prefix="1"><code>@@import "tailwindcss";</code></pre>
+                <pre data-prefix="2" class="bg-primary text-primary-content"><code>@@import "…/preset.css";</code></pre>
+            </MockupCode>
+            <div class="flex flex-wrap gap-2">
+                <Chip Color="Color.Primary" Size="Size.Small">daisyUI</Chip>
+                <Chip Color="Color.Secondary" Size="Size.Small">37 themes</Chip>
+                <Chip Color="Color.Tertiary" Size="Size.Small">safelist</Chip>
+            </div>
+            <p class="text-sm text-base-content/70">No Node, no npm.</p>
+        </div>
+    };
+
+    private const string Csproj = """
+        <PropertyGroup>
+          <DaisyBlazorBuildCss>true</DaisyBlazorBuildCss>
+        </PropertyGroup>
+        """;
+
+    private const string MainCss = """
+        @import "tailwindcss";
+        @import "../obj/daisyblazor/preset.css";
+
+        /* Your own markup. The packaged components need no glob: the preset safelists their classes. */
+        @source "./Components/**/*.{razor,cs}";
+        """;
+
+    private const string CoreCss = """
+        @import "tailwindcss";
+        @import "../obj/daisyblazor/preset-core.css";
+        """;
+
+    private const string SafelistCss = """
+        @import "tailwindcss";
+        @import "../obj/daisyblazor/safelist.css";
+
+        @plugin "../obj/daisyblazor/daisyui.mjs" {
+            themes: mybrand --default, mybrand-dark --prefersdark;
+        }
+        @plugin "../obj/daisyblazor/daisyui-theme.mjs" {
+            name: "mybrand";
+            /* --color-primary: …; etc. */
+        }
+        """;
+
+    private const string Font = """
+        <link rel="stylesheet"
+              href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+        """;
+}

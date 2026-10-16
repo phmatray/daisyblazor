@@ -1,5 +1,265 @@
 @page "/migration"
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
-<DocShell Title="Migrating from MudBlazor">
-    <Lede>Coming up.</Lede>
+<DocShell Title="Migrating from MudBlazor" Tracks="G.Tracks" Trail="G.Trail" Portrait="Portrait" PortraitCaption="Before / after">
+    <Lede>
+        DaisyBlazor ships a MudBlazor-compatible API surface, so an existing MudBlazor app migrates incrementally, mostly by renaming
+        <code>MudX</code> to <code>X</code>. Enums, icons, dialogs and snackbars keep the shapes you already use.
+    </Lede>
+    <ChildContent>
+        <div class="prose-doc">
+            @H(0)
+            <p>
+                The enums, icon constants, dialog service and snackbar service keep the same shapes you already use, so most markup and
+                code-behind compiles after a rename with minimal edits.
+            </p>
+            <Alert Severity="Severity.Info" Dense="true">
+                This is a compatibility layer, not a drop-in clone. DaisyBlazor renders <strong>daisyUI</strong> markup, so the visual result
+                follows your daisyUI theme rather than Material Design, and a few parameters differ. Migrate a page at a time and adjust as needed.
+            </Alert>
+
+            @H(1)
+            <p>These live in the <code>DaisyBlazor</code> namespace with the same names and members MudBlazor uses, mapped onto daisyUI tokens:</p>
+            <table>
+                <thead><tr><th>Enum</th><th>Members</th><th>Maps to</th></tr></thead>
+                <tbody>
+                    <tr><td><code>Color</code></td><td><code>Default, Inherit, Primary, Secondary, Tertiary, Info, Success, Warning, Error, Dark, Surface</code></td><td>daisyUI colour tokens (<code>Tertiary</code> → <code>accent</code>, <code>Dark</code>/<code>Surface</code> → <code>neutral</code>).</td></tr>
+                    <tr><td><code>Variant</code></td><td><code>Text, Filled, Outlined</code></td><td><code>btn-ghost</code> / solid / <code>btn-outline</code> (and equivalents on chips, alerts, fields).</td></tr>
+                    <tr><td><code>Size</code></td><td><code>Small, Medium, Large</code></td><td>daisyUI <code>-sm</code> / default / <code>-lg</code> size modifiers.</td></tr>
+                    <tr><td><code>Typo</code></td><td><code>h1…h6, subtitle1/2, body1/2, button, caption, overline, inherit</code></td><td>Tailwind text-size and weight scale (used by <code>Typography</code>).</td></tr>
+                    <tr><td><code>Severity</code></td><td><code>Normal, Info, Success, Warning, Error</code></td><td>daisyUI status colours (alerts and snackbars).</td></tr>
+                </tbody>
+            </table>
+            <p>
+                Other familiar enums are present too: <code>Justify</code>, <code>AlignItems</code>, <code>MaxWidth</code>, <code>Adornment</code>,
+                <code>Origin</code>, <code>Anchor</code>, <code>Breakpoint</code>, <code>DrawerVariant</code>, <code>ButtonType</code>,
+                <code>SortDirection</code>, <code>InputType</code>, <code>Margin</code>, <code>Underline</code>, <code>Wrap</code>, and more, so
+                <code>Color.Primary</code>, <code>Variant.Outlined</code>, <code>Size.Small</code>, <code>Typo.h6</code> and
+                <code>Severity.Success</code> all keep working after the tag rename.
+            </p>
+
+            @H(2)
+            <p><code>Icons.Material.Filled.*</code> and <code>Icons.Material.Outlined.*</code> constants exist just like in MudBlazor:</p>
+            <CodeBlock Code="@IconsCode" />
+            <p>
+                The values are <strong>Material Symbols ligatures</strong> (e.g. <code>Icons.Material.Filled.Check</code> == <code>"check"</code>),
+                rendered by the <code>Icon</code> component via the Material Symbols webfont, so make sure that font is loaded in your host page
+                (see <a href="css-preset">CSS preset</a>). The constant set covers the commonly used icons; because the values are just ligature
+                strings, you can also pass any Material Symbols name directly (<code>&lt;Icon Name="rocket_launch" /&gt;</code>).
+            </p>
+
+            @H(3)
+            <p>
+                Inject <code>IDialogService</code> exactly as before. It's registered by <code>AddDaisyBlazor()</code>, and a single
+                <code>&lt;DialogProvider /&gt;</code> mounted in your layout renders the dialogs.
+            </p>
+            <CodeBlock Code="@DialogCode" />
+            <p>
+                <Button Color="Color.Error" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Delete" OnClick="ConfirmAsync">Try ShowMessageBoxAsync</Button>
+                @if (_answer is not null)
+                {
+                    <span class="ml-3 text-sm">Returned <code>@_answer</code></span>
+                }
+            </p>
+            <p>
+                Compatible types: <code>IDialogService</code>, <code>DialogParameters</code> (dictionary <strong>and</strong> collection-initializer
+                syntax) and <code>DialogParameters&lt;T&gt;</code> (the <code>{ x =&gt; x.Prop, value }</code> selector syntax),
+                <code>DialogOptions</code>, <code>DialogResult</code>, <code>IDialogReference</code>. The built-in confirm dialog is
+                <code>MessageBoxDialog</code>, surfaced through <code>ShowMessageBoxAsync(...)</code> (returns <code>true</code> = yes,
+                <code>false</code> = no, <code>null</code> = canceled/dismissed).
+            </p>
+            <p>
+                Dialogs open as true modals (<code>showModal()</code>: focus moves in, the page behind is inert, focus returns to the opener on
+                close) and are labelled by their title. Escape cancels unless <code>DialogOptions.CloseOnEscapeKey = false</code>;
+                <code>DialogOptions.AlertDialog</code> forces <code>role="alertdialog"</code> (the default for <code>MessageBoxDialog</code> and
+                <code>ConfirmDialog</code>). Localise the close button with <code>&lt;DialogProvider CloseLabel="Fermer" /&gt;</code>.
+            </p>
+
+            @H(4)
+            <p>
+                Inject <code>ISnackbar</code> and call <code>Add</code> with a <code>Severity</code>, just like MudBlazor. It's registered by
+                <code>AddDaisyBlazor()</code>; mount one <code>&lt;SnackbarProvider /&gt;</code> in your layout.
+            </p>
+            <CodeBlock Code="@SnackbarCode" />
+            <p><Button Color="Color.Success" StartIcon="@Icons.Material.Filled.Check" OnClick="@(() => Snackbar.Add("Saved!", Severity.Success))">Try Snackbar.Add</Button></p>
+            <p>
+                <code>ISnackbar</code> exposes <code>Add(message, severity, configure)</code>, <code>Remove</code>, <code>Clear</code>, the
+                <code>Shown</code> list and an <code>OnChange</code> event. Toasts are announced once through a single live region (assertive for
+                errors and warnings, polite otherwise), pause their auto-hide while hovered or focused, and the close button label is localisable via
+                <code>&lt;SnackbarProvider CloseLabel="Fermer" /&gt;</code>.
+            </p>
+
+            @H(5)
+            <table>
+                <thead><tr><th>MudBlazor</th><th>DaisyBlazor</th></tr></thead>
+                <tbody>
+                    <tr><td><code>AddMudServices()</code></td><td><code>AddDaisyBlazor()</code></td></tr>
+                    <tr><td><code>&lt;MudThemeProvider /&gt;</code> + <code>&lt;MudPopoverProvider /&gt;</code></td><td><code>&lt;ThemeProvider&gt;…&lt;/ThemeProvider&gt;</code> (wraps your layout)</td></tr>
+                    <tr><td><code>&lt;MudDialogProvider /&gt;</code></td><td><code>&lt;DialogProvider /&gt;</code></td></tr>
+                    <tr><td><code>&lt;MudSnackbarProvider /&gt;</code></td><td><code>&lt;SnackbarProvider /&gt;</code></td></tr>
+                    <tr><td><code>@@using MudBlazor</code></td><td><code>@@using DaisyBlazor</code> (+ <code>@@using DaisyBlazor.Theming</code>)</td></tr>
+                    <tr><td>MudBlazor bundled CSS/JS</td><td>Tailwind v4 + daisyUI build (see <a href="getting-started">Getting started</a>)</td></tr>
+                </tbody>
+            </table>
+
+            @H(6)
+            <p>Drop the <code>Mud</code> prefix. A representative mapping, each linking to its component page:</p>
+            <table>
+                <thead><tr><th>MudBlazor</th><th>DaisyBlazor</th><th>Notes</th></tr></thead>
+                <tbody>
+                    @foreach ((string mud, string daisy, string? notes) in Map)
+                    {
+                        <tr>
+                            <td><code>@mud</code></td>
+                            <td><a href="@($"components/{daisy.Split(' ')[0].ToLowerInvariant()}")"><code>@daisy</code></a></td>
+                            <td>@((MarkupString)(notes ?? ""))</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            @H(7)
+            <p>
+                DaisyBlazor also adds daisyUI-native components with no MudBlazor equivalent: <a href="components/hero">Hero</a>,
+                <a href="components/stats">Stats/Stat</a>, <a href="components/steps">Steps/Step</a>, <a href="components/timeline">Timeline</a>,
+                <a href="components/chatbubble">ChatBubble</a>, <a href="components/countdown">Countdown</a>, <a href="components/diff">Diff</a>,
+                <a href="components/kbd">Kbd</a>, <a href="components/mask">Mask</a>, <a href="components/swap">Swap</a>,
+                <a href="components/dock">Dock</a>, <a href="components/indicator">Indicator</a>, <a href="components/status">Status</a>,
+                <a href="components/carousel">Carousel</a>, and the <code>Mockup*</code> family. See the <a href="components">component reference</a>
+                for the full list.
+            </p>
+
+            @H(8)
+            <ol>
+                <li>
+                    Replace <code>AddMudServices()</code> with <code>AddDaisyBlazor()</code> and add the Tailwind/daisyUI build (or scaffold a fresh
+                    app with <code>dotnet new daisyblazor</code> and copy your pages in).
+                </li>
+                <li>Swap <code>@@using MudBlazor</code> for <code>@@using DaisyBlazor</code> (+ <code>@@using DaisyBlazor.Theming</code>).</li>
+                <li>Replace the Mud providers with <code>ThemeProvider</code> / <code>DialogProvider</code> / <code>SnackbarProvider</code>.</li>
+                <li>
+                    Rename <code>MudX</code> tags to <code>X</code> page by page; the enums, <code>Icons.*</code>, <code>IDialogService</code> and
+                    <code>ISnackbar</code> keep working. Fix the occasional parameter that differs, and re-check styling against your daisyUI theme.
+                </li>
+            </ol>
+        </div>
+    </ChildContent>
 </DocShell>
+
+@code {
+    private static readonly GuideDoc G = Guides.Get("migration");
+
+    private static RenderFragment H(int i) => __builder =>
+    {
+        <h2 id="@G.Tracks[i].Id" class="scroll-mt-6 font-display">@G.Tracks[i].Title</h2>
+    };
+
+    private string? _answer;
+
+    private async Task ConfirmAsync()
+    {
+        bool? ok = await DialogService.ShowMessageBoxAsync(
+            "Delete item", "This cannot be undone.", yesText: "Delete", cancelText: "Cancel");
+        _answer = ok switch { true => "true", false => "false", null => "null" };
+    }
+
+    private static readonly RenderFragment Portrait = __builder =>
+    {
+        <div class="space-y-4">
+            <MockupCode Class="bg-neutral text-neutral-content text-[0.75rem]">
+                <pre data-prefix="-" class="text-error"><code>&lt;MudButton Color="Color.Primary"</code></pre>
+                <pre data-prefix="+" class="bg-success text-success-content"><code>&lt;Button Color="Color.Primary"</code></pre>
+            </MockupCode>
+            <div class="flex flex-wrap items-center gap-2">
+                <Button Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Check">Same API</Button>
+                <Chip Color="Color.Secondary" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.SwapHoriz">MudX → X</Chip>
+            </div>
+            <Alert Severity="Severity.Success" Dense="true">Enums, icons, dialogs and snackbars keep working.</Alert>
+        </div>
+    };
+
+    private static readonly (string Mud, string Daisy, string? Notes)[] Map =
+    [
+        ("MudButton", "Button", "<code>Color</code> / <code>Variant</code> / <code>Size</code> / <code>StartIcon</code> / <code>EndIcon</code>."),
+        ("MudIconButton", "IconButton", null),
+        ("MudFab", "Fab", null),
+        ("MudButtonGroup", "ButtonGroup", null),
+        ("MudIcon", "Icon", "<code>Name=\"@Icons.Material.Filled.X\"</code>."),
+        ("MudCard", "Card", "with <code>CardHeader</code> / <code>CardContent</code> / <code>CardActions</code>."),
+        ("MudPaper", "Paper", null),
+        ("MudTable", "Table", "data table (paging/sort); use <code>SimpleTable</code> for static markup."),
+        ("MudSimpleTable", "SimpleTable", null),
+        ("MudDataGrid", "DataGrid", "column-based grid (<code>PropertyColumn</code> / <code>TemplateColumn</code>)."),
+        ("MudAlert", "Alert", "<code>Severity=…</code>."),
+        ("MudBadge", "Badge", null),
+        ("MudChip", "Chip", null),
+        ("MudAvatar", "Avatar", null),
+        ("MudProgressLinear", "ProgressLinear", null),
+        ("MudProgressCircular", "ProgressCircular", "(also <code>RadialProgress</code>)."),
+        ("MudSkeleton", "Skeleton", "<code>SkeletonType</code>."),
+        ("MudTooltip", "Tooltip", null),
+        ("MudTabs / MudTabPanel", "Tabs / Tab", null),
+        ("MudExpansionPanels / MudExpansionPanel", "ExpansionPanels / ExpansionPanel", null),
+        ("MudMenu / MudMenuItem", "Menu / MenuItem", null),
+        ("MudList / MudListItem", "List / ListItem", null),
+        ("MudBreadcrumbs", "Breadcrumbs", null),
+        ("MudPagination", "Pagination", null),
+        ("MudNavMenu / MudNavLink", "Menu / NavMenuLink", null),
+        ("MudDrawer", "Drawer", null),
+        ("MudAppBar", "Navbar", null),
+        ("MudTextField", "TextField", "<code>InputType</code>, <code>Adornment</code>."),
+        ("MudNumericField", "NumericField", null),
+        ("MudSelect / MudSelectItem", "Select / SelectItem", null),
+        ("MudAutocomplete", "Autocomplete", null),
+        ("MudCheckBox", "Checkbox", null),
+        ("MudSwitch", "Switch", null),
+        ("MudRadio / MudRadioGroup", "Radio / RadioGroup", null),
+        ("MudSlider", "Range", "daisyUI <code>range</code>."),
+        ("MudRating", "Rating", null),
+        ("MudDatePicker", "DatePicker", null),
+        ("MudColorPicker", "ColorPicker", null),
+        ("MudFileUpload", "FileInput", null),
+        ("MudForm", "Form", "with <code>Validator</code> / <code>ValidatorHint</code>."),
+        ("MudField", "Field", null),
+        ("MudGrid / MudItem", "Grid / Item", "12-column responsive spans."),
+        ("MudStack", "Stack", null),
+        ("MudContainer", "Container", "<code>MaxWidth</code>."),
+        ("MudDivider", "Divider", null),
+        ("MudSpacer", "Spacer", null),
+        ("MudText", "Typography", "<code>Typo=…</code>."),
+        ("MudLink", "TextLink", "<code>Underline</code>."),
+        ("MudThemeProvider", "ThemeProvider", "parameter-driven; see <a href=\"theming\">Theming</a>."),
+    ];
+
+    private const string IconsCode = """
+        <Button StartIcon="@Icons.Material.Filled.Check">OK</Button>
+        <Icon Name="@Icons.Material.Filled.Delete" />
+        """;
+
+    private const string DialogCode = """
+        @inject IDialogService DialogService
+
+        @code {
+            private async Task Open()
+            {
+                DialogParameters parameters = new() { { "Message", "Are you sure?" } };
+                IDialogReference dialog = await DialogService.ShowAsync<MyDialog>("Confirm", parameters);
+            }
+
+            private async Task Confirm()
+            {
+                bool? ok = await DialogService.ShowMessageBoxAsync(
+                    "Delete item", "This cannot be undone.", yesText: "Delete", cancelText: "Cancel");
+            }
+        }
+        """;
+
+    private const string SnackbarCode = """
+        @inject ISnackbar Snackbar
+
+        @code {
+            private void Notify() => Snackbar.Add("Saved!", Severity.Success);
+        }
+        """;
+}
