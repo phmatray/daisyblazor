@@ -1,34 +1,18 @@
 @import "tailwindcss";
 
 /* The DaisyBlazor preset: daisyUI plugin + neutral daisyblazor / daisyblazor-dark themes
-   (plus all built-in daisyUI themes) + the C#-class safelist. Vendored locally here so the
+   (plus all built-in daisyUI themes) + the class safelist. Vendored locally here so the
    app has no npm dependency on the DaisyBlazor packages — edit it freely. */
 @import "./preset.css";
 
 /* Scan THIS app's own markup so Tailwind emits every utility class you use. One line per
-   extension — Tailwind v4 source globs do not support brace groups like *.{razor,cs}. */
+   extension also works on older Tailwind 4.0.x builds (4.1+ accepts *.{razor,cs} too). */
 @source "./Components/**/*.razor";
 @source "./Components/**/*.cs";
 
-/* ---------------------------------------------------------------------------
-   About classes used INSIDE the packaged DaisyBlazor components
-   ---------------------------------------------------------------------------
-   You normally do NOT need a source glob pointing at the DaisyBlazor.Components
-   package: the preset above already force-generates everything those components
-   build dynamically in C# (its inline safelist), and daisyUI emits all of its
-   own component classes (btn, card, table, ...) regardless of your markup. So
-   the two app globs above are enough for the vast majority of apps.
-
-   If you ever use a packaged component that relies on a plain Tailwind utility
-   that nothing in your own app references, add one more source glob pointing at
-   the restored NuGet package in your local package cache. The cache path is not
-   portable between machines, so it is intentionally left out here. To add it,
-   copy the line below (remove the leading text so it becomes a real at-rule) and
-   point it at your cache, one line per file extension:
-
-     source "<HOME>/.nuget/packages/daisyblazor.components/0.1.0/**/*.razor";
-     source "<HOME>/.nuget/packages/daisyblazor.components/0.1.0/**/*.cs";
---------------------------------------------------------------------------- */
+/* No source glob on the DaisyBlazor packages is needed: preset.css safelists every
+   class the packaged components emit. Want only the two DaisyBlazor themes instead of
+   all 35 daisyUI themes? Import ./preset-core.css instead of ./preset.css. */
 
 /* App-level brand layer (kept in the app, not the package). */
 @layer base {

@@ -53,7 +53,7 @@
 - **MudBlazor-compatible API** — `Button`, `Card`, `Table`, `IDialogService`, `ISnackbar`, `Icons.Material.*` let existing MudBlazor apps migrate incrementally, one `MudX` → `X` rename at a time.
 - **`ThemeProvider` theming** — a cascading, MudThemeProvider-style component with 35 built-in daisyUI themes, dark-mode resolution via `prefers-color-scheme`, and SSR-safe persistence to localStorage/cookies.
 - **Dependency-free SVG charts** — `LineChart`, `AreaChart`, `BarChart`, `PieChart`, `DonutChart` render as plain SVG and automatically follow the active daisyUI theme, with no JS charting runtime.
-- **Shippable CSS preset** — one `@import "daisyblazor/preset.css";` wires up daisyUI, the theme set, and the dynamic-class safelist for Tailwind v4.
+- **Shippable CSS preset** — one `@import "@daisyblazor/tailwind/preset.css";` wires up daisyUI, the theme set, and the dynamic-class safelist for Tailwind v4.
 - **`dotnet new daisyblazor` template** — scaffolds a fully wired app (Tailwind, daisyUI, DI) in seconds.
 - **Runnable component gallery** — `samples/DaisyBlazor.Gallery` showcases every component and chart live.
 
@@ -92,7 +92,7 @@ cd MyApp && npm install && dotnet run
 
 ```bash
 dotnet add package DaisyBlazor.Components
-npm install -D tailwindcss @tailwindcss/cli daisyui
+npm install -D tailwindcss @tailwindcss/cli @daisyblazor/tailwind
 ```
 
 ```csharp
@@ -101,11 +101,10 @@ builder.Services.AddDaisyBlazor();
 ```
 
 ```css
-/* Styles/main.css — Tailwind v4 source globs are one line per extension (no { } brace groups). */
+/* Styles/main.css — the preset already safelists every class the components use. */
 @import "tailwindcss";
-@import "daisyblazor/preset.css";
-@source "../**/DaisyBlazor.Components/**/*.razor";
-@source "../**/DaisyBlazor.Components/**/*.cs";
+@import "@daisyblazor/tailwind/preset.css";
+@source "./Components/**/*.{razor,cs}";
 ```
 
 ```razor
@@ -167,7 +166,7 @@ dotnet run --project samples/DaisyBlazor.Gallery
 | **DaisyBlazor.Components** | [![nuget](https://img.shields.io/nuget/v/DaisyBlazor.Components?label=)](https://www.nuget.org/packages/DaisyBlazor.Components) | The component kit: daisyUI-native components + MudBlazor-compatible surface, `ThemeProvider`, dialog/snackbar services, and the CSS preset. |
 | **DaisyBlazor.Charts** | [![nuget](https://img.shields.io/nuget/v/DaisyBlazor.Charts?label=)](https://www.nuget.org/packages/DaisyBlazor.Charts) | Dependency-free SVG charts (line, area, bar, pie/donut, sparkline) themed by daisyUI. |
 | **DaisyBlazor.Templates** | [![nuget](https://img.shields.io/nuget/v/DaisyBlazor.Templates?label=)](https://www.nuget.org/packages/DaisyBlazor.Templates) | `dotnet new daisyblazor` starter template. |
-| **@daisyblazor/tailwind** | — | npm package shipping the Tailwind/daisyUI preset for non-.NET build pipelines. |
+| **@daisyblazor/tailwind** | [![npm](https://img.shields.io/npm/v/@daisyblazor/tailwind?label=)](https://www.npmjs.com/package/@daisyblazor/tailwind) | npm package shipping the Tailwind/daisyUI preset for non-.NET build pipelines. |
 
 ## Screenshots
 
@@ -202,7 +201,7 @@ scripts/    update-deps, build-css, pack
 
 - [Getting started](https://phmatray.github.io/daisyblazor/getting-started/) — install, CSS wiring, DI, fonts.
 - [Theming](https://phmatray.github.io/daisyblazor/theming/) — `ThemeProvider`, built-in & custom themes.
-- [CSS preset](https://phmatray.github.io/daisyblazor/css-preset/) — what `preset.css` ships and how to wire `@source`.
+- [CSS preset](https://phmatray.github.io/daisyblazor/css-preset/) — what `preset.css` ships and how to install it.
 - [Component reference](https://phmatray.github.io/daisyblazor/components/) — every component by daisyUI category.
 - [Charts](https://phmatray.github.io/daisyblazor/charts/) — the dependency-free SVG charts.
 - [Migrating from MudBlazor](https://phmatray.github.io/daisyblazor/migration/) — the `MudX` → `X` map.

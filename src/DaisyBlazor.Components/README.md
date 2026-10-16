@@ -14,7 +14,7 @@ Blazor (Server or WebAssembly). It gives you:
 
 ```bash
 dotnet add package DaisyBlazor.Components
-npm install -D tailwindcss @tailwindcss/cli daisyui
+npm install -D tailwindcss @tailwindcss/cli @daisyblazor/tailwind
 ```
 
 ## Wire up
@@ -36,8 +36,8 @@ Your `main.css`:
 
 ```css
 @import "tailwindcss";
-@import "daisyblazor/preset.css";                 /* daisyUI plugin + themes + safelist */
-@source "../../**/DaisyBlazor.Components/**/*.{razor,cs}";  /* see styles/README.md */
+@import "@daisyblazor/tailwind/preset.css";  /* daisyUI plugin + themes + class safelist */
+@source "./Components/**/*.{razor,cs}";       /* your own markup only */
 ```
 
 See the repository docs for theming, the MudBlazor migration guide, and the full component reference.

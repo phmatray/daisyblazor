@@ -1,33 +1,34 @@
 # DaisyBlazor styles
 
 `preset.css` is a Tailwind v4 + daisyUI v5 preset shipped with the package. It enables daisyUI,
-registers two neutral default themes (`daisyblazor` / `daisyblazor-dark`) plus all built-in daisyUI
-themes, and force-generates the classes DaisyBlazor composes dynamically in C# (so they are never
-purged).
+registers two neutral default themes (`daisyblazor` / `daisyblazor-dark`) plus all 35 built-in daisyUI
+themes, and safelists every class the DaisyBlazor components emit (so they are never purged).
+`preset-core.css` is the same minus the 35 built-in themes.
 
-`safelist.css` holds just that last part — the `@source inline(...)` rules, with no daisyUI plugin
-or theme blocks. `preset.css` `@import`s it. Import `safelist.css` directly when your app declares
-its **own** daisyUI themes (see [Custom themes](#custom-themes) below).
+| File | Contents |
+| --- | --- |
+| `preset.css` | daisyUI plugin with all themes + `kit.css` |
+| `preset-core.css` | daisyUI plugin with only the two DaisyBlazor themes + `kit.css` |
+| `kit.css` | the two DaisyBlazor theme blocks, `safelist.css`, and a few component styles |
+| `safelist.css` | `@source inline(...)` rules only — no plugin, no themes |
+
+This folder is the single source: `node scripts/gen-styles.mjs` regenerates the literal-class block of
+`safelist.css` from the component sources and copies these files into the npm package
+(`src/DaisyBlazor.Tailwind`) and the `dotnet new` template. CI runs it with `--check`.
 
 ## Consumer wiring
 
-In your app's source stylesheet (e.g. `Styles/main.css`):
+Install the npm package (`npm install -D tailwindcss @tailwindcss/cli @daisyblazor/tailwind`), then in
+your app's source stylesheet (e.g. `Styles/main.css`):
 
 ```css
 @import "tailwindcss";
-@import "daisyblazor/preset.css";
-/* Let Tailwind see the literal classes used INSIDE packaged .razor components: */
-@source "../../**/DaisyBlazor.Components/**/*.{razor,cs}";
+@import "@daisyblazor/tailwind/preset.css";   /* or preset-core.css */
+@source "./Components/**/*.{razor,cs}";        /* your own markup only */
 ```
 
-The `@source` glob must resolve to the DaisyBlazor component sources. Pick whichever matches your
-setup:
-
-- **Project reference (monorepo / sample):** point at the relative project path, e.g.
-  `@source "../../src/DaisyBlazor.Components/**/*.{razor,cs}";`
-- **NuGet package:** point at the restored package's `staticwebassets`/`contentFiles` under your
-  NuGet cache, or copy the preset locally. The `@source inline(...)` safelist in `preset.css` already
-  covers the dynamically-computed classes; the glob covers literal classes in component markup.
+No `@source` glob on the DaisyBlazor package is needed. Without npm, copy the four `.css` files out
+of the NuGet package's `staticwebassets/styles` folder and import `preset.css` by relative path.
 
 ## Custom themes
 
@@ -37,7 +38,7 @@ own `@plugin "daisyui"` block:
 
 ```css
 @import "tailwindcss";
-@import "daisyblazor/safelist.css";   /* kit class safelist only — no plugin, no themes */
+@import "@daisyblazor/tailwind/safelist.css";   /* kit class safelist only — no plugin, no themes */
 
 @plugin "daisyui" {
     themes: mybrand --default, mybrand-dark --prefersdark;

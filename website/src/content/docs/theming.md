@@ -82,7 +82,8 @@ applied theme; `Theme.IsDarkMode` resolves against `DarkThemes`.
 All 35 daisyUI v5 themes are enabled by `preset.css` (`light`, `dark`, `cupcake`, `synthwave`,
 `dracula`, `nord`, `business`, `night`, `dim`, `sunset`, `abyss`, `silk`, …) plus the neutral
 DaisyBlazor defaults: **`daisyblazor`** (light, default) and **`daisyblazor-dark`** (dark,
-`prefers-color-scheme: dark`).
+`prefers-color-scheme: dark`). To ship only the two DaisyBlazor themes, import `preset-core.css`
+instead of `preset.css` (see [CSS preset](/daisyblazor/css-preset/)).
 
 ## A custom brand theme
 
@@ -90,7 +91,7 @@ Add a daisyUI theme block to your `main.css` after the preset import, then point
 
 ```css
 @import "tailwindcss";
-@import "daisyblazor/preset.css";
+@import "@daisyblazor/tailwind/preset.css";
 
 @plugin "daisyui/theme" {
     name: "mybrand";

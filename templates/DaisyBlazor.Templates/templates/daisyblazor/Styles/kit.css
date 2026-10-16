@@ -1,0 +1,283 @@
+/* ===========================================================================
+   DaisyBlazor kit styles  —  shared by preset.css and preset-core.css
+   ---------------------------------------------------------------------------
+   The two neutral DaisyBlazor themes, the class safelist, and the few
+   hand-written component styles. Import a preset rather than this file: it
+   holds no @plugin "daisyui" block of its own.
+   =========================================================================== */
+
+/* The classes DaisyBlazor composes in C# or uses literally inside its compiled
+   markup. Kept in safelist.css so apps with their OWN daisyUI themes can import
+   just the safelist. */
+@import "./safelist.css";
+
+/* ---- DaisyBlazor default light theme (neutral blue / purple / amber) ---- */
+@plugin "daisyui/theme" {
+    name: "daisyblazor";
+    default: true;
+    prefersdark: false;
+    color-scheme: light;
+
+    --color-base-100: oklch(100% 0 0);
+    --color-base-200: oklch(97% 0.002 264);
+    --color-base-300: oklch(93% 0.004 264);
+    --color-base-content: oklch(22% 0.02 264);
+
+    --color-primary: oklch(55% 0.18 256);
+    --color-primary-content: oklch(98% 0.01 256);
+    --color-secondary: oklch(50% 0.22 312);
+    --color-secondary-content: oklch(98% 0.01 312);
+    --color-accent: oklch(72% 0.17 65);
+    --color-accent-content: oklch(20% 0.03 65);
+    --color-neutral: oklch(32% 0.02 264);
+    --color-neutral-content: oklch(96% 0.01 264);
+
+    --color-info: oklch(62% 0.14 233);
+    --color-info-content: oklch(98% 0.01 233);
+    --color-success: oklch(62% 0.16 150);
+    --color-success-content: oklch(98% 0.01 150);
+    --color-warning: oklch(78% 0.16 75);
+    --color-warning-content: oklch(25% 0.05 75);
+    --color-error: oklch(60% 0.22 25);
+    --color-error-content: oklch(98% 0.01 25);
+
+    --radius-selector: 0.5rem;
+    --radius-field: 0.5rem;
+    --radius-box: 0.75rem;
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 1px;
+    --depth: 1;
+    --noise: 0;
+}
+
+/* ---- DaisyBlazor default dark theme ---- */
+@plugin "daisyui/theme" {
+    name: "daisyblazor-dark";
+    default: false;
+    prefersdark: true;
+    color-scheme: dark;
+
+    --color-base-100: oklch(21% 0.02 264);
+    --color-base-200: oklch(18% 0.02 264);
+    --color-base-300: oklch(15% 0.02 264);
+    --color-base-content: oklch(92% 0.01 264);
+
+    --color-primary: oklch(75% 0.13 256);
+    --color-primary-content: oklch(18% 0.04 256);
+    --color-secondary: oklch(72% 0.15 312);
+    --color-secondary-content: oklch(16% 0.04 312);
+    --color-accent: oklch(78% 0.15 65);
+    --color-accent-content: oklch(18% 0.04 65);
+    --color-neutral: oklch(28% 0.02 264);
+    --color-neutral-content: oklch(92% 0.01 264);
+
+    --color-info: oklch(70% 0.13 233);
+    --color-info-content: oklch(16% 0.04 233);
+    --color-success: oklch(70% 0.15 150);
+    --color-success-content: oklch(16% 0.04 150);
+    --color-warning: oklch(80% 0.15 75);
+    --color-warning-content: oklch(20% 0.05 75);
+    --color-error: oklch(68% 0.2 25);
+    --color-error-content: oklch(16% 0.04 25);
+
+    --radius-selector: 0.5rem;
+    --radius-field: 0.5rem;
+    --radius-box: 0.75rem;
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 1px;
+    --depth: 1;
+    --noise: 0;
+}
+
+/* ===========================================================================
+   FeatureNavCard — gradient-coded landing tile (accent bar, eyebrow + title,
+   muted description, circular "go" affordance). Colors arrive as CSS vars
+   (--nav-card-from/-to/-glow) set inline by the component. Intentionally
+   UNLAYERED so these win over daisyUI's layered .card / .card-body styles.
+   =========================================================================== */
+.nav-card {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 1rem;
+    border: 1px solid var(--color-base-300);
+    background: var(--color-base-100);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.nav-card__accent {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--nav-card-from), var(--nav-card-to));
+}
+
+.nav-card::after {
+    content: "";
+    position: absolute;
+    top: -45%;
+    right: -25%;
+    width: 60%;
+    height: 85%;
+    background: radial-gradient(closest-side, var(--nav-card-glow, transparent), transparent 72%);
+    opacity: 0.45;
+    pointer-events: none;
+    transition: opacity 0.22s ease;
+}
+
+.nav-card.hover-card {
+    cursor: pointer;
+}
+
+.nav-card.hover-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 42px -26px var(--nav-card-glow, rgba(15, 23, 42, 0.5));
+    border-color: color-mix(in srgb, var(--nav-card-to, var(--color-primary)) 55%, transparent);
+}
+
+.nav-card.hover-card:hover::after {
+    opacity: 0.8;
+}
+
+.nav-card .card-body {
+    padding: 1.25rem 1.25rem 1.35rem;
+    gap: 0;
+}
+
+.nav-card__head {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 0.85rem;
+}
+
+.nav-card__heading {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.nav-card__eyebrow {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--color-base-content) 55%, transparent);
+    margin-bottom: 0.15rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nav-card__title {
+    font-family: var(--font-heading, inherit);
+    font-weight: 650;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    margin: 0;
+}
+
+.nav-card__desc {
+    color: color-mix(in srgb, var(--color-base-content) 72%, transparent);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.nav-card__extra {
+    margin-top: 0.7rem;
+}
+
+.nav-card__avatar {
+    width: 2.85rem;
+    height: 2.85rem;
+    flex-shrink: 0;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 10px 20px -10px var(--nav-card-glow, rgba(15, 23, 42, 0.5)),
+                inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    transition: transform 0.22s ease;
+}
+
+.nav-card__avatar .material-symbols-outlined {
+    color: #fff;
+    font-size: 1.55rem;
+}
+
+.nav-card.hover-card:hover .nav-card__avatar {
+    transform: scale(1.06);
+}
+
+.nav-card__go {
+    flex-shrink: 0;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    color: color-mix(in srgb, var(--color-base-content) 50%, transparent);
+    border: 1px solid var(--color-base-300);
+    background: var(--color-base-100);
+    transition: background 0.22s ease, color 0.22s ease, border-color 0.22s ease, transform 0.22s ease;
+}
+
+.nav-card__go .material-symbols-outlined {
+    font-size: 1.15rem;
+}
+
+.nav-card.hover-card:hover .nav-card__go {
+    background: linear-gradient(135deg, var(--nav-card-from), var(--nav-card-to));
+    border-color: transparent;
+    color: #fff;
+    transform: translateX(2px);
+}
+
+.nav-card:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* Staggered fade-up entrance across the quick-access grid. */
+@keyframes navCardIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.equal-height-cards .nav-card {
+    animation: navCardIn 0.42s ease backwards;
+}
+
+.equal-height-cards > *:nth-child(1) .nav-card { animation-delay: 0s; }
+.equal-height-cards > *:nth-child(2) .nav-card { animation-delay: 0.05s; }
+.equal-height-cards > *:nth-child(3) .nav-card { animation-delay: 0.1s; }
+.equal-height-cards > *:nth-child(4) .nav-card { animation-delay: 0.15s; }
+.equal-height-cards > *:nth-child(5) .nav-card { animation-delay: 0.2s; }
+.equal-height-cards > *:nth-child(6) .nav-card { animation-delay: 0.25s; }
+
+@media (prefers-reduced-motion: reduce) {
+    .nav-card,
+    .nav-card::after,
+    .nav-card__go,
+    .nav-card__avatar {
+        transition: none;
+    }
+
+    .nav-card.hover-card:hover {
+        transform: none;
+    }
+
+    .equal-height-cards .nav-card {
+        animation: none;
+    }
+}

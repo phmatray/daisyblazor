@@ -1,13 +1,14 @@
 /* ===========================================================================
    DaisyBlazor preset  —  Tailwind CSS v4 + daisyUI v5
    ---------------------------------------------------------------------------
-   Bring this in after the Tailwind import in your app's main stylesheet, then
-   add source globs pointing at the DaisyBlazor component files. See styles/README.md
-   for the exact wiring.
+   Bring this in after the Tailwind import in your app's main stylesheet. No
+   @source glob on the package is needed: safelist.css already lists every class
+   the components emit. See styles/README.md for the wiring.
 
    It enables daisyUI, registers two neutral default themes (daisyblazor and
-   daisyblazor-dark) plus all built-in daisyUI themes, and — crucially — keeps
-   the classes that DaisyBlazor builds dynamically in C# from being purged.
+   daisyblazor-dark) plus all 35 built-in daisyUI themes, and keeps every class
+   DaisyBlazor emits from being purged. Want only the two DaisyBlazor themes?
+   Import preset-core.css instead.
    =========================================================================== */
 
 @plugin "daisyui" {
@@ -21,114 +22,4 @@
     logs: false;
 }
 
-/* ---- DaisyBlazor default light theme (neutral blue / purple / amber) ---- */
-@plugin "daisyui/theme" {
-    name: "daisyblazor";
-    default: true;
-    prefersdark: false;
-    color-scheme: light;
-
-    --color-base-100: oklch(100% 0 0);
-    --color-base-200: oklch(97% 0.002 264);
-    --color-base-300: oklch(93% 0.004 264);
-    --color-base-content: oklch(22% 0.02 264);
-
-    --color-primary: oklch(55% 0.18 256);
-    --color-primary-content: oklch(98% 0.01 256);
-    --color-secondary: oklch(50% 0.22 312);
-    --color-secondary-content: oklch(98% 0.01 312);
-    --color-accent: oklch(72% 0.17 65);
-    --color-accent-content: oklch(20% 0.03 65);
-    --color-neutral: oklch(32% 0.02 264);
-    --color-neutral-content: oklch(96% 0.01 264);
-
-    --color-info: oklch(62% 0.14 233);
-    --color-info-content: oklch(98% 0.01 233);
-    --color-success: oklch(62% 0.16 150);
-    --color-success-content: oklch(98% 0.01 150);
-    --color-warning: oklch(78% 0.16 75);
-    --color-warning-content: oklch(25% 0.05 75);
-    --color-error: oklch(60% 0.22 25);
-    --color-error-content: oklch(98% 0.01 25);
-
-    --radius-selector: 0.5rem;
-    --radius-field: 0.5rem;
-    --radius-box: 0.75rem;
-    --size-selector: 0.25rem;
-    --size-field: 0.25rem;
-    --border: 1px;
-    --depth: 1;
-    --noise: 0;
-}
-
-/* ---- DaisyBlazor default dark theme ---- */
-@plugin "daisyui/theme" {
-    name: "daisyblazor-dark";
-    default: false;
-    prefersdark: true;
-    color-scheme: dark;
-
-    --color-base-100: oklch(21% 0.02 264);
-    --color-base-200: oklch(18% 0.02 264);
-    --color-base-300: oklch(15% 0.02 264);
-    --color-base-content: oklch(92% 0.01 264);
-
-    --color-primary: oklch(75% 0.13 256);
-    --color-primary-content: oklch(18% 0.04 256);
-    --color-secondary: oklch(72% 0.15 312);
-    --color-secondary-content: oklch(16% 0.04 312);
-    --color-accent: oklch(78% 0.15 65);
-    --color-accent-content: oklch(18% 0.04 65);
-    --color-neutral: oklch(28% 0.02 264);
-    --color-neutral-content: oklch(92% 0.01 264);
-
-    --color-info: oklch(70% 0.13 233);
-    --color-info-content: oklch(16% 0.04 233);
-    --color-success: oklch(70% 0.15 150);
-    --color-success-content: oklch(16% 0.04 150);
-    --color-warning: oklch(80% 0.15 75);
-    --color-warning-content: oklch(20% 0.05 75);
-    --color-error: oklch(68% 0.2 25);
-    --color-error-content: oklch(16% 0.04 25);
-
-    --radius-selector: 0.5rem;
-    --radius-field: 0.5rem;
-    --radius-box: 0.75rem;
-    --size-selector: 0.25rem;
-    --size-field: 0.25rem;
-    --border: 1px;
-    --depth: 1;
-    --noise: 0;
-}
-
-/* ===========================================================================
-   Safelist: classes DaisyBlazor composes dynamically in C# (CssClass.cs, Grid,
-   Item, Stack, etc.). Tailwind cannot see these by static analysis, so they are
-   force-generated here. This MUST ship with the components.
-   =========================================================================== */
-@source inline("{btn,badge,alert,text,bg,border,progress,checkbox,toggle,radio,range,tab,loading,step,menu,link,tooltip,file-input,input,select,textarea,radial-progress,status}-{primary,secondary,accent,info,success,warning,error,neutral}");
-@source inline("btn-{xs,sm,md,lg,xl,ghost,link,outline,soft,block,circle,square,wide,active,disabled}");
-@source inline("badge-{xs,sm,md,lg,xl,outline,soft,ghost,dash}");
-@source inline("alert-{soft,outline,dash,vertical,horizontal}");
-@source inline("{input,select,textarea,file-input,range,checkbox,toggle,radio,rating,kbd,steps,tab,tabs,menu,badge,loading,status,dock}-{xs,sm,md,lg,xl}");
-@source inline("text-{xs,sm,base,lg,xl,2xl,3xl,4xl,5xl}");
-@source inline("loading-{spinner,dots,bars,ring,ball,infinity,xs,sm,md,lg,xl}");
-@source inline("tabs-{box,border,lift} tab-{active,disabled}");
-/* Base component CONTAINER classes. daisyUI emits a component's base rule (e.g. `.tabs` flex
-   layout, `.toast` position:fixed) only when the BARE class is seen. These are rendered solely
-   inside DaisyBlazor's compiled components — never in a consumer's own markup — so without this
-   they are silently dropped, leaving the component unstyled: the tab strip collapses into
-   run-together text, the Snackbar toast loses `position:fixed` and falls to the page end, etc. */
-@source inline("tabs tab toast tooltip steps step timeline carousel chat chat-bubble");
-@source inline("steps-{vertical,horizontal} step-{primary,secondary,accent,info,success,warning,error,neutral}");
-@source inline("timeline-{vertical,horizontal,compact,snap-icon} carousel-{vertical,horizontal,start,center,end}");
-@source inline("chat-{start,end} chat-bubble-{primary,secondary,accent,info,success,warning,error,neutral}");
-@source inline("mask-{squircle,circle,hexagon,hexagon-2,star,star-2,triangle,heart,diamond,pentagon,half-1,half-2}");
-/* Grid/flex utilities computed in C# (Grid/Item/Stack) — 12-col + responsive spans + gaps. */
-@source inline("{grid-cols,col-span,gap}-{1,2,3,4,5,6,7,8,9,10,11,12}");
-@source inline("{sm,md,lg,xl}:col-span-{1,2,3,4,5,6,7,8,9,10,11,12}");
-@source inline("gap-{0,1,2,3,4,5,6,8,10,12}");
-@source inline("justify-{start,center,end,between,around,evenly} items-{start,center,end,stretch,baseline}");
-@source inline("tooltip-{top,bottom,left,right} dropdown-{top,bottom,left,right,end,start,hover} divider-horizontal");
-@source inline("toast-{start,center,end,top,middle,bottom}");
-@source inline("max-w-screen-{sm,md,lg,xl,2xl}");
+@import "./kit.css";
