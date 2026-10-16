@@ -1,11 +1,11 @@
-<PieChart Title="Revenue share by format" Data="_formats" Height="13rem" />
+<PieChart Title="Plan mix" Data="_plans" Height="13rem" />
 
 @code {
-    private readonly ChartDataPoint[] _formats =
+    private readonly ChartDataPoint[] _plans =
     [
-        new("Vinyl", 41),
-        new("Digital", 34),
-        new("CD", 18),
-        new("Cassette", 7),
+        new("Free", 41),
+        new("Pro", 34),
+        new("Team", 18),
+        new("Enterprise", 7),
     ];
 }

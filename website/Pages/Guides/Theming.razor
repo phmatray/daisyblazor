@@ -2,7 +2,7 @@
 @implements IDisposable
 @inject DocsJs Js
 
-<DocShell Title="Theming" Tracks="G.Tracks" Trail="G.Trail" Portrait="Portrait" PortraitCaption="@($"Now playing · {Current}")">
+<DocShell Title="Theming" Tracks="G.Tracks" Trail="G.Trail" Portrait="Portrait" PortraitCaption="@($"Active theme · {Current}")">
     <Lede>
         DaisyBlazor uses daisyUI themes. Set <code>data-theme</code> on <code>&lt;html&gt;</code> and every semantic colour token swaps,
         so components re-skin automatically. <code>ThemeProvider</code> does it for you, with dark mode and persistence.
@@ -11,7 +11,7 @@
         <div class="prose-doc">
             <p>
                 A theme is selected by setting <code>data-theme="..."</code> on the <code>&lt;html&gt;</code> element; daisyUI swaps every
-                semantic colour token (<code>--color-primary</code>, <code>--color-base-100</code>, …). Try it on the cover: every page of
+                semantic colour token (<code>--color-primary</code>, <code>--color-base-100</code>, …). Try it in the preview: every page of
                 this site re-skins the same way.
             </p>
 
@@ -75,7 +75,7 @@
                 <code>sunset</code>, <code>abyss</code>, <code>silk</code>, …) plus the neutral DaisyBlazor defaults: <strong><code>daisyblazor</code></strong>
                 (light, default) and <strong><code>daisyblazor-dark</code></strong> (dark, <code>prefers-color-scheme: dark</code>). To ship only
                 the two DaisyBlazor themes, import <code>preset-core.css</code> instead of <code>preset.css</code> (see
-                <a href="css-preset">CSS preset</a>). See them all side by side in <a href="themes">the crate</a>.
+                <a href="css-preset">CSS preset</a>). See them all side by side in <a href="themes">the theme gallery</a>.
             </p>
 
             @H(5)
@@ -108,7 +108,7 @@
 
 @code {
     private static readonly GuideDoc G = Guides.Get("theming");
-    private static readonly string[] CoverThemes = ["daisyblazor", "daisyblazor-dark", "retro", "synthwave", "cupcake", "dracula"];
+    private static readonly string[] PreviewThemes = ["daisyblazor", "daisyblazor-dark", "retro", "synthwave", "cupcake", "dracula"];
 
     [CascadingParameter] public ThemeProvider? Provider { get; set; }
 
@@ -126,10 +126,10 @@
                 <span class="block truncate font-display text-3xl font-bold leading-tight">@Current</span>
             </div>
             <div class="grid grid-cols-3 gap-2">
-                @foreach (string t in CoverThemes)
+                @foreach (string t in PreviewThemes)
                 {
                     string theme = t;
-                    <button type="button" data-theme="@theme" @onclick="e => PutOn(theme, e)"
+                    <button type="button" data-theme="@theme" @onclick="e => Apply(theme, e)"
                             aria-pressed="@(theme == Current ? "true" : "false")" title="@theme"
                             class="flex aspect-square flex-col justify-between rounded-md bg-primary p-2 text-left text-primary-content transition hover:-translate-y-0.5 @(theme == Current ? "ring-4 ring-base-content ring-offset-2 ring-offset-base-100" : "")">
                         <span class="size-4 rounded-full bg-secondary"></span>
@@ -141,7 +141,7 @@
         </div>
     };
 
-    private async Task PutOn(string theme, MouseEventArgs e)
+    private async Task Apply(string theme, MouseEventArgs e)
     {
         if (Provider is null) return;
         await ThemeDeck.PutOnAsync(Provider, Js, theme, e.ClientX, e.ClientY);

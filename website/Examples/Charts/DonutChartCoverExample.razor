@@ -1,13 +1,13 @@
 <div class="flex justify-center">
-    <DonutChart Data="_platforms" CenterLabel="2.4 M" ShowLegend="false" InnerRadiusRatio="0.55" Height="15rem" Width="15rem" />
+    <DonutChart Data="_channels" CenterLabel="2.4 k" ShowLegend="false" InnerRadiusRatio="0.55" Height="15rem" Width="15rem" />
 </div>
 
 @code {
-    private readonly ChartDataPoint[] _platforms =
+    private readonly ChartDataPoint[] _channels =
     [
-        new("Spotify", 1_150_000),
-        new("Apple Music", 610_000),
-        new("Deezer", 380_000),
-        new("YouTube", 260_000),
+        new("Organic search", 1_150),
+        new("Referral", 610),
+        new("Paid ads", 380),
+        new("Social", 260),
     ];
 }

@@ -3,25 +3,25 @@
     <Button Size="Size.Small" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.DeleteSweep" OnClick="() => _items = []">Empty it</Button>
 </div>
 
-<DataTable T="Preorder" Items="_items" Loading="_loading" SkeletonRows="3"
-           EmptyIcon="@Icons.Material.Filled.Album" EmptyMessage="No pre-orders yet for this pressing">
+<DataTable T="Signup" Items="_items" Loading="_loading" SkeletonRows="3"
+           EmptyIcon="@Icons.Material.Filled.Inbox" EmptyMessage="No signups yet for this plan">
     <Columns>
-        <PropertyColumn T="Preorder" TProperty="string" Property="p => p.Customer" Title="Customer" />
-        <PropertyColumn T="Preorder" TProperty="string" Property="p => p.Edition" Title="Edition" />
+        <PropertyColumn T="Signup" TProperty="string" Property="s => s.Customer" Title="Customer" />
+        <PropertyColumn T="Signup" TProperty="string" Property="s => s.Plan" Title="Plan" />
     </Columns>
 </DataTable>
 
 @code {
-    private record Preorder(string Customer, string Edition);
+    private record Signup(string Customer, string Plan);
 
-    private static readonly Preorder[] Sample =
+    private static readonly Signup[] Sample =
     [
-        new("Camille Moreau", "Red splatter 180 g"),
-        new("Hugo Lefèvre", "Black 180 g"),
-        new("Inès Garnier", "Picture disc"),
+        new("Ana Silva", "Pro, annual"),
+        new("Tom Becker", "Free"),
+        new("Priya Nair", "Enterprise"),
     ];
 
-    private Preorder[] _items = Sample;
+    private Signup[] _items = Sample;
     private bool _loading;
 
     private async Task ReloadAsync()

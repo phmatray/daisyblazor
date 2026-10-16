@@ -2,7 +2,7 @@ using DaisyBlazor.Theming;
 
 namespace DaisyBlazor.Docs.Docs;
 
-/// <summary>The crate of releases: the two DaisyBlazor themes plus the 35 built-in daisyUI themes.</summary>
+/// <summary>The themes the site offers: the two DaisyBlazor themes plus the 35 built-in daisyUI themes.</summary>
 public static class ThemeDeck
 {
     public const string Light = "daisyblazor";
@@ -12,7 +12,7 @@ public static class ThemeDeck
 
     public static IReadOnlyCollection<string> DarkThemes { get; } = [Dark, .. ThemeProvider.DaisyUiDarkThemes];
 
-    /// <summary>Catalogue number of a release, 1-based ("N°7").</summary>
+    /// <summary>1-based position of a theme in the list.</summary>
     public static int Number(string theme) => Math.Max(0, IndexOf(theme)) + 1;
 
     public static string Next(string theme) => Themes[(IndexOf(theme) + 1) % Themes.Count];
@@ -26,7 +26,7 @@ public static class ThemeDeck
         return -1;
     }
 
-    /// <summary>Puts on another release with the circular reveal from the pointer position.</summary>
+    /// <summary>Switches theme with the circular reveal from the pointer position.</summary>
     public static async Task PutOnAsync(ThemeProvider provider, DocsJs js, string theme, double x, double y)
     {
         if (provider.Theme == theme) return;

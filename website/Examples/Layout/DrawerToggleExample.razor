@@ -1,14 +1,14 @@
 <div class="h-72 overflow-hidden rounded-box border-2 border-base-300">
     <Drawer @bind-Open="_open" Class="h-full" ToggleClass="btn btn-primary btn-sm m-4">
         <ToggleContent>
-            <Icon Name="@Icons.Material.Filled.Menu" Size="Size.Small" /> @(_open ? "Hide" : "Show") library
+            <Icon Name="@Icons.Material.Filled.Menu" Size="Size.Small" /> @(_open ? "Hide" : "Show") menu
         </ToggleContent>
         <SideContent>
             <div class="flex min-h-full w-52 flex-col gap-1 bg-base-200 p-3">
                 <Button Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Home" Class="justify-start">Home</Button>
-                <Button Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Album" Class="justify-start">Albums</Button>
-                <Button Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Mic" Class="justify-start">Artists</Button>
-                <Button Variant="Variant.Text" StartIcon="@Icons.Material.Filled.QueueMusic" Class="justify-start">Playlists</Button>
+                <Button Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Folder" Class="justify-start">Projects</Button>
+                <Button Variant="Variant.Text" StartIcon="@Icons.Material.Filled.People" Class="justify-start">Team</Button>
+                <Button Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Settings" Class="justify-start">Settings</Button>
             </div>
         </SideContent>
         <ChildContent>

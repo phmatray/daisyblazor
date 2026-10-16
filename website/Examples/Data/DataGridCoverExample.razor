@@ -1,11 +1,11 @@
-<DataGrid T="ChartEntry" Items="_chart" Dense="true" Bordered="true">
+<DataGrid T="AccountEntry" Items="_accounts" Dense="true" Bordered="true">
     <Columns>
-        <PropertyColumn T="ChartEntry" TProperty="int" Property="e => e.Pos" Title="#" Sortable="false"
+        <PropertyColumn T="AccountEntry" TProperty="int" Property="e => e.Pos" Title="#" Sortable="false"
                         CellClass="font-display text-xl font-bold text-primary" />
-        <TemplateColumn Title="This week">
+        <TemplateColumn Title="Top accounts">
             <CellTemplate>
-                <div class="font-bold leading-tight">@context.Item.Title</div>
-                <div class="text-xs opacity-60">@context.Item.Artist</div>
+                <div class="font-bold leading-tight">@context.Item.Company</div>
+                <div class="text-xs opacity-60">@context.Item.Owner</div>
             </CellTemplate>
         </TemplateColumn>
         <TemplateColumn CellClass="text-right">
@@ -24,14 +24,14 @@
 </DataGrid>
 
 @code {
-    private record ChartEntry(int Pos, string Title, string Artist, bool Up);
+    private record AccountEntry(int Pos, string Company, string Owner, bool Up);
 
-    private readonly ChartEntry[] _chart =
+    private readonly AccountEntry[] _accounts =
     [
-        new(1, "Poupée de cire", "France Gall", true),
-        new(2, "La Javanaise", "Juliette Gréco", true),
-        new(3, "Bang Bang", "Sheila", false),
-        new(4, "Initials B.B.", "Serge Gainsbourg", true),
-        new(5, "Mon amie la rose", "Françoise Hardy", false),
+        new(1, "Globex", "Ana Silva", true),
+        new(2, "Northwind Traders", "Tom Becker", true),
+        new(3, "Contoso", "Priya Nair", false),
+        new(4, "Fabrikam", "Lucas Martin", true),
+        new(5, "Umbrella Corp", "Mei Chen", false),
     ];
 }

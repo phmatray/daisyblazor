@@ -1,13 +1,13 @@
 <div class="flex flex-col gap-3">
     <ErrorAlert Message="@_error" Class="" />
-    <TextField Label="Catalogue number" @bind-Value="_catalogue" Immediate="true" Margin="Margin.None" />
+    <TextField Label="Project key" @bind-Value="_projectKey" Immediate="true" Margin="Margin.None" />
     <div>
         <Button Color="Color.Primary" Variant="Variant.Filled" Loading="_saving" OnClick="SaveAsync">Save</Button>
     </div>
 </div>
 
 @code {
-    private string? _catalogue = "PHI 1967";
+    private string? _projectKey = "ACME";
     private string? _error;
     private bool _saving;
 
@@ -18,7 +18,7 @@
         try
         {
             await Task.Delay(600);
-            throw new InvalidOperationException($"Catalogue number “{_catalogue}” is already taken.");
+            throw new InvalidOperationException($"Project key “{_projectKey}” is already taken.");
         }
         catch (InvalidOperationException ex)
         {

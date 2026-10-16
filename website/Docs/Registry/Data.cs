@@ -58,8 +58,8 @@ public static partial class DocRegistry
             {
                 Initial = new Dictionary<string, object?>
                 {
-                    ["Label"] = "Streams this month",
-                    ["Value"] = "2.4 M",
+                    ["Label"] = "Active users",
+                    ["Value"] = "18,240",
                     ["Subtitle"] = "+12% vs. September",
                 },
             },

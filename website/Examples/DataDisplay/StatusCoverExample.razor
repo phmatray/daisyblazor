@@ -1,21 +1,21 @@
 <div class="flex flex-col gap-3">
     <div class="flex items-center gap-3 rounded-box bg-error px-4 py-3 text-error-content">
         <Status Color="Color.Dark" Size="StatusSize.ExtraLarge" Animated="true" />
-        <span class="font-display text-2xl font-bold">On air</span>
+        <span class="font-display text-2xl font-bold">Incident open</span>
     </div>
-    @foreach ((Color color, string room, string state) in _rooms)
+    @foreach ((Color color, string service, string state) in _services)
     {
         <div class="flex items-center gap-3 rounded-box bg-base-200 px-4 py-2.5">
             <Status Color="color" Size="StatusSize.Large" AriaLabel="@state" />
-            <span class="font-semibold">@room</span>
+            <span class="font-semibold">@service</span>
             <span class="ml-auto text-sm text-base-content/60">@state</span>
         </div>
     }
 </div>
 
 @code {
-    private readonly (Color, string, string)[] _rooms =
+    private readonly (Color, string, string)[] _services =
     [
-        (Color.Success, "Studio A", "free"), (Color.Warning, "Studio B", "mixing"), (Color.Default, "Booth", "offline"),
+        (Color.Success, "API", "operational"), (Color.Warning, "Search", "degraded"), (Color.Default, "Legacy export", "offline"),
     ];
 }

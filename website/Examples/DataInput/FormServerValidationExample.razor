@@ -4,8 +4,8 @@
 
 <ServerValidation State="_errors">
     <div class="grid w-full gap-x-4 sm:grid-cols-2">
-        <TextField Label="Title" FieldName="Title" @bind-Value="_title" />
-        <NumericField T="int" Label="Copies" FieldName="Copies" @bind-Value="_copies" />
+        <TextField Label="Project name" FieldName="Name" @bind-Value="_name" />
+        <NumericField T="int" Label="Seats" FieldName="Seats" @bind-Value="_seats" />
     </div>
     <Rating @bind-Value="_stars" />
     <FieldError For="Stars" />
@@ -18,14 +18,14 @@
 
 @code {
     private readonly ServerValidationState _errors = new();
-    private string? _title;
-    private int _copies;
+    private string? _name;
+    private int _seats;
     private int _stars;
 
     private void Reject() => _errors.SetErrors(
     [
-        ("request.Title", "A title is required."),
-        ("Copies", "Order at least one copy."),
-        ("Stars", "Rate the record before you review it."),
+        ("request.Name", "A project name is required."),
+        ("Seats", "Add at least one seat."),
+        ("Stars", "Rate your experience before you send feedback."),
     ]);
 }

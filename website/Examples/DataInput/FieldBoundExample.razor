@@ -1,8 +1,8 @@
 <div class="grid w-full gap-x-4 sm:grid-cols-2">
-    <TextField Label="Edit the title" @bind-Value="_title" Immediate="true" />
-    <Field Label="As printed on the label">@(string.IsNullOrWhiteSpace(_title) ? "Untitled" : _title.ToUpperInvariant())</Field>
+    <TextField Label="Project name" @bind-Value="_name" Immediate="true" />
+    <Field Label="As shown on the badge">@(string.IsNullOrWhiteSpace(_name) ? "Untitled" : _name.ToUpperInvariant())</Field>
 </div>
 
 @code {
-    private string? _title = "Poupée de cire, poupée de son";
+    private string? _name = "Customer portal";
 }

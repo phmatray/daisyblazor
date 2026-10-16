@@ -1,11 +1,11 @@
-<Select T="string" Label="Format" @bind-Value="_format" Clearable="true" ClearText="Choose a format…"
-        HelperText="@($"Selected: {_format ?? "none"}")">
-    <SelectItem Value="@("LP")">12″ LP</SelectItem>
-    <SelectItem Value="@("EP")">7″ EP</SelectItem>
-    <SelectItem Value="@("Single")">7″ single</SelectItem>
-    <SelectItem Value="@("Shellac")" Disabled="true">78 rpm shellac (out of print)</SelectItem>
+<Select T="string" Label="Plan" @bind-Value="_plan" Clearable="true" ClearText="Choose a plan…"
+        HelperText="@($"Selected: {_plan ?? "none"}")">
+    <SelectItem Value="@("Free")">Free</SelectItem>
+    <SelectItem Value="@("Pro")">Pro</SelectItem>
+    <SelectItem Value="@("Enterprise")">Enterprise</SelectItem>
+    <SelectItem Value="@("Legacy")" Disabled="true">Legacy (no longer offered)</SelectItem>
 </Select>
 
 @code {
-    private string? _format = "EP";
+    private string? _plan = "Pro";
 }

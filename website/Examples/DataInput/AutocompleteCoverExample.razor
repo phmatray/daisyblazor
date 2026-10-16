@@ -1,10 +1,10 @@
 @* The cover shows the dropdown as it looks mid-search, so it is drawn with the same daisyUI classes. *@
 <div class="flex flex-col gap-1">
-    <Autocomplete T="string" Label="Artist" Value="@("Fran")" AdornmentIcon="@Icons.Material.Filled.Search" Adornment="Adornment.Start"
+    <Autocomplete T="string" Label="Customer" Value="@("in")" AdornmentIcon="@Icons.Material.Filled.Search" Adornment="Adornment.Start"
                   SearchFunc="(_, _) => Task.FromResult(Enumerable.Empty<string>())" />
     <ul class="menu w-full rounded-box border-2 border-base-content bg-base-100 p-1">
-        <li><a class="menu-active">France Gall</a></li>
-        <li><a>Françoise Hardy</a></li>
-        <li><a>Claude François</a></li>
+        <li><a class="menu-active">Initech</a></li>
+        <li><a>Northwind Traders</a></li>
+        <li><a>Wide World Importers</a></li>
     </ul>
 </div>

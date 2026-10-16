@@ -21,7 +21,7 @@ public static partial class DocRegistry
             Playground = new(typeof(Avatar), "Color", "Size", "Image")
             {
                 Initial = new Dictionary<string, object?> { ["Color"] = Color.Primary, ["Size"] = Size.Large },
-                ChildText = "FG",
+                ChildText = "AS",
             },
         },
 
@@ -40,7 +40,7 @@ public static partial class DocRegistry
             Playground = new(typeof(Badge), "Color", "Inline", "Dot", "Bordered", "Visible")
             {
                 Initial = new Dictionary<string, object?> { ["Color"] = Color.Secondary, ["Inline"] = true },
-                ChildText = "New release",
+                ChildText = "New",
             },
         },
 
@@ -86,8 +86,8 @@ public static partial class DocRegistry
             Portrait = typeof(ChatBubbleCoverExample),
             Playground = new(typeof(ChatBubble), "Placement", "Color", "Header", "Footer")
             {
-                Initial = new Dictionary<string, object?> { ["Color"] = Color.Primary, ["Header"] = "Serge · 18:04", ["Footer"] = "Seen" },
-                ChildText = "Bring the organ, we start at nine.",
+                Initial = new Dictionary<string, object?> { ["Color"] = Color.Primary, ["Header"] = "Tom · 18:04", ["Footer"] = "Seen" },
+                ChildText = "Staging is green, deploying at nine.",
             },
         },
 
@@ -106,8 +106,8 @@ public static partial class DocRegistry
             Portrait = typeof(ChipCoverExample),
             Playground = new(typeof(Chip), "Color", "Variant", "Size", "Icon")
             {
-                Initial = new Dictionary<string, object?> { ["Color"] = Color.Primary, ["Size"] = Size.Large, ["Icon"] = Icons.Material.Filled.MusicNote },
-                ChildText = "Yé-yé",
+                Initial = new Dictionary<string, object?> { ["Color"] = Color.Primary, ["Size"] = Size.Large, ["Icon"] = Icons.Material.Filled.Tag },
+                ChildText = "Billing",
             },
         },
 
@@ -260,7 +260,7 @@ public static partial class DocRegistry
             Playground = new(typeof(Typography), "Typo", "Color")
             {
                 Initial = new Dictionary<string, object?> { ["Typo"] = Typo.h3 },
-                ChildText = "Poupée de cire, poupée de son",
+                ChildText = "Monthly revenue report",
             },
         },
 

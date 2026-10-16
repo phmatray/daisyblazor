@@ -3,10 +3,10 @@
              ActiveFilters="_active" OnApply="() => { }" OnClear="() => _active = []"
              OnRemoveFilter="f => _active = _active.Where(x => x != f).ToList()">
     <Item xs="12">
-        <TextField Label="Label" Placeholder="Disques Vogue" />
+        <TextField Label="Client" Placeholder="Northwind Traders" />
     </Item>
 </FilterPanel>
 
 @code {
-    private List<ActiveFilter> _active = [new("decade", "Années 60"), new("genre", "Yé-yé")];
+    private List<ActiveFilter> _active = [new("region", "Europe"), new("plan", "Entreprise")];
 }

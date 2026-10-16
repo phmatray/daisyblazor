@@ -1,18 +1,18 @@
 @* The Actions slot sits under the description; Class styles the container. *@
 <Stats Shadow="true" Class="w-full bg-base-200">
-    <Stat Title="Royalties" Value="@($"€{_balance:N0}")" Desc="Paid out monthly">
+    <Stat Title="Account credit" Value="@($"€{_balance:N0}")" Desc="Applied to the next invoice">
         <Actions>
             <Button Size="Size.Small" Color="Color.Success" Variant="Variant.Filled" OnClick="() => _balance += 250">Add funds</Button>
         </Actions>
     </Stat>
-    <Stat Title="Pre-orders" Value="@_preorders.ToString()" Desc="Vinyl edition">
+    <Stat Title="Seats" Value="@_seats.ToString()" Desc="Pro plan">
         <Actions>
-            <Button Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled" OnClick="() => _preorders++">Order one</Button>
+            <Button Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled" OnClick="() => _seats++">Add a seat</Button>
         </Actions>
     </Stat>
 </Stats>
 
 @code {
-    private decimal _balance = 89400;
-    private int _preorders = 318;
+    private decimal _balance = 8940;
+    private int _seats = 38;
 }

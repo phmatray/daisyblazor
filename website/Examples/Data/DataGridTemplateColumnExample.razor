@@ -1,19 +1,19 @@
-<DataGrid T="Track" Items="_tracks" Hover="true">
+<DataGrid T="WorkItem" Items="_tasks" Hover="true">
     <Columns>
-        <TemplateColumn Title="Track">
+        <TemplateColumn Title="Task">
             <CellTemplate>
                 <div class="flex items-center gap-3">
-                    <Avatar Color="Color.Primary" Size="Size.Small">@context.Item.Side</Avatar>
+                    <Avatar Color="Color.Primary" Size="Size.Small">@context.Item.Initials</Avatar>
                     <div>
                         <div class="font-bold">@context.Item.Title</div>
-                        <div class="text-sm opacity-60">@context.Item.Artist</div>
+                        <div class="text-sm opacity-60">@context.Item.Assignee</div>
                     </div>
                 </div>
             </CellTemplate>
         </TemplateColumn>
-        <TemplateColumn Title="Streams" Sortable="true" SortBy="t => t.Streams">
+        <TemplateColumn Title="Hours logged" Sortable="true" SortBy="t => t.Minutes">
             <CellTemplate>
-                <span class="font-mono">@context.Item.Streams.ToString("N0")</span>
+                <span class="font-mono">@((context.Item.Minutes / 60.0).ToString("N1"))</span>
             </CellTemplate>
         </TemplateColumn>
         <TemplateColumn Title="Status" Sortable="true" SortBy="t => t.Status">
@@ -25,21 +25,21 @@
 </DataGrid>
 
 @code {
-    private enum TrackStatus { Live, Scheduled, Draft }
+    private enum WorkStatus { Done, Review, Todo }
 
-    private static readonly StatusMap StatusColors = StatusMap.For<TrackStatus>()
-        .Add(TrackStatus.Live, Color.Success)
-        .Add(TrackStatus.Scheduled, Color.Info)
+    private static readonly StatusMap StatusColors = StatusMap.For<WorkStatus>()
+        .Add(WorkStatus.Done, Color.Success)
+        .Add(WorkStatus.Review, Color.Info)
         .Default(Color.Default)
         .Build();
 
-    private record Track(string Side, string Title, string Artist, int Streams, TrackStatus Status);
+    private record WorkItem(string Initials, string Title, string Assignee, int Minutes, WorkStatus Status);
 
-    private readonly Track[] _tracks =
+    private readonly WorkItem[] _tasks =
     [
-        new("A", "La Javanaise", "Juliette Gréco", 1_284_310, TrackStatus.Live),
-        new("B", "Tous les garçons et les filles", "Françoise Hardy", 962_118, TrackStatus.Live),
-        new("A", "Laisse tomber les filles", "France Gall", 418_904, TrackStatus.Scheduled),
-        new("B", "Et moi, et moi, et moi", "Jacques Dutronc", 0, TrackStatus.Draft),
+        new("AS", "Add SSO to the login page", "Ana Silva", 1_140, WorkStatus.Done),
+        new("TB", "Fix invoice PDF totals", "Tom Becker", 420, WorkStatus.Done),
+        new("PN", "Migrate staging to .NET 10", "Priya Nair", 780, WorkStatus.Review),
+        new("LM", "Export reports to CSV", "Lucas Martin", 0, WorkStatus.Todo),
     ];
 }

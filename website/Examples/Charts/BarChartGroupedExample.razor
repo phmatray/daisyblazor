@@ -1,12 +1,12 @@
-<BarChart Title="Sales by format and quarter (thousands)" Labels="_quarters" Series="_formats" />
+<BarChart Title="Revenue by plan and quarter (k€)" Labels="_quarters" Series="_plans" />
 
 @code {
     private readonly string[] _quarters = ["Q1", "Q2", "Q3", "Q4"];
 
-    private readonly ChartSeries[] _formats =
+    private readonly ChartSeries[] _plans =
     [
-        new("Vinyl", [10.2, 11.8, 12.4, 18.9]),
-        new("CD", [6.1, 5.4, 4.9, 7.2]),
-        new("Digital", [9.7, 10.3, 11.1, 12.6]),
+        new("Pro", [10.2, 11.8, 12.4, 18.9]),
+        new("Team", [6.1, 5.4, 4.9, 7.2]),
+        new("Enterprise", [9.7, 10.3, 11.1, 12.6]),
     ];
 }

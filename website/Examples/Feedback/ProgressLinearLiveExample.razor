@@ -1,12 +1,12 @@
 <div class="flex flex-col gap-3">
     <div class="flex justify-between text-sm">
-        <span>side-a-master.wav</span>
+        <span>q3-report.pdf</span>
         <span>@_progress%</span>
     </div>
     <ProgressLinear Value="_progress" Color="@(_progress == 100 ? Color.Success : Color.Primary)" Rounded="true" />
     <div>
         <Button Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Disabled="_running" OnClick="UploadAsync">
-            Upload master
+            Upload file
         </Button>
     </div>
 </div>

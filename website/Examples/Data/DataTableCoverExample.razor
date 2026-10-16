@@ -1,21 +1,21 @@
-<DataTable T="Pressing" Items="_pressings" Dense="true" PageSizeOptions="[4]">
+<DataTable T="Plan" Items="_plans" Dense="true" PageSizeOptions="[4]">
     <Columns>
-        <PropertyColumn T="Pressing" TProperty="string" Property="p => p.Colour" Title="Pressing" />
-        <PropertyColumn T="Pressing" TProperty="int" Property="p => p.Copies" Title="Copies" Format="N0" />
+        <PropertyColumn T="Plan" TProperty="string" Property="p => p.Name" Title="Plan" />
+        <PropertyColumn T="Plan" TProperty="int" Property="p => p.Seats" Title="Seats" Format="N0" />
     </Columns>
     <Actions>
-        <IconButton Icon="@Icons.Material.Filled.PlayArrow" Size="Size.Small" Color="Color.Primary" Title="Play" />
+        <IconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Color="Color.Primary" Title="Open" />
     </Actions>
 </DataTable>
 
 @code {
-    private record Pressing(string Colour, int Copies);
+    private record Plan(string Name, int Seats);
 
-    private readonly Pressing[] _pressings =
+    private readonly Plan[] _plans =
     [
-        new("Black 180 g", 5_000),
-        new("Cherry red", 1_500),
-        new("Lemon yellow", 1_000),
-        new("Picture disc", 500),
+        new("Free", 5_000),
+        new("Pro", 1_500),
+        new("Team", 1_000),
+        new("Enterprise", 500),
     ];
 }

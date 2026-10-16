@@ -1,39 +1,39 @@
-<Autocomplete T="Single" Label="Single" Placeholder="Search a title, e.g. “poupée”"
-              @bind-Value="_single" SearchFunc="SearchAsync" ToStringFunc="s => s.Title"
-              MinCharacters="1" DebounceInterval="150" NoItemsText="Not in the crate">
-    <ItemTemplate Context="s">
+<Autocomplete T="Customer" Label="Customer" Placeholder="Search a name or plan, e.g. “pro”"
+              @bind-Value="_customer" SearchFunc="SearchAsync" ToStringFunc="c => c.Name"
+              MinCharacters="1" DebounceInterval="150" NoItemsText="No matching customer">
+    <ItemTemplate Context="c">
         <span class="flex w-full justify-between gap-3">
-            <span>@s.Title <span class="opacity-60">— @s.Artist</span></span>
-            <span class="font-mono text-xs opacity-60">@s.Year</span>
+            <span>@c.Name <span class="opacity-60">— @c.Plan</span></span>
+            <span class="font-mono text-xs opacity-60">@c.Since</span>
         </span>
     </ItemTemplate>
 </Autocomplete>
 <p class="mt-3 text-sm">
-    @if (_single is null)
+    @if (_customer is null)
     {
         <span class="opacity-60">Nothing picked yet.</span>
     }
     else
     {
-        <span>Picked <b>@_single.Title</b> by @_single.Artist (@_single.Year)</span>
+        <span>Picked <b>@_customer.Name</b> on @_customer.Plan (customer since @_customer.Since)</span>
     }
 </p>
 
 @code {
-    private record Single(string Title, string Artist, int Year);
+    private record Customer(string Name, string Plan, int Since);
 
-    private Single? _single;
+    private Customer? _customer;
 
-    private static readonly Single[] Singles =
+    private static readonly Customer[] Customers =
     [
-        new("Poupée de cire, poupée de son", "France Gall", 1965),
-        new("Tous les garçons et les filles", "Françoise Hardy", 1962),
-        new("La plus belle pour aller danser", "Sylvie Vartan", 1964),
-        new("Et moi, et moi, et moi", "Jacques Dutronc", 1966),
-        new("Harley Davidson", "Brigitte Bardot", 1967),
+        new("Northwind Traders", "Enterprise", 2019),
+        new("Contoso", "Pro", 2021),
+        new("Fabrikam", "Pro", 2022),
+        new("Globex", "Enterprise", 2018),
+        new("Initech", "Free", 2024),
     ];
 
-    private static Task<IEnumerable<Single>> SearchAsync(string text, CancellationToken token) =>
-        Task.FromResult(Singles.Where(s => s.Title.Contains(text, StringComparison.OrdinalIgnoreCase)
-                                        || s.Artist.Contains(text, StringComparison.OrdinalIgnoreCase)));
+    private static Task<IEnumerable<Customer>> SearchAsync(string text, CancellationToken token) =>
+        Task.FromResult(Customers.Where(c => c.Name.Contains(text, StringComparison.OrdinalIgnoreCase)
+                                          || c.Plan.Contains(text, StringComparison.OrdinalIgnoreCase)));
 }

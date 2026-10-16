@@ -1,21 +1,21 @@
-<DataGrid T="Release" Items="_releases" Hover="true">
+<DataGrid T="Customer" Items="_customers" Hover="true">
     <Columns>
-        <PropertyColumn T="Release" TProperty="string" Property="r => r.Title" Title="Title" />
-        <PropertyColumn T="Release" TProperty="string" Property="r => r.Artist" Title="Artist" />
-        <PropertyColumn T="Release" TProperty="int" Property="r => r.Year" Title="Year" />
-        <PropertyColumn T="Release" TProperty="decimal" Property="r => r.Price" Title="Price" Format="0.00 €" />
+        <PropertyColumn T="Customer" TProperty="string" Property="c => c.Company" Title="Company" />
+        <PropertyColumn T="Customer" TProperty="string" Property="c => c.Plan" Title="Plan" />
+        <PropertyColumn T="Customer" TProperty="int" Property="c => c.Seats" Title="Seats" />
+        <PropertyColumn T="Customer" TProperty="decimal" Property="c => c.Mrr" Title="MRR" Format="0.00 €" />
     </Columns>
 </DataGrid>
 
 @code {
-    private record Release(string Title, string Artist, int Year, decimal Price);
+    private record Customer(string Company, string Plan, int Seats, decimal Mrr);
 
-    private readonly Release[] _releases =
+    private readonly Customer[] _customers =
     [
-        new("Comment te dire adieu", "Françoise Hardy", 1968, 24.90m),
-        new("Poupée de cire", "France Gall", 1965, 19.50m),
-        new("Initials B.B.", "Serge Gainsbourg", 1968, 29.00m),
-        new("Le Temps de l'amour", "Jacques Dutronc", 1962, 18.00m),
-        new("Bang Bang", "Sheila", 1966, 21.40m),
+        new("Northwind Traders", "Enterprise", 240, 4_890.00m),
+        new("Contoso", "Pro", 58, 1_131.00m),
+        new("Fabrikam", "Pro", 32, 624.00m),
+        new("Globex", "Enterprise", 410, 7_995.00m),
+        new("Initech", "Free", 5, 0.00m),
     ];
 }

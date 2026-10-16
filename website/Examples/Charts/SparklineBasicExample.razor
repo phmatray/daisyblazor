@@ -1,9 +1,9 @@
 <div class="flex flex-wrap items-center gap-8">
-    <span class="inline-flex items-center gap-2">Streams <Sparkline Data="_streams" /></span>
-    <span class="inline-flex items-center gap-2">With area <Sparkline Data="_streams" Area="true" /></span>
-    <span class="inline-flex items-center gap-2">No end dot <Sparkline Data="_streams" ShowEndDot="false" StrokeWidth="3" /></span>
+    <span class="inline-flex items-center gap-2">Signups <Sparkline Data="_signups" /></span>
+    <span class="inline-flex items-center gap-2">With area <Sparkline Data="_signups" Area="true" /></span>
+    <span class="inline-flex items-center gap-2">No end dot <Sparkline Data="_signups" ShowEndDot="false" StrokeWidth="3" /></span>
 </div>
 
 @code {
-    private readonly double[] _streams = [12, 18, 15, 22, 19, 27, 31];
+    private readonly double[] _signups = [12, 18, 15, 22, 19, 27, 31];
 }

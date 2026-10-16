@@ -4,15 +4,16 @@
 
 <PageTitle>DaisyBlazor — daisyUI components for Blazor</PageTitle>
 
-<Sleeve Title="daisyUI, pressed for Blazor." Large="true" Tracks="_tracks" Portrait="Cover" PortraitCaption="Cover · a few of the components">
+<Sleeve Title="daisyUI components for Blazor." Large="true" Tracks="_tracks" Portrait="Cover" PortraitCaption="A few DaisyBlazor components composing a dashboard card">
     <Lede>
         <p>
-            @DocRegistry.All.Count typed components with a MudBlazor-compatible API, @ThemeDeck.Themes.Count live themes and SVG
-            charts that follow them. Tailwind CSS v4 and daisyUI v5, shipped as one NuGet package.
+            @DocRegistry.All.Count typed Blazor components on Tailwind CSS v4 and daisyUI v5. The API mirrors MudBlazor, so an
+            existing app can move one component at a time. @ThemeDeck.Themes.Count themes, SVG charts, and the CSS build ships
+            inside the NuGet package.
         </p>
         <div class="mt-7 flex flex-wrap items-center gap-3">
             <a href="getting-started" class="btn btn-lg rounded-full border-0 bg-primary-content px-7 text-primary hover:bg-primary-content/90">Get started</a>
-            <a href="components" class="btn btn-lg rounded-full border-2 border-primary-content bg-transparent px-7 text-primary-content hover:bg-primary-content hover:text-primary">Browse components</a>
+            <a href="components" class="btn btn-lg rounded-full border-2 border-primary-content bg-transparent px-7 text-primary-content hover:bg-primary-content hover:text-primary">Browse @DocRegistry.All.Count components</a>
         </div>
         <button type="button" @onclick="CopyInstall"
                 class="mt-5 inline-flex max-w-full items-center gap-3 rounded-full bg-primary-content/12 py-2 pl-4 pr-2 font-mono text-sm transition hover:bg-primary-content/20"
@@ -30,7 +31,7 @@
     @* ── The catalogue, live ─────────────────────────────────────────────── *@
     <section id="components" class="mx-auto max-w-[1500px] scroll-mt-6 px-4 py-20 sm:px-8 lg:px-14 lg:py-28">
         <div class="mb-10 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:items-end">
-            <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]"><span class="mr-[0.25em] text-primary" aria-hidden="true">1</span>The whole catalogue, playing live.</h2>
+            <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]">Every component, running live.</h2>
             <p class="text-lg text-base-content/80">
                 Every tile is a real component running in your browser through WebAssembly, organised by daisyUI's own
                 taxonomy. Click through for examples, source, a playground and the API.
@@ -40,14 +41,14 @@
         <div class="grid gap-px overflow-hidden rounded-2xl border-2 border-base-content bg-base-content sm:grid-cols-2 lg:grid-cols-4">
             <WallTile Label="Button" Href="components/button">
                 <div class="flex flex-wrap gap-2">
-                    <Button Color="Color.Primary" Variant="Variant.Filled">Play</Button>
-                    <Button Color="Color.Secondary" Variant="Variant.Outlined">Queue</Button>
+                    <Button Color="Color.Primary" Variant="Variant.Filled">Save</Button>
+                    <Button Color="Color.Secondary" Variant="Variant.Outlined">Cancel</Button>
                 </div>
             </WallTile>
             <WallTile Label="Switch" Href="components/switch">
                 <div class="space-y-2">
-                    <Switch @bind-Value="_shuffle" Color="Color.Primary" Label="Shuffle" />
-                    <Switch @bind-Value="_repeat" Color="Color.Secondary" Label="Repeat" />
+                    <Switch @bind-Value="_shuffle" Color="Color.Primary" Label="Email alerts" />
+                    <Switch @bind-Value="_repeat" Color="Color.Secondary" Label="Two-factor auth" />
                 </div>
             </WallTile>
             <WallTile Label="Rating" Href="components/rating">
@@ -56,18 +57,18 @@
             <WallTile Label="Range" Href="components/range">
                 <div class="w-full">
                     <Range @bind-Value="_volume" Color="Color.Tertiary" />
-                    <span class="mt-1 block text-sm font-semibold tabular-nums">Volume @_volume.ToString("0")</span>
+                    <span class="mt-1 block text-sm font-semibold tabular-nums">Usage @_volume.ToString("0") %</span>
                 </div>
             </WallTile>
             <WallTile Label="Steps" Href="components/steps">
                 <Steps Class="w-full text-xs">
-                    <Step Color="Color.Primary" Completed="true">Record</Step>
-                    <Step Color="Color.Primary" Completed="true">Mix</Step>
-                    <Step Active="true">Press</Step>
+                    <Step Color="Color.Primary" Completed="true">Cart</Step>
+                    <Step Color="Color.Primary" Completed="true">Shipping</Step>
+                    <Step Active="true">Payment</Step>
                 </Steps>
             </WallTile>
             <WallTile Label="Alert" Href="components/alert">
-                <Alert Severity="Severity.Success" Dense="true" Class="w-full">Pressing finished.</Alert>
+                <Alert Severity="Severity.Success" Dense="true" Class="w-full">Deployment succeeded.</Alert>
             </WallTile>
             <WallTile Label="Radial progress" Href="components/radialprogress">
                 <div class="flex items-center gap-4">
@@ -77,9 +78,9 @@
             </WallTile>
             <WallTile Label="Chip" Href="components/chip">
                 <div class="flex flex-wrap gap-2">
-                    <Chip Color="Color.Primary" Text="Yé-yé" />
-                    <Chip Color="Color.Secondary" Variant="Variant.Outlined" Text="Pop" />
-                    <Chip Color="Color.Tertiary" Text="1965" />
+                    <Chip Color="Color.Primary" Text="Blazor" />
+                    <Chip Color="Color.Secondary" Variant="Variant.Outlined" Text=".NET 10" />
+                    <Chip Color="Color.Tertiary" Text="daisyUI" />
                 </div>
             </WallTile>
         </div>
@@ -92,7 +93,7 @@
     <section id="playground" class="scroll-mt-6 border-y-2 border-base-content bg-base-200">
         <div class="mx-auto grid max-w-[1500px] gap-10 px-4 py-20 sm:px-8 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-16 lg:px-14 lg:py-28">
             <div>
-                <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]"><span class="mr-[0.25em] text-primary" aria-hidden="true">2</span>Turn every knob.</h2>
+                <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]">Try every parameter.</h2>
                 <p class="mt-5 text-lg text-base-content/80">
                     Each component page carries a playground. Its controls are built from DaisyBlazor's own inputs, generated
                     from the component's parameters, and the Razor underneath rewrites itself as you go. Copy it when it sounds right.
@@ -107,13 +108,13 @@
         </div>
     </section>
 
-    @* ── The crate ──────────────────────────────────────────────────────── *@
+    @* ── Themes ──────────────────────────────────────────────────────── *@
     <section id="themes" class="scroll-mt-6 bg-neutral py-20 text-neutral-content lg:py-28">
         <div class="mx-auto mb-10 grid max-w-[1500px] gap-4 px-4 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:items-end lg:px-14">
-            <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]"><span class="mr-[0.25em] text-primary" aria-hidden="true">3</span>@ThemeDeck.Themes.Count releases in the crate.</h2>
+            <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]">@ThemeDeck.Themes.Count themes, one switch.</h2>
             <p class="text-lg text-neutral-content/85">
-                Every daisyUI theme ships in the preset, plus two of our own. Put one on: this whole site follows, and so does your
-                app through <code class="font-mono text-[0.9em]">ThemeProvider</code>.
+                Every daisyUI theme ships in the preset, plus two of our own. Click one: this whole site switches, and your app
+                does the same through <code class="font-mono text-[0.9em]">ThemeProvider</code>.
             </p>
         </div>
         <ul class="flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-6 sm:px-8 lg:px-14" aria-label="Themes">
@@ -127,7 +128,7 @@
         </ul>
         <div class="mx-auto max-w-[1500px] px-4 sm:px-8 lg:px-14">
             <a href="themes" class="inline-flex items-center gap-2 font-bold underline decoration-2 underline-offset-4">
-                Browse the crate <Icon Name="@Icons.Material.Filled.ArrowForward" Size="Size.Small" />
+                All themes <Icon Name="@Icons.Material.Filled.ArrowForward" Size="Size.Small" />
             </a>
         </div>
     </section>
@@ -136,7 +137,7 @@
     <section id="migration" class="scroll-mt-6 border-t-2 border-base-content">
         <div class="mx-auto grid max-w-[1500px] gap-10 px-4 py-20 sm:px-8 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-16 lg:px-14 lg:py-28">
             <div>
-                <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]"><span class="mr-[0.25em] text-primary" aria-hidden="true">4</span>Leave MudBlazor one rename at a time.</h2>
+                <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]">Leave MudBlazor one rename at a time.</h2>
                 <p class="mt-5 text-lg text-base-content/80">
                     The same parameter names, the same <code class="font-mono text-[0.9em]">Color</code>, <code class="font-mono text-[0.9em]">Variant</code>
                     and <code class="font-mono text-[0.9em]">Size</code> enums, <code class="font-mono text-[0.9em]">Icons.Material.*</code>,
@@ -146,8 +147,8 @@
                 <a href="migration" class="btn mt-7 rounded-full border-2 border-base-content bg-transparent px-6 hover:bg-base-content hover:text-base-100">Read the migration guide</a>
             </div>
             <div class="grid min-w-0 gap-4 xl:grid-cols-2">
-                <CodeBlock Title="Side A · MudBlazor" Code="@MudSample" />
-                <CodeBlock Title="Side B · DaisyBlazor" Code="@DaisySample" />
+                <CodeBlock Title="Before · MudBlazor" Code="@MudSample" />
+                <CodeBlock Title="After · DaisyBlazor" Code="@DaisySample" />
             </div>
         </div>
     </section>
@@ -156,7 +157,7 @@
     <section id="charts" class="scroll-mt-6 border-t-2 border-base-content bg-base-200">
         <div class="mx-auto max-w-[1500px] px-4 py-20 sm:px-8 lg:px-14 lg:py-28">
             <div class="mb-10 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:items-end">
-                <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]"><span class="mr-[0.25em] text-primary" aria-hidden="true">5</span>Charts that change with the record.</h2>
+                <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]">Charts that follow your theme.</h2>
                 <p class="text-lg text-base-content/80">
                     Line, area, bar, pie, donut and sparkline, rendered as plain SVG with theme colours. No JavaScript charting
                     runtime. Switch the theme and watch them follow.
@@ -164,10 +165,10 @@
             </div>
             <div class="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
                 <div class="rounded-2xl border-2 border-base-content bg-base-100 p-5">
-                    <LineChart Series="_streams" Labels="_months" Smooth="true" Area="true" Height="17rem" Title="Monthly streams (thousands, sample data)" />
+                    <LineChart Series="_streams" Labels="_months" Smooth="true" Area="true" Height="17rem" Title="Monthly recurring revenue (k€, sample data)" />
                 </div>
                 <div class="rounded-2xl border-2 border-base-content bg-base-100 p-5">
-                    <DonutChart Data="_formats" CenterLabel="Sales" Height="17rem" Title="Sales by format (sample data)" />
+                    <DonutChart Data="_formats" CenterLabel="Plans" Height="17rem" Title="Customers by plan (sample data)" />
                 </div>
             </div>
             <a href="charts" class="mt-6 inline-flex items-center gap-2 font-bold underline decoration-primary decoration-2 underline-offset-4">
@@ -180,7 +181,7 @@
     <section id="no-npm" class="scroll-mt-6 border-t-2 border-base-content">
         <div class="mx-auto grid max-w-[1500px] gap-10 px-4 py-20 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16 lg:px-14 lg:py-28">
             <div>
-                <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]"><span class="mr-[0.25em] text-primary" aria-hidden="true">6</span>No Node. No npm.</h2>
+                <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]">No Node. No npm.</h2>
                 <p class="mt-5 max-w-xl text-lg text-base-content/80">
                     The NuGet package carries the preset (daisyUI, the themes, a safelist of every class the components emit) and
                     can run the Tailwind standalone CLI on build. One property in your project file, one import in your stylesheet.
@@ -199,7 +200,7 @@
     @* ── Close ──────────────────────────────────────────────────────────── *@
     <section class="sleeve">
         <div class="mx-auto flex max-w-[1500px] flex-col items-start gap-8 px-4 py-20 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-14 lg:py-24">
-            <h2 class="max-w-3xl font-display text-[clamp(2.8rem,7vw,6rem)] font-bold leading-[0.9]">Put it on.</h2>
+            <h2 class="max-w-3xl font-display text-[clamp(2.8rem,7vw,6rem)] font-bold leading-[0.9]">Start building.</h2>
             <div class="flex flex-wrap gap-3">
                 <a href="getting-started" class="btn btn-lg rounded-full border-0 bg-primary-content px-7 text-primary hover:bg-primary-content/90">Get started</a>
                 <a href="https://github.com/phmatray/daisyblazor" target="_blank" rel="noopener"
@@ -214,7 +215,7 @@
 
     private readonly List<Track> _tracks =
     [
-        new("components", "The catalogue"), new("playground", "Playground"), new("themes", "37 themes"),
+        new("components", "Components"), new("playground", "Playground"), new("themes", "Themes"),
         new("migration", "From MudBlazor"), new("charts", "Charts"), new("no-npm", "No npm"),
     ];
 
@@ -228,10 +229,10 @@
     private readonly List<string> _months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"];
     private readonly List<ChartSeries> _streams =
     [
-        new("Side A", [12, 19, 17, 26, 31, 29, 38, 44]),
-        new("Side B", [8, 11, 14, 13, 18, 22, 21, 27]),
+        new("Pro", [12, 19, 17, 26, 31, 29, 38, 44]),
+        new("Enterprise", [8, 11, 14, 13, 18, 22, 21, 27]),
     ];
-    private readonly List<ChartDataPoint> _formats = [new("Vinyl", 46), new("Digital", 38), new("CD", 16)];
+    private readonly List<ChartDataPoint> _formats = [new("Free", 46), new("Pro", 38), new("Enterprise", 16)];
     private readonly List<string> _buildLines = ["dotnet build", "DaisyBlazor: tailwindcss -i Styles/main.css -o wwwroot/css/app.css", "Build succeeded."];
 
     private string Current => Provider?.Theme ?? ThemeDeck.Light;
@@ -269,35 +270,34 @@
 
     private RenderFragment Cover => __builder =>
     {
-        <div class="space-y-3">
-            <div class="flex items-center gap-3">
-                <Avatar Color="Color.Primary" Size="Size.Medium">SG</Avatar>
-                <div class="min-w-0">
-                    <span class="block truncate font-display text-lg font-semibold leading-tight">Poupée de cire</span>
-                    <span class="block text-xs text-base-content/70">Side A · track 1</span>
-                </div>
-                <Status Color="Color.Success" Animated="true" AriaLabel="Playing" Class="ml-auto" />
-            </div>
-            <ProgressLinear Value="38" Color="Color.Primary" Rounded="true" />
+        <div class="space-y-4">
             <div class="flex items-center justify-between">
-                <Kbd Size="Size.Small">1:03</Kbd>
-                <div class="flex gap-1">
-                    <IconButton Icon="@Icons.Material.Filled.SkipPrevious" Title="Previous" Size="Size.Small" />
-                    <IconButton Icon="@Icons.Material.Filled.Pause" Title="Pause" Color="Color.Primary" />
-                    <IconButton Icon="@Icons.Material.Filled.SkipNext" Title="Next" Size="Size.Small" />
+                <span class="font-display text-lg font-semibold leading-tight">Acme Cloud</span>
+                <Chip Color="Color.Success" Size="Size.Small" Text="Production" />
+            </div>
+            <div>
+                <span class="block text-xs font-semibold text-base-content/70">Monthly revenue</span>
+                <div class="flex items-end justify-between gap-3">
+                    <span class="font-display text-3xl font-bold tabular-nums">€48.2k</span>
+                    <Sparkline Data="_wave" Area="true" Width="7rem" Height="2.25rem" Title="Revenue trend" />
                 </div>
-                <Kbd Size="Size.Small">2:31</Kbd>
             </div>
-            <div class="flex flex-wrap gap-1.5">
-                <Chip Color="Color.Primary" Size="Size.Small" Text="Yé-yé" />
-                <Chip Color="Color.Secondary" Size="Size.Small" Variant="Variant.Outlined" Text="1965" />
+            <div>
+                <div class="mb-1 flex justify-between text-xs font-semibold"><span>Sprint 14</span><span class="tabular-nums">68%</span></div>
+                <ProgressLinear Value="68" Color="Color.Primary" Rounded="true" />
             </div>
-            <Sparkline Data="_wave" Area="true" Width="100%" Height="2.5rem" Title="Waveform" />
-            <ol class="divide-y divide-base-300 border-t border-base-300 text-sm">
-                <li class="flex justify-between py-1.5 font-bold"><span>1 · Poupée de cire</span><span class="tabular-nums">2:31</span></li>
-                <li class="flex justify-between py-1.5 text-base-content/75"><span>2 · Laisse tomber les filles</span><span class="tabular-nums">2:12</span></li>
-                <li class="flex justify-between py-1.5 text-base-content/75"><span>3 · Sacré Charlemagne</span><span class="tabular-nums">2:04</span></li>
-            </ol>
+            <div class="flex items-center gap-3 border-t border-base-300 pt-3">
+                <Avatar Color="Color.Secondary" Size="Size.Small">AS</Avatar>
+                <div class="min-w-0 text-sm">
+                    <span class="block truncate font-bold">Ana Silva</span>
+                    <span class="block text-xs text-base-content/70">Admin · online</span>
+                </div>
+                <Status Color="Color.Success" Animated="true" AriaLabel="Online" Class="ml-auto" />
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <Button Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" StartIcon="@Icons.Material.Filled.RocketLaunch" Class="w-full px-2">Deploy</Button>
+                <Button Color="Color.Dark" Variant="Variant.Outlined" Size="Size.Small" Class="w-full px-2">Logs</Button>
+            </div>
         </div>
     };
 

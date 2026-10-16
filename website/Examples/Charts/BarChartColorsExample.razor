@@ -1,12 +1,12 @@
-<BarChart Title="Returns by reason" Data="_returns" Height="12rem" />
+<BarChart Title="Support tickets by type" Data="_tickets" Height="12rem" />
 
 @code {
     // Any CSS colour works per point; theme tokens keep it right in every theme.
-    private readonly ChartDataPoint[] _returns =
+    private readonly ChartDataPoint[] _tickets =
     [
-        new("Warped", 18, ChartPalette.FromColor(Color.Error)),
-        new("Scratched", 11, ChartPalette.FromColor(Color.Warning)),
-        new("Wrong sleeve", 6, ChartPalette.FromColor(Color.Info)),
-        new("Changed mind", 4, "var(--color-neutral)"),
+        new("Bug", 18, ChartPalette.FromColor(Color.Error)),
+        new("Billing", 11, ChartPalette.FromColor(Color.Warning)),
+        new("How-to", 6, ChartPalette.FromColor(Color.Info)),
+        new("Feature request", 4, "var(--color-neutral)"),
     ];
 }

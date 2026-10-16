@@ -1,13 +1,13 @@
 <div class="grid w-full gap-4 sm:grid-cols-2">
-    <TextField Label="Artist" Placeholder="e.g. Françoise Hardy" @bind-Value="_artist" Immediate="true" />
-    <TextField Label="Album title" Placeholder="e.g. Comment te dire adieu" @bind-Value="_album" />
+    <TextField Label="Full name" Placeholder="e.g. Priya Nair" @bind-Value="_name" Immediate="true" />
+    <TextField Label="Company" Placeholder="e.g. Contoso" @bind-Value="_company" />
 </div>
 <p class="mt-3 text-sm">
-    Now playing: <span class="font-mono">@(_artist ?? "…")</span> — <span class="font-mono">@(_album ?? "…")</span>
+    Signing up: <span class="font-mono">@(_name ?? "…")</span> — <span class="font-mono">@(_company ?? "…")</span>
 </p>
-<p class="text-xs opacity-60">Artist updates as you type (Immediate); Album updates when the field loses focus.</p>
+<p class="text-xs opacity-60">Name updates as you type (Immediate); Company updates when the field loses focus.</p>
 
 @code {
-    private string? _artist = "Françoise Hardy";
-    private string? _album;
+    private string? _name = "Priya Nair";
+    private string? _company;
 }

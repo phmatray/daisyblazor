@@ -1,6 +1,6 @@
 @page "/charts"
 
-<DocShell Title="Charts" Tracks="G.Tracks" Trail="G.Trail" Portrait="Portrait" PortraitCaption="Weekly plays">
+<DocShell Title="Charts" Tracks="G.Tracks" Trail="G.Trail" Portrait="Portrait" PortraitCaption="Plan mix">
     <Lede>
         <code>DaisyBlazor.Charts</code> draws line, area, bar, pie, donut and sparkline charts as inline SVG computed in C#.
         No ApexCharts, no Chart.js, no JS interop, and every colour is a daisyUI theme token.
@@ -69,7 +69,7 @@
             </p>
 
             @H(4)
-            <p>Rendered live, then the code. Put on another theme from the top bar and watch the colours follow.</p>
+            <p>Rendered live, then the code. Switch to another theme from the top bar and watch the colours follow.</p>
         </div>
         <div class="mt-5 grid max-w-[70ch] gap-6 rounded-2xl border border-base-300 bg-base-100 p-6 sm:grid-cols-2">
             <LineChart Title="Weekly visitors" Labels="@Days" Series="@_traffic" Smooth Area Class="sm:col-span-2" />
@@ -119,19 +119,19 @@
 
     private readonly ChartDataPoint[] _breakdown = [new("Direct", 40), new("Search", 35), new("Social", 25)];
 
-    private readonly ChartDataPoint[] _plays = [new("Vinyl", 48), new("Streaming", 35), new("Cassette", 17)];
+    private readonly ChartDataPoint[] _plans = [new("Free", 48), new("Pro", 35), new("Enterprise", 17)];
 
     private RenderFragment Portrait => __builder =>
     {
         <div class="space-y-3">
-            <DonutChart Data="@_plays" CenterLabel="1,240" ShowLegend="false" Height="9.5rem" Title="Plays by format" />
+            <DonutChart Data="@_plans" CenterLabel="1,240" ShowLegend="false" Height="9.5rem" Title="Customers by plan" />
             <div class="grid grid-cols-2 gap-3 text-sm">
                 <div class="rounded-md bg-base-200 p-2">
-                    <span class="block font-semibold">Side A</span>
+                    <span class="block font-semibold">Signups</span>
                     <Sparkline Data="@(new double[] { 4, 6, 5, 9, 7, 11 })" Area Width="100%" />
                 </div>
                 <div class="rounded-md bg-base-200 p-2">
-                    <span class="block font-semibold">Side B</span>
+                    <span class="block font-semibold">Churn</span>
                     <Sparkline Data="@(new double[] { 8, 7, 9, 6, 8, 5 })" Color="var(--color-secondary)" Width="100%" />
                 </div>
             </div>

@@ -1,4 +1,4 @@
-<MockupWindow Title="Jukebox.exe" BorderColor="Color.Primary" Class="border-2 bg-base-200">
+<MockupWindow Title="Deployments" BorderColor="Color.Primary" Class="border-2 bg-base-200">
     <div class="w-full space-y-2">
         @foreach ((string slot, string title, bool on) in _slots)
         {
@@ -7,7 +7,7 @@
                 <span class="flex-1 truncate text-sm font-semibold">@title</span>
                 @if (on)
                 {
-                    <Icon Name="@Icons.Material.Filled.MusicNote" Size="Size.Small" />
+                    <Icon Name="@Icons.Material.Filled.RocketLaunch" Size="Size.Small" />
                 }
             </div>
         }
@@ -17,8 +17,8 @@
 @code {
     private readonly (string Slot, string Title, bool On)[] _slots =
     [
-        ("A1", "Bonjour bonjour", false),
-        ("A2", "La plage d'hiver", true),
-        ("B1", "Twist à Saint-Malo", false),
+        ("DEV", "api-gateway v2.5", false),
+        ("STG", "api-gateway v2.4", true),
+        ("PRD", "api-gateway v2.3", false),
     ];
 }

@@ -1,12 +1,12 @@
-<BarChart Title="Copies ordered by record shops, per city" Data="_cities" Horizontal="true" ShowGrid="false" Height="14rem" />
+<BarChart Title="Traffic by region (k requests per day)" Data="_regions" Horizontal="true" ShowGrid="false" Height="14rem" />
 
 @code {
-    private readonly ChartDataPoint[] _cities =
+    private readonly ChartDataPoint[] _regions =
     [
-        new("Paris", 1_240),
-        new("Lyon", 980),
-        new("Lille", 760),
-        new("Nantes", 610),
-        new("Nice", 420),
+        new("Europe", 1_240),
+        new("North America", 980),
+        new("Asia Pacific", 760),
+        new("South America", 610),
+        new("Africa", 420),
     ];
 }

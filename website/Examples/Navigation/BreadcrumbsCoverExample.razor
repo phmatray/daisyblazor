@@ -1,9 +1,9 @@
 <div class="flex flex-col gap-4">
     <Breadcrumbs Items="_crumbs" Class="text-base font-semibold" />
     <div class="rounded-box bg-primary p-5 text-primary-content">
-        <p class="text-xs font-bold uppercase tracking-widest opacity-80">Side A · Track 1</p>
-        <p class="mt-1 text-3xl font-bold leading-tight">Poupée de cire</p>
-        <p class="mt-2 text-sm opacity-80">France Gall · 1965</p>
+        <p class="text-xs font-bold uppercase tracking-widest opacity-80">Project · Sprint 14</p>
+        <p class="mt-1 text-3xl font-bold leading-tight">Checkout redesign</p>
+        <p class="mt-2 text-sm opacity-80">Contoso · due 30 June</p>
     </div>
     <Breadcrumbs Items="_short" Class="opacity-70" />
 </div>
@@ -12,14 +12,14 @@
     private readonly List<BreadcrumbItem> _crumbs =
     [
         new("Home", "#", Icon: Icons.Material.Filled.Home),
-        new("Vinyl", "#", Icon: Icons.Material.Filled.Album),
-        new("Yé-yé", null),
+        new("Projects", "#", Icon: Icons.Material.Filled.Folder),
+        new("Checkout redesign", null),
     ];
 
     private readonly List<BreadcrumbItem> _short =
     [
-        new("Artists", "#"),
-        new("France Gall", "#"),
-        new("Singles", null),
+        new("Customers", "#"),
+        new("Contoso", "#"),
+        new("Projects", null),
     ];
 }

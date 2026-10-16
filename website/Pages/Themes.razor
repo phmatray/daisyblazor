@@ -2,14 +2,14 @@
 @implements IDisposable
 @inject DocsJs Js
 
-<DocShell Title="The crate" PageTitle="Themes" Tracks="_tracks" Trail="_trail" Portrait="Portrait" PortraitCaption="@($"Now playing · N°{ThemeDeck.Number(Current)}")">
+<DocShell Title="Themes" Tracks="_tracks" Trail="_trail" Portrait="Portrait" PortraitCaption="Active theme">
     <Lede>
-        All @ThemeDeck.Themes.Count releases: the two DaisyBlazor themes and every built-in daisyUI theme. Each sleeve below
-        is rendered in its own theme with real components. Put one on and the whole site follows.
+        All @ThemeDeck.Themes.Count themes ship in the CSS preset: the two DaisyBlazor themes and every built-in daisyUI theme.
+        Each tile below is rendered in its own theme with real components. Click one and the whole site switches.
     </Lede>
     <ChildContent>
-        <section id="releases" class="scroll-mt-6">
-            <h2 class="sr-only">Releases</h2>
+        <section id="all-themes" class="scroll-mt-6">
+            <h2 class="sr-only">All themes</h2>
             <ul class="grid grid-cols-2 gap-4 sm:grid-cols-3 2xl:grid-cols-4">
                 @foreach (string t in ThemeDeck.Themes)
                 {
@@ -49,7 +49,7 @@
         }
         """;
 
-    private readonly List<Track> _tracks = [new("releases", "All releases"), new("use-one", "Use one in your app")];
+    private readonly List<Track> _tracks = [new("all-themes", "All themes"), new("use-one", "Use one in your app")];
     private readonly List<(string, string?)> _trail = [("Guides", "getting-started"), ("Themes", null)];
 
     private string Current => Provider?.Theme ?? ThemeDeck.Light;

@@ -1,29 +1,29 @@
 @inject ISnackbar Snackbar
 
-<DataTable T="Album" Items="_albums" Dense="true" PageSizeOptions="[5, 10]">
+<DataTable T="Project" Items="_projects" Dense="true" PageSizeOptions="[5, 10]">
     <Columns>
-        <PropertyColumn T="Album" TProperty="string" Property="a => a.Title" Title="Album" />
-        <PropertyColumn T="Album" TProperty="string" Property="a => a.Artist" Title="Artist" />
-        <PropertyColumn T="Album" TProperty="int" Property="a => a.Year" Title="Year" />
+        <PropertyColumn T="Project" TProperty="string" Property="p => p.Name" Title="Project" />
+        <PropertyColumn T="Project" TProperty="string" Property="p => p.Owner" Title="Owner" />
+        <PropertyColumn T="Project" TProperty="int" Property="p => p.OpenTasks" Title="Open tasks" />
     </Columns>
     <Actions>
-        <IconButton Icon="@Icons.Material.Filled.PlayArrow" Size="Size.Small" Title="Play"
-                    OnClick="@(() => Snackbar.Add($"Now playing {context.Title}"))" />
+        <IconButton Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" Title="Open"
+                    OnClick="@(() => Snackbar.Add($"Opening {context.Name}"))" />
         <IconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Title="Edit"
-                    OnClick="@(() => Snackbar.Add($"Editing {context.Title}"))" />
+                    OnClick="@(() => Snackbar.Add($"Editing {context.Name}"))" />
     </Actions>
 </DataTable>
 
 @code {
-    private record Album(string Title, string Artist, int Year);
+    private record Project(string Name, string Owner, int OpenTasks);
 
-    private readonly Album[] _albums =
+    private readonly Project[] _projects =
     [
-        new("Histoire de Melody Nelson", "Serge Gainsbourg", 1971),
-        new("Tous les garçons et les filles", "Françoise Hardy", 1962),
-        new("Baby Pop", "France Gall", 1966),
-        new("Jane Birkin / Serge Gainsbourg", "Jane Birkin", 1969),
-        new("Jacques Dutronc", "Jacques Dutronc", 1966),
-        new("Sylvie", "Sylvie Vartan", 1962),
+        new("Billing revamp", "Ana Silva", 14),
+        new("Mobile app", "Tom Becker", 27),
+        new("Customer portal", "Priya Nair", 9),
+        new("Status page", "Lucas Martin", 3),
+        new("Data export API", "Mei Chen", 18),
+        new("Onboarding flow", "Omar Haddad", 6),
     ];
 }

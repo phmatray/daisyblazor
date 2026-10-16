@@ -1,23 +1,23 @@
 <ExpansionPanels>
-    @foreach ((string title, int tracks, string year) in _albums)
+    @foreach ((string title, int tasks, string due) in _projects)
     {
         <ExpansionPanel>
             <TitleContent>
                 <span class="flex-1">@title</span>
-                <Badge Inline="true" Color="Color.Secondary">@year</Badge>
+                <Badge Inline="true" Color="Color.Secondary">@due</Badge>
             </TitleContent>
             <ChildContent>
-                @tracks tracks, remastered from the original tapes.
+                @tasks open tasks, assigned across the team.
             </ChildContent>
         </ExpansionPanel>
     }
 </ExpansionPanels>
 
 @code {
-    private readonly (string Title, int Tracks, string Year)[] _albums =
+    private readonly (string Title, int Tasks, string Due)[] _projects =
     [
-        ("Ciné-club", 12, "1966"),
-        ("La plage d'hiver", 10, "1967"),
-        ("Au revoir, Paris", 11, "1969"),
+        ("Billing revamp", 12, "Q4"),
+        ("Mobile app", 10, "Q1"),
+        ("SSO for Enterprise", 11, "Q2"),
     ];
 }

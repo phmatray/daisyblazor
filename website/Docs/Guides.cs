@@ -1,9 +1,9 @@
 namespace DaisyBlazor.Docs.Docs;
 
-/// <summary>A guide page in the "Start here" side of the record.</summary>
+/// <summary>A guide page.</summary>
 public sealed record GuideDoc(string Title, string Url, string Summary, params string[] Sections)
 {
-    /// <summary>The sections as sleeve tracks; a guide page renders one h2 per track, so search and page stay in sync.</summary>
+    /// <summary>The sections as jump links; a guide page renders one h2 per section, so search and page stay in sync.</summary>
     public IReadOnlyList<Track> Tracks { get; } = Sections.Select(Track.Of).ToArray();
 
     /// <summary>Breadcrumb for the guide page.</summary>
@@ -37,6 +37,6 @@ public static class Guides
             "The approach", "The shared enums", "Icons", "Dialogs", "Snackbar", "Setup deltas",
             "Component name map", "Beyond MudBlazor", "Migration recipe"),
         new("Themes", "themes",
-            "Every release in the crate: all 37 themes rendered live, side by side."),
+            "All 37 themes rendered live, side by side; switch the whole site with one click."),
     ];
 }

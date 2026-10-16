@@ -1,9 +1,9 @@
 <div class="grid w-full gap-x-4 sm:grid-cols-3">
-    <DatePicker Label="Disabled" Date="new DateTime(1965, 1, 1)" Disabled="true" />
-    <DatePicker Label="Read-only" Date="new DateTime(1966, 9, 9)" ReadOnly="true" />
+    <DatePicker Label="Disabled" Date="new DateTime(2025, 1, 1)" Disabled="true" />
+    <DatePicker Label="Read-only" Date="new DateTime(2025, 9, 9)" ReadOnly="true" />
     <DatePicker Label="Picker only" @bind-Date="_date" Editable="false" Dense="true" />
 </div>
 
 @code {
-    private DateTime? _date = new DateTime(1968, 5, 10);
+    private DateTime? _date = new DateTime(2026, 5, 10);
 }

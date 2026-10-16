@@ -6,11 +6,11 @@
 </div>
 
 @code {
-    private enum Shipment { Pressing, Shipped, Delivered, Delayed, Lost }
+    private enum Shipment { Processing, Shipped, Delivered, Delayed, Lost }
 
     // Declare the status → colour/icon mapping once and reuse it in lists, cards and detail views.
     private static readonly StatusMap ShipmentStatus = StatusMap.For<Shipment>()
-        .Add(Shipment.Pressing, Color.Info, Icons.Material.Filled.Album)
+        .Add(Shipment.Processing, Color.Info, Icons.Material.Filled.Autorenew)
         .Add(Shipment.Shipped, Color.Primary, Icons.Material.Filled.LocalShipping)
         .Add(Shipment.Delivered, Color.Success, Icons.Material.Filled.CheckCircle)
         .Add(Shipment.Delayed, Color.Warning, Icons.Material.Filled.Schedule)

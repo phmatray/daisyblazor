@@ -8,7 +8,7 @@
 </div>
 
 @code {
-    private void Sticky() => Snackbar.Add("Mastering finished. Review it before it ships.", Severity.Info,
+    private void Sticky() => Snackbar.Add("Export finished. Review it before you share it.", Severity.Info,
         o => o.VisibleStateDuration = 30_000);
 
     private void Brief() => Snackbar.Add("Copied link", Severity.Success, o =>
@@ -17,5 +17,5 @@
         o.ShowCloseIcon = false;
     });
 
-    private void Repeat() => Snackbar.Add("Track queued", Severity.Normal, o => o.PreventDuplicates = false);
+    private void Repeat() => Snackbar.Add("Task added", Severity.Normal, o => o.PreventDuplicates = false);
 }

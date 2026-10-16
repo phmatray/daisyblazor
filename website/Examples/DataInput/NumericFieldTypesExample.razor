@@ -1,13 +1,13 @@
 <div class="grid w-full gap-x-4 sm:grid-cols-3">
-    <NumericField T="int" Label="Tracks (int)" @bind-Value="_tracks" Min="1" Max="24" />
-    <NumericField T="decimal" Label="Weight (decimal)" @bind-Value="_weight" Step="0.01m"
-                  Adornment="Adornment.End" AdornmentText="kg" />
-    <NumericField T="int?" Label="Chart peak (int?)" @bind-Value="_peak" Placeholder="Not charted" />
+    <NumericField T="int" Label="Seats (int)" @bind-Value="_seats" Min="1" Max="24" />
+    <NumericField T="decimal" Label="Storage (decimal)" @bind-Value="_storage" Step="0.01m"
+                  Adornment="Adornment.End" AdornmentText="TB" />
+    <NumericField T="int?" Label="Max retries (int?)" @bind-Value="_retries" Placeholder="No limit" />
 </div>
-<p class="mt-3 font-mono text-sm">tracks=@_tracks · weight=@_weight · peak=@(_peak?.ToString() ?? "null")</p>
+<p class="mt-3 font-mono text-sm">seats=@_seats · storage=@_storage · retries=@(_retries?.ToString() ?? "null")</p>
 
 @code {
-    private int _tracks = 12;
-    private decimal _weight = 0.18m;
-    private int? _peak;
+    private int _seats = 12;
+    private decimal _storage = 0.25m;
+    private int? _retries;
 }

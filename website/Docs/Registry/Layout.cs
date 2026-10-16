@@ -126,7 +126,7 @@ public static partial class DocRegistry
             Playground = new(typeof(Paper), "Elevation", "Outlined", "Square")
             {
                 Initial = new Dictionary<string, object?> { ["Elevation"] = 6, ["Class"] = "px-10 py-8 font-display text-xl font-semibold" },
-                ChildText = "Side A, track 1",
+                ChildText = "Monthly report",
             },
         },
 
@@ -135,7 +135,7 @@ public static partial class DocRegistry
             [typeof(Mask)],
             [
                 new("Shapes", "Every MaskShape value; give the mask a size and a background or an image.", typeof(MaskShapesExample)),
-                new("Around content", "Any content can be clipped, such as initials for artist avatars.", typeof(MaskContentExample)),
+                new("Around content", "Any content can be clipped, such as initials for team avatars.", typeof(MaskContentExample)),
                 new("Half masks", "Half 1 and 2 keep the left or right half of the shape, which is how half-star scores are built.", typeof(MaskHalfExample)),
             ])
         {
@@ -144,7 +144,7 @@ public static partial class DocRegistry
             Playground = new(typeof(Mask), "Shape")
             {
                 Initial = new Dictionary<string, object?> { ["Shape"] = MaskShape.Heart, ["Class"] = "grid size-40 place-items-center bg-primary font-display text-xl font-bold text-primary-content" },
-                ChildText = "Side A",
+                ChildText = "Pro",
             },
         },
 
@@ -177,9 +177,9 @@ public static partial class DocRegistry
             {
                 Initial = new Dictionary<string, object?>
                 {
-                    ["Title"] = "Discography",
-                    ["Subtitle"] = "Every record on the label",
-                    ["Icon"] = Icons.Material.Filled.LibraryMusic,
+                    ["Title"] = "Projects",
+                    ["Subtitle"] = "Every project in your workspace",
+                    ["Icon"] = Icons.Material.Filled.Folder,
                     ["HeadingLevel"] = 3,
                 },
             },
@@ -208,8 +208,8 @@ public static partial class DocRegistry
             Portrait = typeof(SectionCardCoverExample),
             Playground = new(typeof(SectionCard), "Title", "Icon", "ShowDivider", "TitleTypo", "Elevation")
             {
-                Initial = new Dictionary<string, object?> { ["Title"] = "Liner notes", ["Icon"] = Icons.Material.Filled.Album, ["Class"] = "max-w-sm" },
-                ChildText = "Recorded live in one afternoon at a small Paris studio, spring 1966.",
+                Initial = new Dictionary<string, object?> { ["Title"] = "Release notes", ["Icon"] = Icons.Material.Filled.Description, ["Class"] = "max-w-sm" },
+                ChildText = "Version 2.4 brings faster deploys and a new billing page.",
             },
         },
     ];

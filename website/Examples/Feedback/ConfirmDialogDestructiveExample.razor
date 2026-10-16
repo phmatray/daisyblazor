@@ -1,18 +1,18 @@
 @inject IDialogService DialogService
 
 <div class="flex flex-wrap items-center gap-3">
-    <Button Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" OnClick="DeleteAsync">Delete playlist</Button>
+    <Button Color="Color.Error" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" OnClick="DeleteAsync">Delete project</Button>
     <span class="text-sm text-base-content/70">@_status</span>
 </div>
 
 @code {
-    private string _status = "“Summer ’67” · 24 tracks";
+    private string _status = "“Website redesign” · 24 tasks";
 
     private async Task DeleteAsync()
     {
-        IDialogReference dialog = await DialogService.ShowAsync<ConfirmDialog>("Delete “Summer ’67”?", new DialogParameters<ConfirmDialog>
+        IDialogReference dialog = await DialogService.ShowAsync<ConfirmDialog>("Delete “Website redesign”?", new DialogParameters<ConfirmDialog>
         {
-            { x => x.ContentText, "The playlist and its 24 tracks will be gone for good." },
+            { x => x.ContentText, "The project and its 24 tasks will be gone for good." },
             { x => x.ButtonText, "Delete" },
             { x => x.Color, Color.Error },
         });

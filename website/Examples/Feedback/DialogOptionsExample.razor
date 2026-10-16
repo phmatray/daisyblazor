@@ -6,11 +6,11 @@
 </div>
 
 @code {
-    private Task WideAsync() => DialogService.ShowAsync<MessageBoxDialog>("Liner notes",
-        new DialogParameters { ["Message"] = "Recorded at Studio Barclay, Paris, in the spring of 1968. Arrangements by Jean-Claude Vannier." },
+    private Task WideAsync() => DialogService.ShowAsync<MessageBoxDialog>("Release notes",
+        new DialogParameters { ["Message"] = "Version 2.4 adds single sign-on, audit logs and a faster dashboard. It rolls out to every region this week." },
         new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseButton = true });
 
-    private Task StrictAsync() => DialogService.ShowAsync<MessageBoxDialog>("Terms of sale",
-        new DialogParameters { ["Message"] = "Please read and accept before checkout.", ["YesText"] = "I accept" },
+    private Task StrictAsync() => DialogService.ShowAsync<MessageBoxDialog>("Terms of service",
+        new DialogParameters { ["Message"] = "Please read and accept before you upgrade.", ["YesText"] = "I accept" },
         new DialogOptions { BackdropClick = false, CloseOnEscapeKey = false });
 }

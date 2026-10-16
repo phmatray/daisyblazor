@@ -1,27 +1,27 @@
 @* Items + HeaderContent (Th) + RowTemplate (Td): the MudTable shape, rendered as a daisyUI table. *@
-<Table Items="_releases">
+<Table Items="_invoices">
     <HeaderContent>
-        <Th>Title</Th>
-        <Th>Artist</Th>
-        <Th>Year</Th>
-        <Th Class="text-right">Price</Th>
+        <Th>Invoice</Th>
+        <Th>Customer</Th>
+        <Th>Plan</Th>
+        <Th Class="text-right">Amount</Th>
     </HeaderContent>
     <RowTemplate>
-        <Td DataLabel="Title" Class="font-semibold">@context.Title</Td>
-        <Td DataLabel="Artist">@context.Artist</Td>
-        <Td DataLabel="Year">@context.Year</Td>
-        <Td DataLabel="Price" Class="text-right font-mono">@context.Price.ToString("€0.00")</Td>
+        <Td DataLabel="Invoice" Class="font-semibold">@context.Number</Td>
+        <Td DataLabel="Customer">@context.Customer</Td>
+        <Td DataLabel="Plan">@context.Plan</Td>
+        <Td DataLabel="Amount" Class="text-right font-mono">@context.Amount.ToString("€0.00")</Td>
     </RowTemplate>
 </Table>
 
 @code {
-    private record Release(string Title, string Artist, int Year, decimal Price);
+    private record Invoice(string Number, string Customer, string Plan, decimal Amount);
 
-    private readonly Release[] _releases =
+    private readonly Invoice[] _invoices =
     [
-        new("Poupée de cire, poupée de son", "France Gall", 1965, 18.50m),
-        new("Comment te dire adieu", "Françoise Hardy", 1968, 21.00m),
-        new("Initials B.B.", "Serge Gainsbourg", 1968, 24.90m),
-        new("Laisse tomber les filles", "France Gall", 1964, 16.00m),
+        new("INV-2084", "Northwind Traders", "Enterprise", 1250.00m),
+        new("INV-2085", "Contoso", "Pro", 290.00m),
+        new("INV-2086", "Fabrikam", "Pro", 145.50m),
+        new("INV-2087", "Initech", "Free", 0.00m),
     ];
 }

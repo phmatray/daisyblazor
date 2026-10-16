@@ -1,12 +1,12 @@
 <div class="flex flex-wrap items-center gap-4">
-    <ToggleGroup T="string" @bind-Value="_format">
-        <ToggleItem Value="@("single")" Text="Single" />
-        <ToggleItem Value="@("ep")" Text="EP" />
-        <ToggleItem Value="@("lp")" Text="LP" />
+    <ToggleGroup T="string" @bind-Value="_range">
+        <ToggleItem Value="@("day")" Text="Day" />
+        <ToggleItem Value="@("week")" Text="Week" />
+        <ToggleItem Value="@("month")" Text="Month" />
     </ToggleGroup>
-    <span class="text-sm">Showing: <strong>@_format?.ToUpperInvariant()</strong></span>
+    <span class="text-sm">Showing: <strong class="capitalize">@_range</strong></span>
 </div>
 
 @code {
-    private string? _format = "lp";
+    private string? _range = "month";
 }

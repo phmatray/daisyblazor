@@ -1,6 +1,6 @@
 @* Without Title/Icon, a ListRow renders your own columns; list-col-grow takes the slack. *@
 <List Shadowed="true" Class="w-full max-w-md">
-    @foreach ((string name, string role, string img) in _band)
+    @foreach ((string name, string role, string img) in _team)
     {
         <ListRow>
             <Avatar Image="@img" Alt="@name" Size="Size.Small" />
@@ -8,17 +8,17 @@
                 <div class="font-semibold">@name</div>
                 <div class="text-xs uppercase opacity-60">@role</div>
             </div>
-            <IconButton Icon="@Icons.Material.Filled.PlayArrow" Title="Play" />
-            <IconButton Icon="@Icons.Material.Filled.Favorite" Title="Like" />
+            <IconButton Icon="@Icons.Material.Filled.Mail" Title="Message" />
+            <IconButton Icon="@Icons.Material.Filled.Favorite" Title="Favourite" />
         </ListRow>
     }
 </List>
 
 @code {
-    private readonly (string, string, string)[] _band =
+    private readonly (string, string, string)[] _team =
     [
-        ("Margot Lenoir", "Vocals", "https://img.daisyui.com/images/profile/demo/yellingcat@192.webp"),
-        ("Serge Dumas", "Organ", "https://img.daisyui.com/images/profile/demo/spiderperson@192.webp"),
-        ("Claude Morel", "Drums", "https://img.daisyui.com/images/profile/demo/batperson@192.webp"),
+        ("Ana Silva", "Engineering", "https://img.daisyui.com/images/profile/demo/yellingcat@192.webp"),
+        ("Tom Becker", "Design", "https://img.daisyui.com/images/profile/demo/spiderperson@192.webp"),
+        ("Priya Nair", "Support", "https://img.daisyui.com/images/profile/demo/batperson@192.webp"),
     ];
 }

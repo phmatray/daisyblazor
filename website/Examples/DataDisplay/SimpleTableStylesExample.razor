@@ -7,12 +7,12 @@
 </div>
 <SimpleTable Striped="_striped" Hover="_hover" Dense="_dense" Bordered="_bordered">
     <thead>
-        <tr><th>Artist</th><th>Label</th><th>Debut</th></tr>
+        <tr><th>Customer</th><th>Plan</th><th>Since</th></tr>
     </thead>
     <tbody>
-        @foreach ((string artist, string label, int year) in _rows)
+        @foreach ((string customer, string plan, int year) in _rows)
         {
-            <tr><td>@artist</td><td>@label</td><td>@year</td></tr>
+            <tr><td>@customer</td><td>@plan</td><td>@year</td></tr>
         }
     </tbody>
 </SimpleTable>
@@ -22,7 +22,7 @@
 
     private readonly (string, string, int)[] _rows =
     [
-        ("France Gall", "Philips", 1963), ("Françoise Hardy", "Vogue", 1962),
-        ("Sylvie Vartan", "RCA", 1961), ("Jacques Dutronc", "Vogue", 1966),
+        ("Northwind Traders", "Enterprise", 2021), ("Contoso", "Pro", 2022),
+        ("Fabrikam", "Pro", 2023), ("Initech", "Free", 2024),
     ];
 }

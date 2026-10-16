@@ -1,39 +1,39 @@
 <FilterPanel ActiveFilters="_active" OnApply="Apply" OnClear="Clear" OnRemoveFilter="Remove">
     <Item xs="12" sm="6">
-        <TextField Label="Artist" Placeholder="Françoise Hardy" @bind-Value="_artist" />
+        <TextField Label="Customer" Placeholder="Northwind Traders" @bind-Value="_customer" />
     </Item>
     <Item xs="12" sm="6">
-        <Select T="string" Label="Format" @bind-Value="_format">
-            <SelectItem T="string" Value="@("Vinyl")">Vinyl</SelectItem>
-            <SelectItem T="string" Value="@("CD")">CD</SelectItem>
-            <SelectItem T="string" Value="@("Digital")">Digital</SelectItem>
+        <Select T="string" Label="Plan" @bind-Value="_plan">
+            <SelectItem T="string" Value="@("Free")">Free</SelectItem>
+            <SelectItem T="string" Value="@("Pro")">Pro</SelectItem>
+            <SelectItem T="string" Value="@("Enterprise")">Enterprise</SelectItem>
         </Select>
     </Item>
 </FilterPanel>
 
 @code {
-    private string? _artist;
-    private string? _format = "Vinyl";
-    private List<ActiveFilter> _active = [new("format", "Format: Vinyl")];
+    private string? _customer;
+    private string? _plan = "Pro";
+    private List<ActiveFilter> _active = [new("plan", "Plan: Pro")];
 
     private void Apply()
     {
         _active = [];
-        if (!string.IsNullOrWhiteSpace(_artist)) _active.Add(new("artist", $"Artist: {_artist}"));
-        if (_format is not null) _active.Add(new("format", $"Format: {_format}"));
+        if (!string.IsNullOrWhiteSpace(_customer)) _active.Add(new("customer", $"Customer: {_customer}"));
+        if (_plan is not null) _active.Add(new("plan", $"Plan: {_plan}"));
     }
 
     private void Clear()
     {
-        _artist = null;
-        _format = null;
+        _customer = null;
+        _plan = null;
         _active = [];
     }
 
     private void Remove(ActiveFilter filter)
     {
-        if (filter.Key == "artist") _artist = null;
-        if (filter.Key == "format") _format = null;
+        if (filter.Key == "customer") _customer = null;
+        if (filter.Key == "plan") _plan = null;
         _active.Remove(filter);
     }
 }

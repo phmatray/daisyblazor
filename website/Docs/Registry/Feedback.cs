@@ -22,7 +22,7 @@ public static partial class DocRegistry
             Playground = new(typeof(Alert), "Severity", "Variant", "Dense", "NoIcon", "Icon")
             {
                 Initial = new Dictionary<string, object?> { ["Severity"] = Severity.Success },
-                ChildText = "Your test pressing is on its way.",
+                ChildText = "Your invoice is on its way.",
             },
         },
 
@@ -82,12 +82,12 @@ public static partial class DocRegistry
         },
 
         new("RadialProgress", Category.Feedback,
-            "A daisyUI ring that fills to Value percent, with the percentage in the middle unless you supply your own content. Good for scores, quotas and playback.",
+            "A daisyUI ring that fills to Value percent, with the percentage in the middle unless you supply your own content. Good for scores, quotas and timers.",
             [typeof(RadialProgress)],
             [
                 new("Values and colors", "Value runs from 0 to 100; Color tints the ring and its label.", typeof(RadialProgressValuesExample)),
                 new("Size and thickness", "SizeRem and Thickness take any CSS length.", typeof(RadialProgressSizeExample)),
-                new("Custom content", "ChildContent replaces the percentage, here with elapsed time on a 3:34 track.", typeof(RadialProgressContentExample)),
+                new("Custom content", "ChildContent replaces the percentage, here with elapsed time on a 3:34 build.", typeof(RadialProgressContentExample)),
             ])
         {
             DaisyClass = "radial-progress",
@@ -132,7 +132,7 @@ public static partial class DocRegistry
             Portrait = typeof(TooltipCoverExample),
             Playground = new(typeof(Tooltip), "Text", "Placement")
             {
-                Initial = new Dictionary<string, object?> { ["Text"] = "Released in 1967", ["Class"] = "tooltip-open" },
+                Initial = new Dictionary<string, object?> { ["Text"] = "Last deployed 2 hours ago", ["Class"] = "tooltip-open" },
                 ChildText = "Hover me",
             },
         },
@@ -142,7 +142,7 @@ public static partial class DocRegistry
             [typeof(Dialog), typeof(MessageBoxDialog), typeof(DialogProvider)],
             [
                 new("Message box", "ShowMessageBoxAsync returns true for yes, false for no and null when cancelled or dismissed.", typeof(DialogMessageBoxExample)),
-                new("A dialog component", "Lay out the content with Dialog's DialogContent and DialogActions, then close through the cascaded IMudDialogInstance.", typeof(DialogTrackEditorExample)),
+                new("A dialog component", "Lay out the content with Dialog's DialogContent and DialogActions, then close through the cascaded IMudDialogInstance.", typeof(DialogTaskEditorExample)),
                 new("Open it with ShowAsync", "Pass parameters with DialogParameters<T> and await the result.", typeof(DialogShowAsyncExample)),
                 new("Options", "DialogOptions sets the width, the close button and whether the backdrop or Escape dismisses it.", typeof(DialogOptionsExample)),
             ])
@@ -193,9 +193,9 @@ public static partial class DocRegistry
             {
                 Initial = new Dictionary<string, object?>
                 {
-                    ["Message"] = "No records yet",
-                    ["Icon"] = Icons.Material.Filled.Album,
-                    ["Subtitle"] = "Your purchases will appear here.",
+                    ["Message"] = "No invoices yet",
+                    ["Icon"] = Icons.Material.Filled.ReceiptLong,
+                    ["Subtitle"] = "Invoices will appear here once you subscribe.",
                 },
             },
         },
@@ -213,7 +213,7 @@ public static partial class DocRegistry
             Portrait = typeof(ErrorAlertCoverExample),
             Playground = new(typeof(ErrorAlert), "Message")
             {
-                Initial = new Dictionary<string, object?> { ["Message"] = "The pressing plant did not respond. Try again in a minute." },
+                Initial = new Dictionary<string, object?> { ["Message"] = "The payment provider did not respond. Try again in a minute." },
             },
         },
     ];

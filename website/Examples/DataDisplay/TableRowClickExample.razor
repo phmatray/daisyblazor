@@ -1,23 +1,23 @@
 @* OnRowClick makes rows clickable and hands you the item and its row index. *@
-<Table Items="_artists" OnRowClick="(TableRowClickEventArgs<Artist> e) => _selected = e.Item">
+<Table Items="_customers" OnRowClick="(TableRowClickEventArgs<Customer> e) => _selected = e.Item">
     <HeaderContent>
-        <Th>Artist</Th>
-        <Th>Label</Th>
+        <Th>Customer</Th>
+        <Th>Plan</Th>
     </HeaderContent>
     <RowTemplate>
         <Td class="@(context == _selected ? "font-bold text-primary" : null)">@context.Name</Td>
-        <Td>@context.Label</Td>
+        <Td>@context.Plan</Td>
     </RowTemplate>
 </Table>
 <p class="mt-3 text-sm text-base-content/70">Selected: @(_selected?.Name ?? "click a row")</p>
 
 @code {
-    private record Artist(string Name, string Label);
+    private record Customer(string Name, string Plan);
 
-    private readonly Artist[] _artists =
+    private readonly Customer[] _customers =
     [
-        new("France Gall", "Philips"), new("Françoise Hardy", "Vogue"), new("Sylvie Vartan", "RCA"),
+        new("Northwind Traders", "Enterprise"), new("Contoso", "Pro"), new("Fabrikam", "Free"),
     ];
 
-    private Artist? _selected;
+    private Customer? _selected;
 }

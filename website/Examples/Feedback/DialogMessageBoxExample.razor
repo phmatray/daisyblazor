@@ -11,14 +11,14 @@
 
     private async Task InfoAsync()
     {
-        await DialogService.ShowMessageBoxAsync("Pre-order confirmed", "We will email you when “Histoire de Melody Nelson” ships.");
+        await DialogService.ShowMessageBoxAsync("Order confirmed", "We will email you when invoice INV-1042 is ready.");
         _result = "acknowledged";
     }
 
     private async Task YesNoAsync()
     {
         bool? answer = await DialogService.ShowMessageBoxAsync(
-            "Save changes?", "You edited the tracklist of this playlist.",
+            "Save changes?", "You edited the tasks in this sprint.",
             yesText: "Save", noText: "Discard", cancelText: "Cancel");
 
         _result = answer switch { true => "saved", false => "discarded", null => "cancelled" };

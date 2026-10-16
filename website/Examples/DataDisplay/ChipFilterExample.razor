@@ -1,22 +1,22 @@
 @* OnClick turns the chip into a button, handy for filter toggles. *@
 <div class="flex flex-col gap-3">
     <div class="flex flex-wrap gap-2">
-        @foreach (string genre in Genres)
+        @foreach (string env in Environments)
         {
-            bool on = _selected.Contains(genre);
-            <Chip Text="@genre" Color="@(on ? Color.Primary : Color.Default)" Variant="@(on ? Variant.Filled : Variant.Outlined)"
-                  Icon="@(on ? Icons.Material.Filled.Check : null)" Size="Size.Large" OnClick="() => Toggle(genre)" />
+            bool on = _selected.Contains(env);
+            <Chip Text="@env" Color="@(on ? Color.Primary : Color.Default)" Variant="@(on ? Variant.Filled : Variant.Outlined)"
+                  Icon="@(on ? Icons.Material.Filled.Check : null)" Size="Size.Large" OnClick="() => Toggle(env)" />
         }
     </div>
     <p class="text-sm text-base-content/70">Showing: @(_selected.Count == 0 ? "everything" : string.Join(", ", _selected))</p>
 </div>
 
 @code {
-    private static readonly string[] Genres = ["Yé-yé", "Chanson", "Jazz", "Bossa nova", "Psychedelic"];
-    private readonly HashSet<string> _selected = ["Yé-yé"];
+    private static readonly string[] Environments = ["Production", "Staging", "Dev", "Preview", "Sandbox"];
+    private readonly HashSet<string> _selected = ["Production"];
 
-    private void Toggle(string genre)
+    private void Toggle(string env)
     {
-        if (!_selected.Remove(genre)) _selected.Add(genre);
+        if (!_selected.Remove(env)) _selected.Add(env);
     }
 }

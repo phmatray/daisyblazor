@@ -9,10 +9,10 @@
 </div>
 
 @code {
-    private enum Shipment { Pressing, Shipped, Delivered, Delayed }
+    private enum Shipment { Processing, Shipped, Delivered, Delayed }
 
     private static readonly StatusMap ShipmentStatus = StatusMap.For<Shipment>()
-        .Add(Shipment.Pressing, Color.Info, Icons.Material.Filled.Album)
+        .Add(Shipment.Processing, Color.Info, Icons.Material.Filled.Autorenew)
         .Add(Shipment.Shipped, Color.Primary, Icons.Material.Filled.LocalShipping)
         .Add(Shipment.Delivered, Color.Success, Icons.Material.Filled.CheckCircle)
         .Add(Shipment.Delayed, Color.Warning, Icons.Material.Filled.Schedule)
@@ -20,9 +20,9 @@
 
     private readonly (string, Shipment)[] _orders =
     [
-        ("Melody Nelson", Shipment.Delivered),
-        ("Baby Pop", Shipment.Shipped),
-        ("La Question", Shipment.Pressing),
-        ("Comic Strip", Shipment.Delayed),
+        ("#ORD-1042 · Contoso", Shipment.Delivered),
+        ("#ORD-1043 · Fabrikam", Shipment.Shipped),
+        ("#ORD-1044 · Globex", Shipment.Processing),
+        ("#ORD-1045 · Initech", Shipment.Delayed),
     ];
 }

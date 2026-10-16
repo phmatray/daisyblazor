@@ -1,38 +1,38 @@
-<DataGrid T="Artist" ServerDataFunc="LoadAsync" RowsPerPage="5" Hover="true">
+<DataGrid T="Account" ServerDataFunc="LoadAsync" RowsPerPage="5" Hover="true">
     <Columns>
-        <PropertyColumn T="Artist" TProperty="int" Property="a => a.Rank" Title="#" />
-        <PropertyColumn T="Artist" TProperty="string" Property="a => a.Name" Title="Artist" />
-        <PropertyColumn T="Artist" TProperty="int" Property="a => a.Listeners" Title="Monthly listeners" Format="N0" />
+        <PropertyColumn T="Account" TProperty="int" Property="a => a.Rank" Title="#" />
+        <PropertyColumn T="Account" TProperty="string" Property="a => a.Company" Title="Company" />
+        <PropertyColumn T="Account" TProperty="int" Property="a => a.ActiveUsers" Title="Active users" Format="N0" />
     </Columns>
     <PagerContent>
-        <DataGridPager T="Artist" PageSizeOptions="[5, 10]" />
+        <DataGridPager T="Account" PageSizeOptions="[5, 10]" />
     </PagerContent>
 </DataGrid>
 
 @code {
-    private record Artist(int Rank, string Name, int Listeners);
+    private record Account(int Rank, string Company, int ActiveUsers);
 
-    private static readonly string[] Names =
+    private static readonly string[] Companies =
     [
-        "Françoise Hardy", "Serge Gainsbourg", "France Gall", "Jacques Dutronc", "Sylvie Vartan",
-        "Johnny Hallyday", "Brigitte Bardot", "Jane Birkin", "Sheila", "Claude François",
-        "Michel Polnareff", "Nino Ferrer",
+        "Globex", "Northwind Traders", "Contoso", "Fabrikam", "Umbrella Corp",
+        "Initech", "Adventure Works", "Tailspin Toys", "Wide World Importers", "Litware",
+        "Proseware", "Woodgrove Bank",
     ];
 
     // Stands in for a database or API: the grid only asks for the page it is showing.
-    private static readonly Artist[] Database = Names
-        .Select((n, i) => new Artist(i + 1, n, 4_800_000 - i * 310_000))
+    private static readonly Account[] Database = Companies
+        .Select((n, i) => new Account(i + 1, n, 48_000 - i * 3_100))
         .ToArray();
 
-    private async Task<GridData<Artist>> LoadAsync(GridState<Artist> state)
+    private async Task<GridData<Account>> LoadAsync(GridState<Account> state)
     {
         await Task.Delay(300);
-        IEnumerable<Artist> rows = Database;
-        foreach (SortDefinition<Artist> sort in state.SortDefinitions)
+        IEnumerable<Account> rows = Database;
+        foreach (SortDefinition<Account> sort in state.SortDefinitions)
         {
             rows = sort.Descending ? rows.OrderByDescending(sort.SortFunc) : rows.OrderBy(sort.SortFunc);
         }
-        return new GridData<Artist>
+        return new GridData<Account>
         {
             Items = rows.Skip(state.Page * state.PageSize).Take(state.PageSize).ToList(),
             TotalItems = Database.Length,

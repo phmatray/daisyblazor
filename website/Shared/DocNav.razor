@@ -1,7 +1,7 @@
 @* Side navigation: guides, then every category with its components. *@
 
 <nav class="text-[0.95rem]" aria-label="Documentation sections">
-    <span class="mb-2 block text-sm font-bold text-base-content/60">Side A · Guides</span>
+    <span class="mb-2 block text-sm font-bold text-base-content/60">Guides</span>
     <ul class="mb-7 space-y-0.5">
         @foreach (GuideDoc g in Guides.All)
         {
@@ -10,7 +10,7 @@
     </ul>
 
     <span class="mb-2 block text-sm font-bold text-base-content/60">
-        <NavLink href="components" Match="NavLinkMatch.All" class="hover:text-base-content">Side B · Components</NavLink>
+        <NavLink href="components" Match="NavLinkMatch.All" class="hover:text-base-content">Components</NavLink>
     </span>
     @foreach (IGrouping<Category, ComponentDoc> group in DocRegistry.ByCategory())
     {

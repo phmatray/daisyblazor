@@ -1,12 +1,12 @@
-<LineChart Area="true" Title="Units by format (thousands)" Labels="_months" Series="_formats" ShowPoints="true" />
+<LineChart Area="true" Title="Active users by plan (thousands)" Labels="_months" Series="_plans" ShowPoints="true" />
 
 @code {
     private readonly string[] _months = ["Apr", "May", "Jun", "Jul", "Aug", "Sep"];
 
-    private readonly ChartSeries[] _formats =
+    private readonly ChartSeries[] _plans =
     [
-        new("Digital", [41, 44, 47, 52, 50, 58]),
-        new("Vinyl", [28, 30, 35, 33, 38, 42]),
-        new("CD", [19, 17, 18, 15, 14, 13]),
+        new("Free", [41, 44, 47, 52, 50, 58]),
+        new("Pro", [28, 30, 35, 33, 38, 42]),
+        new("Enterprise", [9, 10, 12, 13, 15, 17]),
     ];
 }

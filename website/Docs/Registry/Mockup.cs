@@ -19,8 +19,8 @@ public static partial class DocRegistry
             Portrait = typeof(MockupBrowserCoverExample),
             Playground = new(typeof(MockupBrowser), "Url", "BorderColor")
             {
-                Initial = new Dictionary<string, object?> { ["Url"] = "https://disques-soleil.fr", ["BorderColor"] = Color.Primary, ["Class"] = "w-full max-w-md border-2" },
-                ChildText = "Twelve thousand records, sorted by hand.",
+                Initial = new Dictionary<string, object?> { ["Url"] = "https://acme.cloud", ["BorderColor"] = Color.Primary, ["Class"] = "w-full max-w-md border-2" },
+                ChildText = "Deploy your first app in five minutes.",
             },
         },
 
@@ -61,8 +61,8 @@ public static partial class DocRegistry
             Portrait = typeof(MockupWindowCoverExample),
             Playground = new(typeof(MockupWindow), "Title", "BorderColor")
             {
-                Initial = new Dictionary<string, object?> { ["Title"] = "Jukebox", ["BorderColor"] = Color.Secondary, ["Class"] = "w-full max-w-md border-2" },
-                ChildText = "Insert a coin to play a song.",
+                Initial = new Dictionary<string, object?> { ["Title"] = "Acme Cloud", ["BorderColor"] = Color.Secondary, ["Class"] = "w-full max-w-md border-2" },
+                ChildText = "Your changes have been saved.",
             },
         },
     ];

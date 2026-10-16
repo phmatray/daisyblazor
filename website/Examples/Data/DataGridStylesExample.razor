@@ -5,12 +5,12 @@
     <Switch @bind-Value="_loading" Color="Color.Primary">Loading</Switch>
 </div>
 
-<DataGrid T="Format" Items="_formats" Dense="_dense" Striped="_striped" Bordered="_bordered"
+<DataGrid T="Plan" Items="_plans" Dense="_dense" Striped="_striped" Bordered="_bordered"
           Loading="_loading" SkeletonRows="4" Hover="true">
     <Columns>
-        <PropertyColumn T="Format" TProperty="string" Property="f => f.Name" Title="Format" />
-        <PropertyColumn T="Format" TProperty="int" Property="f => f.Units" Title="Units sold" Format="N0" />
-        <PropertyColumn T="Format" TProperty="double" Property="f => f.Share" Title="Share" Format="P0" />
+        <PropertyColumn T="Plan" TProperty="string" Property="p => p.Name" Title="Plan" />
+        <PropertyColumn T="Plan" TProperty="int" Property="p => p.Accounts" Title="Accounts" Format="N0" />
+        <PropertyColumn T="Plan" TProperty="double" Property="p => p.Share" Title="Share" Format="P0" />
     </Columns>
 </DataGrid>
 
@@ -20,13 +20,13 @@
     private bool _bordered = true;
     private bool _loading;
 
-    private record Format(string Name, int Units, double Share);
+    private record Plan(string Name, int Accounts, double Share);
 
-    private readonly Format[] _formats =
+    private readonly Plan[] _plans =
     [
-        new("Vinyl LP", 48_200, 0.41),
-        new("Digital", 39_900, 0.34),
-        new("CD", 21_100, 0.18),
-        new("Cassette", 8_300, 0.07),
+        new("Free", 48_200, 0.41),
+        new("Pro", 39_900, 0.34),
+        new("Team", 21_100, 0.18),
+        new("Enterprise", 8_300, 0.07),
     ];
 }

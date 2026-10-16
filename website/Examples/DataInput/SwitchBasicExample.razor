@@ -1,10 +1,10 @@
 <div class="flex flex-col gap-2">
-    <Switch Label="Shuffle" Color="Color.Primary" @bind-Value="_shuffle" />
-    <Switch Label="Repeat side" Color="Color.Primary" @bind-Value="_repeat" />
+    <Switch Label="Email notifications" Color="Color.Primary" @bind-Value="_email" />
+    <Switch Label="Weekly digest" Color="Color.Primary" @bind-Value="_digest" />
 </div>
-<p class="mt-3 font-mono text-sm">shuffle=@_shuffle · repeat=@_repeat</p>
+<p class="mt-3 font-mono text-sm">email=@_email · digest=@_digest</p>
 
 @code {
-    private bool _shuffle = true;
-    private bool _repeat;
+    private bool _email = true;
+    private bool _digest;
 }

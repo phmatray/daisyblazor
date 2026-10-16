@@ -22,7 +22,7 @@ public static partial class DocRegistry
             Portrait = typeof(TextFieldCoverExample),
             Playground = new(typeof(TextField), "Label", "Placeholder", "HelperText", "InputType", "Lines", "Dense", "Disabled", "ReadOnly", "Required", "Error", "ErrorText")
             {
-                Initial = new Dictionary<string, object?> { ["Label"] = "Album title", ["Placeholder"] = "Comment te dire adieu", ["HelperText"] = "As printed on the sleeve" },
+                Initial = new Dictionary<string, object?> { ["Label"] = "Project name", ["Placeholder"] = "Customer portal", ["HelperText"] = "Shown on the dashboard" },
             },
         },
 
@@ -40,7 +40,7 @@ public static partial class DocRegistry
             Portrait = typeof(NumericFieldCoverExample),
             Playground = new(typeof(NumericField<int>), "Label", "Value", "Min", "Max", "Step", "HelperText", "Dense", "Disabled", "ReadOnly", "Error", "ErrorText")
             {
-                Initial = new Dictionary<string, object?> { ["Label"] = "Copies", ["Value"] = 3, ["Min"] = 1, ["Max"] = 10, ["HelperText"] = "Between 1 and 10" },
+                Initial = new Dictionary<string, object?> { ["Label"] = "Seats", ["Value"] = 3, ["Min"] = 1, ["Max"] = 10, ["HelperText"] = "Between 1 and 10" },
             },
         },
 
@@ -58,8 +58,8 @@ public static partial class DocRegistry
             Portrait = typeof(FieldCoverExample),
             Playground = new(typeof(Field), "Label", "Adornment", "AdornmentIcon")
             {
-                Initial = new Dictionary<string, object?> { ["Label"] = "Speed", ["Adornment"] = Adornment.Start, ["AdornmentIcon"] = Icons.Material.Filled.Album },
-                ChildText = "33⅓ rpm",
+                Initial = new Dictionary<string, object?> { ["Label"] = "Plan", ["Adornment"] = Adornment.Start, ["AdornmentIcon"] = Icons.Material.Filled.CreditCard },
+                ChildText = "Pro",
             },
         },
 
@@ -119,7 +119,7 @@ public static partial class DocRegistry
             Portrait = typeof(CheckboxCoverExample),
             Playground = new(typeof(Checkbox), "Label", "Value", "Color", "Size", "Disabled", "ReadOnly")
             {
-                Initial = new Dictionary<string, object?> { ["Label"] = "Include the lyric sheet", ["Value"] = true, ["Color"] = Color.Primary },
+                Initial = new Dictionary<string, object?> { ["Label"] = "Email me the invoice", ["Value"] = true, ["Color"] = Color.Primary },
             },
         },
 
@@ -138,7 +138,7 @@ public static partial class DocRegistry
             Portrait = typeof(SwitchCoverExample),
             Playground = new(typeof(Switch), "Label", "Value", "Color", "Size", "Disabled", "ReadOnly")
             {
-                Initial = new Dictionary<string, object?> { ["Label"] = "Shuffle", ["Value"] = true, ["Color"] = Color.Primary },
+                Initial = new Dictionary<string, object?> { ["Label"] = "Email notifications", ["Value"] = true, ["Color"] = Color.Primary },
             },
         },
 
@@ -233,7 +233,7 @@ public static partial class DocRegistry
             [typeof(ColorPicker)],
             [
                 new("Binding", "@bind-Value is a hex string such as #e4572e; Disabled locks it.", typeof(ColorPickerBasicExample)),
-                new("Driving a preview", "The bound strings can feed any style, here a sleeve mock-up.", typeof(ColorPickerPreviewExample)),
+                new("Driving a preview", "The bound strings can feed any style, here a logo mock-up.", typeof(ColorPickerPreviewExample)),
             ])
         {
             DaisyClass = "input",
@@ -241,7 +241,7 @@ public static partial class DocRegistry
             Portrait = typeof(ColorPickerCoverExample),
             Playground = new(typeof(ColorPicker), "Label", "Value", "Disabled", "FullWidth")
             {
-                Initial = new Dictionary<string, object?> { ["Label"] = "Sleeve colour", ["Value"] = "#e4572e" },
+                Initial = new Dictionary<string, object?> { ["Label"] = "Brand colour", ["Value"] = "#e4572e" },
             },
         },
 

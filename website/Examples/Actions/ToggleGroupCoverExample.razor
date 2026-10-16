@@ -1,22 +1,22 @@
 <div class="flex flex-col items-center gap-5">
-    <ToggleGroup T="int" @bind-Value="_rpm" Class="rounded-field border-2 border-base-300" Size="Size.Large">
-        <ToggleItem Value="33" Text="33⅓" />
-        <ToggleItem Value="45" Text="45" />
-        <ToggleItem Value="78" Text="78" />
+    <ToggleGroup T="int" @bind-Value="_days" Class="rounded-field border-2 border-base-300" Size="Size.Large">
+        <ToggleItem Value="7" Text="7d" />
+        <ToggleItem Value="30" Text="30d" />
+        <ToggleItem Value="90" Text="90d" />
     </ToggleGroup>
-    <ToggleGroup T="string" @bind-Value="_side" Class="rounded-field border-2 border-base-300" Color="Color.Secondary">
-        <ToggleItem Value="@("a")" Icon="@Icons.Material.Filled.Album" Text="Side A" />
-        <ToggleItem Value="@("b")" Icon="@Icons.Material.Filled.Album" Text="Side B" />
+    <ToggleGroup T="string" @bind-Value="_billing" Class="rounded-field border-2 border-base-300" Color="Color.Secondary">
+        <ToggleItem Value="@("monthly")" Icon="@Icons.Material.Filled.CalendarMonth" Text="Monthly" />
+        <ToggleItem Value="@("yearly")" Icon="@Icons.Material.Filled.Event" Text="Yearly" />
     </ToggleGroup>
     <ToggleGroup T="string" @bind-Value="_view" Class="rounded-field border-2 border-base-300" Size="Size.Small" Color="Color.Tertiary">
         <ToggleItem Value="@("grid")" Icon="@Icons.Material.Filled.GridView" aria-label="Grid" />
         <ToggleItem Value="@("list")" Icon="@Icons.Material.Filled.ViewList" aria-label="List" />
-        <ToggleItem Value="@("queue")" Icon="@Icons.Material.Filled.QueueMusic" aria-label="Queue" />
+        <ToggleItem Value="@("board")" Icon="@Icons.Material.Filled.ViewKanban" aria-label="Board" />
     </ToggleGroup>
 </div>
 
 @code {
-    private int _rpm = 45;
-    private string? _side = "a";
+    private int _days = 30;
+    private string? _billing = "monthly";
     private string? _view = "grid";
 }

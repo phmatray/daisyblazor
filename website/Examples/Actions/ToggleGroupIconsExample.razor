@@ -4,13 +4,13 @@
         <ToggleItem Value="@("list")" Icon="@Icons.Material.Filled.ViewList" aria-label="List" />
     </ToggleGroup>
     <ToggleGroup T="string" @bind-Value="_sort" Color="Color.Secondary">
-        <ToggleItem Value="@("artist")" Icon="@Icons.Material.Filled.Person" Text="Artist" />
-        <ToggleItem Value="@("year")" Icon="@Icons.Material.Filled.CalendarMonth" Text="Year" />
-        <ToggleItem Value="@("rating")" Icon="@Icons.Material.Filled.Star" Text="Rating" />
+        <ToggleItem Value="@("name")" Icon="@Icons.Material.Filled.Person" Text="Name" />
+        <ToggleItem Value="@("date")" Icon="@Icons.Material.Filled.CalendarMonth" Text="Date" />
+        <ToggleItem Value="@("priority")" Icon="@Icons.Material.Filled.Star" Text="Priority" />
     </ToggleGroup>
 </div>
 
 @code {
     private string? _view = "grid";
-    private string? _sort = "year";
+    private string? _sort = "date";
 }

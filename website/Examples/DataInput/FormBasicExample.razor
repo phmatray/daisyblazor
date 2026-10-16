@@ -4,9 +4,9 @@
 <Form Class="max-w-md">
     <TextField Label="Name" @bind-Value="_order.Name" Immediate="true" Margin="Margin.None" />
     <TextField Label="Email" InputType="InputType.Email" @bind-Value="_order.Email" Immediate="true" Margin="Margin.None" />
-    <Select T="string" Label="Format" @bind-Value="_order.Format" Margin="Margin.None">
-        <SelectItem Value="@("LP")">12″ LP</SelectItem>
-        <SelectItem Value="@("Single")">7″ single</SelectItem>
+    <Select T="string" Label="Plan" @bind-Value="_order.Plan" Margin="Margin.None">
+        <SelectItem Value="@("Pro")">Pro — €29/month</SelectItem>
+        <SelectItem Value="@("Enterprise")">Enterprise — €99/month</SelectItem>
     </Select>
     <Switch Label="Send me the newsletter" Color="Color.Primary" @bind-Value="_order.Newsletter" />
     <div class="flex justify-end gap-2">
@@ -19,13 +19,13 @@
 @code {
     private record Order
     {
-        public string? Name { get; set; } = "Jane Birkin";
+        public string? Name { get; set; } = "Ana Silva";
         public string? Email { get; set; }
-        public string? Format { get; set; } = "LP";
+        public string? Plan { get; set; } = "Pro";
         public bool Newsletter { get; set; }
     }
 
     private Order _order = new();
 
-    private void Submit() => Snackbar.Add($"Order placed for {_order.Name}: one {_order.Format}.", Severity.Success);
+    private void Submit() => Snackbar.Add($"Order placed for {_order.Name}: the {_order.Plan} plan.", Severity.Success);
 }

@@ -23,7 +23,7 @@ public static partial class DocRegistry
             Playground = new(typeof(Button), "Color", "Variant", "Size", "StartIcon", "EndIcon", "Disabled", "Loading", "FullWidth")
             {
                 Initial = new Dictionary<string, object?> { ["Color"] = Color.Primary, ["Variant"] = Variant.Filled },
-                ChildText = "Play the record",
+                ChildText = "Save changes",
             },
         },
 
@@ -101,7 +101,7 @@ public static partial class DocRegistry
             [typeof(Swap)],
             [
                 new("Rotate", "Animation=\"SwapAnimation.Rotate\" spins between the icons; @bind-Active keeps your field in sync.", typeof(SwapRotateExample)),
-                new("Flip", "SwapAnimation.Flip turns the content over like a record.", typeof(SwapFlipExample)),
+                new("Flip", "SwapAnimation.Flip turns the content over like a card.", typeof(SwapFlipExample)),
                 new("Text, no animation", "On and Off take any markup; without an animation the switch is instant.", typeof(SwapTextExample)),
             ])
         {

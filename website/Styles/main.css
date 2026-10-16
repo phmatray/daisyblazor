@@ -17,7 +17,7 @@
 }
 
 /* ── The sleeve world ─────────────────────────────────────────────────────────────
-   One flat ground per release: the active theme's primary floods the masthead, its
+   One flat ground per theme: the active theme's primary floods the masthead, its
    primary-content is the ink on it, base-100 is the only relief. The reading column
    never takes the ground colour. */
 @layer base {
@@ -71,17 +71,18 @@
         transition: background-color 600ms cubic-bezier(.2, .8, .2, 1), color 600ms cubic-bezier(.2, .8, .2, 1);
     }
 
-    /* The next release peeking from the masthead edge: a disc in the next theme's primary. */
+    /* The next theme peeking from the masthead edge: a colour wheel of its main roles. */
     .disc {
         border-radius: 9999px;
-        background:
-            repeating-radial-gradient(circle at center,
-                color-mix(in oklab, var(--color-primary) 92%, black) 0 2px,
-                var(--color-primary) 2px 5px);
+        background: conic-gradient(from -30deg,
+            var(--color-primary) 0 40%,
+            var(--color-secondary) 0 62%,
+            var(--color-accent) 0 80%,
+            var(--color-neutral) 0 100%);
         transition: transform 900ms cubic-bezier(.16, 1, .3, 1);
     }
 
-    /* The printed label of the next release. */
+    /* The centre of the wheel names the theme you would switch to. */
     .disc-label {
         position: absolute;
         inset: 31%;
@@ -98,30 +99,25 @@
     }
 
     .disc-button:hover .disc,
-    .disc-button:focus-visible .disc { transform: rotate(160deg) translateX(-12px); }
+    .disc-button:focus-visible .disc { transform: rotate(40deg) translateX(-12px); }
 
     /* Ink on the sleeve: secondary text tinted from the ground's own ink, never grey. */
     .sleeve-muted { color: var(--color-primary-content); }
     /* Large type only (logotype): 3:1 is enough there. */
     .sleeve-soft { color: color-mix(in oklab, var(--color-primary-content) 75%, var(--color-primary)); }
 
-    /* Pills for small controls; the track block. */
+    /* "On this page" jump links on the masthead: outlined pills in the ground's ink. */
     .track {
-        display: grid;
-        grid-template-columns: 1.4rem 1fr;
-        align-items: baseline;
-        gap: 0.5rem;
+        display: inline-block;
+        border: 2px solid var(--color-primary-content);
+        border-radius: 9999px;
+        padding: .2rem .8rem;
+        font-size: .9rem;
         font-weight: 700;
-        text-decoration: none;
-        transition: opacity 200ms;
+        transition: background-color 200ms, color 200ms;
     }
 
-    .track > b {
-        font-family: var(--font-display);
-        font-weight: 600;
-    }
-
-    .track:hover { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 2px; }
+    .track:hover { background: var(--color-primary-content); color: var(--color-primary); }
 
     /* Reading column prose. */
     .prose-doc { max-width: 70ch; font-size: 1.0625rem; line-height: 1.7; }
@@ -150,7 +146,7 @@
     .prose-doc th { text-align: left; font-weight: 700; padding: .5rem .75rem .5rem 0; border-bottom: 2px solid var(--color-base-content); }
     .prose-doc td { padding: .5rem .75rem .5rem 0; border-bottom: 1px solid var(--color-base-300); vertical-align: top; }
 
-    /* Syntax colours derive from the active theme, so code is in tune with every release. */
+    /* Syntax colours derive from the active theme, so code matches every theme. */
     .code-block { background: var(--color-neutral); color: var(--color-neutral-content); }
     .tok-tag { color: color-mix(in oklab, var(--color-primary) 70%, var(--color-neutral-content)); font-weight: 600; }
     .tok-attr { color: color-mix(in oklab, var(--color-secondary) 70%, var(--color-neutral-content)); }
@@ -161,7 +157,7 @@
     .tok-num { color: color-mix(in oklab, var(--color-success) 75%, var(--color-neutral-content)); }
 }
 
-/* ── Signature: putting on another release ─────────────────────────────────────── */
+/* ── Signature: switching theme ──────────────────────────────────────────────────── */
 ::view-transition-old(root) { animation: none; }
 ::view-transition-new(root) {
     animation: sleeve-reveal 820ms cubic-bezier(.16, 1, .3, 1);

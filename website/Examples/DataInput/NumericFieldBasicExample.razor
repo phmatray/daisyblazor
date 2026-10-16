@@ -1,11 +1,11 @@
 <div class="grid w-full gap-x-4 sm:grid-cols-2">
-    <NumericField T="int" Label="Copies" @bind-Value="_copies" Min="1" Max="50" Step="1" HelperText="Between 1 and 50" />
-    <NumericField T="double" Label="Unit price" @bind-Value="_price" Min="0" Step="0.5" Format="F2"
+    <NumericField T="int" Label="Seats" @bind-Value="_seats" Min="1" Max="50" Step="1" HelperText="Between 1 and 50" />
+    <NumericField T="double" Label="Price per seat" @bind-Value="_price" Min="0" Step="0.5" Format="F2"
                   Adornment="Adornment.Start" AdornmentText="€" />
 </div>
-<p class="mt-3 text-sm">Total: <span class="font-mono font-bold">@((_copies * _price).ToString("F2")) €</span></p>
+<p class="mt-3 text-sm">Total: <span class="font-mono font-bold">@((_seats * _price).ToString("F2")) €</span></p>
 
 @code {
-    private int _copies = 2;
-    private double _price = 24.90;
+    private int _seats = 2;
+    private double _price = 12.50;
 }

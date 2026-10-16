@@ -1,4 +1,4 @@
-@* The release picker: current theme as a record, the crate as a grid of swatches each rendered in its own theme. *@
+@* The theme picker: the current theme, and every theme as a swatch rendered in its own colours. *@
 @implements IDisposable
 @inject DocsJs Js
 
@@ -9,14 +9,14 @@
             <span class="grid size-8 place-items-center rounded-full bg-primary" aria-hidden="true">
                 <span class="size-2.5 rounded-full bg-primary-content"></span>
             </span>
-            <span class="hidden font-display text-[0.95rem] lg:inline">N°@ThemeDeck.Number(Theme) · @Theme</span>
+            <span class="hidden font-display text-[0.95rem] lg:inline">@Theme</span>
             <span class="sr-only">Change theme, current: @Theme</span>
             <Icon Name="@Icons.Material.Filled.ExpandMore" Size="Size.Small" />
         </span>
     </Activator>
     <ChildContent>
         <div class="flex items-baseline justify-between px-1 pb-2">
-            <span class="font-display text-lg font-semibold">Put on a release</span>
+            <span class="font-display text-lg font-semibold">Choose a theme</span>
             <a href="themes" class="text-sm font-semibold underline decoration-primary decoration-2 underline-offset-4">All 37 →</a>
         </div>
         <div class="grid max-h-[60vh] grid-cols-2 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-3">

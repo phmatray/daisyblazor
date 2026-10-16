@@ -1,15 +1,15 @@
-@* One release in the crate: a square sleeve rendered in its own theme, with real daisyUI parts. *@
+@* One theme as a square tile rendered in its own colours, with real daisyUI parts. *@
 
 <button type="button" data-theme="@Theme" @onclick="OnClick" aria-pressed="@(Playing ? "true" : "false")"
-        aria-label="Put on @Theme"
+        aria-label="Switch to the @Theme theme"
         class="group relative flex aspect-square w-full flex-col overflow-hidden rounded-md bg-primary p-4 text-left text-primary-content transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_40px_-22px_rgb(0_0_0/0.6)] @(Playing ? "ring-4 ring-base-content ring-offset-4 ring-offset-base-100" : "") @Class">
     <span class="absolute -right-10 -top-10 size-28 rounded-full bg-secondary transition-transform duration-700 group-hover:-translate-x-2 group-hover:translate-y-2" aria-hidden="true"></span>
-    <span class="relative text-sm font-bold opacity-90">N°@ThemeDeck.Number(Theme)@(ThemeDeck.DarkThemes.Contains(Theme) ? " · dark" : "")</span>
+    <span class="relative text-sm font-bold opacity-90">@(ThemeDeck.DarkThemes.Contains(Theme) ? "Dark" : "Light")</span>
     <span class="relative mt-1 font-display text-[clamp(1.4rem,2.6vw,2.1rem)] font-bold leading-none">@Theme</span>
     <span class="relative mt-auto flex flex-col gap-2 rounded bg-base-100 p-3 text-base-content" aria-hidden="true">
         <span class="flex gap-1.5">
-            <span class="btn btn-primary btn-xs">Play</span>
-            <span class="btn btn-secondary btn-xs">Save</span>
+            <span class="btn btn-primary btn-xs">Save</span>
+            <span class="btn btn-secondary btn-xs">Edit</span>
             <span class="btn btn-accent btn-outline btn-xs">More</span>
         </span>
         <span class="flex items-center gap-2">
@@ -19,7 +19,7 @@
     </span>
     @if (Playing)
     {
-        <span class="absolute right-3 top-3 rounded-full bg-base-100 px-2 py-0.5 text-xs font-bold text-base-content">Now playing</span>
+        <span class="absolute right-3 top-3 rounded-full bg-base-100 px-2 py-0.5 text-xs font-bold text-base-content">Active</span>
     }
 </button>
 

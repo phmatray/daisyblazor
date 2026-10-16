@@ -1,5 +1,5 @@
 <div class="flex flex-col gap-4">
-    <p class="font-bold">Pressing run · 500 copies</p>
+    <p class="font-bold">Deploying v2.4.0 · 3 regions</p>
     @foreach ((string stage, double value, Color color) in Stages)
     {
         <div class="flex flex-col gap-1">
@@ -12,8 +12,8 @@
 @code {
     private static readonly (string, double, Color)[] Stages =
     [
-        ("Lacquer cut", 100, Color.Success),
-        ("Plating", 72, Color.Primary),
-        ("Sleeves printed", 38, Color.Secondary),
+        ("Build", 100, Color.Success),
+        ("Tests", 72, Color.Primary),
+        ("Rollout", 38, Color.Secondary),
     ];
 }

@@ -1,16 +1,16 @@
-@* The page masthead: the active theme's primary floods it, the title is the release name, the
-   page sections are the tidy track block, the component itself is the cover portrait, and the
-   next release peeks from the edge as a disc you can put on. *@
+@* The page masthead: the active theme's primary floods it, the component itself is shown live as the
+   cover, the page sections are listed for quick jumps, and the next theme peeks from the edge as a
+   colour wheel you can click to switch. *@
 @implements IDisposable
 @inject DocsJs Js
 
 <section class="sleeve relative overflow-hidden" aria-labelledby="page-title">
     <button type="button" data-theme="@Next" @onclick="PutOnNext"
-            class="disc-button absolute -right-20 -top-16 size-44 cursor-pointer rounded-full sm:-right-24 sm:-top-10 sm:size-64 lg:-right-28 lg:top-6 lg:size-[22rem] xl:-right-24 2xl:size-[26rem]"
-            aria-label="Put on the next release: @Next" title="Next release: @Next">
+            class="disc-button absolute -right-16 -top-20 size-36 cursor-pointer rounded-full sm:-right-24 sm:-top-10 sm:size-64 lg:-right-28 lg:top-6 lg:size-[22rem] xl:-right-24 2xl:size-[26rem]"
+            aria-label="Try the next theme: @Next" title="Try the next theme: @Next">
         <span class="disc absolute inset-0 shadow-[0_18px_40px_-18px_rgb(0_0_0/0.45)]">
             <span class="disc-label" aria-hidden="true">
-                <span class="hidden text-[0.6rem] font-semibold opacity-70 lg:block">N°@ThemeDeck.Number(Next)</span>
+                <span class="hidden text-[0.65rem] font-semibold opacity-70 lg:block">Try theme</span>
                 <span class="hidden max-w-[6.5rem] break-words text-xs font-bold leading-tight lg:block">@Next</span>
             </span>
         </span>
@@ -53,29 +53,29 @@
 
             @if (Releases)
             {
-                <div class="mt-6 flex flex-wrap items-center gap-2" role="group" aria-label="Put on another release">
+                <div class="mt-6 flex flex-wrap items-center gap-2" role="group" aria-label="Switch theme">
                     @foreach (string t in ThemeDeck.Themes.Take(8))
                     {
                         string theme = t;
                         bool on = theme == Current;
                         <button type="button" data-theme="@theme" @onclick="e => PutOn(theme, e)"
                                 class="size-7 rounded-full border-[3px] bg-primary transition hover:scale-110 @(on ? "border-base-content ring-2 ring-base-100" : "border-base-100")"
-                                aria-label="Put on @theme" aria-pressed="@(on ? "true" : "false")" title="@theme"></button>
+                                aria-label="Switch to the @theme theme" aria-pressed="@(on ? "true" : "false")" title="@theme"></button>
                     }
-                    <a href="themes" class="ml-1 text-sm font-bold underline decoration-2 underline-offset-4">+@(ThemeDeck.Themes.Count - 8) more releases</a>
+                    <a href="themes" class="ml-1 text-sm font-bold underline decoration-2 underline-offset-4">+@(ThemeDeck.Themes.Count - 8) more themes</a>
                 </div>
             }
 
             @if (Tracks is { Count: > 0 })
             {
                 <nav aria-label="On this page" class="mt-10 lg:mt-auto lg:pt-12">
-                    <ol class="grid max-w-xl gap-x-10 gap-y-1 sm:grid-cols-2">
-                        @for (int i = 0; i < Tracks.Count; i++)
+                    <span class="mb-2 block text-sm font-bold">On this page</span>
+                    <ul class="flex max-w-2xl flex-wrap gap-2">
+                        @foreach (Track t in Tracks)
                         {
-                            Track t = Tracks[i];
-                            <li><a class="track" href="@($"{Path}#{t.Id}")"><b>@(i + 1)</b><span>@t.Title</span></a></li>
+                            <li><a class="track" href="@($"{Path}#{t.Id}")">@t.Title</a></li>
                         }
-                    </ol>
+                    </ul>
                 </nav>
             }
         </div>
@@ -104,7 +104,7 @@
     [Parameter] public IReadOnlyList<Track>? Tracks { get; set; }
     [Parameter] public IReadOnlyList<(string Label, string? Href)>? Trail { get; set; }
     [Parameter] public bool Large { get; set; }
-    /// <summary>Show the row of release swatches under the lede.</summary>
+    /// <summary>Show the row of theme swatches under the lede.</summary>
     [Parameter] public bool Releases { get; set; } = true;
 
     private string Path => Nav.ToBaseRelativePath(Nav.Uri).Split('#')[0];

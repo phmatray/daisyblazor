@@ -1,18 +1,18 @@
 @* ActiveIndex is zero-based and two-way bindable; disabled tabs are skipped by the arrow keys. *@
 <div class="flex w-full flex-col gap-3">
     <Tabs @bind-ActiveIndex="_index" Variant="TabsVariant.Lift" Class="[&>.tab-content]:block">
-        <Tab Title="Side A">
-            <p class="p-4">Poupée de cire, poupée de son · Le temps de la rentrée</p>
+        <Tab Title="Overview">
+            <p class="p-4">1,284 active users · 99.98% uptime</p>
         </Tab>
-        <Tab Title="Side B">
-            <p class="p-4">Laisse tomber les filles · Sacré Charlemagne</p>
+        <Tab Title="Activity">
+            <p class="p-4">Tom Becker deployed v2.4.1 · Mei Chen closed 3 tickets</p>
         </Tab>
-        <Tab Title="Bonus" Disabled="true">
-            <p class="p-4">Unreleased demos.</p>
+        <Tab Title="Audit log" Disabled="true">
+            <p class="p-4">Enterprise plan only.</p>
         </Tab>
     </Tabs>
     <div class="flex items-center gap-2">
-        <Button Variant="Variant.Outlined" Size="Size.Small" OnClick="() => _index = 1 - _index">Flip the record</Button>
+        <Button Variant="Variant.Outlined" Size="Size.Small" OnClick="() => _index = 1 - _index">Switch tab</Button>
         <span class="text-sm">ActiveIndex = @_index</span>
     </div>
 </div>

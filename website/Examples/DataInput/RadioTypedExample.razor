@@ -1,13 +1,13 @@
 @* T can be any type: here an int. For value types, set each radio's Option. *@
-<RadioGroup T="int" @bind-Value="_rpm">
+<RadioGroup T="int" @bind-Value="_replicas">
     <div class="flex flex-wrap gap-6">
-        <Radio Option="33" Label="33⅓" Color="Color.Secondary" Size="Size.Large" />
-        <Radio Option="45" Label="45" Color="Color.Secondary" Size="Size.Large" />
-        <Radio Option="78" Label="78" Color="Color.Secondary" Size="Size.Large" />
+        <Radio Option="1" Label="1" Color="Color.Secondary" Size="Size.Large" />
+        <Radio Option="3" Label="3" Color="Color.Secondary" Size="Size.Large" />
+        <Radio Option="5" Label="5" Color="Color.Secondary" Size="Size.Large" />
     </div>
 </RadioGroup>
-<p class="mt-3 text-sm">Playing at <span class="font-mono font-bold">@_rpm rpm</span></p>
+<p class="mt-3 text-sm">Running <span class="font-mono font-bold">@_replicas replicas</span></p>
 
 @code {
-    private int _rpm = 45;
+    private int _replicas = 3;
 }

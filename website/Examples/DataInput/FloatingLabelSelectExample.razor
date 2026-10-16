@@ -1,12 +1,12 @@
-<FloatingLabel Label="Genre">
-    <select class="select w-full" @bind="_genre">
-        <option value="yeye">Yé-yé</option>
-        <option value="chanson">Chanson</option>
-        <option value="jazz">Jazz</option>
+<FloatingLabel Label="Plan">
+    <select class="select w-full" @bind="_plan">
+        <option value="free">Free</option>
+        <option value="pro">Pro</option>
+        <option value="enterprise">Enterprise</option>
     </select>
 </FloatingLabel>
-<p class="mt-3 text-sm">Genre: <span class="font-mono">@_genre</span></p>
+<p class="mt-3 text-sm">Plan: <span class="font-mono">@_plan</span></p>
 
 @code {
-    private string _genre = "yeye";
+    private string _plan = "pro";
 }

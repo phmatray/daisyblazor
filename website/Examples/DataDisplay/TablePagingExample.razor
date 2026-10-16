@@ -1,14 +1,14 @@
 @* RowsPerPage pages the rows client-side; a TablePager in PagerContent drives it. *@
-<Table Items="_tour" RowsPerPage="4" Striped="true">
+<Table Items="_deployments" RowsPerPage="4" Striped="true">
     <HeaderContent>
         <Th>Date</Th>
-        <Th>City</Th>
-        <Th>Venue</Th>
+        <Th>Service</Th>
+        <Th>Environment</Th>
     </HeaderContent>
     <RowTemplate>
         <Td class="font-mono">@context.Date.ToString("dd MMM")</Td>
-        <Td>@context.City</Td>
-        <Td>@context.Venue</Td>
+        <Td>@context.Service</Td>
+        <Td>@context.Environment</Td>
     </RowTemplate>
     <PagerContent>
         <TablePager PageSizeOptions="[4, 8, 12]" />
@@ -16,10 +16,10 @@
 </Table>
 
 @code {
-    private record Gig(DateOnly Date, string City, string Venue);
+    private record Deployment(DateOnly Date, string Service, string Environment);
 
-    private static readonly string[] Cities = ["Paris", "Lyon", "Bruxelles", "Genève", "Marseille", "Lille", "Nantes", "Bordeaux", "Montréal", "Liège"];
+    private static readonly string[] Services = ["Billing API", "Customer portal", "Admin dashboard", "Auth service", "Search", "Notifications", "File uploads", "Reports", "Webhooks", "Mobile API"];
 
-    private readonly Gig[] _tour = [.. Cities.Select((city, i) =>
-        new Gig(new DateOnly(1966, 3, 4).AddDays(i * 3), city, i % 2 == 0 ? "Théâtre municipal" : "Salle des fêtes"))];
+    private readonly Deployment[] _deployments = [.. Services.Select((service, i) =>
+        new Deployment(new DateOnly(2026, 3, 4).AddDays(i * 3), service, i % 2 == 0 ? "Production" : "Staging"))];
 }

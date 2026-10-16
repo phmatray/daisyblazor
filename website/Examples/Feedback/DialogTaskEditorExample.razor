@@ -3,7 +3,7 @@
 
 <Dialog>
     <DialogContent>
-        <TextField Label="Track title" @bind-Value="Title" Immediate="true" />
+        <TextField Label="Task title" @bind-Value="Title" Immediate="true" />
     </DialogContent>
     <DialogActions>
         <Button Variant="Variant.Text" OnClick="() => MudDialog?.Cancel()">Cancel</Button>
@@ -15,5 +15,5 @@
 @code {
     [CascadingParameter] private IMudDialogInstance? MudDialog { get; set; }
 
-    [Parameter] public string? Title { get; set; } = "La Javanaise";
+    [Parameter] public string? Title { get; set; } = "Update billing page";
 }

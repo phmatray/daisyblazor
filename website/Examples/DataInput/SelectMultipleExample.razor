@@ -1,13 +1,13 @@
-<Select T="string" Label="Genres" MultiSelection="true" @bind-SelectedValues="_genres"
+<Select T="string" Label="Regions" MultiSelection="true" @bind-SelectedValues="_regions"
         HelperText="Hold Ctrl (or ⌘) to pick several.">
-    <SelectItem Value="@("Yé-yé")" />
-    <SelectItem Value="@("Chanson")" />
-    <SelectItem Value="@("Jazz")" />
-    <SelectItem Value="@("Bossa nova")" />
-    <SelectItem Value="@("Psychedelic")" />
+    <SelectItem Value="@("Europe")" />
+    <SelectItem Value="@("North America")" />
+    <SelectItem Value="@("South America")" />
+    <SelectItem Value="@("Asia Pacific")" />
+    <SelectItem Value="@("Africa")" />
 </Select>
-<p class="mt-3 text-sm">Selected: <span class="font-mono">@string.Join(", ", _genres)</span></p>
+<p class="mt-3 text-sm">Selected: <span class="font-mono">@string.Join(", ", _regions)</span></p>
 
 @code {
-    private IEnumerable<string> _genres = ["Yé-yé", "Jazz"];
+    private IEnumerable<string> _regions = ["Europe", "Asia Pacific"];
 }

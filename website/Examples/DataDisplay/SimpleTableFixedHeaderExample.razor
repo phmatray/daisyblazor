@@ -1,23 +1,21 @@
 @* FixedHeader caps the height and scrolls the body; add table-pin-rows to keep the header in view. *@
 <SimpleTable FixedHeader="true" Dense="true" Class="table-pin-rows">
     <thead>
-        <tr><th>Year</th><th>Eurovision winner</th><th>Country</th></tr>
+        <tr><th>Month</th><th>Signups</th><th>Plan</th></tr>
     </thead>
     <tbody>
-        @foreach ((int year, string song, string country) in _winners)
+        @foreach ((string month, int signups, string plan) in _signups)
         {
-            <tr><td class="font-mono">@year</td><td>@song</td><td>@country</td></tr>
+            <tr><td class="font-mono">@month</td><td>@signups</td><td>@plan</td></tr>
         }
     </tbody>
 </SimpleTable>
 
 @code {
-    private readonly (int, string, string)[] _winners =
+    private readonly (string, int, string)[] _signups =
     [
-        (1958, "Dors, mon amour", "France"), (1959, "Een beetje", "Netherlands"), (1960, "Tom Pillibi", "France"),
-        (1961, "Nous les amoureux", "Luxembourg"), (1962, "Un premier amour", "France"), (1963, "Dansevise", "Denmark"),
-        (1964, "Non ho l'età", "Italy"), (1965, "Poupée de cire, poupée de son", "Luxembourg"),
-        (1966, "Merci, Chérie", "Austria"), (1967, "Puppet on a String", "United Kingdom"), (1968, "La, la, la", "Spain"),
-        (1969, "Un jour, un enfant", "France"), (1970, "All Kinds of Everything", "Ireland"),
+        ("Jan", 412, "Pro"), ("Feb", 388, "Free"), ("Mar", 455, "Pro"), ("Apr", 501, "Enterprise"),
+        ("May", 476, "Pro"), ("Jun", 530, "Free"), ("Jul", 498, "Pro"), ("Aug", 467, "Free"),
+        ("Sep", 612, "Pro"), ("Oct", 640, "Enterprise"), ("Nov", 702, "Pro"), ("Dec", 655, "Free"),
     ];
 }

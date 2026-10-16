@@ -1,11 +1,11 @@
 <div class="flex w-full flex-col gap-2">
     <div class="flex justify-between text-sm font-bold">
-        <span>Volume</span>
-        <span class="font-mono">@_volume%</span>
+        <span>Alert threshold</span>
+        <span class="font-mono">@_threshold%</span>
     </div>
-    <Range @bind-Value="_volume" Color="Color.Primary" Class="w-full" />
+    <Range @bind-Value="_threshold" Color="Color.Primary" Class="w-full" />
 </div>
 
 @code {
-    private double _volume = 65;
+    private double _threshold = 65;
 }

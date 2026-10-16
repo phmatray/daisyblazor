@@ -1,17 +1,17 @@
 @* ItemOpposite labels each entry; ItemContent is the boxed part. *@
 <Timeline>
-    @foreach ((int year, string title) in _discography)
+    @foreach ((string version, string title) in _releases)
     {
         <TimelineItem Color="Color.Primary">
-            <ItemOpposite><span class="font-mono text-sm">@year</span></ItemOpposite>
+            <ItemOpposite><span class="font-mono text-sm">@version</span></ItemOpposite>
             <ItemContent><span class="font-semibold">@title</span></ItemContent>
         </TimelineItem>
     }
 </Timeline>
 
 @code {
-    private readonly (int, string)[] _discography =
+    private readonly (string, string)[] _releases =
     [
-        (1963, "Ne sois pas si bête"), (1964, "Laisse tomber les filles"), (1965, "Poupée de cire, poupée de son"), (1967, "Bébé requin"),
+        ("v2.1", "Team workspaces"), ("v2.2", "Usage-based billing"), ("v2.3", "Single sign-on"), ("v2.4", "Audit log"),
     ];
 }

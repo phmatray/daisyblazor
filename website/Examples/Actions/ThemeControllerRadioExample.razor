@@ -2,7 +2,7 @@
 <div class="flex flex-wrap gap-x-6 gap-y-3">
     @foreach ((string value, string label) in _themes)
     {
-        <ThemeController Type="ThemeControllerType.Radio" Name="pressing" Value="@value"
+        <ThemeController Type="ThemeControllerType.Radio" Name="site-theme" Value="@value"
                          Checked="@(_current == value)" CheckedChanged="@(on => { if (on) _current = value; })"
                          Class="inline-flex items-center gap-2">
             <span>@label</span>

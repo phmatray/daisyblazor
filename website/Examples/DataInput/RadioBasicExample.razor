@@ -1,12 +1,12 @@
-<p class="mb-2 text-sm font-bold">Shipping</p>
-<RadioGroup T="string" @bind-Value="_shipping">
-    <Radio Value="@("standard")" Label="Standard — 5 days" Color="Color.Primary" />
-    <Radio Value="@("express")" Label="Express — next day" Color="Color.Primary" />
-    <Radio Value="@("pickup")" Label="Pick up at the shop" Color="Color.Primary" />
-    <Radio Value="@("drone")" Label="Drone (coming soon)" Disabled="true" />
+<p class="mb-2 text-sm font-bold">Billing cycle</p>
+<RadioGroup T="string" @bind-Value="_cycle">
+    <Radio Value="@("monthly")" Label="Monthly — €29" Color="Color.Primary" />
+    <Radio Value="@("yearly")" Label="Yearly — €290, two months free" Color="Color.Primary" />
+    <Radio Value="@("invoice")" Label="Invoice on request" Color="Color.Primary" />
+    <Radio Value="@("crypto")" Label="Crypto (coming soon)" Disabled="true" />
 </RadioGroup>
-<p class="mt-3 text-sm">Selected: <span class="font-mono">@_shipping</span></p>
+<p class="mt-3 text-sm">Selected: <span class="font-mono">@_cycle</span></p>
 
 @code {
-    private string? _shipping = "express";
+    private string? _cycle = "yearly";
 }

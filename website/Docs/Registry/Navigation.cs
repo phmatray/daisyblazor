@@ -71,7 +71,7 @@ public static partial class DocRegistry
             [
                 new("Regions", "Start, Center and End map to navbar-start, navbar-center and navbar-end; only the ones you set are rendered.", typeof(NavbarRegionsExample)),
                 new("Colors", "Color maps to bg-primary, bg-secondary and friends; add the matching text-*-content class for readable ink.", typeof(NavbarColorsExample)),
-                new("Custom content", "Without any region, ChildContent fills the bar directly, here a now-playing strip with a bottom border.", typeof(NavbarCustomExample)),
+                new("Custom content", "Without any region, ChildContent fills the bar directly, here a task review strip with a bottom border.", typeof(NavbarCustomExample)),
             ])
         {
             DaisyClass = "navbar",
@@ -80,7 +80,7 @@ public static partial class DocRegistry
             Playground = new(typeof(Navbar), "Color", "Bordered", "Shadow")
             {
                 Initial = new Dictionary<string, object?> { ["Shadow"] = true },
-                ChildText = "Disques Bleus",
+                ChildText = "Acme Cloud",
             },
         },
 
