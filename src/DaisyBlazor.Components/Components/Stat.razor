@@ -49,7 +49,9 @@
     /// <summary>Optional action content (e.g. buttons or links) rendered below the description.</summary>
     [Parameter] public RenderFragment? Actions { get; set; }
 
+    /// <summary>Currently has no effect: the root stat element does not apply these classes.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root stat element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

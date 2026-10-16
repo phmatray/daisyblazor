@@ -32,7 +32,9 @@ else
     /// <summary>Accessible label surfaced via <c>aria-label</c> (recommended when the dot conveys status without visible text).</summary>
     [Parameter] public string? AriaLabel { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the root element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

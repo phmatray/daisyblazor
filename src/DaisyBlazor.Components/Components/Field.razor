@@ -24,14 +24,22 @@
 </div>
 
 @code {
+    /// <summary>Label text rendered above the value surface.</summary>
     [Parameter] public string? Label { get; set; }
+    /// <summary>Surface style: Outlined draws a border, Filled a bg-base-200 fill, Text (default) a bottom border.</summary>
     [Parameter] public Variant Variant { get; set; } = Variant.Text;
+    /// <summary>Position of the adornment icon: Start, End or None (default).</summary>
     [Parameter] public Adornment Adornment { get; set; } = Adornment.None;
+    /// <summary>Icon name rendered at the position set by Adornment.</summary>
     [Parameter] public string? AdornmentIcon { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently not rendered.</summary>
     [Parameter] public string? AdornmentText { get; set; }
+    /// <summary>The value content displayed inside the read-only surface.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the root fieldset element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

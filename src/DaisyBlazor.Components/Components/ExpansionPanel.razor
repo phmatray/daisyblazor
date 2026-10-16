@@ -26,15 +26,21 @@
 @code {
     [CascadingParameter] private ExpansionPanels? Parent { get; set; }
 
+    /// <summary>Content shown in the daisyUI collapse-content area when the panel is expanded.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Custom header content for the collapse-title; takes precedence over <see cref="Text"/>.</summary>
     [Parameter] public RenderFragment? TitleContent { get; set; }
+    /// <summary>Plain header text shown in the collapse-title when <see cref="TitleContent"/> is not set.</summary>
     [Parameter] public string? Text { get; set; }
+    /// <summary>Icon name rendered before the header text in the collapse-title.</summary>
     [Parameter] public string? Icon { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public bool Dense { get; set; }
 
     /// <summary>Whether the panel is expanded. Both MudBlazor names are supported.</summary>
     [Parameter] public bool IsExpanded { get; set; }
 
+    /// <summary>Alias of <see cref="IsExpanded"/> for MudBlazor compatibility; reads and writes the same state.</summary>
     [Parameter]
     public bool Expanded
     {
@@ -42,7 +48,9 @@
         set => IsExpanded = value;
     }
 
+    /// <summary>Extra CSS classes merged onto the root collapse element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root &lt;details&gt; element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

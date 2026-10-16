@@ -56,7 +56,9 @@
     /// </summary>
     [Parameter] public bool ShowClose { get; set; } = true;
 
+    /// <summary>Extra CSS classes added to the fab root.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the fab root.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

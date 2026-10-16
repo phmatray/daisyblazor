@@ -8,9 +8,13 @@
 </td>
 
 @code {
+    /// <summary>The cell content.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Emitted as the <c>data-label</c> attribute, used as the column label in stacked table layouts.</summary>
     [Parameter] public string? DataLabel { get; set; }
+    /// <summary>CSS classes applied to the <c>td</c> element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the <c>td</c> element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 }

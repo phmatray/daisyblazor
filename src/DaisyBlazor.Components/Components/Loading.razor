@@ -21,7 +21,9 @@
     /// <summary>Semantic color applied as a Tailwind text-* utility (e.g. Color.Primary → "text-primary").</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
 
+    /// <summary>Additional CSS classes merged onto the <c>loading</c> element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the <c>loading</c> element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

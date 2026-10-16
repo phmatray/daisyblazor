@@ -6,15 +6,24 @@
 <span class="@_cls" style="@Style" role="status" aria-label="@AriaLabel" @attributes="UserAttributes"></span>
 
 @code {
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect (the spinner is always indeterminate).</summary>
     [Parameter] public bool Indeterminate { get; set; } = true;
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect (the spinner is always indeterminate).</summary>
     [Parameter] public double Value { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public double Min { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public double Max { get; set; } = 100;
+    /// <summary>Spinner color, applied as a daisyUI text color class.</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
+    /// <summary>Spinner size, mapped to a daisyUI loading-{size} class. Defaults to Medium.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
+    /// <summary>Accessible label for the status element. Defaults to "loading".</summary>
     [Parameter] public string AriaLabel { get; set; } = "loading";
 
+    /// <summary>Extra CSS classes merged onto the root element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

@@ -36,7 +36,9 @@
     /// <summary>Size of the slider thumb: Small → range-sm, Medium → range-md, Large → range-lg.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
 
+    /// <summary>Extra CSS classes added to the range input.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the range input.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

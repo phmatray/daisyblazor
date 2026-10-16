@@ -7,10 +7,15 @@
 </div>
 
 @code {
+    /// <summary>Content rendered inside the centered container.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Maximum width mapped to a max-w-screen-* class (e.g. Large to max-w-screen-lg); defaults to Large.</summary>
     [Parameter] public MaxWidth MaxWidth { get; set; } = MaxWidth.Large;
+    /// <summary>Adds horizontal padding (px-4) to the container; defaults to true.</summary>
     [Parameter] public bool Gutters { get; set; } = true;
+    /// <summary>Extra CSS classes merged onto the root container element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root container element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

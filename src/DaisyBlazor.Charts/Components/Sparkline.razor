@@ -56,7 +56,9 @@
     /// <summary>Accessible description; defaults to a generic sparkline label.</summary>
     [Parameter] public string? Title { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the <c>&lt;svg&gt;</c> element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style appended after the <see cref="Width"/>/<see cref="Height"/> declarations on the <c>&lt;svg&gt;</c>.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

@@ -24,7 +24,9 @@
     /// <summary>Content to clip — typically an <c>&lt;img&gt;</c> element.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the <c>.mask</c> element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the <c>.mask</c> element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

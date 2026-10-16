@@ -10,7 +10,9 @@
     /// <summary>The hint message content to display beneath a validated input.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the .validator-hint paragraph.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the paragraph.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

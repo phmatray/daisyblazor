@@ -29,7 +29,9 @@
     /// <summary>The prefix shown before each line when using <see cref="Lines"/>. Defaults to "$".</summary>
     [Parameter] public string Prefix { get; set; } = "$";
 
+    /// <summary>Extra CSS classes merged onto the mockup-code element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the mockup-code element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

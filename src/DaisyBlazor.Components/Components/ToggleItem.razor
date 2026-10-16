@@ -22,12 +22,19 @@
 @code {
     [CascadingParameter] private ToggleGroup<T>? Parent { get; set; }
 
+    /// <summary>Button content; takes precedence over <see cref="Text"/>.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Value selected in the parent ToggleGroup when this button is clicked.</summary>
     [Parameter] public T? Value { get; set; }
+    /// <summary>Button label shown when <see cref="ChildContent"/> is not set.</summary>
     [Parameter] public string? Text { get; set; }
+    /// <summary>Material Symbols ligature rendered small before the label.</summary>
     [Parameter] public string? Icon { get; set; }
+    /// <summary>Disables this button; it is also disabled when the parent group is disabled.</summary>
     [Parameter] public bool Disabled { get; set; }
+    /// <summary>Additional CSS classes merged onto the <c>join-item btn</c> button.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the button.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

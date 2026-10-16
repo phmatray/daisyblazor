@@ -42,12 +42,15 @@
 </nav>
 
 @code {
+    /// <summary>Trail entries, each rendered as a link (when it has an Href and is enabled) or plain text.</summary>
     [Parameter] public List<BreadcrumbItem>? Items { get; set; }
 
     /// <summary>Accepted for MudBlazor source compatibility; ignored.</summary>
     [Parameter] public string? Separator { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the root breadcrumbs &lt;nav&gt; element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root breadcrumbs &lt;nav&gt; element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

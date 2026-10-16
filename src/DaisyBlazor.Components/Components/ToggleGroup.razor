@@ -12,15 +12,25 @@
 </CascadingValue>
 
 @code {
+    /// <summary>The <see cref="ToggleItem{T}"/> buttons rendered inside the <c>join</c> group.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>The currently selected item value; supports two-way binding with <c>@bind-Value</c>.</summary>
     [Parameter] public T? Value { get; set; }
+    /// <summary>Raised with the new value when the user selects an item.</summary>
     [Parameter] public EventCallback<T?> ValueChanged { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect, selection is always single.</summary>
     [Parameter] public SelectionMode SelectionMode { get; set; } = SelectionMode.SingleSelection;
+    /// <summary>Color of the selected item button (e.g. <c>btn-primary</c>); defaults to Primary.</summary>
     [Parameter] public Color Color { get; set; } = Color.Primary;
+    /// <summary>Button size of the items: Small maps to <c>btn-sm</c>, Large to <c>btn-lg</c>.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public bool CheckMark { get; set; }
+    /// <summary>Disables every item in the group and ignores selection.</summary>
     [Parameter] public bool Disabled { get; set; }
+    /// <summary>Extra CSS classes added to the <c>join</c> container.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the <c>join</c> container.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

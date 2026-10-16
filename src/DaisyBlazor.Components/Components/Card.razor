@@ -7,11 +7,17 @@
 </div>
 
 @code {
+    /// <summary>Content rendered inside the .card surface.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>When true, draws a card-border border instead of the elevation shadow.</summary>
     [Parameter] public bool Outlined { get; set; }
+    /// <summary>Shadow depth from 0 (none) to 12+ (shadow-xl); defaults to 1 (shadow-sm). Ignored when Outlined.</summary>
     [Parameter] public int Elevation { get; set; } = 1;
+    /// <summary>Raised when the card is clicked or activated by Enter/Space; also gives it button role and focusability.</summary>
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    /// <summary>Extra CSS classes merged onto the root element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

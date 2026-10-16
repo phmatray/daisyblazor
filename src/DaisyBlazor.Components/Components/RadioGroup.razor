@@ -14,11 +14,16 @@
 </div>
 
 @code {
+    /// <summary>The currently selected option (two-way bindable).</summary>
     [Parameter] public T? Value { get; set; }
+    /// <summary>Raised when a child Radio is selected.</summary>
     [Parameter] public EventCallback<T?> ValueChanged { get; set; }
+    /// <summary>The Radio components of the group, stacked vertically.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the root element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

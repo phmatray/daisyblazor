@@ -35,14 +35,23 @@
 </li>
 
 @code {
+    /// <summary>Main content shown in the <c>timeline-end timeline-box</c>; ignored when <see cref="ItemContent"/> is set.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Main content shown in the <c>timeline-end timeline-box</c>; takes precedence over <see cref="ChildContent"/>.</summary>
     [Parameter] public RenderFragment? ItemContent { get; set; }
+    /// <summary>Content rendered on the opposite side, in <c>timeline-start</c>.</summary>
     [Parameter] public RenderFragment? ItemOpposite { get; set; }
+    /// <summary>Color of the middle dot (e.g. <c>bg-primary</c>) or icon; defaults to a neutral <c>bg-base-300</c> dot.</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
+    /// <summary>Size of the middle dot (small, medium or large); does not affect the icon.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
+    /// <summary>Material Symbols ligature shown in the middle instead of the dot.</summary>
     [Parameter] public string? Icon { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public TimelineAlign TimelineAlign { get; set; } = TimelineAlign.Default;
+    /// <summary>Additional CSS classes merged onto the content box.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the content box.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

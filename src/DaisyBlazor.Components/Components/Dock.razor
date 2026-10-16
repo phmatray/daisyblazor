@@ -14,7 +14,9 @@
     /// <summary>Controls the dock height via daisyUI size modifiers (dock-xs … dock-xl). Null means no modifier (default daisyUI size).</summary>
     [Parameter] public DockSize? Size { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the <c>.dock</c> element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the <c>.dock</c> element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

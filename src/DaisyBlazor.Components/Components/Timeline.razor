@@ -7,10 +7,15 @@
 </ul>
 
 @code {
+    /// <summary>The timeline items, rendered inside a vertical compact daisyUI timeline list.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect (layout is always compact).</summary>
     [Parameter] public TimelinePosition TimelinePosition { get; set; } = TimelinePosition.Alternate;
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public bool Reverse { get; set; }
+    /// <summary>Extra CSS classes merged onto the root element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

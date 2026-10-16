@@ -30,7 +30,9 @@
     /// <summary>Raised when the user selects one or more files.</summary>
     [Parameter] public EventCallback<InputFileChangeEventArgs> OnChange { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the file input.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the file input.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

@@ -10,15 +10,21 @@
 </div>
 
 @code {
+    /// <summary>Buttons rendered inside the daisyUI join container.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Accepted for MudBlazor source compatibility; ignored (child buttons carry their own styling).</summary>
     [Parameter] public Variant Variant { get; set; } = Variant.Text;
+    /// <summary>Accepted for MudBlazor source compatibility; ignored (child buttons carry their own styling).</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
+    /// <summary>Accepted for MudBlazor source compatibility; ignored (child buttons carry their own styling).</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
 
     /// <summary>Accepted for MudBlazor source compatibility; ignored.</summary>
     [Parameter] public bool OverrideStyles { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the root join element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root join element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

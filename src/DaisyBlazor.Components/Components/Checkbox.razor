@@ -21,18 +21,30 @@
 </label>
 
 @code {
+    /// <summary>Whether the checkbox is checked; two-way bindable with <c>@bind-Value</c>.</summary>
     [Parameter] public bool Value { get; set; }
+    /// <summary>Raised with the new state when the user toggles the checkbox.</summary>
     [Parameter] public EventCallback<bool> ValueChanged { get; set; }
+    /// <summary>MudBlazor-style alias for <see cref="Value"/>; used when <c>CheckedChanged</c> is wired or set to true.</summary>
     [Parameter] public bool Checked { get; set; }
+    /// <summary>MudBlazor-style alias for <see cref="ValueChanged"/>; wiring it makes <see cref="Checked"/> the source of truth.</summary>
     [Parameter] public EventCallback<bool> CheckedChanged { get; set; }
+    /// <summary>Text rendered in a <c>.label-text</c> span next to the input.</summary>
     [Parameter] public string? Label { get; set; }
+    /// <summary>Theme color mapped to <c>checkbox-primary</c>, <c>checkbox-accent</c>, etc.; Default adds no color class.</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
+    /// <summary>Input size: Small adds <c>checkbox-sm</c>, Large adds <c>checkbox-lg</c>; Medium uses the daisyUI default.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
+    /// <summary>Disables the input and ignores change events.</summary>
     [Parameter] public bool Disabled { get; set; }
+    /// <summary>Sets the readonly attribute and ignores change events, so the state cannot be changed by the user.</summary>
     [Parameter] public bool ReadOnly { get; set; }
+    /// <summary>Additional content rendered inside the label after the input and <see cref="Label"/>.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the wrapping <c>&lt;label&gt;</c> element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the wrapping <c>&lt;label&gt;</c> element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

@@ -17,6 +17,7 @@
 </div>
 
 @code {
+    /// <summary>Initials or icon shown inside the circle when no <see cref="Image"/> is set.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>Image source; when set the avatar renders an &lt;img&gt;.</summary>
@@ -25,11 +26,16 @@
     /// <summary>Alt text for the image.</summary>
     [Parameter] public string? Alt { get; set; }
 
+    /// <summary>Placeholder background and text color (e.g. <c>bg-primary</c>); ignored when an image is shown.</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
+    /// <summary>Avatar width: Small is <c>w-8</c>, Medium (default) <c>w-12</c>, Large <c>w-16</c>.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public Variant Variant { get; set; } = Variant.Filled;
 
+    /// <summary>Extra CSS classes added to the outer <c>avatar</c> element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the outer <c>avatar</c> element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

@@ -9,13 +9,20 @@
 </div>
 
 @code {
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public object? Model { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public object? Validation { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; never computed or updated by the form, defaults to true.</summary>
     [Parameter] public bool IsValid { get; set; } = true;
+    /// <summary>Accepted for MudBlazor compatibility; never raised.</summary>
     [Parameter] public EventCallback<bool> IsValidChanged { get; set; }
+    /// <summary>Form fields rendered inside a vertical flex container with gap-3.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the root element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

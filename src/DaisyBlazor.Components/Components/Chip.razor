@@ -19,6 +19,7 @@ else
 }
 
 @code {
+    /// <summary>Chip content; when set it replaces <see cref="Text"/>.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>Backing value for selection scenarios. Untyped — the chip never reads it; it is
@@ -28,8 +29,11 @@ else
     /// <summary>Text shown when no ChildContent is supplied.</summary>
     [Parameter] public string? Text { get; set; }
 
+    /// <summary>Semantic color mapped to the daisyUI badge-{color} class; defaults to no color class.</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
+    /// <summary>Badge size: Small maps to badge-sm, Large to badge-lg; Medium (default) adds no class.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
+    /// <summary>Visual style: Outlined maps to badge-outline, Text to badge-soft; Filled (default) adds none.</summary>
     [Parameter] public Variant Variant { get; set; } = Variant.Filled;
 
     /// <summary>Leading icon ligature.</summary>
@@ -38,12 +42,15 @@ else
     /// <summary>Close icon ligature for the optional close button.</summary>
     [Parameter] public string? CloseIcon { get; set; }
 
+    /// <summary>Click handler; when set the chip renders as a &lt;button&gt; instead of a &lt;span&gt;.</summary>
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
 
     /// <summary>Raised when the close button is clicked; rendering it requires a delegate.</summary>
     [Parameter] public EventCallback<Chip> OnClose { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the root badge element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root badge element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

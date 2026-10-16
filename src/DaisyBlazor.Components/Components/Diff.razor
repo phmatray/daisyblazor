@@ -23,7 +23,9 @@
     /// <summary>Tailwind aspect-ratio utility applied to the root element (e.g. "aspect-16/9", "aspect-4/3", "aspect-square"). Defaults to "aspect-16/9".</summary>
     [Parameter] public string? AspectClass { get; set; } = "aspect-16/9";
 
+    /// <summary>Additional CSS classes merged onto the <c>diff</c> container.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the <c>diff</c> container.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

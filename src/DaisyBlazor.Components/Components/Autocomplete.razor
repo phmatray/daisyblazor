@@ -87,32 +87,59 @@
     private readonly string _generatedId = FieldId.New();
     private string _id => FieldId.Resolve(UserAttributes, _generatedId);
 
+    /// <summary>The currently selected item; supports two-way binding with @bind-Value.</summary>
     [Parameter] public T? Value { get; set; }
+    /// <summary>Raised when an item is selected, cleared, or reset by emptying the text.</summary>
     [Parameter] public EventCallback<T?> ValueChanged { get; set; }
+    /// <summary>Text rendered in a daisyUI label above the input.</summary>
     [Parameter] public string? Label { get; set; }
+    /// <summary>Placeholder text shown in the input when it is empty.</summary>
     [Parameter] public string? Placeholder { get; set; }
+    /// <summary>Async search invoked with the typed text and a cancellation token; returns the dropdown results.</summary>
     [Parameter] public Func<string, CancellationToken, Task<IEnumerable<T>>>? SearchFunc { get; set; }
+    /// <summary>Converts an item to its display text; falls back to ToString() when not set.</summary>
     [Parameter] public Func<T, string>? ToStringFunc { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect (the input is always input-bordered).</summary>
     [Parameter] public Variant Variant { get; set; } = Variant.Outlined;
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public Margin Margin { get; set; } = Margin.None;
+    /// <summary>Shows a clear button inside the input that empties the text and resets the value.</summary>
     [Parameter] public bool Clearable { get; set; }
+    /// <summary>Delay in milliseconds after the last keystroke before searching; defaults to 300.</summary>
     [Parameter] public int DebounceInterval { get; set; } = 300;
+    /// <summary>Minimum number of typed characters before the search runs; defaults to 2.</summary>
     [Parameter] public int MinCharacters { get; set; } = 2;
+    /// <summary>Maximum number of results shown in the dropdown; defaults to 20.</summary>
     [Parameter] public int MaxItems { get; set; } = 20;
+    /// <summary>Renders a smaller input using the daisyUI input-sm class.</summary>
     [Parameter] public bool Dense { get; set; }
+    /// <summary>Disables the input and applies the daisyUI input-disabled class.</summary>
     [Parameter] public bool Disabled { get; set; }
+    /// <summary>Shows <see cref="RequiredError"/> once the user has typed and no value is selected.</summary>
     [Parameter] public bool Required { get; set; }
+    /// <summary>Error message shown below the input when <see cref="Required"/> is set and no value is selected.</summary>
     [Parameter] public string? RequiredError { get; set; }
+    /// <summary>Icon rendered inside the input at the side given by <see cref="Adornment"/>.</summary>
     [Parameter] public string? AdornmentIcon { get; set; }
+    /// <summary>Where <see cref="AdornmentIcon"/> is placed (start or end); defaults to none, which hides it.</summary>
     [Parameter] public Adornment Adornment { get; set; } = Adornment.None;
+    /// <summary>Clears the selected value when the user deletes all text from the input.</summary>
     [Parameter] public bool ResetValueOnEmptyText { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public bool CoerceText { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public bool CoerceValue { get; set; }
+    /// <summary>Text shown in the dropdown when a search returns no results; defaults to "No items found".</summary>
     [Parameter] public string NoItemsText { get; set; } = "No items found";
+    /// <summary>Accessible label for the clear button; defaults to "Clear".</summary>
     [Parameter] public string ClearAriaLabel { get; set; } = "Clear";
+    /// <summary>Custom content for each result in the dropdown; defaults to the item's display text.</summary>
     [Parameter] public RenderFragment<T>? ItemTemplate { get; set; }
+    /// <summary>Custom content shown when a search returns no results; overrides <see cref="NoItemsText"/>.</summary>
     [Parameter] public RenderFragment? NoItemsTemplate { get; set; }
+    /// <summary>Extra CSS classes added to the root form-control element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root form-control element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

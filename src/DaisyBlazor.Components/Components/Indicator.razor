@@ -24,7 +24,9 @@
     /// <summary>Vertical position of the indicator item (Top / Middle / Bottom).</summary>
     [Parameter] public IndicatorVertical Vertical { get; set; } = IndicatorVertical.Top;
 
+    /// <summary>Extra CSS classes merged onto the root .indicator element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

@@ -27,11 +27,13 @@ else
 }
 
 @code {
+    /// <summary>Content the badge overlays (indicator mode) or extra badge text (inline mode).</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>Badge content (number or text). Capped by <see cref="Max"/> when numeric.</summary>
     [Parameter] public object? Content { get; set; }
 
+    /// <summary>Badge color mapped to a daisyUI <c>badge-*</c> class; defaults to Primary.</summary>
     [Parameter] public Color Color { get; set; } = Color.Primary;
 
     /// <summary>Overlap the badge onto the child (kept for MudBlazor compatibility).</summary>
@@ -43,13 +45,17 @@ else
     /// <summary>Render a small dot with no content.</summary>
     [Parameter] public bool Dot { get; set; }
 
+    /// <summary>Shows the badge; when false the badge is hidden but child content still renders. Defaults to true.</summary>
     [Parameter] public bool Visible { get; set; } = true;
+    /// <summary>Adds a <c>border-2 border-base-100</c> ring around the overlay badge; ignored in inline mode.</summary>
     [Parameter] public bool Bordered { get; set; }
 
     /// <summary>Maximum numeric value before showing "{Max}+".</summary>
     [Parameter] public int Max { get; set; } = 99;
 
+    /// <summary>Extra CSS classes on the indicator wrapper, or on the badge itself in inline mode.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style on the indicator wrapper, or on the badge itself in inline mode.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

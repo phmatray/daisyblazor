@@ -7,8 +7,11 @@
 </tr>
 
 @code {
+    /// <summary>The row's cells.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>CSS classes applied to the &lt;tr&gt; element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the &lt;tr&gt; element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 }

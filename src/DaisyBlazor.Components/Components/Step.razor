@@ -30,7 +30,9 @@
     /// <see cref="Completed"/> is false. Ignored when <see cref="Color"/> is not Default.</summary>
     [Parameter] public bool Active { get; set; }
 
+    /// <summary>Extra CSS classes added to the step item.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the step item.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

@@ -58,14 +58,23 @@
 </nav>
 
 @code {
+    /// <summary>Total number of pages.</summary>
     [Parameter] public int Count { get; set; }
+    /// <summary>The current page, 1-based; defaults to 1. Supports two-way binding.</summary>
     [Parameter] public int Selected { get; set; } = 1;
+    /// <summary>Raised with the new 1-based page when the user selects a different page.</summary>
     [Parameter] public EventCallback<int> SelectedChanged { get; set; }
+    /// <summary>Shows a button that jumps to the first page.</summary>
     [Parameter] public bool ShowFirstButton { get; set; }
+    /// <summary>Shows a button that jumps to the last page.</summary>
     [Parameter] public bool ShowLastButton { get; set; }
+    /// <summary>Number of pages always shown at the start and end of the range; defaults to 1.</summary>
     [Parameter] public int BoundaryCount { get; set; } = 1;
+    /// <summary>Number of pages shown around the selected page; defaults to 3.</summary>
     [Parameter] public int MiddleCount { get; set; } = 3;
+    /// <summary>Color of the selected page button (btn-{color}); Default uses btn-active.</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
+    /// <summary>Disables every page and navigation button.</summary>
     [Parameter] public bool Disabled { get; set; }
 
     /// <summary>Accessible name for the pagination navigation landmark. Defaults to "Pagination".</summary>
@@ -83,7 +92,9 @@
     /// <summary>Accessible label for the "last page" control. Defaults to "Last page".</summary>
     [Parameter] public string LastPageLabel { get; set; } = "Last page";
 
+    /// <summary>Extra CSS classes merged onto the root element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

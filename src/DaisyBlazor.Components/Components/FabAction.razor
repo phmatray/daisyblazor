@@ -35,7 +35,9 @@
     /// <summary>Click callback.</summary>
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
 
+    /// <summary>Extra CSS classes added to the wrapper around the button and tooltip.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the action button itself.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

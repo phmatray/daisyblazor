@@ -9,16 +9,23 @@
 </div>
 
 @code {
+    /// <summary>The cell content.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>Base (mobile) column span (1..12). 0 = unset.</summary>
     [Parameter] public int xs { get; set; }
+    /// <summary>Column span (1..12) from the <c>sm</c> breakpoint up. 0 = unset.</summary>
     [Parameter] public int sm { get; set; }
+    /// <summary>Column span (1..12) from the <c>md</c> breakpoint up. 0 = unset.</summary>
     [Parameter] public int md { get; set; }
+    /// <summary>Column span (1..12) from the <c>lg</c> breakpoint up. 0 = unset.</summary>
     [Parameter] public int lg { get; set; }
+    /// <summary>Column span (1..12) from the <c>xl</c> breakpoint up. 0 = unset.</summary>
     [Parameter] public int xl { get; set; }
 
+    /// <summary>Extra CSS classes added to the grid cell.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the grid cell.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

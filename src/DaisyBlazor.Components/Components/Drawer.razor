@@ -77,7 +77,9 @@
     /// <summary>CSS classes of the built-in toggle button (e.g. add <c>lg:hidden</c> for a responsive drawer).</summary>
     [Parameter] public string ToggleClass { get; set; } = "btn drawer-button";
 
+    /// <summary>Extra CSS classes merged onto the .drawer root; a responsive drawer-open class keeps the side panel active.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

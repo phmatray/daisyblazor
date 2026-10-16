@@ -10,11 +10,17 @@
 </CascadingValue>
 
 @code {
+    /// <summary>The ExpansionPanel children of the group.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Allows several panels open at once; when false (default) panels form a single-open accordion.</summary>
     [Parameter] public bool MultiExpansion { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect on the container.</summary>
     [Parameter] public bool Dense { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public int Elevation { get; set; } = 1;
+    /// <summary>Extra CSS classes merged onto the root element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

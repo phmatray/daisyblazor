@@ -28,7 +28,9 @@
     /// <summary>Padding utility class applied to the footer. Defaults to "p-10".</summary>
     [Parameter] public string Padding { get; set; } = "p-10";
 
+    /// <summary>Extra CSS classes merged onto the <c>&lt;footer&gt;</c> element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the <c>&lt;footer&gt;</c> element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

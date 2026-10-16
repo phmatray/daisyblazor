@@ -80,7 +80,9 @@
     /// <summary>Optional label rendered in the center of the hole.</summary>
     [Parameter] public string? CenterLabel { get; set; }
 
+    /// <summary>Extra CSS classes added to the chart wrapper.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles appended to the chart wrapper, after the width from <see cref="Width"/>.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

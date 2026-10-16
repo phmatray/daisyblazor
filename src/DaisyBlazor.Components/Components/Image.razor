@@ -5,9 +5,13 @@
 <img src="@Src" alt="@Alt" class="@_cls" style="@_style" @attributes="UserAttributes" />
 
 @code {
+    /// <summary>Image URL rendered as the img src.</summary>
     [Parameter] public string? Src { get; set; }
+    /// <summary>Alternative text for the image.</summary>
     [Parameter] public string? Alt { get; set; }
+    /// <summary>Width in pixels, applied as an inline style.</summary>
     [Parameter] public int? Width { get; set; }
+    /// <summary>Height in pixels, applied as an inline style.</summary>
     [Parameter] public int? Height { get; set; }
 
     /// <summary>CSS object-fit value (e.g. "contain", "cover", "fill").</summary>
@@ -16,7 +20,9 @@
     /// <summary>When true, the image scales to the width of its container.</summary>
     [Parameter] public bool Fluid { get; set; }
 
+    /// <summary>Extra CSS classes added to the img.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style appended after the width and height.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

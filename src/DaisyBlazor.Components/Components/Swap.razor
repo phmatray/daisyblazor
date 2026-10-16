@@ -26,7 +26,9 @@
     /// <summary>Animation applied to the swap transition.</summary>
     [Parameter] public SwapAnimation Animation { get; set; } = SwapAnimation.None;
 
+    /// <summary>Extra CSS classes merged onto the swap label.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the swap label.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

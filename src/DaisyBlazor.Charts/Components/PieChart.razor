@@ -69,7 +69,9 @@
     /// <summary>Optional label rendered in the center (donut only).</summary>
     [Parameter] public string? CenterLabel { get; set; }
 
+    /// <summary>Additional CSS classes merged onto the <c>w-full</c> wrapper.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles appended after the width on the wrapper.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

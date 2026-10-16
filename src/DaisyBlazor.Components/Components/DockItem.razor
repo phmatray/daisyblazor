@@ -52,7 +52,9 @@ else
     /// <summary>Click handler used when the item is rendered as a &lt;button&gt; (ignored when Href is set).</summary>
     [Parameter] public EventCallback OnClick { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the root &lt;a&gt; or &lt;button&gt; element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root &lt;a&gt; or &lt;button&gt; element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

@@ -7,13 +7,21 @@
 </div>
 
 @code {
+    /// <summary>The items laid out in the flex container.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>When true lays items out horizontally (flex-row); vertical (flex-col) by default.</summary>
     [Parameter] public bool Row { get; set; }
+    /// <summary>When true lets items wrap onto multiple lines (flex-wrap).</summary>
     [Parameter] public bool Wrap { get; set; }
+    /// <summary>Gap between items as a Tailwind gap-{n} step. Defaults to 4.</summary>
     [Parameter] public int Spacing { get; set; } = 4;
+    /// <summary>Main-axis distribution of items (justify-content); unset by default.</summary>
     [Parameter] public Justify? Justify { get; set; }
+    /// <summary>Cross-axis alignment of items (align-items); unset by default.</summary>
     [Parameter] public AlignItems? AlignItems { get; set; }
+    /// <summary>Extra CSS classes merged onto the root element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

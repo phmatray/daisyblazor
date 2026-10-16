@@ -16,7 +16,9 @@
     /// <summary>The input element (or any form control) to wrap with the floating label.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>Additional CSS classes merged onto the <c>floating-label</c> element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the <c>floating-label</c> element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

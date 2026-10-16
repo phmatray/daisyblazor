@@ -12,7 +12,9 @@
     /// <summary>Size of the key cap. Maps to kbd-xs / kbd-sm / kbd-md / kbd-lg / kbd-xl.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
 
+    /// <summary>Extra CSS classes added to the kbd element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the kbd element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

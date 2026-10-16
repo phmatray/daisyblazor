@@ -9,13 +9,21 @@
 </div>
 
 @code {
+    /// <summary>Table markup (<c>&lt;thead&gt;</c>/<c>&lt;tbody&gt;</c> or Tr/Th/Td) rendered inside the <c>.table</c>.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Adds <c>table-sm</c> for compact rows.</summary>
     [Parameter] public bool Dense { get; set; }
+    /// <summary>Highlights body rows on hover with a <c>bg-base-200</c> background.</summary>
     [Parameter] public bool Hover { get; set; }
+    /// <summary>Adds <c>table-zebra</c> for alternating row backgrounds.</summary>
     [Parameter] public bool Striped { get; set; }
+    /// <summary>Adds a <c>border border-base-300</c> outline around the table.</summary>
     [Parameter] public bool Bordered { get; set; }
+    /// <summary>Caps the wrapper height at <c>max-h-96</c> with vertical scrolling; the header itself is not made sticky.</summary>
     [Parameter] public bool FixedHeader { get; set; }
+    /// <summary>Extra CSS classes merged onto the <c>&lt;table&gt;</c> element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the scrolling wrapper <c>&lt;div&gt;</c>.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

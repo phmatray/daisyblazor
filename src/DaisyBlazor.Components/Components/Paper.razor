@@ -7,15 +7,25 @@
 </div>
 
 @code {
+    /// <summary>Content rendered inside the panel.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Shadow depth: 0 none, 1 shadow-sm, up to shadow-xl above 12; ignored when <see cref="Outlined"/>.</summary>
     [Parameter] public int Elevation { get; set; } = 1;
+    /// <summary>Replaces the shadow with a border border-base-300 outline.</summary>
     [Parameter] public bool Outlined { get; set; }
+    /// <summary>Uses square corners (rounded-none) instead of rounded-box.</summary>
     [Parameter] public bool Square { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public string? Width { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public string? Height { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public string? MaxWidth { get; set; }
+    /// <summary>Raised when the panel is clicked.</summary>
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    /// <summary>Extra CSS classes added to the panel.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the panel.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

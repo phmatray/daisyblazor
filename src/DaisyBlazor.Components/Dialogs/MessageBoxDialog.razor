@@ -23,9 +23,13 @@
 @code {
     [CascadingParameter] private IMudDialogInstance? DialogInstance { get; set; }
 
+    /// <summary>Message text shown in the dialog body; line breaks are preserved.</summary>
     [Parameter] public string? Message { get; set; }
+    /// <summary>Label of the primary button, which closes with <c>true</c>; defaults to "OK".</summary>
     [Parameter] public string YesText { get; set; } = "OK";
+    /// <summary>Label of the outlined button that closes with <c>false</c>; hidden when empty.</summary>
     [Parameter] public string? NoText { get; set; }
+    /// <summary>Label of the text button that cancels the dialog; hidden when empty.</summary>
     [Parameter] public string? CancelText { get; set; }
 
     private void OnYes() => DialogInstance?.Close(DialogResult.Ok(true));

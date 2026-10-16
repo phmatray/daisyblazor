@@ -19,7 +19,9 @@
     /// <summary>Optional validation hint message rendered below the input as a .validator-hint paragraph.</summary>
     [Parameter] public string? Hint { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the .validator root element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the .validator root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

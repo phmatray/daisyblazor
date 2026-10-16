@@ -34,7 +34,9 @@
     /// <summary>Extra CSS classes forwarded to the .dropdown-content wrapper.</summary>
     [Parameter] public string? ContentClass { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the root .dropdown element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root .dropdown element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

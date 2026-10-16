@@ -38,7 +38,9 @@
     /// <summary>Custom inner content; defaults to "@Value%" when not provided.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the .radial-progress element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS appended after the --value/--size/--thickness custom properties.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

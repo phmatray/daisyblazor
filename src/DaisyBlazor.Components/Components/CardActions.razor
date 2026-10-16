@@ -8,8 +8,11 @@
 </div>
 
 @code {
+    /// <summary>Buttons or other actions rendered in the .card-actions footer.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Extra CSS classes merged onto the .card-actions element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the .card-actions element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 }

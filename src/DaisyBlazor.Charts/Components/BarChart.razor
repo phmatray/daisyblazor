@@ -120,7 +120,9 @@
     /// <summary>Optional heading rendered above the chart.</summary>
     [Parameter] public string? Title { get; set; }
 
+    /// <summary>Extra CSS classes added to the chart wrapper.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style appended to the chart wrapper.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

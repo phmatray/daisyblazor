@@ -18,7 +18,9 @@
     /// <summary>Content displayed in the tab panel when this tab is active.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>Accepted but currently ignored; the parent Tabs does not apply it.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Accepted but currently ignored; the parent Tabs does not apply it.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

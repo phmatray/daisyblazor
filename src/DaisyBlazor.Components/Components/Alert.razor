@@ -12,9 +12,13 @@
 </div>
 
 @code {
+    /// <summary>Message content rendered next to the icon.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Alert color (alert-info, alert-success, alert-warning, alert-error) and default icon; Normal is neutral.</summary>
     [Parameter] public Severity Severity { get; set; } = Severity.Normal;
+    /// <summary>Filled (default) is solid; Outlined adds alert-outline; Text adds alert-soft.</summary>
     [Parameter] public Variant Variant { get; set; } = Variant.Filled;
+    /// <summary>Reduces vertical padding (py-2).</summary>
     [Parameter] public bool Dense { get; set; }
 
     /// <summary>Explicit icon ligature; overrides the severity default when set.</summary>
@@ -23,7 +27,9 @@
     /// <summary>Suppress the leading severity icon.</summary>
     [Parameter] public bool NoIcon { get; set; }
 
+    /// <summary>Extra CSS classes added to the alert.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the alert.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

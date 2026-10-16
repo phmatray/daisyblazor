@@ -41,17 +41,25 @@
     /// <summary>Text label for the default button activator.</summary>
     [Parameter] public string? Label { get; set; }
 
+    /// <summary>Size of the default icon activator; ignored by the label button and custom activators.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
+    /// <summary>Renders compact menu items (menu-sm).</summary>
     [Parameter] public bool Dense { get; set; }
+    /// <summary>Extra CSS classes added to the dropdown menu list.</summary>
     [Parameter] public string? ListClass { get; set; }
+    /// <summary>Dropdown placement: right origins add dropdown-end, top origins add dropdown-top.</summary>
     [Parameter] public Origin AnchorOrigin { get; set; } = Origin.BottomLeft;
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public Origin TransformOrigin { get; set; } = Origin.TopLeft;
 
     /// <summary>Custom activator markup; receives a context with <c>ToggleAsync</c>.</summary>
     [Parameter] public RenderFragment<MenuActivator>? ActivatorContent { get; set; }
 
+    /// <summary>The <see cref="MenuItem"/> entries shown in the dropdown list.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Extra CSS classes added to the dropdown root.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the dropdown root.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

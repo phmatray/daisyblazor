@@ -64,20 +64,35 @@
 </CascadingValue>
 
 @code {
+    /// <summary>Source rows; paged client-side and rendered through <see cref="RowTemplate"/>.</summary>
     [Parameter] public IEnumerable<T>? Items { get; set; }
+    /// <summary>Applies the daisyUI <c>table-sm</c> class for compact rows.</summary>
     [Parameter] public bool Dense { get; set; }
+    /// <summary>Highlights the hovered body row with a <c>bg-base-200</c> background.</summary>
     [Parameter] public bool Hover { get; set; }
+    /// <summary>Applies the daisyUI <c>table-zebra</c> class for alternating row colors.</summary>
     [Parameter] public bool Striped { get; set; }
+    /// <summary>When true, replaces the rows with <see cref="LoadingContent"/> or a default loading spinner.</summary>
     [Parameter] public bool Loading { get; set; }
+    /// <summary>Number of rows shown per page; defaults to 10 and is updated by the pager.</summary>
     [Parameter] public int RowsPerPage { get; set; } = 10;
+    /// <summary>Header cells rendered inside the <c>thead</c> row.</summary>
     [Parameter] public RenderFragment? HeaderContent { get; set; }
+    /// <summary>Template rendering the cells of one body row for each item.</summary>
     [Parameter] public RenderFragment<T>? RowTemplate { get; set; }
+    /// <summary>Content shown in a full-width row when there are no items to display.</summary>
     [Parameter] public RenderFragment? NoRecordsContent { get; set; }
+    /// <summary>Content shown while <see cref="Loading"/> is true, replacing the default spinner.</summary>
     [Parameter] public RenderFragment? LoadingContent { get; set; }
+    /// <summary>Extra content rendered after the table, inside the cascaded pager-host scope.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Pager (e.g. a TablePager) rendered right-aligned below the table.</summary>
     [Parameter] public RenderFragment? PagerContent { get; set; }
+    /// <summary>Raised with the item and its page-relative index when a row is clicked; also makes rows look clickable.</summary>
     [Parameter] public EventCallback<TableRowClickEventArgs<T>> OnRowClick { get; set; }
+    /// <summary>Additional CSS classes merged onto the <c>table</c> element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the scrolling wrapper <c>div</c>.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

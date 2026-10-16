@@ -34,8 +34,11 @@
 @code {
     [CascadingParameter] public ITablePagerHost? Host { get; set; }
 
+    /// <summary>Page sizes offered in the page-size select; defaults to 10, 25, 50 and 100.</summary>
     [Parameter] public int[] PageSizeOptions { get; set; } = new[] { 10, 25, 50, 100 };
+    /// <summary>Extra CSS classes merged onto the root element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

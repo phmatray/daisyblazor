@@ -5,6 +5,7 @@
 <div class="@_cls" style="@Style" @attributes="UserAttributes">@ChildContent</div>
 
 @code {
+    /// <summary>Optional text or markup shown in the middle of the divider line.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>Renders a vertical divider (between horizontally-laid-out siblings).</summary>
@@ -16,7 +17,9 @@
     /// <summary>Accepted for MudBlazor compatibility; visual style is fixed.</summary>
     [Parameter] public object? DividerType { get; set; }
 
+    /// <summary>Extra CSS classes added to the divider.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the divider.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

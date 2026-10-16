@@ -18,7 +18,9 @@
     /// <summary>Accepted for MudBlazor compatibility; daisyUI handles the pulse animation.</summary>
     [Parameter] public object? Animation { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the skeleton element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles appended after the Width and Height styles.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

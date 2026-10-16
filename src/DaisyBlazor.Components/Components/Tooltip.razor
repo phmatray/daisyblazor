@@ -7,6 +7,7 @@
 </div>
 
 @code {
+    /// <summary>Content wrapped by the daisyUI tooltip that triggers it on hover.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>Tooltip text shown on hover.</summary>
@@ -18,7 +19,9 @@
     /// <summary>Accepted for MudBlazor compatibility; daisyUI tooltips always show an arrow.</summary>
     [Parameter] public bool Arrow { get; set; }
 
+    /// <summary>Extra CSS classes merged onto the root tooltip element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root tooltip element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

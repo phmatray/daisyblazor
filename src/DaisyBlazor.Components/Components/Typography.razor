@@ -32,11 +32,17 @@ else
 }
 
 @code {
+    /// <summary>Text style; picks the element (h1–h6 or p) and its typography classes. Defaults to body1.</summary>
     [Parameter] public Typo Typo { get; set; } = Typo.body1;
+    /// <summary>Text color class (e.g. <c>text-primary</c>); defaults to Inherit.</summary>
     [Parameter] public Color Color { get; set; } = Color.Inherit;
+    /// <summary>Extra CSS classes added to the rendered element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the rendered element.</summary>
     [Parameter] public string? Style { get; set; }
+    /// <summary>The text content.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public string? Align { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

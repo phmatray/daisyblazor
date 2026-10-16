@@ -36,7 +36,9 @@
     /// <summary>Optional border color token applied as <c>border-{token}</c>; defaults to no extra border class.</summary>
     [Parameter] public Color BorderColor { get; set; } = Color.Default;
 
+    /// <summary>Extra CSS classes added to the <c>mockup-browser</c> element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles applied to the <c>mockup-browser</c> element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

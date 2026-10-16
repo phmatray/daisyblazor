@@ -29,18 +29,25 @@ else if (!string.IsNullOrEmpty(_title))
 @code {
     [CascadingParameter] private IMudDialogInstance? DialogInstance { get; set; }
 
+    /// <summary>Custom title markup; takes precedence over <see cref="Title"/>.</summary>
     [Parameter] public RenderFragment? TitleContent { get; set; }
+    /// <summary>Dialog body content, rendered before <see cref="ChildContent"/>.</summary>
     [Parameter] public RenderFragment? DialogContent { get; set; }
+    /// <summary>Additional body content, rendered after <see cref="DialogContent"/>.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>Footer actions. <c>DialogActions</c> matches the MudBlazor child-content name;
     /// <c>Actions</c> is supported as an alias.</summary>
     [Parameter] public RenderFragment? DialogActions { get; set; }
+    /// <summary>Alias for <see cref="DialogActions"/>, used only when DialogActions is not set.</summary>
     [Parameter] public RenderFragment? Actions { get; set; }
 
+    /// <summary>Title text; falls back to the title passed to the dialog service when empty.</summary>
     [Parameter] public string? Title { get; set; }
 
+    /// <summary>Extra CSS classes applied to the title element only.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Accepted for API compatibility; currently not rendered anywhere.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

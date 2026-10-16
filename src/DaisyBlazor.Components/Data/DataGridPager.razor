@@ -59,7 +59,9 @@
     /// <summary>Accessible label for the next-page navigation button.</summary>
     [Parameter] public string NextPageText { get; set; } = "Next page";
 
+    /// <summary>Extra CSS classes added to the pager bar.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the pager bar.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 

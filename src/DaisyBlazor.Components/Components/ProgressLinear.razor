@@ -13,18 +13,27 @@ else
 }
 
 @code {
+    /// <summary>Current progress value, rendered as the progress element value; ignored when indeterminate.</summary>
     [Parameter] public double Value { get; set; }
+    /// <summary>Accepted for MudBlazor compatibility; currently has no effect (the bar always starts at 0).</summary>
     [Parameter] public double Min { get; set; }
+    /// <summary>Maximum value of the progress bar; defaults to 100.</summary>
     [Parameter] public double Max { get; set; } = 100;
+    /// <summary>Renders a valueless progress element that daisyUI animates as indeterminate.</summary>
     [Parameter] public bool Indeterminate { get; set; }
+    /// <summary>Semantic color mapped to progress-{color} (e.g. progress-primary).</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
 
     /// <summary>Accepted for MudBlazor compatibility; daisyUI progress has no striped style.</summary>
     [Parameter] public bool Striped { get; set; }
+    /// <summary>Adds rounded-full to the progress bar.</summary>
     [Parameter] public bool Rounded { get; set; }
+    /// <summary>Bar height: Small maps to h-1.5, Large to h-4, Medium (default) uses the daisyUI height.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
 
+    /// <summary>Extra CSS classes merged onto the root element.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the root element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
