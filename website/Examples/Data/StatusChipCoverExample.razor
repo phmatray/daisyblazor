@@ -1,0 +1,28 @@
+<div class="flex flex-col items-start gap-3">
+    @foreach ((string title, Shipment status) in _orders)
+    {
+        <div class="flex w-full items-center justify-between gap-3 border-b border-base-300 pb-2">
+            <span class="font-bold">@title</span>
+            <StatusChip Status="status" Map="ShipmentStatus" Size="Size.Medium" />
+        </div>
+    }
+</div>
+
+@code {
+    private enum Shipment { Pressing, Shipped, Delivered, Delayed }
+
+    private static readonly StatusMap ShipmentStatus = StatusMap.For<Shipment>()
+        .Add(Shipment.Pressing, Color.Info, Icons.Material.Filled.Album)
+        .Add(Shipment.Shipped, Color.Primary, Icons.Material.Filled.LocalShipping)
+        .Add(Shipment.Delivered, Color.Success, Icons.Material.Filled.CheckCircle)
+        .Add(Shipment.Delayed, Color.Warning, Icons.Material.Filled.Schedule)
+        .Build();
+
+    private readonly (string, Shipment)[] _orders =
+    [
+        ("Melody Nelson", Shipment.Delivered),
+        ("Baby Pop", Shipment.Shipped),
+        ("La Question", Shipment.Pressing),
+        ("Comic Strip", Shipment.Delayed),
+    ];
+}

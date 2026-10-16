@@ -1,0 +1,45 @@
+<DataGrid T="Track" Items="_tracks" Hover="true">
+    <Columns>
+        <TemplateColumn Title="Track">
+            <CellTemplate>
+                <div class="flex items-center gap-3">
+                    <Avatar Color="Color.Primary" Size="Size.Small">@context.Item.Side</Avatar>
+                    <div>
+                        <div class="font-bold">@context.Item.Title</div>
+                        <div class="text-sm opacity-60">@context.Item.Artist</div>
+                    </div>
+                </div>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn Title="Streams" Sortable="true" SortBy="t => t.Streams">
+            <CellTemplate>
+                <span class="font-mono">@context.Item.Streams.ToString("N0")</span>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn Title="Status" Sortable="true" SortBy="t => t.Status">
+            <CellTemplate>
+                <StatusChip Status="context.Item.Status" Map="StatusColors" />
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</DataGrid>
+
+@code {
+    private enum TrackStatus { Live, Scheduled, Draft }
+
+    private static readonly StatusMap StatusColors = StatusMap.For<TrackStatus>()
+        .Add(TrackStatus.Live, Color.Success)
+        .Add(TrackStatus.Scheduled, Color.Info)
+        .Default(Color.Default)
+        .Build();
+
+    private record Track(string Side, string Title, string Artist, int Streams, TrackStatus Status);
+
+    private readonly Track[] _tracks =
+    [
+        new("A", "La Javanaise", "Juliette Gréco", 1_284_310, TrackStatus.Live),
+        new("B", "Tous les garçons et les filles", "Françoise Hardy", 962_118, TrackStatus.Live),
+        new("A", "Laisse tomber les filles", "France Gall", 418_904, TrackStatus.Scheduled),
+        new("B", "Et moi, et moi, et moi", "Jacques Dutronc", 0, TrackStatus.Draft),
+    ];
+}

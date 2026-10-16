@@ -1,0 +1,14 @@
+<div class="flex flex-wrap items-center gap-8">
+    <PieChart Data="_listeners" ShowLegend="false" Height="9rem" Width="9rem" Title="Listeners by country" />
+    <PieChart Data="_listeners" Height="9rem" Title="With legend" />
+</div>
+
+@code {
+    private readonly ChartDataPoint[] _listeners =
+    [
+        new("France", 52, "var(--color-primary)"),
+        new("Belgium", 18, "var(--color-secondary)"),
+        new("Japan", 16, "var(--color-accent)"),
+        new("Elsewhere", 14, "var(--color-neutral)"),
+    ];
+}

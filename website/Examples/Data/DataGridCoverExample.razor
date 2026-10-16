@@ -1,0 +1,37 @@
+<DataGrid T="ChartEntry" Items="_chart" Dense="true" Bordered="true">
+    <Columns>
+        <PropertyColumn T="ChartEntry" TProperty="int" Property="e => e.Pos" Title="#" Sortable="false"
+                        CellClass="font-display text-xl font-bold text-primary" />
+        <TemplateColumn Title="This week">
+            <CellTemplate>
+                <div class="font-bold leading-tight">@context.Item.Title</div>
+                <div class="text-xs opacity-60">@context.Item.Artist</div>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn CellClass="text-right">
+            <CellTemplate>
+                @if (context.Item.Up)
+                {
+                    <Icon Name="@Icons.Material.Filled.ArrowUpward" Size="Size.Small" Class="text-success" />
+                }
+                else
+                {
+                    <Icon Name="@Icons.Material.Filled.ArrowDownward" Size="Size.Small" Class="text-error" />
+                }
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</DataGrid>
+
+@code {
+    private record ChartEntry(int Pos, string Title, string Artist, bool Up);
+
+    private readonly ChartEntry[] _chart =
+    [
+        new(1, "Poupée de cire", "France Gall", true),
+        new(2, "La Javanaise", "Juliette Gréco", true),
+        new(3, "Bang Bang", "Sheila", false),
+        new(4, "Initials B.B.", "Serge Gainsbourg", true),
+        new(5, "Mon amie la rose", "Françoise Hardy", false),
+    ];
+}

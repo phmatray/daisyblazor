@@ -1,0 +1,12 @@
+<BarChart Title="Copies ordered by record shops, per city" Data="_cities" Horizontal="true" ShowGrid="false" Height="14rem" />
+
+@code {
+    private readonly ChartDataPoint[] _cities =
+    [
+        new("Paris", 1_240),
+        new("Lyon", 980),
+        new("Lille", 760),
+        new("Nantes", 610),
+        new("Nice", 420),
+    ];
+}

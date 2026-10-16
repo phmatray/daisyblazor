@@ -1,0 +1,10 @@
+<LineChart Area="true" Title="Vinyl revenue, 2025–2026 (k€)" Labels="_quarters" Series="_revenue" Smooth="true" ShowPoints="false" />
+
+@code {
+    private readonly string[] _quarters = ["Q1", "Q2", "Q3", "Q4", "Q1", "Q2", "Q3"];
+
+    private readonly ChartSeries[] _revenue =
+    [
+        new("Revenue", [118, 132, 127, 204, 141, 163, 176]),
+    ];
+}

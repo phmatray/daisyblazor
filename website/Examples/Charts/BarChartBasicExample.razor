@@ -1,0 +1,11 @@
+<BarChart Title="Copies sold by format, 2026" Data="_sales" />
+
+@code {
+    private readonly ChartDataPoint[] _sales =
+    [
+        new("Vinyl", 48_200),
+        new("Digital", 39_900),
+        new("CD", 21_100),
+        new("Cassette", 8_300),
+    ];
+}

@@ -1,0 +1,29 @@
+@inject ISnackbar Snackbar
+
+<DataTable T="Album" Items="_albums" Dense="true" PageSizeOptions="[5, 10]">
+    <Columns>
+        <PropertyColumn T="Album" TProperty="string" Property="a => a.Title" Title="Album" />
+        <PropertyColumn T="Album" TProperty="string" Property="a => a.Artist" Title="Artist" />
+        <PropertyColumn T="Album" TProperty="int" Property="a => a.Year" Title="Year" />
+    </Columns>
+    <Actions>
+        <IconButton Icon="@Icons.Material.Filled.PlayArrow" Size="Size.Small" Title="Play"
+                    OnClick="@(() => Snackbar.Add($"Now playing {context.Title}"))" />
+        <IconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Title="Edit"
+                    OnClick="@(() => Snackbar.Add($"Editing {context.Title}"))" />
+    </Actions>
+</DataTable>
+
+@code {
+    private record Album(string Title, string Artist, int Year);
+
+    private readonly Album[] _albums =
+    [
+        new("Histoire de Melody Nelson", "Serge Gainsbourg", 1971),
+        new("Tous les garçons et les filles", "Françoise Hardy", 1962),
+        new("Baby Pop", "France Gall", 1966),
+        new("Jane Birkin / Serge Gainsbourg", "Jane Birkin", 1969),
+        new("Jacques Dutronc", "Jacques Dutronc", 1966),
+        new("Sylvie", "Sylvie Vartan", 1962),
+    ];
+}

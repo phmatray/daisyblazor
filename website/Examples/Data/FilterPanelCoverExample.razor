@@ -1,0 +1,10 @@
+<FilterPanel Title="Crate digging" ActiveFilters="_active" OnApply="() => { }" OnClear="() => _active = []"
+             OnRemoveFilter="f => _active = _active.Where(x => x != f).ToList()" Class="mb-0">
+    <Item xs="12">
+        <TextField Label="Artist" Value="Gainsbourg" />
+    </Item>
+</FilterPanel>
+
+@code {
+    private List<ActiveFilter> _active = [new("year", "1968"), new("format", "Vinyl")];
+}

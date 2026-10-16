@@ -1,0 +1,11 @@
+<DonutChart Title="Streams by platform" Data="_platforms" CenterLabel="2.4 M" Height="13rem" />
+
+@code {
+    private readonly ChartDataPoint[] _platforms =
+    [
+        new("Spotify", 1_150_000),
+        new("Apple Music", 610_000),
+        new("Deezer", 380_000),
+        new("YouTube", 260_000),
+    ];
+}

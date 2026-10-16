@@ -1,0 +1,41 @@
+<DataGrid T="Artist" ServerDataFunc="LoadAsync" RowsPerPage="5" Hover="true">
+    <Columns>
+        <PropertyColumn T="Artist" TProperty="int" Property="a => a.Rank" Title="#" />
+        <PropertyColumn T="Artist" TProperty="string" Property="a => a.Name" Title="Artist" />
+        <PropertyColumn T="Artist" TProperty="int" Property="a => a.Listeners" Title="Monthly listeners" Format="N0" />
+    </Columns>
+    <PagerContent>
+        <DataGridPager T="Artist" PageSizeOptions="[5, 10]" />
+    </PagerContent>
+</DataGrid>
+
+@code {
+    private record Artist(int Rank, string Name, int Listeners);
+
+    private static readonly string[] Names =
+    [
+        "Françoise Hardy", "Serge Gainsbourg", "France Gall", "Jacques Dutronc", "Sylvie Vartan",
+        "Johnny Hallyday", "Brigitte Bardot", "Jane Birkin", "Sheila", "Claude François",
+        "Michel Polnareff", "Nino Ferrer",
+    ];
+
+    // Stands in for a database or API: the grid only asks for the page it is showing.
+    private static readonly Artist[] Database = Names
+        .Select((n, i) => new Artist(i + 1, n, 4_800_000 - i * 310_000))
+        .ToArray();
+
+    private async Task<GridData<Artist>> LoadAsync(GridState<Artist> state)
+    {
+        await Task.Delay(300);
+        IEnumerable<Artist> rows = Database;
+        foreach (SortDefinition<Artist> sort in state.SortDefinitions)
+        {
+            rows = sort.Descending ? rows.OrderByDescending(sort.SortFunc) : rows.OrderBy(sort.SortFunc);
+        }
+        return new GridData<Artist>
+        {
+            Items = rows.Skip(state.Page * state.PageSize).Take(state.PageSize).ToList(),
+            TotalItems = Database.Length,
+        };
+    }
+}
