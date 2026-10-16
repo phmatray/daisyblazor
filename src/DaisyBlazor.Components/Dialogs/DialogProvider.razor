@@ -166,15 +166,19 @@
     private static string ModalBoxCss(DialogReference dialog) => CssClass.Merge(
         "modal-box relative",
         MaxWidthCss(dialog.Options.MaxWidth),
-        dialog.Options.FullWidth == true ? "w-full" : null);
+        dialog.Options.FullWidth == true ? "w-full" : null,
+        // Keep a long title clear of the absolutely positioned close (x) button.
+        ShowCloseButton(dialog) ? "[&_[id$=-title]]:pr-8" : null);
 
+    // .modal-box already caps at 32rem, so every step sits above it and scales up roughly like
+    // MudBlazor's breakpoints (sm 600px, md 960px, lg 1280px, xl 1920px).
     private static string? MaxWidthCss(MaxWidth? maxWidth) => maxWidth switch
     {
-        MaxWidth.Small => "max-w-sm",
-        MaxWidth.Medium => "max-w-md",
-        MaxWidth.Large => "max-w-2xl",
-        MaxWidth.ExtraLarge => "max-w-4xl",
-        MaxWidth.ExtraExtraLarge => "max-w-6xl",
+        MaxWidth.Small => "max-w-xl",
+        MaxWidth.Medium => "max-w-4xl",
+        MaxWidth.Large => "max-w-6xl",
+        MaxWidth.ExtraLarge => "max-w-7xl",
+        MaxWidth.ExtraExtraLarge => "max-w-full",
         _ => null
     };
 

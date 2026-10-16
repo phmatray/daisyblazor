@@ -6,13 +6,16 @@
 
 @if (!string.IsNullOrEmpty(Href))
 {
-    <a href="@Href" target="@Target" class="@_cls" style="@Style" title="@Title" @attributes="UserAttributes">
+    @* A disabled link drops its href, leaves the tab order and says so, like Button. *@
+    <a href="@(Disabled ? null : Href)" target="@Target" class="@_cls" style="@_style" title="@Title"
+       aria-disabled="@(Disabled ? "true" : null)" tabindex="@(Disabled ? "-1" : null)"
+       @attributes="UserAttributes">
         <Icon Name="@Icon" Size="Size" Color="Color" />
     </a>
 }
 else
 {
-    <button type="button" class="@_cls" style="@Style" title="@Title" disabled="@Disabled"
+    <button type="button" class="@_cls" style="@_style" title="@Title" disabled="@Disabled"
             @onclick="OnClickHandler" @onclick:stopPropagation="StopPropagation" @attributes="UserAttributes">
         <Icon Name="@Icon" Size="Size" Color="Color" />
     </button>
@@ -21,16 +24,27 @@ else
 @code {
     /// <summary>Material Symbols ligature for the rendered icon.</summary>
     [Parameter] public string? Icon { get; set; }
+    /// <summary>Icon colour. The default, <see cref="Color.Inherit"/>, follows the surrounding text colour.</summary>
     [Parameter] public Color Color { get; set; } = Color.Inherit;
+    /// <summary>Button size, mapped to btn-sm / btn-lg (Medium is the daisyUI default).</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
+    /// <summary>Pulls the button outward with a negative margin so the icon lines up with the container edge.</summary>
     [Parameter] public Edge Edge { get; set; } = Edge.False;
+    /// <summary>Disables the button. A link loses its href, leaves the tab order and gets aria-disabled.</summary>
     [Parameter] public bool Disabled { get; set; }
+    /// <summary>Stops the click from bubbling to parent elements (button mode only).</summary>
     [Parameter] public bool StopPropagation { get; set; }
+    /// <summary>When set, renders an &lt;a&gt; to this URL instead of a &lt;button&gt;.</summary>
     [Parameter] public string? Href { get; set; }
+    /// <summary>Link target (for example _blank), used with <see cref="Href"/>.</summary>
     [Parameter] public string? Target { get; set; }
+    /// <summary>Native tooltip (title attribute). Icon-only buttons should also get an aria-label.</summary>
     [Parameter] public string? Title { get; set; }
+    /// <summary>Click callback (button mode). Not raised while <see cref="Disabled"/>.</summary>
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    /// <summary>Extra CSS classes merged onto the button or link.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles applied to the button or link.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
@@ -52,7 +66,15 @@ else
         "btn btn-ghost btn-circle",
         _sizeClass,
         _edgeClass,
+        Disabled && !string.IsNullOrEmpty(Href) ? "btn-disabled" : null,
         Class);
+
+    // .btn-ghost paints its resting colour as var(--btn-rest-fg, ... base-content). Pointing that at
+    // currentColor lets Inherit follow the parent (e.g. primary-content on a primary surface), while
+    // hover keeps daisyUI's own ghost hover pair. Inline, so it needs no extra safelisted class.
+    private string? _style => Color == Color.Inherit
+        ? $"--btn-rest-fg:currentColor;{Style}"
+        : Style;
 
     private async Task OnClickHandler(MouseEventArgs args)
     {
