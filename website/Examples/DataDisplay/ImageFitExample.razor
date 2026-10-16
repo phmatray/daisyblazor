@@ -1,10 +1,11 @@
-@* Width and Height set a fixed box in pixels; ObjectFit decides how the picture fills it. *@
+@* Width and Height set a fixed box in pixels; ObjectFit decides how the picture fills it.
+   A square box around a wide photo shows the difference: cover crops, contain letterboxes, fill stretches. *@
 <div class="flex flex-wrap gap-6">
     @foreach (string fit in new[] { "cover", "contain", "fill" })
     {
         <figure class="flex flex-col gap-2">
             <Image Src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp" Alt="Sneakers"
-                   Width="180" Height="120" ObjectFit="@fit" Class="rounded-box bg-base-200" />
+                   Width="120" Height="120" ObjectFit="@fit" Class="rounded-box bg-base-200" />
             <figcaption class="font-mono text-sm">ObjectFit="@fit"</figcaption>
         </figure>
     }

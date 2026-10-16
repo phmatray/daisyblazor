@@ -1,12 +1,12 @@
 @* Horizontal and Vertical place the Item on any of nine anchors around ChildContent. *@
-<div class="grid grid-cols-3 justify-items-center gap-x-12 gap-y-10 px-8 py-4">
+<div class="grid grid-cols-3 justify-items-center gap-x-6 gap-y-10 px-12 py-4 sm:gap-x-12 sm:px-8">
     @foreach (IndicatorVertical v in Enum.GetValues<IndicatorVertical>())
     {
         foreach (IndicatorHorizontal h in Enum.GetValues<IndicatorHorizontal>())
         {
             <Indicator Vertical="v" Horizontal="h">
-                <Item><Badge Inline="true" Color="Color.Secondary">@($"{v} {h}".ToLowerInvariant())</Badge></Item>
-                <ChildContent><div class="h-20 w-28 rounded-box bg-base-200"></div></ChildContent>
+                <Item><Badge Inline="true" Color="Color.Secondary" Class="badge-sm sm:badge-md">@($"{v} {h}".ToLowerInvariant())</Badge></Item>
+                <ChildContent><div class="h-16 w-16 sm:h-20 sm:w-28 rounded-box bg-base-200"></div></ChildContent>
             </Indicator>
         }
     }

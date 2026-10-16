@@ -7,7 +7,7 @@
         <HeaderContent>
             <Th>#</Th>
             <Th>Customer</Th>
-            <Th></Th>
+            <Th><span class="sr-only">Trend</span></Th>
         </HeaderContent>
         <RowTemplate>
             <Td class="font-mono text-base font-bold text-primary">@context.Rank</Td>
@@ -15,6 +15,7 @@
             <Td class="text-right">
                 <Icon Name="@(context.Up ? Icons.Material.Filled.TrendingUp : Icons.Material.Filled.TrendingDown)"
                       Color="@(context.Up ? Color.Success : Color.Error)" Size="Size.Small" />
+                <span class="sr-only">@(context.Up ? "Up" : "Down")</span>
             </Td>
         </RowTemplate>
     </Table>

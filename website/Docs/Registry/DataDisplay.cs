@@ -204,7 +204,7 @@ public static partial class DocRegistry
 
         new("Table", Category.DataDisplay,
             "A typed data table: give it Items, a HeaderContent of Th cells and a RowTemplate of Td cells. Adds striping, dense rows, row clicks and client-side paging with TablePager; replaces MudTable.",
-            [typeof(Table<object>), typeof(Th), typeof(Td), typeof(TablePager)],
+            [typeof(Table<>), typeof(Th), typeof(Td), typeof(TablePager)],
             [
                 new("Basic", "Items, HeaderContent and RowTemplate; context is the row's item.", typeof(TableBasicExample)),
                 new("Striped, dense and hover", "Three flags for the common looks; cells can hold any component.", typeof(TableStylesExample)),
@@ -279,7 +279,7 @@ public static partial class DocRegistry
                 Initial = new Dictionary<string, object?>
                 {
                     ["Src"] = "https://img.daisyui.com/images/stock/photo-1572635148818-ef6fd45eb394.webp",
-                    ["Alt"] = "Sunglasses",
+                    ["Alt"] = "A lemon on a yellow background",
                     ["Width"] = 260,
                     ["Height"] = 180,
                     ["ObjectFit"] = "cover",

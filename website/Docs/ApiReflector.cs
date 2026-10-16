@@ -26,7 +26,14 @@ public static class ApiReflector
         }
 
         object? instance = null;
-        try { if (!component.ContainsGenericParameters) instance = Activator.CreateInstance(component); }
+        try
+        {
+            // Open generics (Table<>) are listed so the API shows T; close them over object to read defaults.
+            Type closed = component.IsGenericTypeDefinition
+                ? component.MakeGenericType([.. component.GetGenericArguments().Select(_ => typeof(object))])
+                : component;
+            instance = Activator.CreateInstance(closed);
+        }
         catch { /* components with required ctor args: no defaults */ }
 
         var list = new List<ParamInfo>();
@@ -42,7 +49,13 @@ public static class ApiReflector
             string? def = null;
             if (instance is not null && kind == ParamKind.Property)
             {
-                try { def = FormatValue(p.GetValue(instance), p.PropertyType); } catch { }
+                // Read through the instance's own (closed) type: an open-generic PropertyInfo can't GetValue.
+                try
+                {
+                    PropertyInfo read = component.IsGenericTypeDefinition ? instance.GetType().GetProperty(p.Name)! : p;
+                    def = FormatValue(read.GetValue(instance), p.PropertyType);
+                }
+                catch { }
             }
 
             list.Add(new ParamInfo(p, kind, FriendlyName(p.PropertyType), def, docs.Summary(p)));
