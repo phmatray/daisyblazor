@@ -1,17 +1,20 @@
 @namespace DaisyBlazor
 
 @* MudTimelineItem replacement. A daisyUI .timeline <li> with a colored dot (middle),
-   opposite content (timeline-start) and main content (timeline-end). *@
+   opposite content (timeline-start) and main content (timeline-end).
+   Like daisyUI's markup, the first item has no leading line and the last no trailing one
+   (hidden with :first-child / :last-child so the item needs no index from the parent).
+   The middle column has a fixed width so different dot sizes / icons keep the boxes aligned. *@
 
 <li @attributes="UserAttributes">
-    <hr />
+    <hr class="[li:first-child>&]:hidden" />
     @if (ItemOpposite is not null)
     {
         <div class="timeline-start">
             @ItemOpposite
         </div>
     }
-    <div class="timeline-middle">
+    <div class="timeline-middle flex w-5 justify-center">
         @if (!string.IsNullOrEmpty(Icon))
         {
             <Icon Name="@Icon" Size="Size.Small" Color="@Color" />
@@ -31,7 +34,7 @@
             @ChildContent
         }
     </div>
-    <hr />
+    <hr class="[li:last-child>&]:hidden" />
 </li>
 
 @code {

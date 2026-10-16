@@ -12,11 +12,13 @@
     }
     else if (!string.IsNullOrEmpty(Icon))
     {
-        <IconButton Icon="@Icon" Size="Size" @onclick="ToggleAsync" />
+        <IconButton Icon="@Icon" Size="Size" @onclick="ToggleAsync"
+                    aria-label="@(AriaLabel ?? Label ?? "Open menu")" aria-haspopup="menu" aria-expanded="@(_open ? "true" : "false")" />
     }
     else
     {
-        <button type="button" class="btn btn-ghost gap-1" @onclick="ToggleAsync">
+        <button type="button" class="@_labelBtnCls" aria-label="@AriaLabel" aria-haspopup="menu"
+                aria-expanded="@(_open ? "true" : "false")" @onclick="ToggleAsync">
             @Label
             <Icon Name="@Icons.Material.Filled.ArrowDropDown" Size="Size.Small" />
         </button>
@@ -41,15 +43,26 @@
     /// <summary>Text label for the default button activator.</summary>
     [Parameter] public string? Label { get; set; }
 
-    /// <summary>Size of the default icon activator; ignored by the label button and custom activators.</summary>
+    /// <summary>Accessible name for the activator. The icon activator falls back to <see cref="Label"/>, then "Open menu".</summary>
+    [Parameter] public string? AriaLabel { get; set; }
+
+    /// <summary>Whether the menu is open. Set it to render the menu expanded; supports <c>@bind-Open</c>.</summary>
+    [Parameter] public bool Open { get; set; }
+
+    /// <summary>Raised when the menu opens or closes.</summary>
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+
+    /// <summary>Size of the default icon and label activators (btn-sm / btn-lg); ignored by custom activators.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
     /// <summary>Renders compact menu items (menu-sm).</summary>
     [Parameter] public bool Dense { get; set; }
     /// <summary>Extra CSS classes added to the dropdown menu list.</summary>
     [Parameter] public string? ListClass { get; set; }
-    /// <summary>Dropdown placement: right origins add dropdown-end, top origins add dropdown-top.</summary>
+    /// <summary>Dropdown placement: right origins add dropdown-end, top origins add dropdown-top,
+    /// CenterLeft / CenterRight open beside the activator (dropdown-left / dropdown-right).</summary>
     [Parameter] public Origin AnchorOrigin { get; set; } = Origin.BottomLeft;
-    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
+    /// <summary>Which corner of the list sits at the anchor: right origins align the list's right edge
+    /// (dropdown-end), center origins centre it (dropdown-center), bottom origins open it upward (dropdown-top).</summary>
     [Parameter] public Origin TransformOrigin { get; set; } = Origin.TopLeft;
 
     /// <summary>Custom activator markup; receives a context with <c>ToggleAsync</c>.</summary>
@@ -64,6 +77,7 @@
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
     private bool _open;
+    private bool _lastOpenParam;
     private MenuActivator _activator = default!;
 
     protected override void OnInitialized()
@@ -71,38 +85,63 @@
         _activator = new MenuActivator(ToggleAsync);
     }
 
-    public Task ToggleAsync()
+    protected override void OnParametersSet()
     {
-        _open = !_open;
-        StateHasChanged();
-        return Task.CompletedTask;
+        // Only a changed Open parameter overrides the internal state, so unrelated re-renders keep it.
+        if (Open != _lastOpenParam)
+        {
+            _lastOpenParam = Open;
+            _open = Open;
+        }
     }
 
-    public Task CloseAsync()
+    public Task ToggleAsync() => SetOpenAsync(!_open);
+
+    public Task CloseAsync() => SetOpenAsync(false);
+
+    private async Task SetOpenAsync(bool open)
     {
-        _open = false;
+        if (_open == open)
+        {
+            return;
+        }
+
+        _open = open;
+        _lastOpenParam = open;
         StateHasChanged();
-        return Task.CompletedTask;
+        await OpenChanged.InvokeAsync(open);
     }
 
     /// <summary>Called by child MenuItems after activation to dismiss the menu.</summary>
     internal Task NotifyItemClickedAsync() => CloseAsync();
 
-    // Anchor on the trigger's bottom-right edge => align the dropdown to the right (dropdown-end).
-    private string _alignClass => AnchorOrigin switch
+    // CenterLeft / CenterRight anchors open the list beside the activator.
+    private string? _sideClass => AnchorOrigin switch
     {
-        Origin.BottomRight or Origin.TopRight or Origin.CenterRight => "dropdown-end",
-        _ => string.Empty
+        Origin.CenterLeft => "dropdown-left",
+        Origin.CenterRight => "dropdown-right",
+        _ => null
     };
 
-    private string _openOnTopClass => AnchorOrigin switch
-    {
-        Origin.TopLeft or Origin.TopCenter or Origin.TopRight => "dropdown-top",
-        _ => string.Empty
-    };
+    // Anchor on the trigger's right edge, or list pinned by its right edge => dropdown-end;
+    // list pinned by its horizontal centre => dropdown-center.
+    private string? _alignClass => _sideClass is not null ? null
+        : AnchorOrigin is Origin.BottomRight or Origin.TopRight
+          || TransformOrigin is Origin.TopRight or Origin.BottomRight ? "dropdown-end"
+        : TransformOrigin is Origin.TopCenter or Origin.BottomCenter ? "dropdown-center"
+        : null;
+
+    // Anchor on the trigger's top edge, or list pinned by its bottom edge => open upward.
+    private string? _openOnTopClass => _sideClass is null
+        && (AnchorOrigin is Origin.TopLeft or Origin.TopCenter or Origin.TopRight
+            || TransformOrigin is Origin.BottomLeft or Origin.BottomCenter or Origin.BottomRight)
+        ? "dropdown-top" : null;
+
+    private string _labelBtnCls => CssClass.Merge("btn btn-ghost gap-1", CssClass.ButtonSize(Size));
 
     private string _rootCls => CssClass.Merge(
         "dropdown",
+        _sideClass,
         _alignClass,
         _openOnTopClass,
         _open ? "dropdown-open" : null,

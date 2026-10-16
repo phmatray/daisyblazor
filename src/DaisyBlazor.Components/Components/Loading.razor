@@ -4,7 +4,7 @@
    Requires exactly one animation class (loading-spinner, loading-dots, etc.),
    an optional size (loading-xs .. loading-xl), and an optional text color. *@
 
-<span class="@_cls" style="@Style" @attributes="UserAttributes"></span>
+<span class="@_cls" style="@Style" role="status" aria-label="@AriaLabel" @attributes="UserAttributes"></span>
 
 @code {
     /// <summary>Animation style of the loading indicator.</summary>
@@ -20,6 +20,9 @@
 
     /// <summary>Semantic color applied as a Tailwind text-* utility (e.g. Color.Primary → "text-primary").</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
+
+    /// <summary>Accessible name announced by the <c>role="status"</c> indicator. Defaults to "Loading".</summary>
+    [Parameter] public string AriaLabel { get; set; } = "Loading";
 
     /// <summary>Additional CSS classes merged onto the <c>loading</c> element.</summary>
     [Parameter] public string? Class { get; set; }
