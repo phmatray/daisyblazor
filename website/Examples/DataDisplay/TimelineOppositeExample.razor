@@ -1,0 +1,17 @@
+@* ItemOpposite labels each entry; ItemContent is the boxed part. *@
+<Timeline>
+    @foreach ((int year, string title) in _discography)
+    {
+        <TimelineItem Color="Color.Primary">
+            <ItemOpposite><span class="font-mono text-sm">@year</span></ItemOpposite>
+            <ItemContent><span class="font-semibold">@title</span></ItemContent>
+        </TimelineItem>
+    }
+</Timeline>
+
+@code {
+    private readonly (int, string)[] _discography =
+    [
+        (1963, "Ne sois pas si bête"), (1964, "Laisse tomber les filles"), (1965, "Poupée de cire, poupée de son"), (1967, "Bébé requin"),
+    ];
+}

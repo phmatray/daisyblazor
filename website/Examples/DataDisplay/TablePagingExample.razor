@@ -1,0 +1,25 @@
+@* RowsPerPage pages the rows client-side; a TablePager in PagerContent drives it. *@
+<Table Items="_tour" RowsPerPage="4" Striped="true">
+    <HeaderContent>
+        <Th>Date</Th>
+        <Th>City</Th>
+        <Th>Venue</Th>
+    </HeaderContent>
+    <RowTemplate>
+        <Td class="font-mono">@context.Date.ToString("dd MMM")</Td>
+        <Td>@context.City</Td>
+        <Td>@context.Venue</Td>
+    </RowTemplate>
+    <PagerContent>
+        <TablePager PageSizeOptions="[4, 8, 12]" />
+    </PagerContent>
+</Table>
+
+@code {
+    private record Gig(DateOnly Date, string City, string Venue);
+
+    private static readonly string[] Cities = ["Paris", "Lyon", "Bruxelles", "Genève", "Marseille", "Lille", "Nantes", "Bordeaux", "Montréal", "Liège"];
+
+    private readonly Gig[] _tour = [.. Cities.Select((city, i) =>
+        new Gig(new DateOnly(1966, 3, 4).AddDays(i * 3), city, i % 2 == 0 ? "Théâtre municipal" : "Salle des fêtes"))];
+}

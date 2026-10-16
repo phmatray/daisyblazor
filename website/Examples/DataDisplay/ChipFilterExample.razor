@@ -1,0 +1,22 @@
+@* OnClick turns the chip into a button, handy for filter toggles. *@
+<div class="flex flex-col gap-3">
+    <div class="flex flex-wrap gap-2">
+        @foreach (string genre in Genres)
+        {
+            bool on = _selected.Contains(genre);
+            <Chip Text="@genre" Color="@(on ? Color.Primary : Color.Default)" Variant="@(on ? Variant.Filled : Variant.Outlined)"
+                  Icon="@(on ? Icons.Material.Filled.Check : null)" Size="Size.Large" OnClick="() => Toggle(genre)" />
+        }
+    </div>
+    <p class="text-sm text-base-content/70">Showing: @(_selected.Count == 0 ? "everything" : string.Join(", ", _selected))</p>
+</div>
+
+@code {
+    private static readonly string[] Genres = ["Yé-yé", "Chanson", "Jazz", "Bossa nova", "Psychedelic"];
+    private readonly HashSet<string> _selected = ["Yé-yé"];
+
+    private void Toggle(string genre)
+    {
+        if (!_selected.Remove(genre)) _selected.Add(genre);
+    }
+}

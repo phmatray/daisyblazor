@@ -1,0 +1,20 @@
+@* Countdown.Digits splits a number of seconds into [hours, minutes, seconds]. *@
+@implements IDisposable
+
+<div class="flex flex-wrap items-center gap-6">
+    <span class="font-mono text-5xl">
+        <Countdown Value="_cells[0]" />:<Countdown Value="_cells[1]" />:<Countdown Value="_cells[2]" />
+    </span>
+    <Button Variant="Variant.Outlined" OnClick="() => _left = 3 * 3600 + 25 * 60">Restart</Button>
+</div>
+
+@code {
+    private int _left = 3 * 3600 + 25 * 60;
+    private int[] _cells => Countdown.Digits(_left);
+    private Timer? _timer;
+
+    protected override void OnInitialized() =>
+        _timer = new Timer(_ => InvokeAsync(() => { if (_left > 0) _left--; StateHasChanged(); }), null, 1000, 1000);
+
+    public void Dispose() => _timer?.Dispose();
+}
