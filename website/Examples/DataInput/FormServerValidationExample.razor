@@ -7,8 +7,11 @@
         <TextField Label="Project name" FieldName="Name" @bind-Value="_name" />
         <NumericField T="int" Label="Seats" FieldName="Seats" @bind-Value="_seats" />
     </div>
-    <Rating @bind-Value="_stars" />
-    <FieldError For="Stars" />
+    <fieldset class="fieldset">
+        <legend class="fieldset-legend">Your rating</legend>
+        <Rating @bind-Value="_stars" />
+        <FieldError For="Stars" />
+    </fieldset>
 </ServerValidation>
 
 <div class="mt-4 flex flex-wrap gap-2">
