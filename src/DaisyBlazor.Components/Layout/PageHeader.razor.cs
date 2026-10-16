@@ -7,7 +7,7 @@ namespace DaisyBlazor.Layout;
 /// </summary>
 public partial class PageHeader
 {
-    /// <summary>Main page title rendered as <see cref="Typo.h4"/>.</summary>
+    /// <summary>Main page title; its element and size follow <see cref="HeadingLevel"/> (h4 by default).</summary>
     [Parameter, EditorRequired]
     public string Title { get; set; } = null!;
 
