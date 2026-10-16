@@ -73,6 +73,12 @@ syntax) and `DialogParameters<T>` (the `{ x => x.Prop, value }` selector syntax)
 `DialogResult`, `IDialogReference`. The built-in confirm dialog is `MessageBoxDialog`, surfaced through
 `ShowMessageBoxAsync(...)` (returns `true` = yes, `false` = no, `null` = canceled/dismissed).
 
+Dialogs open as true modals (`showModal()`: focus moves in, the page behind is inert, focus returns to
+the opener on close) and are labelled by their title. Escape cancels unless
+`DialogOptions.CloseOnEscapeKey = false`; `DialogOptions.AlertDialog` forces `role="alertdialog"`
+(the default for `MessageBoxDialog` and `ConfirmDialog`). Localise the close button with
+`<DialogProvider CloseLabel="Fermer" />`.
+
 ## Snackbar — `ISnackbar`
 
 Inject `ISnackbar` and call `Add` with a `Severity`, just like MudBlazor. It's registered by
@@ -88,6 +94,10 @@ Inject `ISnackbar` and call `Add` with a `Severity`, just like MudBlazor. It's r
 
 `ISnackbar` exposes `Add(message, severity, configure)`, `Remove`, `Clear`, the `Shown` list and an
 `OnChange` event.
+
+Toasts are announced once through a single live region (assertive for errors/warnings, polite
+otherwise), pause their auto-hide while hovered or focused, and the close button label is
+localisable via `<SnackbarProvider CloseLabel="Fermer" />`.
 
 ## Setup deltas vs MudBlazor
 
