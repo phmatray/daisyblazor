@@ -2,8 +2,8 @@
     <Columns>
         <PropertyColumn T="Customer" TProperty="string" Property="c => c.Company" Title="Company" />
         <PropertyColumn T="Customer" TProperty="string" Property="c => c.Plan" Title="Plan" />
-        <PropertyColumn T="Customer" TProperty="int" Property="c => c.Seats" Title="Seats" />
-        <PropertyColumn T="Customer" TProperty="decimal" Property="c => c.Mrr" Title="MRR" Format="0.00 €" />
+        <PropertyColumn T="Customer" TProperty="int" Property="c => c.Seats" Title="Seats" Format="N0" CellClass="text-right whitespace-nowrap" HeaderClass="text-right" />
+        <PropertyColumn T="Customer" TProperty="decimal" Property="c => c.Mrr" Title="MRR" Format="#,##0.00 €" CellClass="text-right whitespace-nowrap" HeaderClass="text-right" />
     </Columns>
 </DataGrid>
 

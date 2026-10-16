@@ -1,9 +1,9 @@
 <DataGrid T="WorkItem" Items="_tasks" Hover="true">
     <Columns>
-        <TemplateColumn Title="Task">
+        <TemplateColumn Title="Task" CellClass="min-w-44">
             <CellTemplate>
                 <div class="flex items-center gap-3">
-                    <Avatar Color="Color.Primary" Size="Size.Small">@context.Item.Initials</Avatar>
+                    <Avatar Class="shrink-0" Color="Color.Primary" Size="Size.Small">@context.Item.Initials</Avatar>
                     <div>
                         <div class="font-bold">@context.Item.Title</div>
                         <div class="text-sm opacity-60">@context.Item.Assignee</div>
@@ -11,12 +11,12 @@
                 </div>
             </CellTemplate>
         </TemplateColumn>
-        <TemplateColumn Title="Hours logged" Sortable="true" SortBy="t => t.Minutes">
+        <TemplateColumn Title="Hours" Sortable="true" SortBy="t => t.Minutes" CellClass="text-right whitespace-nowrap" HeaderClass="text-right">
             <CellTemplate>
                 <span class="font-mono">@((context.Item.Minutes / 60.0).ToString("N1"))</span>
             </CellTemplate>
         </TemplateColumn>
-        <TemplateColumn Title="Status" Sortable="true" SortBy="t => t.Status">
+        <TemplateColumn Title="Status" Sortable="true" SortBy="t => t.Status" CellClass="whitespace-nowrap">
             <CellTemplate>
                 <StatusChip Status="context.Item.Status" Map="StatusColors" />
             </CellTemplate>
