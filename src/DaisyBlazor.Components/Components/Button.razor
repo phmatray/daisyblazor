@@ -5,7 +5,9 @@
 
 @if (!string.IsNullOrEmpty(Href))
 {
-    <a href="@Href" target="@Target" class="@_cls" style="@Style" @attributes="UserAttributes">
+    @* A disabled link is not navigable: drop href, expose it as aria-disabled and out of the tab order. *@
+    <a href="@(Disabled ? null : Href)" target="@Target" class="@_cls" style="@Style"
+       aria-disabled="@(Disabled ? "true" : null)" tabindex="@(Disabled ? "-1" : null)" @attributes="UserAttributes">
         @ButtonInner
     </a>
 }
@@ -49,6 +51,7 @@ else
         CssClass.ButtonVariant(Variant),
         CssClass.ButtonSize(Size),
         FullWidth ? "btn-block" : null,
+        Disabled && !string.IsNullOrEmpty(Href) ? "btn-disabled" : null,
         "gap-2 normal-case",
         Class);
 

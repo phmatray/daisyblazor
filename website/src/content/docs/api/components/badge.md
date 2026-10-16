@@ -13,6 +13,10 @@ Badge content (number or text). Capped by `Badge.Max` when numeric.
 
 Render a small dot with no content.
 
+### `Inline`
+
+Render a plain inline `.badge` (Content and/or ChildContent as its text) instead of the indicator overlay.
+
 ### `Max`
 
 Maximum numeric value before showing "{Max}+".

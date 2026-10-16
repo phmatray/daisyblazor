@@ -7,7 +7,7 @@
 <div class="form-control w-full @Class" style="@Style">
     @if (!string.IsNullOrEmpty(Label))
     {
-        <label class="label"><span class="label-text">@Label</span></label>
+        <label class="label" for="@_id"><span class="label-text">@Label</span></label>
     }
     <div class="dropdown w-full @(_open && (_results.Count > 0 || _searched) ? "dropdown-open" : null)">
         <label class="input input-bordered flex items-center gap-2 w-full @(Dense ? "input-sm" : null) @(Disabled ? "input-disabled" : null)">
@@ -21,6 +21,7 @@
                    disabled="@Disabled"
                    @oninput="OnInput"
                    @onfocus="@(() => _open = true)"
+                   id="@_id"
                    @attributes="UserAttributes" />
             @if (Clearable && (!string.IsNullOrEmpty(_text) || Value is not null))
             {
@@ -83,6 +84,9 @@
 </div>
 
 @code {
+    private readonly string _generatedId = FieldId.New();
+    private string _id => FieldId.Resolve(UserAttributes, _generatedId);
+
     [Parameter] public T? Value { get; set; }
     [Parameter] public EventCallback<T?> ValueChanged { get; set; }
     [Parameter] public string? Label { get; set; }

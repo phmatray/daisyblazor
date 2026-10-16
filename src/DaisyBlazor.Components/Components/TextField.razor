@@ -7,7 +7,7 @@
 <div class="@_fieldsetCls" style="@Style">
     @if (!string.IsNullOrEmpty(Label))
     {
-        <label class="label">
+        <label class="label" for="@_id">
             <span class="label-text">@Label@(Required ? " *" : null)</span>
         </label>
     }
@@ -23,6 +23,7 @@
                   value="@Value"
                   @oninput="OnInput"
                   @onkeyup="OnKeyUpHandler"
+                  id="@_id"
                   @attributes="UserAttributes"></textarea>
     }
     else if (Adornment != Adornment.None && (!string.IsNullOrEmpty(AdornmentIcon) || !string.IsNullOrEmpty(AdornmentText)))
@@ -41,6 +42,7 @@
                    value="@Value"
                    @oninput="OnInput"
                    @onkeyup="OnKeyUpHandler"
+                   id="@_id"
                    @attributes="UserAttributes" />
             @if (Adornment == Adornment.End)
             {
@@ -59,6 +61,7 @@
                value="@Value"
                @oninput="OnInput"
                @onkeyup="OnKeyUpHandler"
+               id="@_id"
                @attributes="UserAttributes" />
     }
 
@@ -73,6 +76,9 @@
 </div>
 
 @code {
+    private readonly string _generatedId = FieldId.New();
+    private string _id => FieldId.Resolve(UserAttributes, _generatedId);
+
     [Parameter] public string? Value { get; set; }
     [Parameter] public EventCallback<string?> ValueChanged { get; set; }
     [Parameter] public string? Label { get; set; }

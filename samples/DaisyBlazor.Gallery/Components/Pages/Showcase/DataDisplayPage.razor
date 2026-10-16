@@ -470,7 +470,7 @@
         <Columns>
             <PropertyColumn T="Airport" TProperty="string" Property="x => x.Name" Title="Airport" Sortable="true" />
             <PropertyColumn T="Airport" TProperty="string" Property="x => x.Iata" Title="IATA" Sortable="true" />
-            <TemplateColumn T="Airport" Title="Movements" Sortable="true" SortBy="x => x.Movements">
+            <TemplateColumn Title="Movements" Sortable="true" SortBy="x => x.Movements">
                 <CellTemplate>
                     <Badge Color="@(context.Item.Movements > 100 ? Color.Success : Color.Default)">
                         @context.Item.Movements
@@ -479,7 +479,7 @@
             </TemplateColumn>
         </Columns>
         <PagerContent>
-            <DataGridPager T="Airport" PageSizeOptions="[3, 5, 10]" />
+            <DataGridPager PageSizeOptions="[3, 5, 10]" />
         </PagerContent>
     </DataGrid>
     <p class="text-sm opacity-60 mt-2">Last row clicked: @(_gridClicked ?? "(none)")</p>

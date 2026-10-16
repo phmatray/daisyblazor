@@ -2,18 +2,29 @@
 
 @* MudBadge replacement. daisyUI .indicator wrapper with an overlaid .badge on the child content. *@
 
-<span class="indicator @Class" style="@Style" @attributes="UserAttributes">
+@if (Inline)
+{
+    @* Standalone inline badge: no indicator wrapper. *@
     @if (Visible)
     {
-        <span class="@_badgeCls">
-            @if (!Dot)
-            {
-                @_content
-            }
-        </span>
+        <span class="@CssClass.Merge("badge", CssClass.BadgeColor(Color), Class)" style="@Style" @attributes="UserAttributes">@(Dot ? null : _content)@ChildContent</span>
     }
-    @ChildContent
-</span>
+}
+else
+{
+    <span class="indicator @Class" style="@Style" @attributes="UserAttributes">
+        @if (Visible)
+        {
+            <span class="@_badgeCls">
+                @if (!Dot)
+                {
+                    @_content
+                }
+            </span>
+        }
+        @ChildContent
+    </span>
+}
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -25,6 +36,9 @@
 
     /// <summary>Overlap the badge onto the child (kept for MudBlazor compatibility).</summary>
     [Parameter] public bool Overlap { get; set; }
+
+    /// <summary>Render a plain inline <c>.badge</c> (Content and/or ChildContent as its text) instead of the indicator overlay.</summary>
+    [Parameter] public bool Inline { get; set; }
 
     /// <summary>Render a small dot with no content.</summary>
     [Parameter] public bool Dot { get; set; }

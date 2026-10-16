@@ -15,6 +15,10 @@ Optional right-aligned content (typically action buttons).
 
 Optional CSS class forwarded to the root container.
 
+### `HeadingLevel`
+
+Heading level (1-6) of the title element. Defaults to 4, the historical output.
+
 ### `Style`
 
 Optional inline style forwarded to the root container.
