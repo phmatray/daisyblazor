@@ -1,0 +1,15 @@
+<div class="grid w-full gap-4 sm:grid-cols-2">
+    <TextField Label="Search the catalogue" Placeholder="Title, artist, label…" @bind-Value="_query" Immediate="true"
+               Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" />
+    <TextField Label="Website" Placeholder="yeye-records" @bind-Value="_site" Immediate="true"
+               Adornment="Adornment.End" AdornmentText=".fr" />
+</div>
+<p class="mt-3 text-sm">
+    Query: <span class="font-mono">@(_query ?? "(empty)")</span> ·
+    Site: <span class="font-mono">@(string.IsNullOrEmpty(_site) ? "(empty)" : _site + ".fr")</span>
+</p>
+
+@code {
+    private string? _query;
+    private string? _site = "yeye-records";
+}

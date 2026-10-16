@@ -1,0 +1,39 @@
+<Autocomplete T="Single" Label="Single" Placeholder="Search a title, e.g. “poupée”"
+              @bind-Value="_single" SearchFunc="SearchAsync" ToStringFunc="s => s.Title"
+              MinCharacters="1" DebounceInterval="150" NoItemsText="Not in the crate">
+    <ItemTemplate Context="s">
+        <span class="flex w-full justify-between gap-3">
+            <span>@s.Title <span class="opacity-60">— @s.Artist</span></span>
+            <span class="font-mono text-xs opacity-60">@s.Year</span>
+        </span>
+    </ItemTemplate>
+</Autocomplete>
+<p class="mt-3 text-sm">
+    @if (_single is null)
+    {
+        <span class="opacity-60">Nothing picked yet.</span>
+    }
+    else
+    {
+        <span>Picked <b>@_single.Title</b> by @_single.Artist (@_single.Year)</span>
+    }
+</p>
+
+@code {
+    private record Single(string Title, string Artist, int Year);
+
+    private Single? _single;
+
+    private static readonly Single[] Singles =
+    [
+        new("Poupée de cire, poupée de son", "France Gall", 1965),
+        new("Tous les garçons et les filles", "Françoise Hardy", 1962),
+        new("La plus belle pour aller danser", "Sylvie Vartan", 1964),
+        new("Et moi, et moi, et moi", "Jacques Dutronc", 1966),
+        new("Harley Davidson", "Brigitte Bardot", 1967),
+    ];
+
+    private static Task<IEnumerable<Single>> SearchAsync(string text, CancellationToken token) =>
+        Task.FromResult(Singles.Where(s => s.Title.Contains(text, StringComparison.OrdinalIgnoreCase)
+                                        || s.Artist.Contains(text, StringComparison.OrdinalIgnoreCase)));
+}

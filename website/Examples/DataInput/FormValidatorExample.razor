@@ -1,0 +1,18 @@
+@* daisyUI's CSS-only validation: the browser's own :invalid state colours the input once the user has touched it. *@
+<div class="flex max-w-md flex-col gap-3">
+    <Validator Hint="Enter a valid email address.">
+        <input type="email" class="input validator w-full" placeholder="mail@disques-vogue.fr" required
+               @bind="_email" @bind:event="oninput" />
+    </Validator>
+    <Validator>
+        <input type="text" class="input validator w-full" placeholder="Catalogue no. (3 letters, 4 digits)" required
+               pattern="[A-Z]{3} [0-9]{4}" @bind="_catalogue" @bind:event="oninput" />
+        <ValidatorHint>Use the form “VRE 5012”.</ValidatorHint>
+    </Validator>
+</div>
+<p class="mt-3 font-mono text-sm">email=@(_email ?? "") · catalogue=@(_catalogue ?? "")</p>
+
+@code {
+    private string? _email;
+    private string? _catalogue = "vre 5012";
+}

@@ -1,0 +1,11 @@
+<div class="flex flex-col gap-1">
+    <TextField Label="Artist" @bind-Value="_artist" Margin="Margin.None" />
+    <TextField Label="Title" @bind-Value="_title" Margin="Margin.None"
+               Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Album" />
+    <TextField Label="Year" Value="196" Error="true" ErrorText="Four digits, please." Margin="Margin.None" />
+</div>
+
+@code {
+    private string? _artist = "Sylvie Vartan";
+    private string? _title = "La plus belle pour aller danser";
+}

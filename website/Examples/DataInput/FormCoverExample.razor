@@ -1,0 +1,12 @@
+<Form>
+    <p class="font-display text-2xl font-bold leading-none">Join the fan club</p>
+    <TextField Label="Name" @bind-Value="_name" Margin="Margin.None" Dense="true" />
+    <TextField Label="Email" Value="@("sheila@")" Error="true" ErrorText="That address looks unfinished." Margin="Margin.None" Dense="true" />
+    <Checkbox Label="Send me the 45s first" Color="Color.Primary" @bind-Value="_first" />
+    <Button Color="Color.Primary" Variant="Variant.Filled" FullWidth="true">Sign me up</Button>
+</Form>
+
+@code {
+    private string? _name = "Sheila";
+    private bool _first = true;
+}

@@ -1,0 +1,31 @@
+@* ServerValidation shows errors returned by an API. Inputs with a FieldName light up by themselves;
+   FieldError reports for anything else. Field names match case-insensitively and by last segment. *@
+@using DaisyBlazor.Validation
+
+<ServerValidation State="_errors">
+    <div class="grid w-full gap-x-4 sm:grid-cols-2">
+        <TextField Label="Title" FieldName="Title" @bind-Value="_title" />
+        <NumericField T="int" Label="Copies" FieldName="Copies" @bind-Value="_copies" />
+    </div>
+    <Rating @bind-Value="_stars" />
+    <FieldError For="Stars" />
+</ServerValidation>
+
+<div class="mt-4 flex flex-wrap gap-2">
+    <Button Color="Color.Error" Variant="Variant.Filled" Size="Size.Small" OnClick="Reject">Simulate a 400 from the API</Button>
+    <Button Variant="Variant.Outlined" Size="Size.Small" OnClick="_errors.Clear">Clear errors</Button>
+</div>
+
+@code {
+    private readonly ServerValidationState _errors = new();
+    private string? _title;
+    private int _copies;
+    private int _stars;
+
+    private void Reject() => _errors.SetErrors(
+    [
+        ("request.Title", "A title is required."),
+        ("Copies", "Order at least one copy."),
+        ("Stars", "Rate the record before you review it."),
+    ]);
+}

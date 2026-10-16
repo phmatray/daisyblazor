@@ -1,0 +1,13 @@
+<div class="grid w-full gap-x-4 sm:grid-cols-3">
+    <NumericField T="int" Label="Tracks (int)" @bind-Value="_tracks" Min="1" Max="24" />
+    <NumericField T="decimal" Label="Weight (decimal)" @bind-Value="_weight" Step="0.01m"
+                  Adornment="Adornment.End" AdornmentText="kg" />
+    <NumericField T="int?" Label="Chart peak (int?)" @bind-Value="_peak" Placeholder="Not charted" />
+</div>
+<p class="mt-3 font-mono text-sm">tracks=@_tracks · weight=@_weight · peak=@(_peak?.ToString() ?? "null")</p>
+
+@code {
+    private int _tracks = 12;
+    private decimal _weight = 0.18m;
+    private int? _peak;
+}

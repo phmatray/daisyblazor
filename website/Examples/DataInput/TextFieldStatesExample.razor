@@ -1,0 +1,14 @@
+<div class="grid w-full gap-x-4 sm:grid-cols-2">
+    <TextField Label="Catalogue number" @bind-Value="_catalogue" Required="true" HelperText="Printed on the spine, e.g. VRE 5012" />
+    <TextField Label="Release year" Value="196" Error="true" ErrorText="Use four digits, e.g. 1966." />
+    <TextField Label="Label" Value="Disques Vogue" Disabled="true" />
+    <TextField Label="Pressing plant" Value="Villetaneuse" ReadOnly="true" />
+    <TextField Label="Password" InputType="InputType.Password" @bind-Value="_password" Immediate="true"
+               HelperText="@($"{_password?.Length ?? 0} characters")" />
+    <TextField Label="Dense" Dense="true" Placeholder="A smaller input" />
+</div>
+
+@code {
+    private string? _catalogue = "VRE 5012";
+    private string? _password;
+}
