@@ -158,7 +158,7 @@ public static partial class DocRegistry
             [typeof(SnackbarProvider)],
             [
                 new("Severities", "The Severity argument picks the alert colour and icon.", typeof(SnackbarSeveritiesExample)),
-                new("Options", "Configure each toast's duration, close button and duplicate handling; Clear removes them all.", typeof(SnackbarOptionsExample)),
+                new("Options", "The configure callback sets SnackbarOptions: VisibleStateDuration (ms, default 5000), ShowCloseIcon (default true) and PreventDuplicates (default true). ISnackbar.Remove(message) drops one toast, Clear removes them all and Shown lists the visible ones.", typeof(SnackbarOptionsExample)),
             ])
         {
             DaisyClass = "toast",
