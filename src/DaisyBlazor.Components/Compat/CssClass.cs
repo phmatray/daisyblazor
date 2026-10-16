@@ -106,12 +106,12 @@ public static class CssClass
     /// <summary>Tailwind text classes for a <see cref="Typo"/> scale step.</summary>
     public static string Typography(Typo typo) => typo switch
     {
-        Typo.h1 => "text-4xl font-bold font-heading",
-        Typo.h2 => "text-3xl font-bold font-heading",
-        Typo.h3 => "text-2xl font-bold font-heading",
-        Typo.h4 => "text-xl font-semibold font-heading",
-        Typo.h5 => "text-lg font-semibold font-heading",
-        Typo.h6 => "text-base font-semibold font-heading",
+        Typo.h1 => "text-4xl font-bold",
+        Typo.h2 => "text-3xl font-bold",
+        Typo.h3 => "text-2xl font-bold",
+        Typo.h4 => "text-xl font-semibold",
+        Typo.h5 => "text-lg font-semibold",
+        Typo.h6 => "text-base font-semibold",
         Typo.subtitle1 => "text-base font-medium",
         Typo.subtitle2 => "text-sm font-medium",
         Typo.body1 => "text-base",

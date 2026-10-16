@@ -6,11 +6,12 @@
    each mask input. A hidden radio at index 0 (value 0) lets the user clear the
    selection. ReadOnly suppresses pointer events without changing markup. *@
 
-<div class="@_wrapperCls" style="@Style" @attributes="UserAttributes">
-    @* hidden zero-value radio so clicking the current star again can clear *@
+<div class="@_wrapperCls" style="@Style" role="radiogroup" aria-label="Rating" @attributes="UserAttributes">
+    @* hidden zero-value radio: holds the "no rating" state once the current star is clicked again *@
     <input type="radio"
            name="@_groupName"
            class="rating-hidden"
+           aria-label="No rating"
            value="0"
            checked="@(Value == 0)"
            @onchange="@(() => OnRadioChange(0))"
@@ -23,7 +24,9 @@
                name="@_groupName"
                class="@_inputCls"
                value="@star"
+               aria-label="@($"{star} of {Max}")"
                checked="@(Value == star)"
+               @onclick="@(() => OnStarClick(star))"
                @onchange="@(() => OnRadioChange(star))"
                disabled="@ReadOnly" />
     }
@@ -33,7 +36,7 @@
     /// <summary>Current rating value (1–Max). 0 means no selection.</summary>
     [Parameter] public int Value { get; set; }
 
-    /// <summary>Raised when the user selects a star.</summary>
+    /// <summary>Raised when the user selects a star, or with 0 when they click the current star again to clear it.</summary>
     [Parameter] public EventCallback<int> ValueChanged { get; set; }
 
     /// <summary>Number of stars to render. Defaults to 5.</summary>
@@ -90,6 +93,10 @@
         "mask",
         _maskClass,
         _colorClass);
+
+    // Clicking the already-checked radio fires no change event, so clearing is done on click.
+    // The click runs before change, so Value still holds the previous rating here.
+    private Task OnStarClick(int star) => star == Value ? OnRadioChange(0) : Task.CompletedTask;
 
     private async Task OnRadioChange(int star)
     {

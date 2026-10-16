@@ -1,0 +1,16 @@
+@* BackgroundImage paints the image on the hero and adds a hero-overlay above it. Any URL works;
+   this one is an inline grid tile (Style overrides the hero's background-size: cover so it repeats)
+   so the example needs no network. *@
+<Hero MinHeight="min-h-72" BackgroundImage="@Grid" Style="background-size:32px 32px" Class="rounded-box overflow-hidden bg-primary" ContentClass="text-center text-neutral-content">
+    <div class="max-w-md">
+        <h2 class="mb-2 text-3xl font-bold">Acme Cloud regions</h2>
+        <p class="mb-4 text-sm">Run close to your customers in 14 regions.</p>
+        <Button Color="Color.Primary" Variant="Variant.Filled">See regions</Button>
+    </div>
+</Hero>
+
+@code {
+    private const string Grid =
+        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'>" +
+        "<path d='M32 0H0V32' fill='none' stroke='white' stroke-opacity='0.35'/></svg>";
+}

@@ -105,6 +105,7 @@ public static partial class DocRegistry
             [
                 new("Centred", "A short hero with a headline, a line of copy and a call to action.", typeof(HeroBasicExample)),
                 new("With a figure", "ContentClass styles the inner hero-content; flex-col md:flex-row puts the figure beside the text on wider screens.", typeof(HeroFigureExample)),
+                new("Background image", "BackgroundImage sets the image as the hero's background and adds a hero-overlay above it for legible text.", typeof(HeroBackgroundExample)),
             ])
         {
             DaisyClass = "hero",
