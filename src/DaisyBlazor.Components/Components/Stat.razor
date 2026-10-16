@@ -3,7 +3,7 @@
 @* Single stat cell. daisyUI .stat containing optional stat-figure, stat-title,
    stat-value, stat-desc, and an optional actions area below the description. *@
 
-<div class="stat" style="@Style" @attributes="UserAttributes">
+<div class="@CssClass.Merge("stat", Class)" style="@Style" @attributes="UserAttributes">
     @if (Figure is not null)
     {
         <div class="stat-figure">
@@ -49,7 +49,7 @@
     /// <summary>Optional action content (e.g. buttons or links) rendered below the description.</summary>
     [Parameter] public RenderFragment? Actions { get; set; }
 
-    /// <summary>Currently has no effect: the root stat element does not apply these classes.</summary>
+    /// <summary>Extra CSS classes merged onto the root stat element.</summary>
     [Parameter] public string? Class { get; set; }
     /// <summary>Inline CSS styles applied to the root stat element.</summary>
     [Parameter] public string? Style { get; set; }

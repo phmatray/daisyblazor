@@ -59,7 +59,7 @@
     [Parameter] public string? Label { get; set; }
     /// <summary>Placeholder text for the empty field; defaults to the active date format.</summary>
     [Parameter] public string? Placeholder { get; set; }
-    /// <summary>Outlined (default) adds input-bordered; Filled adds input-bordered bg-base-200; Text renders a borderless input.</summary>
+    /// <summary>Outlined (default) adds input-bordered; Filled adds input-bordered bg-base-200; Text renders a borderless ghost input (input-ghost).</summary>
     [Parameter] public Variant Variant { get; set; } = Variant.Outlined;
     /// <summary>Margin.Dense renders the compact input-sm field, same as <see cref="Dense"/>.</summary>
     [Parameter] public Margin Margin { get; set; } = Margin.Normal;
@@ -130,6 +130,7 @@
         "input",
         Variant == Variant.Outlined ? "input-bordered" : null,
         Variant == Variant.Filled ? "input-bordered bg-base-200" : null,
+        Variant == Variant.Text ? "input-ghost" : null,
         _isDense ? "input-sm" : null,
         FullWidth ? "w-full" : null);
 

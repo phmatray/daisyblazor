@@ -25,6 +25,8 @@
             multiple="@MultiSelection"
             @onchange="OnSelectChanged"
             id="@_id"
+            aria-invalid="@(_hasError ? "true" : null)"
+            aria-describedby="@_describedBy"
             @attributes="UserAttributes">
         @if (!MultiSelection && Clearable)
         {
@@ -40,13 +42,13 @@
         }
     </select>
 
-    @if (_hasError && !string.IsNullOrEmpty(_errorText))
+    @if (_showError)
     {
-        <span class="label-text text-error text-xs mt-1">@_errorText</span>
+        <span id="@_helpId" class="label-text text-error text-xs mt-1">@_errorText</span>
     }
     else if (!string.IsNullOrEmpty(HelperText))
     {
-        <span class="label-text text-xs opacity-70 mt-1">@HelperText</span>
+        <span id="@_helpId" class="label-text text-xs opacity-70 mt-1">@HelperText</span>
     }
 </div>
 
@@ -64,7 +66,7 @@
     [Parameter] public EventCallback<IEnumerable<T>> SelectedValuesChanged { get; set; }
     /// <summary>Text rendered in a <c>label</c> above the select, linked to it by id.</summary>
     [Parameter] public string? Label { get; set; }
-    /// <summary>Outlined (default) adds <c>select-bordered</c>; Filled also adds <c>bg-base-200</c>; Text renders no border.</summary>
+    /// <summary>Outlined (default) adds <c>select-bordered</c>; Filled also adds <c>bg-base-200</c>; Text renders a borderless ghost select (<c>select-ghost</c>).</summary>
     [Parameter] public Variant Variant { get; set; } = Variant.Outlined;
     /// <summary>Spacing preset; <c>Margin.Dense</c> renders the compact <c>select-sm</c> size, like <see cref="Dense"/>.</summary>
     [Parameter] public Margin Margin { get; set; } = Margin.Normal;
@@ -123,6 +125,10 @@
 
     private string? _errorText => ErrorText ?? _serverError;
 
+    private bool _showError => _hasError && !string.IsNullOrEmpty(_errorText);
+    private string _helpId => _id + "-help";
+    private string? _describedBy => _showError || !string.IsNullOrEmpty(HelperText) ? _helpId : null;
+
     internal void RegisterItem(SelectItem<T> item)
     {
         if (!_items.Contains(item))
@@ -166,6 +172,7 @@
         "select",
         Variant == Variant.Outlined ? "select-bordered" : null,
         Variant == Variant.Filled ? "select-bordered bg-base-200" : null,
+        Variant == Variant.Text ? "select-ghost" : null,
         _isDense ? "select-sm" : null,
         FullWidth ? "w-full" : null,
         _hasError ? "select-error" : null);
