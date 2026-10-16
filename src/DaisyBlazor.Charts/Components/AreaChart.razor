@@ -10,11 +10,11 @@
            ShowGrid="ShowGrid"
            ShowPoints="ShowPoints"
            ShowLegend="ShowLegend"
-           Width="Width"
-           Height="Height"
-           Title="Title"
-           Class="Class"
-           Style="Style"
+           Width="@Width"
+           Height="@Height"
+           Title="@Title"
+           Class="@Class"
+           Style="@Style"
            @attributes="UserAttributes" />
 
 @code {
@@ -45,7 +45,9 @@
     /// <summary>Optional heading rendered above the chart.</summary>
     [Parameter] public string? Title { get; set; }
 
+    /// <summary>Extra CSS classes forwarded to the underlying LineChart.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS styles forwarded to the underlying LineChart.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 }

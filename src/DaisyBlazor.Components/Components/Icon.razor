@@ -14,7 +14,7 @@
 }
 else
 {
-    <span class="@CssClass.Merge(_fontClass, _layoutClass, _sizeClass, _colorClass, Class)"
+    <span class="@CssClass.Merge(_fontClass, _layoutClass, _colorClass, Class)"
           style="@($"{_style}{Style}")"
           aria-hidden="true"
           @attributes="UserAttributes">@Name</span>
@@ -30,13 +30,17 @@ else
     /// </summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>Font size of the glyph: Small 1.125rem, Medium 1.5rem (default), Large 2.25rem; not applied to child content.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
+    /// <summary>Semantic color applied as a Tailwind <c>text-*</c> class; defaults to inheriting the current color.</summary>
     [Parameter] public Color Color { get; set; } = Color.Inherit;
 
     /// <summary>Render the outlined (unfilled) variant.</summary>
     [Parameter] public bool Outlined { get; set; }
 
+    /// <summary>Additional CSS classes merged onto the icon <c>span</c>.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline styles appended to the icon <c>span</c>.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
@@ -47,16 +51,18 @@ else
 
     private const string _layoutClass = "select-none align-middle leading-none";
 
-    private string _sizeClass => Size switch
+    // Inline, not a utility class: the Material Symbols stylesheet sets font-size outside any
+    // CSS layer, which beats Tailwind's layered utilities. Class="text-5xl!" still overrides it.
+    private string _sizeStyle => Size switch
     {
-        Size.Small => "text-[1.125rem]",
-        Size.Large => "text-[2.25rem]",
-        _ => "text-[1.5rem]"
+        Size.Small => "font-size:1.125rem;",
+        Size.Large => "font-size:2.25rem;",
+        _ => "font-size:1.5rem;"
     };
 
     private string? _colorClass => CssClass.TextColor(Color);
 
-    private string _style => Outlined
+    private string _style => _sizeStyle + (Outlined
         ? "font-variation-settings:'FILL' 0,'wght' 400;"
-        : "font-variation-settings:'FILL' 1,'wght' 400;";
+        : "font-variation-settings:'FILL' 1,'wght' 400;");
 }
