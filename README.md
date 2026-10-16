@@ -42,7 +42,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/screenshots/home.png" alt="DaisyBlazor gallery — home" width="900">
+  <img src="assets/screenshots/home.png" alt="DaisyBlazor documentation site" width="900">
 </p>
 
 ---
@@ -55,7 +55,7 @@
 - **Dependency-free SVG charts** — `LineChart`, `AreaChart`, `BarChart`, `PieChart`, `DonutChart` render as plain SVG and automatically follow the active daisyUI theme, with no JS charting runtime.
 - **Shippable CSS preset** — one `@import` wires up daisyUI, the theme set, and the class safelist for Tailwind v4 — shipped in the NuGet package, which also runs the Tailwind standalone CLI for you: no Node or npm needed.
 - **`dotnet new daisyblazor` template** — scaffolds a fully wired app (Tailwind, daisyUI, DI) in seconds.
-- **Runnable component gallery** — `samples/DaisyBlazor.Gallery` showcases every component and chart live.
+- **Live documentation** — [the docs site](https://phmatray.github.io/daisyblazor/) is a Blazor WebAssembly app built with DaisyBlazor: every component live, with its source, a parameter playground, API tables and all 37 themes.
 
 ## The problem it solves
 
@@ -159,10 +159,10 @@ Add the pre-paint script to `<head>` in `App.razor` so the saved theme is applie
 <script src="_content/DaisyBlazor.Components/theme-init.js"></script>
 ```
 
-Explore every component live with the gallery sample:
+Explore every component live on the [documentation site](https://phmatray.github.io/daisyblazor/components), or run it locally:
 
 ```bash
-dotnet run --project samples/DaisyBlazor.Gallery
+dotnet run --project website
 ```
 
 ## Packages
@@ -186,18 +186,17 @@ dotnet run --project samples/DaisyBlazor.Gallery
   </tr>
 </table>
 
-Run the live gallery yourself: `dotnet run --project samples/DaisyBlazor.Gallery`.
+Run the docs site yourself: `dotnet run --project website`.
 
 ## Repo layout
 
 ```
 src/        DaisyBlazor.Components, DaisyBlazor.Charts
-samples/    DaisyBlazor.Gallery — a runnable showcase of every component
 templates/  DaisyBlazor.Templates — dotnet new template
-website/    Astro Starlight documentation site (GitHub Pages)
+website/    documentation site — Blazor WebAssembly, built with DaisyBlazor (GitHub Pages)
 tests/      bUnit component tests
-docs/       markdown source for the docs site
-scripts/    update-deps, build-css, pack
+docs/       markdown guides, readable on GitHub (the site carries the live versions)
+scripts/    update-deps, gen-styles, pack, test-template
 ```
 
 ## Documentation

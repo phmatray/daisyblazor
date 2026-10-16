@@ -24,7 +24,8 @@ jobs:
         with:
           node-version: '24'
 
-      # The gallery sample compiles its Tailwind/daisyUI CSS during build; the shipped
+      # scripts/gen-styles.mjs needs Tailwind's scanner and the vendored daisyUI version; the
+      # docs site compiles its CSS with the NuGet's standalone Tailwind CLI (no npm). The shipped
       # preset's `@plugin "daisyui"` resolves daisyUI from the repo-root node_modules.
       - name: Install front-end deps
         run: npm install

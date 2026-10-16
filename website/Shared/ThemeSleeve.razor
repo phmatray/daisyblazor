@@ -1,0 +1,31 @@
+@* One release in the crate: a square sleeve rendered in its own theme, with real daisyUI parts. *@
+
+<button type="button" data-theme="@Theme" @onclick="OnClick" aria-pressed="@(Playing ? "true" : "false")"
+        aria-label="Put on @Theme"
+        class="group relative flex aspect-square w-full flex-col overflow-hidden rounded-md bg-primary p-4 text-left text-primary-content transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_40px_-22px_rgb(0_0_0/0.6)] @(Playing ? "ring-4 ring-base-content ring-offset-4 ring-offset-base-100" : "") @Class">
+    <span class="absolute -right-10 -top-10 size-28 rounded-full bg-secondary transition-transform duration-700 group-hover:-translate-x-2 group-hover:translate-y-2" aria-hidden="true"></span>
+    <span class="relative text-xs font-extrabold uppercase tracking-[0.2em] opacity-80">N°@ThemeDeck.Number(Theme)@(ThemeDeck.DarkThemes.Contains(Theme) ? " · dark" : "")</span>
+    <span class="relative mt-1 font-display text-[clamp(1.4rem,2.6vw,2.1rem)] font-bold leading-none">@Theme</span>
+    <span class="relative mt-auto flex flex-col gap-2 rounded bg-base-100 p-3 text-base-content" aria-hidden="true">
+        <span class="flex gap-1.5">
+            <span class="btn btn-primary btn-xs">Play</span>
+            <span class="btn btn-secondary btn-xs">Save</span>
+            <span class="btn btn-accent btn-outline btn-xs">More</span>
+        </span>
+        <span class="flex items-center gap-2">
+            <input type="checkbox" class="toggle toggle-primary toggle-xs" checked tabindex="-1" />
+            <progress class="progress progress-accent h-1.5 w-full" value="62" max="100"></progress>
+        </span>
+    </span>
+    @if (Playing)
+    {
+        <span class="absolute right-3 top-3 rounded-full bg-base-100 px-2 py-0.5 text-xs font-bold text-base-content">Now playing</span>
+    }
+</button>
+
+@code {
+    [Parameter, EditorRequired] public string Theme { get; set; } = "";
+    [Parameter] public bool Playing { get; set; }
+    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    [Parameter] public string? Class { get; set; }
+}

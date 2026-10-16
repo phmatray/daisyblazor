@@ -42,30 +42,27 @@ Set these under **Settings → Secrets and variables → Actions**:
 |--------|----------|-------|
 | `NUGET_API_KEY` | `dotnet nuget push` | nuget.org API key with **Push → "Push new packages and package versions"** and glob pattern `*` (or `DaisyBlazor.*`). |
 
-## API reference (generated)
+## Documentation site
 
-The docs site's **API reference** pages (`website/src/content/docs/api/**`) are
-generated from the .NET XML documentation comments, not hand-written. To regenerate
-them locally:
+`website/` is a Blazor WebAssembly app built with DaisyBlazor itself, deployed to
+GitHub Pages by the [`docs`](.github/workflows/docs.yml) workflow.
 
 ```bash
-dotnet build src/DaisyBlazor.Components/DaisyBlazor.Components.csproj -c Release
-dotnet build src/DaisyBlazor.Charts/DaisyBlazor.Charts.csproj -c Release
-node website/scripts/gen-api.mjs
+dotnet run --project website   # http://localhost:5000 — builds its CSS with the NuGet's Tailwind CLI
 ```
 
-`gen-api.mjs` requires a prior `dotnet build -c Release` (it reads the emitted
-`*.xml` doc files under each project's `bin/Release/net10.0/`). It wipes and
-recreates the `api/` directory on every run, so don't hand-edit those pages —
-edit the C# XML doc comments instead. The [`docs`](.github/workflows/docs.yml)
-workflow runs these same steps before building the site, so the published API
-reference is always regenerated from source on deploy.
+- A component page is one `ComponentDoc` entry in `website/Docs/Registry/<Category>.cs`
+  plus its examples in `website/Examples/<Category>/`. Each example is a Razor component;
+  the page shows it live and embeds its exact source, so the code shown is the code that runs.
+- The **API tables** are reflected at runtime from the `[Parameter]` properties, with the
+  summaries read from the libraries' XML doc comments: document parameters in C#, not in the site.
+- The **playground** turns every simple parameter (enum, bool, string, number) into a control;
+  opt in with a `PlaygroundSpec` on the `ComponentDoc`.
 
 ## Local checks before pushing
 
 ```bash
-dotnet build           # builds everything incl. the gallery CSS
+dotnet build           # builds everything incl. the docs site and its CSS
 dotnet test            # bUnit component tests
-./scripts/build-css.sh # (re)compile the gallery stylesheet
 ./scripts/pack.sh 0.1.1 # pack locally into ./artifacts
 ```

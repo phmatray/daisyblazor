@@ -180,3 +180,7 @@
     color: var(--color-primary-content);
     font-family: var(--font-display);
 }
+
+.boot svg { animation: boot-spin 2.4s cubic-bezier(.45, 0, .55, 1) infinite; }
+@keyframes boot-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .boot svg { animation: none; } }

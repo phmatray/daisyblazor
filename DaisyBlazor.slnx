@@ -1,13 +1,13 @@
 <Solution>
-  <Folder Name="/samples/">
-    <Project Path="samples/DaisyBlazor.Gallery/DaisyBlazor.Gallery.csproj" />
-  </Folder>
   <Folder Name="/src/">
     <Project Path="src/DaisyBlazor.Charts/DaisyBlazor.Charts.csproj" />
     <Project Path="src/DaisyBlazor.Components/DaisyBlazor.Components.csproj" />
   </Folder>
   <Folder Name="/templates/">
     <Project Path="templates/DaisyBlazor.Templates/DaisyBlazor.Templates.csproj" />
+  </Folder>
+  <Folder Name="/website/">
+    <Project Path="website/DaisyBlazor.Docs.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/DaisyBlazor.Components.Tests/DaisyBlazor.Components.Tests.csproj" />

@@ -15,29 +15,7 @@
                 {
                     string theme = t;
                     bool playing = theme == Current;
-                    <li data-theme="@theme">
-                        <button type="button" @onclick="e => PutOn(theme, e)" aria-pressed="@(playing ? "true" : "false")"
-                                class="group relative flex aspect-square w-full flex-col overflow-hidden rounded-md bg-primary p-4 text-left text-primary-content transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_40px_-22px_rgb(0_0_0/0.6)] @(playing ? "ring-4 ring-base-content ring-offset-4 ring-offset-base-100" : "")">
-                            <span class="absolute -right-10 -top-10 size-28 rounded-full bg-secondary transition-transform duration-700 group-hover:-translate-x-2 group-hover:translate-y-2" aria-hidden="true"></span>
-                            <span class="relative text-xs font-extrabold uppercase tracking-[0.2em] opacity-80">N°@ThemeDeck.Number(theme)@(ThemeDeck.DarkThemes.Contains(theme) ? " · dark" : "")</span>
-                            <span class="relative mt-1 font-display text-[clamp(1.4rem,2.6vw,2.1rem)] font-bold leading-none">@theme</span>
-                            <span class="relative mt-auto flex flex-col gap-2 rounded bg-base-100 p-3 text-base-content" aria-hidden="true">
-                                <span class="flex gap-1.5">
-                                    <span class="btn btn-primary btn-xs">Play</span>
-                                    <span class="btn btn-secondary btn-xs">Save</span>
-                                    <span class="btn btn-accent btn-xs btn-outline">More</span>
-                                </span>
-                                <span class="flex items-center gap-2">
-                                    <input type="checkbox" class="toggle toggle-primary toggle-xs" checked tabindex="-1" />
-                                    <progress class="progress progress-accent h-1.5 w-full" value="62" max="100"></progress>
-                                </span>
-                            </span>
-                            @if (playing)
-                            {
-                                <span class="absolute right-3 top-3 rounded-full bg-base-100 px-2 py-0.5 text-xs font-bold text-base-content">Now playing</span>
-                            }
-                        </button>
-                    </li>
+                    <li><ThemeSleeve Theme="@theme" Playing="playing" OnClick="e => PutOn(theme, e)" /></li>
                 }
             </ul>
         </section>
