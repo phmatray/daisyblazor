@@ -1,0 +1,114 @@
+@page "/themes"
+@implements IDisposable
+@inject DocsJs Js
+
+<DocShell Title="The crate" PageTitle="Themes" Tracks="_tracks" Trail="_trail" Portrait="Portrait" PortraitCaption="@($"Now playing · N°{ThemeDeck.Number(Current)}")">
+    <Lede>
+        All @ThemeDeck.Themes.Count releases: the two DaisyBlazor themes and every built-in daisyUI theme. Each sleeve below
+        is rendered in its own theme with real components. Put one on and the whole site follows.
+    </Lede>
+    <ChildContent>
+        <section id="releases" class="scroll-mt-6">
+            <h2 class="sr-only">Releases</h2>
+            <ul class="grid grid-cols-2 gap-4 sm:grid-cols-3 2xl:grid-cols-4">
+                @foreach (string t in ThemeDeck.Themes)
+                {
+                    string theme = t;
+                    bool playing = theme == Current;
+                    <li data-theme="@theme">
+                        <button type="button" @onclick="e => PutOn(theme, e)" aria-pressed="@(playing ? "true" : "false")"
+                                class="group relative flex aspect-square w-full flex-col overflow-hidden rounded-md bg-primary p-4 text-left text-primary-content transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_40px_-22px_rgb(0_0_0/0.6)] @(playing ? "ring-4 ring-base-content ring-offset-4 ring-offset-base-100" : "")">
+                            <span class="absolute -right-10 -top-10 size-28 rounded-full bg-secondary transition-transform duration-700 group-hover:-translate-x-2 group-hover:translate-y-2" aria-hidden="true"></span>
+                            <span class="relative text-xs font-extrabold uppercase tracking-[0.2em] opacity-80">N°@ThemeDeck.Number(theme)@(ThemeDeck.DarkThemes.Contains(theme) ? " · dark" : "")</span>
+                            <span class="relative mt-1 font-display text-[clamp(1.4rem,2.6vw,2.1rem)] font-bold leading-none">@theme</span>
+                            <span class="relative mt-auto flex flex-col gap-2 rounded bg-base-100 p-3 text-base-content" aria-hidden="true">
+                                <span class="flex gap-1.5">
+                                    <span class="btn btn-primary btn-xs">Play</span>
+                                    <span class="btn btn-secondary btn-xs">Save</span>
+                                    <span class="btn btn-accent btn-xs btn-outline">More</span>
+                                </span>
+                                <span class="flex items-center gap-2">
+                                    <input type="checkbox" class="toggle toggle-primary toggle-xs" checked tabindex="-1" />
+                                    <progress class="progress progress-accent h-1.5 w-full" value="62" max="100"></progress>
+                                </span>
+                            </span>
+                            @if (playing)
+                            {
+                                <span class="absolute right-3 top-3 rounded-full bg-base-100 px-2 py-0.5 text-xs font-bold text-base-content">Now playing</span>
+                            }
+                        </button>
+                    </li>
+                }
+            </ul>
+        </section>
+
+        <section id="use-one" class="mt-20 scroll-mt-6">
+            <h2 class="mb-4 font-display text-[2rem] font-bold leading-tight">Use one in your app</h2>
+            <div class="prose-doc">
+                <p>
+                    Every theme here ships in the <a href="css-preset">CSS preset</a>. Wrap your layout in
+                    <code>ThemeProvider</code> and call <code>SetThemeAsync</code>; the choice persists to localStorage and a
+                    cookie. The <a href="theming">theming guide</a> covers dark mode, your own theme list and a picker.
+                </p>
+            </div>
+            <CodeBlock Class="mt-6" Code="@Snippet" />
+        </section>
+    </ChildContent>
+</DocShell>
+
+@code {
+    [CascadingParameter] public ThemeProvider? Provider { get; set; }
+
+    private const string Snippet = """
+        <ThemeProvider @ref="_themes">
+            @Body
+        </ThemeProvider>
+
+        @code {
+            private ThemeProvider _themes = null!;
+
+            private Task PutOn(string theme) => _themes.SetThemeAsync(theme); // "synthwave", "nord", "system"…
+        }
+        """;
+
+    private readonly List<Track> _tracks = [new("releases", "All releases"), new("use-one", "Use one in your app")];
+    private readonly List<(string, string?)> _trail = [("Guides", "getting-started"), ("Themes", null)];
+
+    private string Current => Provider?.Theme ?? ThemeDeck.Light;
+
+    private RenderFragment Portrait => __builder =>
+    {
+        <div class="space-y-3">
+            <span class="block font-display text-4xl font-bold leading-none">@Current</span>
+            <div class="flex gap-1.5">
+                @foreach (string role in new[] { "bg-primary", "bg-secondary", "bg-accent", "bg-neutral", "bg-info", "bg-success", "bg-warning", "bg-error" })
+                {
+                    <span class="h-10 flex-1 rounded @role"></span>
+                }
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <Button Color="Color.Primary">Primary</Button>
+                <Button Color="Color.Secondary" Variant="Variant.Outlined">Secondary</Button>
+            </div>
+            <ProgressLinear Color="Color.Tertiary" Value="64" />
+        </div>
+    };
+
+    protected override void OnInitialized()
+    {
+        if (Provider is not null) Provider.ThemeChanged += Refresh;
+    }
+
+    private void Refresh() => InvokeAsync(StateHasChanged);
+
+    private async Task PutOn(string theme, MouseEventArgs e)
+    {
+        if (Provider is null) return;
+        await ThemeDeck.PutOnAsync(Provider, Js, theme, e.ClientX, e.ClientY);
+    }
+
+    public void Dispose()
+    {
+        if (Provider is not null) Provider.ThemeChanged -= Refresh;
+    }
+}

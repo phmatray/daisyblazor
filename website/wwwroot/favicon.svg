@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <g id="mark">
+    <g fill="#ffffff" stroke="#1a1a1a" stroke-width="2.5">
+      <ellipse cx="32" cy="13" rx="7" ry="12"/>
+      <ellipse cx="32" cy="51" rx="7" ry="12"/>
+      <ellipse cx="13" cy="32" rx="12" ry="7"/>
+      <ellipse cx="51" cy="32" rx="12" ry="7"/>
+      <ellipse cx="18.6" cy="18.6" rx="7" ry="12" transform="rotate(-45 18.6 18.6)"/>
+      <ellipse cx="45.4" cy="45.4" rx="7" ry="12" transform="rotate(-45 45.4 45.4)"/>
+      <ellipse cx="45.4" cy="18.6" rx="7" ry="12" transform="rotate(45 45.4 18.6)"/>
+      <ellipse cx="18.6" cy="45.4" rx="7" ry="12" transform="rotate(45 18.6 45.4)"/>
+    </g>
+    <circle cx="32" cy="32" r="10" fill="#f2c230" stroke="#1a1a1a" stroke-width="2.5"/>
+  </g>
+</svg>

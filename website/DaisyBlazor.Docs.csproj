@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <RootNamespace>DaisyBlazor.Docs</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- The API tables and the playground reflect over the component assemblies at runtime. -->
+    <BlazorWebAssemblyLoadAllGlobalizationData>false</BlazorWebAssemblyLoadAllGlobalizationData>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- Dogfood the NuGet's Tailwind standalone CLI build (no Node, no npm). -->
+    <DaisyBlazorBuildCss>true</DaisyBlazorBuildCss>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\src\DaisyBlazor.Components\DaisyBlazor.Components.csproj" />
+    <ProjectReference Include="..\src\DaisyBlazor.Charts\DaisyBlazor.Charts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TrimmerRootAssembly Include="DaisyBlazor.Components" />
+    <TrimmerRootAssembly Include="DaisyBlazor.Charts" />
+  </ItemGroup>
+
+  <!-- Example sources ship as embedded resources keyed by file name, so every demo shows its exact code. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Examples\**\*.razor" LogicalName="example:%(RecursiveDir)%(Filename)" />
+  </ItemGroup>
+
+  <!-- XML docs of the libraries feed the API tables. -->
+  <Target Name="EmbedLibraryXmlDocs" AfterTargets="ResolveProjectReferences" BeforeTargets="PrepareForBuild;AssignTargetPaths">
+    <ItemGroup>
+      <EmbeddedResource Include="..\src\DaisyBlazor.Components\bin\$(Configuration)\$(TargetFramework)\DaisyBlazor.Components.xml" LogicalName="xmldoc:DaisyBlazor.Components" Condition="Exists('..\src\DaisyBlazor.Components\bin\$(Configuration)\$(TargetFramework)\DaisyBlazor.Components.xml')" />
+      <EmbeddedResource Include="..\src\DaisyBlazor.Charts\bin\$(Configuration)\$(TargetFramework)\DaisyBlazor.Charts.xml" LogicalName="xmldoc:DaisyBlazor.Charts" Condition="Exists('..\src\DaisyBlazor.Charts\bin\$(Configuration)\$(TargetFramework)\DaisyBlazor.Charts.xml')" />
+    </ItemGroup>
+  </Target>
+
+  <Import Project="..\src\DaisyBlazor.Components\buildTransitive\DaisyBlazor.Components.targets" />
+
+</Project>

@@ -1,0 +1,98 @@
+@page "/components/{Slug}"
+
+@if (_doc is null)
+{
+    <NotFound />
+}
+else
+{
+    <DocShell Title="@_doc.Name" Tracks="_tracks" Trail="_trail" Portrait="_portrait" PortraitCaption="@($"Cover · <{ApiReflector.TagName(_doc.Types[0])}>")">
+        <Lede>@_doc.Summary</Lede>
+        <Chips>
+            <span class="rounded-full bg-primary-content px-3 py-1 text-sm font-bold text-primary">@_doc.Category.Title()</span>
+            @if (_doc.DaisyClass is not null)
+            {
+                <span class="rounded-full border-2 border-primary-content px-3 py-0.5 font-mono text-sm font-semibold">.@_doc.DaisyClass</span>
+            }
+            @if (_doc.MudEquivalent is not null)
+            {
+                <a href="@($"{_doc.Url}#migration")" class="rounded-full border-2 border-primary-content px-3 py-0.5 text-sm font-bold hover:bg-primary-content hover:text-primary">Replaces @_doc.MudEquivalent</a>
+            }
+        </Chips>
+        <ChildContent>
+            <h2 id="examples" class="scroll-mt-6 font-display text-[2rem] font-bold leading-tight">Examples</h2>
+            <div class="mt-6 space-y-14">
+                @foreach (ExampleDoc e in _doc.Examples)
+                {
+                    <ExampleCard Example="e" />
+                }
+            </div>
+
+            @if (_doc.Playground is not null)
+            {
+                <div class="mt-20"><Playground Spec="_doc.Playground" /></div>
+            }
+
+            <h2 id="api" class="mt-20 mb-6 scroll-mt-6 font-display text-[2rem] font-bold leading-tight">API</h2>
+            @foreach (Type t in _doc.Types)
+            {
+                <ApiTable Component="t" />
+            }
+
+            @if (_doc.MudEquivalent is not null)
+            {
+                <section id="migration" class="mt-16 scroll-mt-6">
+                    <h2 class="mb-4 font-display text-[2rem] font-bold leading-tight">From @_doc.MudEquivalent</h2>
+                    <div class="prose-doc">
+                        <p>
+                            <code>@_doc.Name</code> keeps @(_doc.MudEquivalent)'s parameter names, so most markup moves over by
+                            dropping the <code>Mud</code> prefix. See the <a href="migration">migration guide</a> for the shared enums, icons and services.
+                        </p>
+                        @if (_doc.MigrationNote is not null)
+                        {
+                            <p>@_doc.MigrationNote</p>
+                        }
+                    </div>
+                    <Diff AspectClass="aspect-[16/5]" Class="mt-6 w-full max-w-3xl rounded-2xl border-2 border-base-content">
+                        <Item1>
+                            <div class="grid h-full place-items-center bg-base-200 font-mono text-sm sm:text-base">&lt;@_doc.MudEquivalent …&gt;</div>
+                        </Item1>
+                        <Item2>
+                            <div class="grid h-full place-items-center bg-primary font-mono text-sm text-primary-content sm:text-base">&lt;@ApiReflector.TagName(_doc.Types[0]) …&gt;</div>
+                        </Item2>
+                    </Diff>
+                </section>
+            }
+        </ChildContent>
+    </DocShell>
+}
+
+@code {
+    [Parameter] public string Slug { get; set; } = "";
+
+    private ComponentDoc? _doc;
+    private List<Track> _tracks = [];
+    private List<(string, string?)> _trail = [];
+    private RenderFragment? _portrait;
+
+    protected override void OnParametersSet()
+    {
+        _doc = DocRegistry.Find(Slug);
+        if (_doc is null) return;
+
+        _tracks = [new("examples", "Examples")];
+        if (_doc.Playground is not null) _tracks.Add(new("playground", "Playground"));
+        _tracks.Add(new("api", "API"));
+        if (_doc.MudEquivalent is not null) _tracks.Add(new("migration", $"From {_doc.MudEquivalent}"));
+
+        _trail = [("Components", "components"), (_doc.Category.Title(), $"components#{_doc.Category.Slug()}"), (_doc.Name, null)];
+
+        Type? cover = _doc.Portrait ?? _doc.Examples.FirstOrDefault()?.Component;
+        _portrait = cover is null ? null : b =>
+        {
+            b.OpenComponent<DynamicComponent>(0);
+            b.AddAttribute(1, nameof(DynamicComponent.Type), cover);
+            b.CloseComponent();
+        };
+    }
+}

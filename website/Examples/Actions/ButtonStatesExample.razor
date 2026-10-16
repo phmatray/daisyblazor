@@ -1,0 +1,18 @@
+<div class="flex flex-wrap gap-3">
+    <Button Color="Color.Primary" Variant="Variant.Filled" Loading="true">Loading…</Button>
+    <Button Color="Color.Secondary" Variant="Variant.Filled" Disabled="true">Disabled</Button>
+    <Button Color="Color.Success" Variant="Variant.Filled" Loading="_saving" OnClick="SaveAsync">
+        @(_saving ? "Saving…" : "Save")
+    </Button>
+</div>
+
+@code {
+    private bool _saving;
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        await Task.Delay(1500);
+        _saving = false;
+    }
+}

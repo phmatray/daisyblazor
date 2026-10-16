@@ -1,0 +1,109 @@
+@* The page masthead: the active theme's primary floods it, the title is the release name, the
+   page sections are the tidy track block, the component itself is the cover portrait, and the
+   next release peeks from the edge as a disc you can put on. *@
+@implements IDisposable
+@inject DocsJs Js
+
+<section class="sleeve relative overflow-hidden" aria-labelledby="page-title">
+    <button type="button" data-theme="@Next" @onclick="PutOnNext"
+            class="disc-button absolute -right-28 top-6 hidden size-[22rem] cursor-pointer rounded-full lg:block xl:-right-24 2xl:size-[26rem]"
+            aria-label="Put on the next release: @Next" title="Next release: @Next">
+        <span class="disc absolute inset-0 shadow-[0_18px_40px_-18px_rgb(0_0_0/0.45)]"></span>
+    </button>
+
+    <div class="relative mx-auto grid max-w-[1500px] gap-10 px-4 pb-10 pt-6 sm:px-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-16 lg:px-14 lg:pb-14 lg:pt-10 @(Portrait is null ? "" : "lg:pr-[17rem] 2xl:pr-[19rem]")">
+        <div class="flex min-w-0 flex-col">
+            @if (Trail is not null)
+            {
+                <nav aria-label="Breadcrumb" class="sleeve-muted mb-4 flex flex-wrap items-center gap-1.5 text-sm font-semibold">
+                    @foreach ((string label, string? href) in Trail)
+                    {
+                        if (href is null)
+                        {
+                            <span aria-current="page" class="text-primary-content">@label</span>
+                        }
+                        else
+                        {
+                            <a href="@href" class="hover:underline hover:underline-offset-4">@label</a>
+                            <span aria-hidden="true">/</span>
+                        }
+                    }
+                </nav>
+            }
+
+            <h1 id="page-title" tabindex="-1"
+                class="font-display font-bold leading-[0.92] tracking-[-0.03em] outline-none @(Large ? "text-[clamp(3.5rem,9vw,7.5rem)]" : "text-[clamp(2.75rem,6.5vw,5.5rem)]")">
+                @Title
+            </h1>
+
+            @if (Lede is not null)
+            {
+                <div class="mt-5 max-w-[40rem] text-lg leading-relaxed sm:text-xl">@Lede</div>
+            }
+
+            @if (Chips is not null)
+            {
+                <div class="mt-6 flex flex-wrap gap-2">@Chips</div>
+            }
+
+            @if (Tracks is { Count: > 0 })
+            {
+                <nav aria-label="On this page" class="mt-10 lg:mt-auto lg:pt-12">
+                    <span class="sleeve-muted mb-2 block text-xs font-extrabold uppercase tracking-[0.2em]">Side A — @Title</span>
+                    <ol class="grid max-w-xl gap-x-10 gap-y-1 sm:grid-cols-2">
+                        @for (int i = 0; i < Tracks.Count; i++)
+                        {
+                            Track t = Tracks[i];
+                            <li><a class="track" href="@($"{Path}#{t.Id}")"><b>@(i + 1)</b><span>@t.Title</span></a></li>
+                        }
+                    </ol>
+                </nav>
+            }
+        </div>
+
+        @if (Portrait is not null)
+        {
+            <figure class="relative z-10 w-full max-w-[24rem] self-center justify-self-start lg:w-[22rem] lg:justify-self-end">
+                <figcaption class="sleeve-muted mb-2 text-xs font-extrabold uppercase tracking-[0.2em]">@(PortraitCaption ?? "Cover")</figcaption>
+                <div class="grid aspect-square place-items-center overflow-hidden rounded-md bg-base-100 p-6 text-base-content">
+                    <div class="w-full">@Portrait</div>
+                </div>
+            </figure>
+        }
+    </div>
+</section>
+
+@code {
+    [CascadingParameter] public ThemeProvider? Provider { get; set; }
+    [Inject] private NavigationManager Nav { get; set; } = null!;
+
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public RenderFragment? Lede { get; set; }
+    [Parameter] public RenderFragment? Chips { get; set; }
+    [Parameter] public RenderFragment? Portrait { get; set; }
+    [Parameter] public string? PortraitCaption { get; set; }
+    [Parameter] public IReadOnlyList<Track>? Tracks { get; set; }
+    [Parameter] public IReadOnlyList<(string Label, string? Href)>? Trail { get; set; }
+    [Parameter] public bool Large { get; set; }
+
+    private string Path => Nav.ToBaseRelativePath(Nav.Uri).Split('#')[0];
+    private string Next => ThemeDeck.Next(Provider?.Theme ?? ThemeDeck.Light);
+
+    protected override void OnInitialized()
+    {
+        if (Provider is not null) Provider.ThemeChanged += Refresh;
+    }
+
+    private void Refresh() => InvokeAsync(StateHasChanged);
+
+    private async Task PutOnNext(MouseEventArgs e)
+    {
+        if (Provider is null) return;
+        await ThemeDeck.PutOnAsync(Provider, Js, Next, e.ClientX, e.ClientY);
+    }
+
+    public void Dispose()
+    {
+        if (Provider is not null) Provider.ThemeChanged -= Refresh;
+    }
+}

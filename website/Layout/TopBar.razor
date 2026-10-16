@@ -1,0 +1,47 @@
+@* The top of the sleeve: logotype, the record's sides, search and the release picker. Sits on the primary ground. *@
+
+<header class="sleeve relative z-30">
+    <div class="mx-auto flex max-w-[1500px] items-center gap-3 px-4 py-4 sm:px-8 lg:px-14">
+        <a href="" class="group flex items-center gap-2.5 rounded-full pr-2" aria-label="DaisyBlazor home">
+            <DaisyMark Class="size-10 transition-transform duration-700 ease-out group-hover:rotate-[120deg]" />
+            <span class="font-display text-[1.7rem] font-bold leading-none tracking-[-0.02em]">
+                daisy<span class="sleeve-muted">Blazor</span>
+            </span>
+        </a>
+
+        <nav class="ml-6 hidden items-center gap-1 font-bold md:flex" aria-label="Primary">
+            <NavLink class="rounded-full px-3.5 py-1.5 hover:bg-primary-content/10 [&.active]:bg-primary-content [&.active]:text-primary" href="getting-started">Guides</NavLink>
+            <NavLink class="rounded-full px-3.5 py-1.5 hover:bg-primary-content/10 [&.active]:bg-primary-content [&.active]:text-primary" href="components">Components</NavLink>
+            <NavLink class="rounded-full px-3.5 py-1.5 hover:bg-primary-content/10 [&.active]:bg-primary-content [&.active]:text-primary" href="themes">Themes</NavLink>
+            <a class="rounded-full px-3.5 py-1.5 hover:bg-primary-content/10" href="https://github.com/phmatray/daisyblazor" target="_blank" rel="noopener">GitHub</a>
+        </nav>
+
+        <div class="ml-auto flex items-center gap-2">
+            <button type="button" @onclick="OnSearch"
+                    class="flex h-11 items-center gap-3 rounded-full bg-base-100 pl-4 pr-1.5 text-base-content/70 shadow-[0_1px_0_rgb(0_0_0/0.08)] transition hover:text-base-content sm:min-w-64"
+                    aria-label="Search the docs (Ctrl K)">
+                <Icon Name="@Icons.Material.Filled.Search" Size="Size.Small" />
+                <span class="hidden font-semibold sm:inline">Search components</span>
+                <span class="ml-auto hidden gap-1 sm:flex"><Kbd Size="Size.Small">Ctrl</Kbd><Kbd Size="Size.Small">K</Kbd></span>
+            </button>
+            <ThemeSwitcher />
+            <button type="button" class="btn btn-circle btn-ghost text-primary-content md:hidden" aria-label="Open navigation"
+                    @onclick="() => _menu = !_menu" aria-expanded="@(_menu ? "true" : "false")">
+                <Icon Name="@(_menu ? Icons.Material.Filled.Close : Icons.Material.Filled.Menu)" />
+            </button>
+        </div>
+    </div>
+
+    @if (_menu)
+    {
+        <div class="border-t border-primary-content/20 px-4 pb-6 md:hidden" @onclick="() => _menu = false">
+            <MobileNav />
+        </div>
+    }
+</header>
+
+@code {
+    [Parameter] public EventCallback OnSearch { get; set; }
+
+    private bool _menu;
+}

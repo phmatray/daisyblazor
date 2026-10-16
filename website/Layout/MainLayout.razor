@@ -1,0 +1,41 @@
+@inherits LayoutComponentBase
+@inject NavigationManager Nav
+@inject DocsJs Js
+@implements IDisposable
+
+<ThemeProvider Themes="ThemeDeck.Themes" DarkThemes="ThemeDeck.DarkThemes"
+               SystemLightTheme="@ThemeDeck.Light" SystemDarkTheme="@ThemeDeck.Dark">
+    <a href="@($"{_path}#content")" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] btn btn-sm">Skip to content</a>
+    <TopBar OnSearch="OpenSearch" />
+    @Body
+    <SiteFooter />
+    <SearchPalette @ref="_search" />
+    <DialogProvider />
+    <SnackbarProvider />
+</ThemeProvider>
+
+@code {
+    private SearchPalette? _search;
+
+    private Task OpenSearch() => _search?.Open() ?? Task.CompletedTask;
+    private string _path = "";
+
+    protected override void OnInitialized()
+    {
+        _path = Nav.ToBaseRelativePath(Nav.Uri).Split('#')[0];
+        Nav.LocationChanged += OnLocationChanged;
+    }
+
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        string path = Nav.ToBaseRelativePath(e.Location).Split('#')[0];
+        bool samePage = path == _path;
+        _path = path;
+        if (!samePage && !e.Location.Contains('#'))
+        {
+            try { await Js.ScrollToTop(); } catch (JSException) { }
+        }
+    }
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+}

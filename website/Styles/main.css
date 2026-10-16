@@ -1,0 +1,182 @@
+@import "tailwindcss";
+
+/* The shipped preset (daisyUI + 37 themes + C# class safelist), straight from the package sources. */
+@import "../../src/DaisyBlazor.Components/styles/preset.css";
+
+@source "../**/*.razor";
+@source "../**/*.cs";
+@source "../../src/DaisyBlazor.Components/**/*.razor";
+@source "../../src/DaisyBlazor.Components/**/*.cs";
+@source "../../src/DaisyBlazor.Charts/**/*.razor";
+@source "../../src/DaisyBlazor.Charts/**/*.cs";
+
+@theme {
+    --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+    --font-display: "Fredoka", "Manrope", ui-rounded, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+}
+
+/* ── The sleeve world ─────────────────────────────────────────────────────────────
+   One flat ground per release: the active theme's primary floods the masthead, its
+   primary-content is the ink on it, base-100 is the only relief. The reading column
+   never takes the ground colour. */
+@layer base {
+    html {
+        scroll-padding-top: 5rem;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+
+    body {
+        @apply bg-base-100 text-base-content font-sans;
+        font-feature-settings: "ss01", "cv11";
+    }
+
+    h1, h2, h3, h4, .font-display {
+        font-family: var(--font-display);
+        text-wrap: balance;
+        letter-spacing: -0.02em;
+    }
+
+    ::selection {
+        background: var(--color-primary);
+        color: var(--color-primary-content);
+    }
+
+    :focus-visible {
+        outline: 2.5px solid var(--color-primary);
+        outline-offset: 3px;
+        border-radius: 6px;
+    }
+
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: color-mix(in oklab, var(--color-base-content) 25%, transparent) transparent;
+        caret-color: var(--color-primary);
+    }
+
+    code, kbd, pre, samp {
+        font-family: var(--font-mono);
+        font-variant-ligatures: none;
+    }
+
+    table { font-variant-numeric: tabular-nums; }
+}
+
+@layer components {
+    /* The masthead ground. Transition covers browsers without view transitions. */
+    .sleeve {
+        background-color: var(--color-primary);
+        color: var(--color-primary-content);
+        transition: background-color 600ms cubic-bezier(.2, .8, .2, 1), color 600ms cubic-bezier(.2, .8, .2, 1);
+    }
+
+    /* The next release peeking from the masthead edge: a disc in the next theme's primary. */
+    .disc {
+        border-radius: 9999px;
+        background:
+            radial-gradient(circle at center,
+                var(--color-primary) 0 14%,
+                var(--color-base-100) 14% 15.5%,
+                transparent 15.5%),
+            repeating-radial-gradient(circle at center,
+                color-mix(in oklab, var(--color-primary) 92%, black) 0 2px,
+                var(--color-primary) 2px 5px);
+        transition: transform 900ms cubic-bezier(.16, 1, .3, 1);
+    }
+
+    .disc-button:hover .disc,
+    .disc-button:focus-visible .disc { transform: rotate(160deg) translateX(-12px); }
+
+    /* Ink on the sleeve: secondary text tinted from the ground's own ink, never grey. */
+    .sleeve-muted { color: color-mix(in oklab, var(--color-primary-content) 72%, var(--color-primary)); }
+
+    /* Pills for small controls; the track block. */
+    .track {
+        display: grid;
+        grid-template-columns: 1.4rem 1fr;
+        align-items: baseline;
+        gap: 0.5rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: opacity 200ms;
+    }
+
+    .track > b {
+        font-family: var(--font-display);
+        font-weight: 600;
+        opacity: .7;
+    }
+
+    .track:hover { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 2px; }
+
+    /* Reading column prose. */
+    .prose-doc { max-width: 70ch; font-size: 1.0625rem; line-height: 1.7; }
+    .prose-doc > * + * { margin-top: 1.1em; }
+    .prose-doc h2 { font-size: 2rem; line-height: 1.1; font-weight: 700; margin-top: 2.6em; margin-bottom: .5em; }
+    .prose-doc h3 { font-size: 1.35rem; line-height: 1.2; font-weight: 600; margin-top: 2em; margin-bottom: .4em; }
+    .prose-doc a:not(.btn) {
+        color: inherit;
+        text-decoration: underline;
+        text-decoration-color: var(--color-primary);
+        text-decoration-thickness: 2px;
+        text-underline-offset: 3px;
+    }
+    .prose-doc a:not(.btn):hover { background: color-mix(in oklab, var(--color-primary) 18%, transparent); }
+    .prose-doc :not(pre) > code {
+        font-size: .86em;
+        padding: .12em .4em;
+        border-radius: .35em;
+        background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+    }
+    .prose-doc ul { list-style: disc; padding-left: 1.25rem; }
+    .prose-doc ol { list-style: decimal; padding-left: 1.25rem; }
+    .prose-doc li + li { margin-top: .35em; }
+    .prose-doc li::marker { color: var(--color-primary); }
+    .prose-doc table { width: 100%; font-size: .95rem; }
+    .prose-doc th { text-align: left; font-weight: 700; padding: .5rem .75rem .5rem 0; border-bottom: 2px solid var(--color-base-content); }
+    .prose-doc td { padding: .5rem .75rem .5rem 0; border-bottom: 1px solid var(--color-base-300); vertical-align: top; }
+
+    /* Syntax colours derive from the active theme, so code is in tune with every release. */
+    .code-block { background: var(--color-neutral); color: var(--color-neutral-content); }
+    .tok-tag { color: color-mix(in oklab, var(--color-primary) 70%, var(--color-neutral-content)); font-weight: 600; }
+    .tok-attr { color: color-mix(in oklab, var(--color-secondary) 70%, var(--color-neutral-content)); }
+    .tok-str { color: color-mix(in oklab, var(--color-accent) 75%, var(--color-neutral-content)); }
+    .tok-razor { color: color-mix(in oklab, var(--color-warning) 75%, var(--color-neutral-content)); font-weight: 600; }
+    .tok-kw { color: color-mix(in oklab, var(--color-info) 75%, var(--color-neutral-content)); font-weight: 600; }
+    .tok-com { color: color-mix(in oklab, var(--color-neutral-content) 50%, var(--color-neutral)); font-style: italic; }
+    .tok-num { color: color-mix(in oklab, var(--color-success) 75%, var(--color-neutral-content)); }
+}
+
+/* ── Signature: putting on another release ─────────────────────────────────────── */
+::view-transition-old(root) { animation: none; }
+::view-transition-new(root) {
+    animation: sleeve-reveal 820ms cubic-bezier(.16, 1, .3, 1);
+}
+@keyframes sleeve-reveal {
+    from { clip-path: circle(0 at var(--vt-x, 100%) var(--vt-y, 0)); }
+    to { clip-path: circle(150vmax at var(--vt-x, 100%) var(--vt-y, 0)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-new(root) { animation: none; }
+    .sleeve, .disc { transition: none; }
+}
+
+/* Blazor boot + error chrome. */
+#blazor-error-ui {
+    display: none;
+    position: fixed;
+    inset: auto 1rem 1rem auto;
+    z-index: 1000;
+}
+
+.boot {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: var(--color-primary);
+    color: var(--color-primary-content);
+    font-family: var(--font-display);
+}

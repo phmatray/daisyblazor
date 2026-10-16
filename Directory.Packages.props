@@ -8,6 +8,18 @@
     <PackageVersion Include="Microsoft.Extensions.Localization" Version="10.0.13" />
   </ItemGroup>
 
+  <!-- Libraries (Server and WebAssembly compatible: no Microsoft.AspNetCore.App framework reference) -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.13" />
+  </ItemGroup>
+
+  <!-- Documentation site (Blazor WebAssembly) -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.13" />
+  </ItemGroup>
+
   <!-- Testing (bUnit + xUnit v3) -->
   <ItemGroup>
     <PackageVersion Include="bunit" Version="2.11.3" />

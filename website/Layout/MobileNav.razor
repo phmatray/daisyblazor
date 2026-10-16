@@ -1,0 +1,24 @@
+@* Navigation for narrow screens, opened from the top bar; inherits the sleeve ink. *@
+
+<nav class="grid gap-6 pt-4 sm:grid-cols-2" aria-label="Mobile">
+    <div>
+        <span class="sleeve-muted mb-2 block text-xs font-extrabold uppercase tracking-[0.2em]">Start here</span>
+        <ul class="space-y-1 font-bold">
+            @foreach (GuideDoc g in Guides.All)
+            {
+                <li><a href="@g.Url">@g.Title</a></li>
+            }
+            <li><a href="https://github.com/phmatray/daisyblazor" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+    </div>
+    <div>
+        <span class="sleeve-muted mb-2 block text-xs font-extrabold uppercase tracking-[0.2em]">Components</span>
+        <ul class="space-y-1 font-bold">
+            <li><a href="components">All components</a></li>
+            @foreach (IGrouping<Category, ComponentDoc> group in DocRegistry.ByCategory())
+            {
+                <li><a href="@($"components#{group.Key.Slug()}")">@group.Key.Title() <span class="sleeve-muted font-semibold">@group.Count()</span></a></li>
+            }
+        </ul>
+    </div>
+</nav>

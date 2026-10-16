@@ -1,0 +1,69 @@
+@* The parameters of one component, reflected at runtime with defaults and XML-doc summaries. *@
+@inject XmlDocs Docs
+
+<section class="mb-12" aria-labelledby="@_id">
+    <div class="mb-1 flex flex-wrap items-baseline gap-x-4">
+        <h3 id="@_id" class="font-mono text-xl font-semibold">&lt;@ApiReflector.ComponentName(Component)&gt;</h3>
+        <span class="text-sm text-base-content/65">@Component.Namespace</span>
+    </div>
+    @if (_summary is not null)
+    {
+        <p class="mb-4 max-w-[70ch] text-base-content/80">@_summary</p>
+    }
+
+    @foreach (IGrouping<ParamKind, ParamInfo> group in _params.GroupBy(p => p.Kind))
+    {
+        <div class="mb-6 overflow-x-auto">
+            <table class="w-full min-w-[40rem] text-[0.92rem]">
+                <caption class="pb-2 text-left text-xs font-extrabold uppercase tracking-[0.2em] text-base-content/60">@GroupTitle(group.Key)</caption>
+                <thead>
+                    <tr class="border-b-2 border-base-content text-left">
+                        <th class="w-[24%] py-2 pr-4 font-bold">Name</th>
+                        <th class="w-[22%] py-2 pr-4 font-bold">Type</th>
+                        @if (group.Key == ParamKind.Property)
+                        {
+                            <th class="w-[18%] py-2 pr-4 font-bold">Default</th>
+                        }
+                        <th class="py-2 font-bold">Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (ParamInfo p in group)
+                    {
+                        <tr class="border-b border-base-300 align-top">
+                            <td class="py-2.5 pr-4 font-mono font-semibold">@p.Name</td>
+                            <td class="py-2.5 pr-4 font-mono text-[0.85rem] text-base-content/80">@p.TypeName</td>
+                            @if (group.Key == ParamKind.Property)
+                            {
+                                <td class="py-2.5 pr-4 font-mono text-[0.85rem] text-base-content/80">@(p.Default ?? "—")</td>
+                            }
+                            <td class="py-2.5 text-base-content/85">@(p.Summary ?? "")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public Type Component { get; set; } = null!;
+
+    private IReadOnlyList<ParamInfo> _params = [];
+    private string? _summary;
+    private string _id = "";
+
+    protected override void OnParametersSet()
+    {
+        _params = ApiReflector.Parameters(Component, Docs);
+        _summary = Docs.Summary(Component);
+        _id = "api-" + Slugify.Of(ApiReflector.TagName(Component));
+    }
+
+    private static string GroupTitle(ParamKind k) => k switch
+    {
+        ParamKind.Event => "Events",
+        ParamKind.Content => "Content",
+        _ => "Parameters",
+    };
+}

@@ -1,0 +1,64 @@
+@page "/components"
+
+<DocShell Title="Components" PageTitle="All components" Tracks="_tracks" Portrait="Cover" PortraitCaption="Cover · the whole catalogue">
+    <Lede>
+        @DocRegistry.All.Count daisyUI-native components for Blazor, grouped by daisyUI's own taxonomy. Every tile below is
+        rendered live, in whichever release is playing.
+    </Lede>
+    <ChildContent>
+        @foreach (IGrouping<Category, ComponentDoc> group in DocRegistry.ByCategory())
+        {
+            <section id="@group.Key.Slug()" class="mb-16 scroll-mt-6">
+                <div class="mb-6 flex flex-wrap items-baseline justify-between gap-2 border-b-2 border-base-content pb-3">
+                    <h2 class="font-display text-[2rem] font-bold leading-tight">@group.Key.Title()</h2>
+                    <p class="text-base-content/70">@group.Key.Blurb()</p>
+                </div>
+                <ul class="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
+                    @foreach (ComponentDoc d in group)
+                    {
+                        Type? cover = d.Portrait ?? d.Examples.FirstOrDefault()?.Component;
+                        <li>
+                            <a href="@d.Url" class="group flex h-full flex-col overflow-hidden rounded-2xl border-2 border-base-content transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-18px_rgb(0_0_0/0.5)]">
+                                <div class="pointer-events-none grid h-44 place-items-center overflow-hidden bg-base-100 p-5" inert>
+                                    <div class="w-full origin-center scale-[0.85]">
+                                        @if (cover is not null)
+                                        {
+                                            <DynamicComponent Type="cover" />
+                                        }
+                                    </div>
+                                </div>
+                                <div class="mt-auto border-t-2 border-base-content bg-base-200/60 px-4 py-3 transition group-hover:bg-primary group-hover:text-primary-content">
+                                    <span class="flex items-baseline justify-between gap-2">
+                                        <span class="font-display text-xl font-semibold">@d.Name</span>
+                                        @if (d.MudEquivalent is not null)
+                                        {
+                                            <span class="text-xs font-bold opacity-70">@d.MudEquivalent</span>
+                                        }
+                                    </span>
+                                    <span class="line-clamp-2 text-sm opacity-80">@d.Summary</span>
+                                </div>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </section>
+        }
+    </ChildContent>
+</DocShell>
+
+@code {
+    private readonly List<Track> _tracks = [.. DocRegistry.ByCategory().Select(g => new Track(g.Key.Slug(), g.Key.Title()))];
+
+    private static readonly RenderFragment Cover = __builder =>
+    {
+        <div class="grid grid-cols-3 gap-2">
+            @foreach (IGrouping<Category, ComponentDoc> g in DocRegistry.ByCategory())
+            {
+                <span class="flex aspect-square flex-col justify-between rounded-lg bg-base-200 p-2">
+                    <span class="font-display text-2xl font-bold tabular-nums">@g.Count()</span>
+                    <span class="text-[0.65rem] font-bold leading-tight">@g.Key.Title()</span>
+                </span>
+            }
+        </div>
+    };
+}
