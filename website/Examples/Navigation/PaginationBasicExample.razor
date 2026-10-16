@@ -1,0 +1,8 @@
+<div class="flex flex-col items-start gap-3">
+    <Pagination Count="12" @bind-Selected="_page" />
+    <p class="text-sm">Showing records @((_page - 1) * 20 + 1)–@(_page * 20) of 240</p>
+</div>
+
+@code {
+    private int _page = 1;
+}

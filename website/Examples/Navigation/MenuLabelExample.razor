@@ -1,0 +1,13 @@
+<div class="flex min-h-52 flex-wrap items-start gap-4">
+    <Menu Label="Record actions">
+        <MenuItem Icon="@Icons.Material.Filled.PlayArrow" OnClick="@(() => _last = "Play")">Play</MenuItem>
+        <MenuItem Icon="@Icons.Material.Filled.PlaylistAdd" OnClick="@(() => _last = "Add to queue")">Add to queue</MenuItem>
+        <MenuItem Icon="@Icons.Material.Filled.Favorite" OnClick="@(() => _last = "Favourite")">Favourite</MenuItem>
+        <MenuItem Icon="@Icons.Material.Filled.Delete" IconColor="Color.Error" OnClick="@(() => _last = "Remove")">Remove</MenuItem>
+    </Menu>
+    <span class="py-3 text-sm">Last action: <strong>@(_last ?? "none yet")</strong></span>
+</div>
+
+@code {
+    private string? _last;
+}

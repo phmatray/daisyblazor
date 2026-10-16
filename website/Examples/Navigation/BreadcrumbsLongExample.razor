@@ -1,0 +1,15 @@
+<div class="w-full max-w-xs rounded-box bg-base-200 px-4">
+    <Breadcrumbs Items="_crumbs" />
+</div>
+
+@code {
+    private readonly List<BreadcrumbItem> _crumbs =
+    [
+        new("Home", "#"),
+        new("Artists", "#"),
+        new("France Gall", "#"),
+        new("Discography", "#"),
+        new("Singles", "#"),
+        new("Laisse tomber les filles", null),
+    ];
+}

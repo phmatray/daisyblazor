@@ -1,0 +1,10 @@
+<div class="flex w-full flex-col gap-6">
+    @foreach (TabsVariant variant in new[] { TabsVariant.Box, TabsVariant.Border, TabsVariant.Lift })
+    {
+        <Tabs Variant="variant" Class="[&>.tab-content]:block">
+            <Tab Title="@variant.ToString()"><p class="p-4">The @variant variant, as daisyUI tabs-@variant.ToString().ToLowerInvariant().</p></Tab>
+            <Tab Title="Tracklist"><p class="p-4">Twelve songs, 34 minutes.</p></Tab>
+            <Tab Title="Credits"><p class="p-4">Arranged by Alain Goraguer.</p></Tab>
+        </Tabs>
+    }
+</div>

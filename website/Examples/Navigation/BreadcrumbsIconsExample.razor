@@ -1,0 +1,11 @@
+<Breadcrumbs Items="_crumbs" />
+
+@code {
+    private readonly List<BreadcrumbItem> _crumbs =
+    [
+        new("Home", "#", Icon: Icons.Material.Filled.Home),
+        new("Library", "#", Icon: Icons.Material.Filled.LibraryMusic),
+        new("Playlists", "#", Icon: Icons.Material.Filled.QueueMusic),
+        new("Sunday morning", null, Icon: Icons.Material.Filled.Album),
+    ];
+}
