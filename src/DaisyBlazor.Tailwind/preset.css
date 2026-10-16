@@ -1,13 +1,14 @@
 /* ===========================================================================
    DaisyBlazor preset  —  Tailwind CSS v4 + daisyUI v5
    ---------------------------------------------------------------------------
-   Bring this in after the Tailwind import in your app's main stylesheet, then
-   add source globs pointing at the DaisyBlazor component files. See styles/README.md
-   for the exact wiring.
+   Bring this in after the Tailwind import in your app's main stylesheet. No
+   @source glob on the package is needed: safelist.css already lists every class
+   the components emit. See styles/README.md for the wiring.
 
    It enables daisyUI, registers two neutral default themes (daisyblazor and
-   daisyblazor-dark) plus all built-in daisyUI themes, and — crucially — keeps
-   the classes that DaisyBlazor builds dynamically in C# from being purged.
+   daisyblazor-dark) plus all 35 built-in daisyUI themes, and keeps every class
+   DaisyBlazor emits from being purged. Want only the two DaisyBlazor themes?
+   Import preset-core.css instead.
    =========================================================================== */
 
 @plugin "daisyui" {
@@ -21,90 +22,4 @@
     logs: false;
 }
 
-/* ---- DaisyBlazor default light theme (neutral blue / purple / amber) ---- */
-@plugin "daisyui/theme" {
-    name: "daisyblazor";
-    default: true;
-    prefersdark: false;
-    color-scheme: light;
-
-    --color-base-100: oklch(100% 0 0);
-    --color-base-200: oklch(97% 0.002 264);
-    --color-base-300: oklch(93% 0.004 264);
-    --color-base-content: oklch(22% 0.02 264);
-
-    --color-primary: oklch(55% 0.18 256);
-    --color-primary-content: oklch(98% 0.01 256);
-    --color-secondary: oklch(50% 0.22 312);
-    --color-secondary-content: oklch(98% 0.01 312);
-    --color-accent: oklch(72% 0.17 65);
-    --color-accent-content: oklch(20% 0.03 65);
-    --color-neutral: oklch(32% 0.02 264);
-    --color-neutral-content: oklch(96% 0.01 264);
-
-    --color-info: oklch(62% 0.14 233);
-    --color-info-content: oklch(98% 0.01 233);
-    --color-success: oklch(62% 0.16 150);
-    --color-success-content: oklch(98% 0.01 150);
-    --color-warning: oklch(78% 0.16 75);
-    --color-warning-content: oklch(25% 0.05 75);
-    --color-error: oklch(60% 0.22 25);
-    --color-error-content: oklch(98% 0.01 25);
-
-    --radius-selector: 0.5rem;
-    --radius-field: 0.5rem;
-    --radius-box: 0.75rem;
-    --size-selector: 0.25rem;
-    --size-field: 0.25rem;
-    --border: 1px;
-    --depth: 1;
-    --noise: 0;
-}
-
-/* ---- DaisyBlazor default dark theme ---- */
-@plugin "daisyui/theme" {
-    name: "daisyblazor-dark";
-    default: false;
-    prefersdark: true;
-    color-scheme: dark;
-
-    --color-base-100: oklch(21% 0.02 264);
-    --color-base-200: oklch(18% 0.02 264);
-    --color-base-300: oklch(15% 0.02 264);
-    --color-base-content: oklch(92% 0.01 264);
-
-    --color-primary: oklch(75% 0.13 256);
-    --color-primary-content: oklch(18% 0.04 256);
-    --color-secondary: oklch(72% 0.15 312);
-    --color-secondary-content: oklch(16% 0.04 312);
-    --color-accent: oklch(78% 0.15 65);
-    --color-accent-content: oklch(18% 0.04 65);
-    --color-neutral: oklch(28% 0.02 264);
-    --color-neutral-content: oklch(92% 0.01 264);
-
-    --color-info: oklch(70% 0.13 233);
-    --color-info-content: oklch(16% 0.04 233);
-    --color-success: oklch(70% 0.15 150);
-    --color-success-content: oklch(16% 0.04 150);
-    --color-warning: oklch(80% 0.15 75);
-    --color-warning-content: oklch(20% 0.05 75);
-    --color-error: oklch(68% 0.2 25);
-    --color-error-content: oklch(16% 0.04 25);
-
-    --radius-selector: 0.5rem;
-    --radius-field: 0.5rem;
-    --radius-box: 0.75rem;
-    --size-selector: 0.25rem;
-    --size-field: 0.25rem;
-    --border: 1px;
-    --depth: 1;
-    --noise: 0;
-}
-
-/* ===========================================================================
-   Safelist: the classes DaisyBlazor composes in C# or uses literally inside its
-   compiled markup. Extracted to safelist.css so apps that declare their OWN
-   daisyUI themes can import just the safelist (without this preset's plugin +
-   neutral themes). Importing the full preset pulls it in automatically.
-   =========================================================================== */
-@import "./safelist.css";
+@import "./kit.css";

@@ -1,22 +1,36 @@
 ---
 title: CSS preset
-description: What preset.css ships — the daisyUI plugin, registered themes, the per-extension @source glob rule, and the C# class safelist.
+description: What preset.css ships — the daisyUI plugin, registered themes, the generated class safelist, and how to install it from npm.
 ---
 
 DaisyBlazor ships a Tailwind CSS v4 + daisyUI v5 **preset** — `preset.css` — that does three jobs so
 your app doesn't have to:
 
-1. **Enables the daisyUI plugin** (pinned to **daisyUI 5.5.20**) with `logs: false`.
+1. **Enables the daisyUI plugin** with `logs: false`.
 2. **Registers themes**: the two neutral DaisyBlazor defaults — `daisyblazor` (light, the default) and
-   `daisyblazor-dark` (dark, `prefers-color-scheme: dark`) — plus all built-in daisyUI v5 themes
+   `daisyblazor-dark` (dark, `prefers-color-scheme: dark`) — plus all 35 built-in daisyUI v5 themes
    (`light`, `dark`, `cupcake`, `synthwave`, `dracula`, `nord`, `business`, `night`, `dim`, `sunset`,
    `abyss`, `silk`, …).
-3. **Safelists the C#-computed classes** so they survive Tailwind's purge (see below).
+3. **Safelists every class the components emit** so they survive Tailwind's purge (see below).
+
+### Only the DaisyBlazor themes: `preset-core.css`
+
+The 35 built-in themes add weight. If you only need `daisyblazor` / `daisyblazor-dark` (optionally
+plus your own theme blocks), import `preset-core.css` instead. It is identical apart from the theme list:
+
+```css
+@import "tailwindcss";
+@import "@daisyblazor/tailwind/preset-core.css";
+```
+
+If you declare **all** your themes yourself, import just `@daisyblazor/tailwind/safelist.css` and keep
+your own `@plugin "daisyui"` block.
 
 ## Wiring it into your app
 
 Your app's source stylesheet (`Styles/main.css`) imports Tailwind, then the preset, then declares the
-`@source` globs Tailwind uses to discover the classes you actually use:
+`@source` globs Tailwind uses to discover the classes **your own** markup uses (the preset already
+covers the components' classes):
 
 ```css
 @import "tailwindcss";
@@ -29,20 +43,11 @@ Your app's source stylesheet (`Styles/main.css`) imports Tailwind, then the pres
 Compile it with the Tailwind CLI (`npm run build:css` / `watch:css`) and link the output in your host
 page. The DaisyBlazor template wires all of this for you.
 
-## The per-extension `@source` rule
+## `@source` globs
 
-Tailwind v4 source globs are **literal globs, not brace expansions**. A pattern like
-`*.{razor,cs}` does **not** work — Tailwind treats `{razor,cs}` as a literal directory/file token, so
-nothing matches. Always write **one `@source` line per file extension**:
-
-```css
-/* ✅ correct */
-@source "./Components/**/*.razor";
-@source "./Components/**/*.cs";
-
-/* ❌ silently matches nothing */
-@source "./Components/**/*.{razor,cs}";
-```
+Both forms work on Tailwind v4.1+ (verified on 4.3): a brace group such as
+`@source "./Components/**/*.{razor,cs}";`, or one line per extension. The template uses one line per
+extension, which also works on older 4.0.x builds.
 
 ## The comment-scanning gotcha
 
@@ -54,25 +59,18 @@ Never place those at-rule literals inside comments. When you want to *document* 
 in a comment, write it as plain prose (e.g. `source "<path>"` without the leading `@`) and tell the
 reader to turn it into a real at-rule.
 
-## The C# safelist
+## The class safelist
 
-Many DaisyBlazor components compose their daisyUI classes **dynamically in C#** (in `CssClass.cs`,
-`Grid`, `Item`, `Stack`, status/loading helpers, etc.). Tailwind's static analyzer can't see a class
-that only exists as a runtime-concatenated string, so the preset force-generates them with
-`@source inline(...)` blocks — color/size variants (`btn-primary`, `alert-soft`, `loading-spinner`,
-`step-success`, …), the 12-column grid/span/gap utilities, `mask-*`, `tooltip-*`, `chat-bubble-*`, and
-more.
+The NuGet package ships compiled components, not their `.razor`/`.cs` sources, so Tailwind in your app
+cannot scan them. `safelist.css` therefore force-generates, with `@source inline(...)`:
 
-Because this safelist ships **inside the preset**, you get those classes for free — you do **not** need
-to add a `@source` glob pointing at the DaisyBlazor.Components package just to keep them. The two app
-globs above are enough for almost every app. The only time you'd add a glob at the package is if you use
-a packaged component that relies on a plain Tailwind utility nothing in *your* markup references; point
-it at the restored NuGet package in your local cache (path is machine-specific):
+- the classes composed **dynamically in C#** (color/size variants such as `btn-primary`, `alert-soft`,
+  `loading-spinner`, the 12-column grid/span/gap utilities, `mask-*`, `tooltip-*`, …), and
+- **every literal class** used in the component markup (`menu`, `modal`, `navbar`, `drawer`, …).
+  This block is generated from the component sources by `scripts/gen-styles.mjs`, and CI fails if it
+  goes stale.
 
-```css
-@source "<HOME>/.nuget/packages/daisyblazor.components/0.1.0/**/*.razor";
-@source "<HOME>/.nuget/packages/daisyblazor.components/0.1.0/**/*.cs";
-```
+So you do **not** need any `@source` glob pointing at the DaisyBlazor packages.
 
 ## The `@daisyblazor/tailwind` npm package
 
@@ -83,9 +81,8 @@ DaisyBlazor publishes the preset as the npm package **`@daisyblazor/tailwind`**.
 ```json
 {
   "devDependencies": {
-    "@daisyblazor/tailwind": "0.1.0",
+    "@daisyblazor/tailwind": "^0.3.0",
     "@tailwindcss/cli": "^4.1.0",
-    "daisyui": "5.5.20",
     "tailwindcss": "^4.1.0"
   }
 }
@@ -95,8 +92,11 @@ DaisyBlazor publishes the preset as the npm package **`@daisyblazor/tailwind`**.
 @import "@daisyblazor/tailwind/preset.css";
 ```
 
-> Alternatively, copy `preset.css` out of the DaisyBlazor.Components NuGet package's
-> `staticwebassets/styles` folder and import it by relative path.
+The package depends on `daisyui`, so you don't need to install it separately.
+
+> Alternatively, copy the `.css` files (`preset.css`, `preset-core.css`, `kit.css`, `safelist.css`)
+> out of the DaisyBlazor.Components NuGet package's `staticwebassets/styles` folder and import
+> `preset.css` by relative path.
 
 ## The required Material Symbols webfont
 

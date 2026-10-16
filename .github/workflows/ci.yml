@@ -29,6 +29,10 @@ jobs:
       - name: Install front-end deps
         run: npm install
 
+      # The preset is generated from the component sources; fail if a copy or the safelist is stale.
+      - name: Check generated styles
+        run: node scripts/gen-styles.mjs --check
+
       - name: Restore
         run: dotnet restore
 

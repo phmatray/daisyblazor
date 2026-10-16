@@ -4,15 +4,19 @@
   "publishConfig": {
     "access": "public"
   },
-  "description": "Tailwind CSS v4 + daisyUI v5 preset used by the DaisyBlazor component library. Import preset.css to enable daisyUI, the neutral DaisyBlazor themes, and the dynamic-class safelist.",
+  "description": "Tailwind CSS v4 + daisyUI v5 preset used by the DaisyBlazor component library. Import preset.css (or preset-core.css for only the DaisyBlazor themes) to enable daisyUI, the neutral DaisyBlazor themes, and the component class safelist.",
   "type": "module",
   "exports": {
     "./preset.css": "./preset.css",
+    "./preset-core.css": "./preset-core.css",
+    "./kit.css": "./kit.css",
     "./safelist.css": "./safelist.css",
     "./package.json": "./package.json"
   },
   "files": [
     "preset.css",
+    "preset-core.css",
+    "kit.css",
     "safelist.css",
     "README.md"
   ],

@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write   # create tags + GitHub releases
+  id-token: write   # npm provenance
 
 jobs:
   publish:
@@ -62,7 +63,7 @@ jobs:
       - name: Publish npm preset
         if: env.NPM_TOKEN != ''
         working-directory: src/DaisyBlazor.Tailwind
-        run: npm publish --access public
+        run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
