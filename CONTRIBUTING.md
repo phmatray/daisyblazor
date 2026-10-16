@@ -2,12 +2,10 @@
 
 ## Branch strategy
 
-A deliberately simple two-branch model:
-
-| Branch | Role |
-|--------|------|
-| **`main`** | Default, always-green integration branch. All work lands here via PR. The [`ci`](.github/workflows/ci.yml) workflow builds + tests every push and PR. |
-| **`release`** | The publish trigger. Pushing to it runs the [`publish`](.github/workflows/publish.yml) workflow, which packs and ships the version currently in `Directory.Build.props`. |
+**`main`** is the only long-lived branch: always green, and all work lands there via PR. The
+[`ci`](.github/workflows/ci.yml) workflow builds + tests every push and PR, and the
+[`release-please`](.github/workflows/release-please.yml) workflow turns merged commits into releases
+(see below).
 
 Feature work uses short-lived branches off `main`, named by intent:
 
@@ -17,27 +15,24 @@ fix/<thing>      # bug fix
 chore/<thing>    # tooling, docs, deps
 ```
 
-Open a PR into `main`; merge once CI is green.
+Open a PR into `main` with a [Conventional Commits](https://www.conventionalcommits.org/) title
+(`feat: …`, `fix(dialog): …`, `chore(deps): …`) and squash-merge once CI is green. The PR title
+becomes the commit on `main`, and it is what decides the next version.
 
-## Versioning
+## Versioning & releases
 
-The version is single-sourced in **`Directory.Build.props`** (`<Version>`), so all NuGet
-packages release in lockstep.
+Releases are automated with [release-please](https://github.com/googleapis/release-please). The
+version is single-sourced in **`Directory.Build.props`** (`<Version>`), so all NuGet packages release
+in lockstep; release-please owns it (and the template's package references) through the
+`x-release-please-version` markers — don't bump it by hand.
 
-## Cutting a release
-
-1. On `main`, bump `<Version>` in `Directory.Build.props`. Commit via PR.
-2. Fast-forward the `release` branch to that commit:
-   ```bash
-   git push origin main:release
-   ```
-3. The **publish** workflow then:
+1. Every push to `main` runs the **release-please** workflow, which keeps a release PR open with the
+   next version and the `CHANGELOG.md` entry (pre-1.0: `feat` → minor, `fix` → patch).
+2. Merging that release PR tags `v<version>` and creates the GitHub release. The same workflow then:
    - runs the tests,
    - packs `DaisyBlazor.Components`, `DaisyBlazor.Charts`, and `DaisyBlazor.Templates`,
    - pushes them to NuGet (`--skip-duplicate`, so re-runs are safe),
-   - tags `v<version>` and creates a GitHub release with the `.nupkg` files attached.
-
-`workflow_dispatch` is also enabled, so you can trigger a publish manually from the Actions tab.
+   - attaches the `.nupkg` files to the release.
 
 ## Required repository secrets
 
