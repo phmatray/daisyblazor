@@ -1,24 +1,33 @@
 @namespace DaisyBlazor
 
-@* MudProgressCircular replacement. daisyUI .loading .loading-spinner with size + color.
-   daisyUI spinners are always indeterminate; Value is accepted for compatibility. *@
+@* MudProgressCircular replacement. Indeterminate (the default): daisyUI .loading .loading-spinner.
+   Indeterminate="false": a determinate daisyUI .radial-progress ring filled to Value within Min..Max. *@
 
-<span class="@_cls" style="@Style" role="status" aria-label="@AriaLabel" @attributes="UserAttributes"></span>
+@if (Indeterminate)
+{
+    <span class="@_cls" style="@Style" role="status" aria-label="@AriaLabel" @attributes="UserAttributes"></span>
+}
+else
+{
+    <div class="@_ringCls" style="@_ringStyle" role="progressbar" aria-label="@AriaLabel"
+         aria-valuemin="@_fmt(Min)" aria-valuemax="@_fmt(Max)" aria-valuenow="@_fmt(_clamped)"
+         @attributes="UserAttributes"></div>
+}
 
 @code {
-    /// <summary>Accepted for MudBlazor compatibility; currently has no effect (the spinner is always indeterminate).</summary>
+    /// <summary>True (the default) shows an endless spinner; false shows a ring filled to <see cref="Value"/>.</summary>
     [Parameter] public bool Indeterminate { get; set; } = true;
-    /// <summary>Accepted for MudBlazor compatibility; currently has no effect (the spinner is always indeterminate).</summary>
+    /// <summary>Current progress, between <see cref="Min"/> and <see cref="Max"/>. Used when <see cref="Indeterminate"/> is false.</summary>
     [Parameter] public double Value { get; set; }
-    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
+    /// <summary>Value of an empty ring. Defaults to 0.</summary>
     [Parameter] public double Min { get; set; }
-    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
+    /// <summary>Value of a full ring. Defaults to 100.</summary>
     [Parameter] public double Max { get; set; } = 100;
-    /// <summary>Spinner color, applied as a daisyUI text color class.</summary>
+    /// <summary>Spinner or ring color, applied as a daisyUI text color class.</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
-    /// <summary>Spinner size, mapped to a daisyUI loading-{size} class. Defaults to Medium.</summary>
+    /// <summary>Spinner or ring size (loading-{size} for the spinner). Defaults to Medium.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
-    /// <summary>Accessible label for the status element. Defaults to "loading".</summary>
+    /// <summary>Accessible label of the status / progressbar element. Defaults to "loading".</summary>
     [Parameter] public string AriaLabel { get; set; } = "loading";
 
     /// <summary>Extra CSS classes merged onto the root element.</summary>
@@ -35,4 +44,23 @@
         CssClass.LoadingSize(Size),
         _colorClass,
         Class);
+
+    private string _ringCls => CssClass.Merge("radial-progress", _colorClass, Class);
+
+    private double _clamped => Math.Clamp(Value, Math.Min(Min, Max), Math.Max(Min, Max));
+
+    private double _percent => Max > Min ? (_clamped - Min) / (Max - Min) * 100 : 0;
+
+    // Roughly the loading-{size} spinner sizes, so switching modes does not shift the layout.
+    private string _ringSize => Size switch
+    {
+        Size.Small => "1.5rem",
+        Size.Large => "3rem",
+        _ => "2.25rem"
+    };
+
+    private string _ringStyle =>
+        $"--value:{_fmt(_percent)};--size:{_ringSize};--thickness:calc({_ringSize} / 8);{Style}";
+
+    private static string _fmt(double value) => value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
 }

@@ -1,11 +1,15 @@
 @namespace DaisyBlazor
 
-@* daisyUI validator wrapper. Applies the .validator class to the root element so that
-   daisyUI's CSS-only validation styles are activated on the wrapped input (ChildContent).
-   An optional hint message is rendered below the input via <p class="validator-hint">. *@
+@* daisyUI validator wrapper. daisyUI reveals a hint through `.validator:user-invalid ~ .validator-hint`
+   (also matching `.validator:has(:user-invalid)`), so the hint must be a SIBLING of the .validator
+   element. The ChildContent therefore sits in an inner .validator div and the Hint paragraph follows
+   it; the outer div carries Class/Style/attributes. Colouring the input border itself still needs
+   class="validator" on the input, since daisyUI's .input sets its own --input-color. *@
 
-<div class="@_cls" style="@Style" @attributes="UserAttributes">
-    @ChildContent
+<div class="@Class" style="@Style" @attributes="UserAttributes">
+    <div class="validator">
+        @ChildContent
+    </div>
     @if (!string.IsNullOrEmpty(Hint))
     {
         <p class="validator-hint">@Hint</p>
@@ -13,19 +17,15 @@
 </div>
 
 @code {
-    /// <summary>The input element(s) to validate. The .validator class activates daisyUI validation styling on its children.</summary>
+    /// <summary>The input element(s) to validate, wrapped in a .validator element.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    /// <summary>Optional validation hint message rendered below the input as a .validator-hint paragraph.</summary>
+    /// <summary>Optional hint rendered after the inputs as a .validator-hint paragraph, shown once an input is invalid.</summary>
     [Parameter] public string? Hint { get; set; }
 
-    /// <summary>Extra CSS classes merged onto the .validator root element.</summary>
+    /// <summary>Extra CSS classes applied to the outer wrapper (around the inputs and the hint).</summary>
     [Parameter] public string? Class { get; set; }
-    /// <summary>Inline CSS styles applied to the .validator root element.</summary>
+    /// <summary>Inline CSS styles applied to the outer wrapper.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
-
-    private string _cls => CssClass.Merge(
-        "validator",
-        Class);
 }
