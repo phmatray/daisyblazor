@@ -1,0 +1,14 @@
+<div class="flex h-[16.5rem] justify-center">
+    <Dropdown Open="true" ContentClass="mt-2 w-64 border-2 border-base-content">
+        <Activator>
+            <span class="btn btn-primary w-64 justify-between">Sort the crate <Icon Name="@Icons.Material.Filled.ExpandMore" /></span>
+        </Activator>
+        <ChildContent>
+            <li class="menu-title">Sort by</li>
+            <li><a class="menu-active"><Icon Name="@Icons.Material.Filled.Schedule" Size="Size.Small" /> Recently added</a></li>
+            <li><a><Icon Name="@Icons.Material.Filled.Person" Size="Size.Small" /> Artist</a></li>
+            <li><a><Icon Name="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" /> Release year</a></li>
+            <li><a><Icon Name="@Icons.Material.Filled.Star" Size="Size.Small" /> Rating</a></li>
+        </ChildContent>
+    </Dropdown>
+</div>

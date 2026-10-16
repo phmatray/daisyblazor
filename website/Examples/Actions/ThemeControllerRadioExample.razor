@@ -1,0 +1,18 @@
+@* Radios that share a Name form one group. "site" is not a daisyUI theme, so picking it restores the site theme. *@
+<div class="flex flex-wrap gap-x-6 gap-y-3">
+    @foreach ((string value, string label) in _themes)
+    {
+        <ThemeController Type="ThemeControllerType.Radio" Name="pressing" Value="@value"
+                         Checked="@(_current == value)" CheckedChanged="@(on => { if (on) _current = value; })"
+                         Class="inline-flex items-center gap-2">
+            <span>@label</span>
+        </ThemeController>
+    }
+</div>
+
+@code {
+    private readonly (string Value, string Label)[] _themes =
+        [("site", "Site theme"), ("retro", "Retro"), ("cupcake", "Cupcake"), ("valentine", "Valentine"), ("dracula", "Dracula")];
+
+    private string _current = "site";
+}

@@ -1,0 +1,11 @@
+<div class="flex items-center gap-4">
+    <Swap Animation="SwapAnimation.Flip" @bind-Active="_playing" Class="text-primary">
+        <On><Icon Name="@Icons.Material.Filled.PauseCircle" Size="Size.Large" /></On>
+        <Off><Icon Name="@Icons.Material.Filled.PlayCircle" Size="Size.Large" /></Off>
+    </Swap>
+    <span class="text-sm">@(_playing ? "Now playing: Bonjour bonjour" : "Paused")</span>
+</div>
+
+@code {
+    private bool _playing;
+}

@@ -1,0 +1,11 @@
+<div class="flex items-center gap-4">
+    <Swap Animation="SwapAnimation.Rotate" @bind-Active="_night">
+        <On><Icon Name="@Icons.Material.Filled.DarkMode" Size="Size.Large" /></On>
+        <Off><Icon Name="@Icons.Material.Filled.LightMode" Size="Size.Large" /></Off>
+    </Swap>
+    <span class="text-sm">@(_night ? "Late-night session" : "Morning session")</span>
+</div>
+
+@code {
+    private bool _night;
+}

@@ -1,0 +1,15 @@
+<div class="flex flex-wrap items-center gap-4">
+    <ToggleGroup T="string" @bind-Value="_quality">
+        <ToggleItem Value="@("standard")" Text="Standard" />
+        <ToggleItem Value="@("high")" Text="High" />
+        <ToggleItem Value="@("lossless")" Text="Lossless" Disabled="true" />
+    </ToggleGroup>
+    <ToggleGroup T="string" Value="@("mono")" Disabled="true">
+        <ToggleItem Value="@("mono")" Text="Mono" />
+        <ToggleItem Value="@("stereo")" Text="Stereo" />
+    </ToggleGroup>
+</div>
+
+@code {
+    private string? _quality = "high";
+}

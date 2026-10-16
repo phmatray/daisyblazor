@@ -1,0 +1,14 @@
+<ButtonGroup>
+    <Button Variant="Variant.Outlined" Disabled="@(_current == 1)" OnClick="() => _current--">«</Button>
+    @for (int i = 1; i <= 4; i++)
+    {
+        int n = i;
+        <Button Color="@(n == _current ? Color.Primary : Color.Default)" Variant="@(n == _current ? Variant.Filled : Variant.Outlined)"
+                OnClick="() => _current = n">@n</Button>
+    }
+    <Button Variant="Variant.Outlined" Disabled="@(_current == 4)" OnClick="() => _current++">»</Button>
+</ButtonGroup>
+
+@code {
+    private int _current = 2;
+}

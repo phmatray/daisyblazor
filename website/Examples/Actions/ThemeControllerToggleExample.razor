@@ -1,0 +1,8 @@
+@* Checking it repaints the whole page in "synthwave"; uncheck to return to the site theme. *@
+<ThemeController Value="synthwave" @bind-Checked="_on" Class="inline-flex items-center gap-3">
+    <span class="font-semibold">Neon night @(_on ? "on" : "off")</span>
+</ThemeController>
+
+@code {
+    private bool _on;
+}
