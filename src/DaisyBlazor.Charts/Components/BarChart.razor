@@ -10,73 +10,98 @@
         <div class="text-sm font-medium mb-2 text-base-content/80">@Title</div>
     }
 
-    <svg viewBox="0 0 @_w.ToString(_ci) @_h.ToString(_ci)"
-         preserveAspectRatio="none"
-         role="img"
-         class="w-full"
-         style="@($"height:{Height};")"
-         aria-label="@_ariaLabel">
-        <title>@_ariaLabel</title>
-
-        @if (Horizontal)
-        {
-            @* Vertical gridlines + value labels along the bottom *@
-            @if (ShowGrid)
+    @* Layout: a CSS grid with a left gutter (sized by its widest label, capped at 40%), the plot,
+       and a bottom label row. Bars and gridlines live in the stretched SVG; all text is HTML, so it
+       keeps a fixed CSS size at any aspect ratio and long labels are never clipped mid-word. *@
+    <div style="@_gridStyle">
+        <div style="@(_leftLabels.Count > 0 ? "position:relative;padding-right:6px;" : "position:relative;")" aria-hidden="true">
+            @foreach ((double pos, string label) in _leftLabels)
             {
-                @foreach ((double pos, string label) in _valueGrid)
+                <div style="height:0;overflow:hidden;visibility:hidden;white-space:nowrap;">@label</div>
+            }
+            @foreach ((double pos, string label) in _leftLabels)
+            {
+                <span class="text-base-content/60" title="@label" style="@($"position:absolute;left:0;right:6px;top:{_pct(pos)}%;transform:translateY(-50%);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")">@label</span>
+            }
+        </div>
+
+        <div style="position:relative;min-width:0;">
+            <svg viewBox="0 0 100 100"
+                 preserveAspectRatio="none"
+                 role="img"
+                 aria-label="@_ariaLabel"
+                 aria-describedby="@_descId"
+                 style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;">
+                <title>@_ariaLabel</title>
+                <desc id="@_descId">@_description</desc>
+
+                @if (ShowGrid)
                 {
-                    <line x1="@pos.ToString(_ci)" y1="@_plotTop.ToString(_ci)"
-                          x2="@pos.ToString(_ci)" y2="@_plotBottom.ToString(_ci)"
-                          stroke="var(--color-base-content)" stroke-opacity="0.12" stroke-width="1" />
-                    <SvgText X="@pos" Y="@(_plotBottom + 16)" Anchor="middle" FillOpacity="0.6" Text="@label" />
+                    @foreach ((double pos, string label) in _valueGrid)
+                    {
+                        @if (Horizontal)
+                        {
+                            <line x1="@pos.ToString(_ci)" y1="0" x2="@pos.ToString(_ci)" y2="100"
+                                  stroke="var(--color-base-content)" stroke-opacity="0.12" stroke-width="1"
+                                  vector-effect="non-scaling-stroke" />
+                        }
+                        else
+                        {
+                            <line x1="0" y1="@pos.ToString(_ci)" x2="100" y2="@pos.ToString(_ci)"
+                                  stroke="var(--color-base-content)" stroke-opacity="0.12" stroke-width="1"
+                                  vector-effect="non-scaling-stroke" />
+                        }
+                    }
+                }
+
+                @for (int c = 0; c < _categories.Count; c++)
+                {
+                    @for (int s = 0; s < _seriesCount; s++)
+                    {
+                        double v = _value(c, s);
+                        if (!_finite(v))
+                        {
+                            continue;
+                        }
+
+                        // Bars run from the zero line to the value, in either direction.
+                        double a = _valuePos(0);
+                        double b = _valuePos(v);
+                        double lo = System.Math.Min(a, b);
+                        double len = System.Math.Abs(b - a);
+                        double start = _barStart(c, s);
+                        @if (Horizontal)
+                        {
+                            <rect x="@lo.ToString(_ci)" y="@start.ToString(_ci)"
+                                  width="@len.ToString(_ci)" height="@_barThickness.ToString(_ci)"
+                                  fill="@_color(c, s)"><title>@_tooltip(c, s, v)</title></rect>
+                        }
+                        else
+                        {
+                            <rect x="@start.ToString(_ci)" y="@lo.ToString(_ci)"
+                                  width="@_barThickness.ToString(_ci)" height="@len.ToString(_ci)"
+                                  fill="@_color(c, s)"><title>@_tooltip(c, s, v)</title></rect>
+                        }
+                    }
+                }
+            </svg>
+        </div>
+
+        <div></div>
+        <div style="@(_bottomLabels.Count > 0 ? "position:relative;height:calc(1.2em + 6px);" : "position:relative;")" aria-hidden="true">
+            @foreach ((double pos, string label) in _bottomLabels)
+            {
+                @if (Horizontal)
+                {
+                    <span class="text-base-content/60" style="@($"position:absolute;top:6px;left:{_pct(pos)}%;transform:translateX(-50%);white-space:nowrap;")">@label</span>
+                }
+                else
+                {
+                    <span class="text-base-content/60" title="@label" style="@($"position:absolute;top:6px;left:{_pct(pos)}%;width:{_pct(_slot)}%;transform:translateX(-50%);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")">@label</span>
                 }
             }
-
-            @for (int c = 0; c < _categories.Count; c++)
-            {
-                <SvgText X="@(_padLeft - 4)" Y="@(_groupCenter(c) + 4)" Anchor="end" FillOpacity="0.6" Text="@_categories[c]" />
-
-                @for (int s = 0; s < _seriesCount; s++)
-                {
-                    double v = _value(c, s);
-                    double len = (_plotRight - _plotLeft) * _norm(v);
-                    double y = _barStart(c, s);
-                    <rect x="@_plotLeft.ToString(_ci)" y="@y.ToString(_ci)"
-                          width="@(System.Math.Max(0, len).ToString(_ci))" height="@_barThickness.ToString(_ci)"
-                          rx="2" fill="@_color(c, s)" />
-                }
-            }
-        }
-        else
-        {
-            @* Horizontal gridlines + value labels along the left *@
-            @if (ShowGrid)
-            {
-                @foreach ((double pos, string label) in _valueGrid)
-                {
-                    <line x1="@_plotLeft.ToString(_ci)" y1="@pos.ToString(_ci)"
-                          x2="@_plotRight.ToString(_ci)" y2="@pos.ToString(_ci)"
-                          stroke="var(--color-base-content)" stroke-opacity="0.12" stroke-width="1" />
-                    <SvgText X="@(_padLeft - 4)" Y="@(pos + 4)" Anchor="end" FillOpacity="0.6" Text="@label" />
-                }
-            }
-
-            @for (int c = 0; c < _categories.Count; c++)
-            {
-                <SvgText X="@_groupCenter(c)" Y="@(_plotBottom + 16)" Anchor="middle" FillOpacity="0.6" Text="@_categories[c]" />
-
-                @for (int s = 0; s < _seriesCount; s++)
-                {
-                    double v = _value(c, s);
-                    double len = (_plotBottom - _plotTop) * _norm(v);
-                    double x = _barStart(c, s);
-                    <rect x="@x.ToString(_ci)" y="@((_plotBottom - len).ToString(_ci))"
-                          width="@_barThickness.ToString(_ci)" height="@(System.Math.Max(0, len).ToString(_ci))"
-                          rx="2" fill="@_color(c, s)" />
-                }
-            }
-        }
-    </svg>
+        </div>
+    </div>
 
     @if (ShowLegend && _seriesCount > 1)
     {
@@ -126,15 +151,12 @@
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
-    private const double _w = 600;
-    private const double _h = 300;
-    private const double _padLeft = 40;
-    private const double _padRight = 12;
-    private const double _padTop = 12;
-    private const double _padBottom = 28;
     private const double _groupGap = 0.25; // fraction of slot reserved as gap between groups
 
     private static readonly CultureInfo _ci = CultureInfo.InvariantCulture;
+
+    // Per-instance id for the SVG <desc> that exposes the plotted values to screen readers.
+    private readonly string _descId = "bar-desc-" + Guid.NewGuid().ToString("N")[..8];
 
     private IReadOnlyList<ChartSeries>? _series;
     private IReadOnlyList<ChartDataPoint>? _points;
@@ -145,11 +167,6 @@
 
     private bool _grouped => _series is { Count: > 0 };
     private int _seriesCount => _grouped ? _series!.Count : 1;
-
-    private double _plotLeft => _padLeft;
-    private double _plotRight => _w - _padRight;
-    private double _plotTop => _padTop;
-    private double _plotBottom => _h - _padBottom;
 
     private string _ariaLabel =>
         string.IsNullOrEmpty(Title)
@@ -167,7 +184,7 @@
 
         if (_grouped)
         {
-            int catCount = _series!.Max(s => s.Data?.Count ?? 0);
+            int catCount = Math.Max(_series!.Max(s => s.Data?.Count ?? 0), Labels?.Count ?? 0);
             for (int i = 0; i < catCount; i++)
             {
                 _categories.Add(Labels is { Count: > 0 } && i < Labels.Count
@@ -177,12 +194,10 @@
 
             foreach (ChartSeries s in _series!)
             {
-                if (s.Data is null)
+                if (s.Data is not null)
                 {
-                    continue;
+                    allValues.AddRange(s.Data.Where(_finite));
                 }
-
-                allValues.AddRange(s.Data.Where(v => !double.IsNaN(v) && !double.IsInfinity(v)));
             }
         }
         else if (_points is { Count: > 0 })
@@ -190,55 +205,37 @@
             foreach (ChartDataPoint p in _points)
             {
                 _categories.Add(p.Label);
-                if (!double.IsNaN(p.Value) && !double.IsInfinity(p.Value))
+                if (_finite(p.Value))
                 {
                     allValues.Add(p.Value);
                 }
             }
         }
 
-        if (allValues.Count > 0)
-        {
-            _max = allValues.Max();
-            _min = allValues.Min();
-        }
-        else
-        {
-            _max = 1;
-            _min = 0;
-        }
+        // Bars grow from zero, so the axis always includes it; round out to nice bounds.
+        double min = Math.Min(allValues.Count > 0 ? allValues.Min() : 0, 0);
+        double max = Math.Max(allValues.Count > 0 ? allValues.Max() : 1, 0);
+        (double niceMin, double niceMax, double step) = SvgGeometry.NiceScale(min, max);
+        _min = niceMin;
+        _max = niceMax;
 
-        // Bars baseline at zero unless data goes negative.
-        if (_min > 0)
+        _valueGrid.Clear();
+        foreach (double value in SvgGeometry.Ticks(_min, _max, step))
         {
-            _min = 0;
+            _valueGrid.Add((_valuePos(value), SvgGeometry.FormatTick(value, _ci)));
         }
-
-        if (_max < 0)
-        {
-            _max = 0;
-        }
-
-        if (Math.Abs(_max - _min) < double.Epsilon)
-        {
-            _max = _min + 1; // flat data guard
-        }
-
-        BuildValueGrid();
     }
 
-    private void BuildValueGrid()
+    private static bool _finite(double v) => !double.IsNaN(v) && !double.IsInfinity(v);
+
+    private static string _pct(double v) => v.ToString("0.###", _ci);
+
+    // Position of a value along the value axis in the 0..100 plot space (y for vertical bars,
+    // x for horizontal bars).
+    private double _valuePos(double value)
     {
-        _valueGrid.Clear();
-        const int ticks = 4;
-        for (int t = 0; t <= ticks; t++)
-        {
-            double value = _min + (_max - _min) * t / ticks;
-            double pos = Horizontal
-                ? _plotLeft + (_plotRight - _plotLeft) * (t / (double)ticks)
-                : _plotBottom - (_plotBottom - _plotTop) * (t / (double)ticks);
-            _valueGrid.Add((pos, value.ToString("0.##", _ci)));
-        }
+        double frac = (value - _min) / (_max - _min);
+        return Horizontal ? 100 * frac : 100 - 100 * frac;
     }
 
     private double _value(int category, int series)
@@ -246,10 +243,10 @@
         if (_grouped)
         {
             IReadOnlyList<double>? d = _series![series].Data;
-            return d is not null && category < d.Count ? d[category] : 0;
+            return d is not null && category < d.Count ? d[category] : double.NaN;
         }
 
-        return _points is not null && category < _points.Count ? _points[category].Value : 0;
+        return _points is not null && category < _points.Count ? _points[category].Value : double.NaN;
     }
 
     private string _color(int category, int series)
@@ -264,36 +261,59 @@
         return ChartPalette.At(category, ovr);
     }
 
-    // Fraction of the value range a value occupies (0..1), measured from the zero/min baseline.
-    private double _norm(double value)
+    private string _tooltip(int category, int series, double value)
     {
-        double clamped = value;
-        if (double.IsNaN(clamped) || double.IsInfinity(clamped))
-        {
-            clamped = 0;
-        }
-
-        double span = _max - _min;
-        double baseline = _min < 0 ? 0 : _min;
-        double frac = (clamped - baseline) / span;
-        return frac < 0 ? 0 : frac;
+        string prefix = _grouped && _seriesCount > 1 && !string.IsNullOrEmpty(_series![series].Name)
+            ? $"{_series![series].Name} · "
+            : string.Empty;
+        return $"{prefix}{_categories[category]}: {SvgGeometry.FormatValue(value, _ci)}";
     }
 
-    // Geometry along the category axis (x for vertical bars, y for horizontal bars).
-    private double _axisStart => Horizontal ? _plotTop : _plotLeft;
-    private double _axisEnd => Horizontal ? _plotBottom : _plotRight;
-    private double _slot => _categories.Count == 0 ? 0 : (_axisEnd - _axisStart) / _categories.Count;
+    private string _description
+    {
+        get
+        {
+            IEnumerable<string> Values(int s) => _categories.Select((label, c) =>
+            {
+                double v = _value(c, s);
+                return $"{label} {(_finite(v) ? SvgGeometry.FormatValue(v, _ci) : "no data")}";
+            });
+
+            if (!_grouped)
+            {
+                return string.Join(", ", Values(0));
+            }
+
+            return string.Join("; ", Enumerable.Range(0, _seriesCount).Select(s =>
+                string.IsNullOrEmpty(_series![s].Name) ? string.Join(", ", Values(s)) : $"{_series![s].Name}: {string.Join(", ", Values(s))}"));
+        }
+    }
+
+    // Geometry along the category axis (x for vertical bars, y for horizontal bars), 0..100.
+    private double _slot => _categories.Count == 0 ? 0 : 100.0 / _categories.Count;
     private double _innerSlot => _slot * (1 - _groupGap);
     private double _barThickness => _seriesCount == 0 ? 0 : _innerSlot / _seriesCount;
 
-    private double _groupCenter(int category) =>
-        _axisStart + _slot * category + _slot / 2;
+    private double _groupCenter(int category) => _slot * category + _slot / 2;
 
     private double _barStart(int category, int series)
     {
-        double groupLeft = _axisStart + _slot * category + (_slot - _innerSlot) / 2;
+        double groupLeft = _slot * category + (_slot - _innerSlot) / 2;
         return groupLeft + _barThickness * series;
     }
+
+    private List<(double Pos, string Label)> _categoryLabels =>
+        _categories.Select((label, c) => (_groupCenter(c), label)).ToList();
+
+    private List<(double Pos, string Label)> _valueLabels => ShowGrid ? _valueGrid : new();
+
+    private List<(double Pos, string Label)> _leftLabels => Horizontal ? _categoryLabels : _valueLabels;
+
+    private List<(double Pos, string Label)> _bottomLabels => Horizontal ? _valueLabels : _categoryLabels;
+
+    private string _gridStyle =>
+        "display:grid;grid-template-columns:fit-content(40%) minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;" +
+        $"box-sizing:border-box;height:{Height};padding:0.75em {(Horizontal && ShowGrid ? "1.25em" : "0.5em")} 0 0;font-size:0.6875rem;line-height:1.2;";
 
     private string _cls => CssClass.Merge("w-full", Class);
 
