@@ -24,9 +24,16 @@ public partial class FilterPanel
     [Parameter, EditorRequired]
     public EventCallback OnApply { get; set; }
 
-    /// <summary>Invoked when the user clicks the clear/reset button.</summary>
+    /// <summary>Invoked when the user clicks the footer clear button.</summary>
     [Parameter, EditorRequired]
     public EventCallback OnClear { get; set; }
+
+    /// <summary>
+    /// Invoked by the header reset button. That button only renders when this is set, so the panel
+    /// never shows two controls that do the same thing; the footer clear button raises <see cref="OnClear"/>.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnReset { get; set; }
 
     /// <summary>Invoked when the user closes a single active-filter chip.</summary>
     [Parameter]
@@ -36,7 +43,7 @@ public partial class FilterPanel
     [Parameter]
     public string? Title { get; set; }
 
-    /// <summary>Label of the inline reset button shown when any filters are active. Defaults to <c>"Reset"</c>.</summary>
+    /// <summary>Label of the header reset button (shown when filters are active and <see cref="OnReset"/> is set). Defaults to <c>"Reset"</c>.</summary>
     [Parameter]
     public string ResetLabel { get; set; } = "Reset";
 

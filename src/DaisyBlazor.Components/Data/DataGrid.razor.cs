@@ -79,6 +79,10 @@ public partial class DataGrid<T>
     [Parameter]
     public int RowsPerPage { get; set; } = 10;
 
+    /// <summary>Raised when the pager changes the page size (enables <c>@bind-RowsPerPage</c>).</summary>
+    [Parameter]
+    public EventCallback<int> RowsPerPageChanged { get; set; }
+
     /// <summary>Alias for <see cref="RowsPerPage"/>.</summary>
     [Parameter]
     public int? PageSize { get; set; }
@@ -197,6 +201,7 @@ public partial class DataGrid<T>
 
         RowsPerPage = size;
         Page = 0;
+        await RowsPerPageChanged.InvokeAsync(size);
         await RefreshAsync();
     }
 
@@ -365,5 +370,5 @@ public partial class DataGrid<T>
         Striped ? "table-zebra" : null,
         Class);
 
-    private string? _rowClass => Hover ? "hover" : null;
+    private string? _rowClass => Hover ? "row-hover" : null;
 }
