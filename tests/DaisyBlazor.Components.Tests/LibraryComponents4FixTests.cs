@@ -34,7 +34,7 @@ public class LibraryComponents4FixTests : BunitContext
 
     [Theory]
     [InlineData(Color.Dark, "btn-neutral")]
-    [InlineData(Color.Surface, "btn-neutral")]
+    [InlineData(Color.Surface, "btn-active")] // Surface carries no colour modifier (see CssClass)
     [InlineData(Color.Default, "btn-active")]
     public void ToggleGroup_maps_every_color(Color color, string expected)
     {
