@@ -3,10 +3,11 @@
 @* Theme provider (MudThemeProvider-compatible). Applies the daisyUI data-theme
    attribute on the document element via IJSRuntime, resolves "system" via
    prefers-color-scheme, and persists the preference to localStorage + cookies.
-   Cascades itself so descendants can read the current preference / dark-mode
-   state and call SetThemeAsync. The light/dark theme names and the selectable
+   Cascades itself (IsFixed, so theme changes never re-render the wrapped tree);
+   descendants read Preference / Theme / IsDarkMode, call SetThemeAsync, and
+   subscribe to ThemeChanged to refresh themselves. The light/dark theme names and the selectable
    theme list are parameter-driven, so any app can supply its own daisyUI themes. *@
 
-<CascadingValue Value="this">
+<CascadingValue Value="this" IsFixed="true">
     @ChildContent
 </CascadingValue>

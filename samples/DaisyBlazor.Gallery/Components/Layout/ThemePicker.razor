@@ -1,4 +1,5 @@
 @* Theme switcher bound to the cascaded DaisyBlazor ThemeProvider. *@
+@implements IDisposable
 
 <div class="dropdown dropdown-end">
     <div tabindex="0" role="button" class="btn btn-ghost gap-2">
@@ -32,6 +33,24 @@
 
 @code {
     [CascadingParameter] private ThemeProvider? Theme { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (Theme is not null)
+        {
+            Theme.ThemeChanged += Refresh;
+        }
+    }
+
+    private void Refresh() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        if (Theme is not null)
+        {
+            Theme.ThemeChanged -= Refresh;
+        }
+    }
 
     private string ItemClass(string value) =>
         Theme?.Preference == value ? "active" : string.Empty;
