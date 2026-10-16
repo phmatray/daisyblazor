@@ -22,13 +22,11 @@ Open a PR into `main`; merge once CI is green.
 ## Versioning
 
 The version is single-sourced in **`Directory.Build.props`** (`<Version>`), so all NuGet
-packages release in lockstep. Keep **`src/DaisyBlazor.Tailwind/package.json`** (the npm preset)
-on the same version by hand.
+packages release in lockstep.
 
 ## Cutting a release
 
-1. On `main`, bump `<Version>` in `Directory.Build.props` (and the `version` in
-   `src/DaisyBlazor.Tailwind/package.json`). Commit via PR.
+1. On `main`, bump `<Version>` in `Directory.Build.props`. Commit via PR.
 2. Fast-forward the `release` branch to that commit:
    ```bash
    git push origin main:release
@@ -37,7 +35,6 @@ on the same version by hand.
    - runs the tests,
    - packs `DaisyBlazor.Components`, `DaisyBlazor.Charts`, and `DaisyBlazor.Templates`,
    - pushes them to NuGet (`--skip-duplicate`, so re-runs are safe),
-   - publishes `@daisyblazor/tailwind` to npm (only if the `NPM_TOKEN` secret is set),
    - tags `v<version>` and creates a GitHub release with the `.nupkg` files attached.
 
 `workflow_dispatch` is also enabled, so you can trigger a publish manually from the Actions tab.
@@ -49,7 +46,6 @@ Set these under **Settings → Secrets and variables → Actions**:
 | Secret | Used for | Notes |
 |--------|----------|-------|
 | `NUGET_API_KEY` | `dotnet nuget push` | nuget.org API key with **Push → "Push new packages and package versions"** and glob pattern `*` (or `DaisyBlazor.*`). |
-| `NPM_TOKEN` | `npm publish` | npm **automation** access token with publish rights to the `@daisyblazor` scope. Optional — the npm step is skipped when it isn't set. |
 
 ## API reference (generated)
 

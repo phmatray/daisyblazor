@@ -5,11 +5,10 @@
 #   ./scripts/update-deps.sh            # update npm deps to latest, report .NET outdated
 #   ./scripts/update-deps.sh --dotnet   # also bump .NET PackageVersion entries (interactive)
 #
-# The Tailwind/daisyUI versions are the source of truth in:
-#   src/DaisyBlazor.Tailwind/package.json   (the shipped preset package)
-#   samples/DaisyBlazor.Gallery/package.json (the showcase app)
-# Keep daisyUI in sync with the safelist tested in
-#   src/DaisyBlazor.Components/styles/preset.css
+# The daisyUI version vendored into the NuGet preset is the one in the root package.json;
+# after bumping it, run `node scripts/gen-styles.mjs` to re-vendor the bundles + safelist.
+# The Tailwind CLI version the package downloads is DaisyBlazorTailwindVersion in
+#   src/DaisyBlazor.Components/buildTransitive/DaisyBlazor.Components.targets
 # ---------------------------------------------------------------------------
 set -euo pipefail
 
@@ -33,10 +32,9 @@ while IFS= read -r pkg; do
   update_npm_project "$(dirname "$pkg")"
 done < <(find . -name package.json -not -path '*/node_modules/*')
 
-# 2. Report the resolved daisyUI version so preset.css / docs can be synced.
-DAISY_VER="$(node -e "try{console.log(require('./src/DaisyBlazor.Tailwind/node_modules/daisyui/package.json').version)}catch(e){console.log('unknown')}" 2>/dev/null || echo unknown)"
-bold ">> daisyUI resolved version: $DAISY_VER"
-echo "   (verify the @plugin \"daisyui\" theme list + safelist in src/DaisyBlazor.Components/styles/preset.css)"
+# 2. Re-vendor the daisyUI bundles at the new version and regenerate the safelist.
+bold ">> regenerating the NuGet preset (scripts/gen-styles.mjs)"
+node scripts/gen-styles.mjs
 
 # 3. .NET dependencies (Central Package Management).
 bold ">> dotnet: outdated NuGet packages"

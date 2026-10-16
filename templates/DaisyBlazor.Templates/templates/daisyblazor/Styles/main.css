@@ -1,18 +1,17 @@
 @import "tailwindcss";
 
-/* The DaisyBlazor preset: daisyUI plugin + neutral daisyblazor / daisyblazor-dark themes
-   (plus all built-in daisyUI themes) + the class safelist. Vendored locally here so the
-   app has no npm dependency on the DaisyBlazor packages — edit it freely. */
-@import "./preset.css";
+/* The DaisyBlazor preset: daisyUI + neutral daisyblazor / daisyblazor-dark themes (plus all
+   35 built-in daisyUI themes) + the class safelist. The DaisyBlazor.Components package copies
+   it into obj/daisyblazor/ on every build. Use preset-core.css instead to skip the 35 themes. */
+@import "../obj/daisyblazor/preset.css";
 
 /* Scan THIS app's own markup so Tailwind emits every utility class you use. One line per
    extension also works on older Tailwind 4.0.x builds (4.1+ accepts *.{razor,cs} too). */
 @source "./Components/**/*.razor";
 @source "./Components/**/*.cs";
 
-/* No source glob on the DaisyBlazor packages is needed: preset.css safelists every
-   class the packaged components emit. Want only the two DaisyBlazor themes instead of
-   all 35 daisyUI themes? Import ./preset-core.css instead of ./preset.css. */
+/* No source glob on the DaisyBlazor packages is needed: the preset safelists every
+   class the packaged components emit. */
 
 /* App-level brand layer (kept in the app, not the package). */
 @layer base {
