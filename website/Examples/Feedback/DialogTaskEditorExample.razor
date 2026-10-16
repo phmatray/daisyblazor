@@ -1,19 +1,32 @@
 @* A dialog component: wrap the content in <Dialog> and close through the cascaded IMudDialogInstance.
-   Rendered here on its own; the next example opens it through IDialogService. *@
+   Outside a DialogProvider there is no instance, so it shows on a static surface with its buttons disabled;
+   the next example opens it through IDialogService. *@
 
-<Dialog>
-    <DialogContent>
-        <TextField Label="Task title" @bind-Value="Title" Immediate="true" />
-    </DialogContent>
-    <DialogActions>
-        <Button Variant="Variant.Text" OnClick="() => MudDialog?.Cancel()">Cancel</Button>
-        <Button Color="Color.Primary" Variant="Variant.Filled" Disabled="string.IsNullOrWhiteSpace(Title)"
-                OnClick="() => MudDialog?.Close(DialogResult.Ok(Title))">Rename</Button>
-    </DialogActions>
-</Dialog>
+@if (MudDialog is null)
+{
+    <div class="max-w-md rounded-box bg-base-100 p-6 shadow-xl ring-1 ring-base-300">
+        @_dialog
+    </div>
+    <p class="mt-3 text-sm text-base-content/70">Static preview: the buttons work once IDialogService opens the dialog.</p>
+}
+else
+{
+    @_dialog
+}
 
 @code {
     [CascadingParameter] private IMudDialogInstance? MudDialog { get; set; }
 
     [Parameter] public string? Title { get; set; } = "Update billing page";
+
+    private RenderFragment _dialog => @<Dialog Title="@(MudDialog is null ? "Rename task" : null)">
+        <DialogContent>
+            <TextField Label="Task title" @bind-Value="Title" Immediate="true" />
+        </DialogContent>
+        <DialogActions>
+            <Button Variant="Variant.Text" Disabled="MudDialog is null" OnClick="() => MudDialog?.Cancel()">Cancel</Button>
+            <Button Color="Color.Primary" Variant="Variant.Filled" Disabled="MudDialog is null || string.IsNullOrWhiteSpace(Title)"
+                    OnClick="() => MudDialog?.Close(DialogResult.Ok(Title))">Rename</Button>
+        </DialogActions>
+    </Dialog>;
 }
