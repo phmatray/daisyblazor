@@ -3,35 +3,48 @@
 @* MudMenuItem replacement. A daisyUI menu <li> with an <a> row. Renders a link when
    Href is set, otherwise a clickable row. Activation dismisses the parent Menu. *@
 
-<li class="@(Disabled ? "menu-disabled" : null)">
+<li class="@(Disabled ? "menu-disabled" : null)" role="@(ParentMenu is null ? null : "none")">
     @if (!string.IsNullOrEmpty(Href))
     {
-        <a href="@Href" target="@Target" class="@_cls" @onclick="OnClickHandler" @attributes="UserAttributes">
+        @* A disabled link drops href/target so neither keyboard nor middle click can follow it. *@
+        <a href="@(Disabled ? null : Href)" target="@(Disabled ? null : Target)" role="@_role"
+           aria-disabled="@(Disabled ? "true" : null)" class="@_cls" style="@Style" @onclick="OnClickHandler" @attributes="UserAttributes">
             @ItemInner
         </a>
     }
     else
     {
-        <a class="@_cls" @onclick="OnClickHandler" @attributes="UserAttributes">
+        @* A real button: focusable, and activated by Enter and Space. *@
+        <button type="button" role="@_role" disabled="@Disabled" class="@_cls" style="@Style" @onclick="OnClickHandler" @attributes="UserAttributes">
             @ItemInner
-        </a>
+        </button>
     }
 </li>
 
 @code {
     /// <summary>Material Symbols ligature for the leading icon.</summary>
     [Parameter] public string? Icon { get; set; }
+    /// <summary>Colour of the leading icon; inherits the text colour by default.</summary>
     [Parameter] public Color IconColor { get; set; } = Color.Inherit;
+    /// <summary>When set, the item renders as a link to this URL; otherwise as a button.</summary>
     [Parameter] public string? Href { get; set; }
+    /// <summary>The link <c>target</c> attribute (e.g. <c>_blank</c>); used only with <see cref="Href"/>.</summary>
     [Parameter] public string? Target { get; set; }
+    /// <summary>Dims the item and blocks activation; a link item also drops its href.</summary>
     [Parameter] public bool Disabled { get; set; }
+    /// <summary>Raised when the item is activated; the parent Menu then closes.</summary>
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    /// <summary>The item label rendered after the optional icon.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Extra CSS classes added to the item row.</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style applied to the item row.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
     [CascadingParameter] private Menu? ParentMenu { get; set; }
+
+    private string? _role => ParentMenu is null ? null : "menuitem";
 
     private string _cls => CssClass.Merge("flex items-center gap-2", Class);
 
