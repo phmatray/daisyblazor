@@ -11,6 +11,10 @@ public partial class PageHeader
     [Parameter, EditorRequired]
     public string Title { get; set; } = null!;
 
+    /// <summary>Heading level (1-6) of the title element. Defaults to 4, the historical output.</summary>
+    [Parameter]
+    public int HeadingLevel { get; set; } = 4;
+
     /// <summary>Optional secondary line beneath the title.</summary>
     [Parameter]
     public string? Subtitle { get; set; }
