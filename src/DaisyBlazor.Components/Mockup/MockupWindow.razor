@@ -7,7 +7,11 @@
 <div class="@_cls" style="@Style" @attributes="UserAttributes">
     @if (!string.IsNullOrEmpty(Title))
     {
-        <div class="flex items-center gap-2 px-4 py-2 border-b border-base-300">
+        @* Positioned onto the ::before traffic-light row (padding-top 1.25rem, dots 0.75rem tall)
+           rather than stacked as a second bar under it; the 6rem start padding clears the dots.
+           Geometry is inline so it needs no safelisted utilities. *@
+        <div class="pointer-events-none absolute flex items-center justify-center"
+             style="inset-inline:0;top:1.25rem;height:.75rem;padding-inline:6rem 1rem">
             <span class="text-sm font-medium truncate">@Title</span>
         </div>
     }
