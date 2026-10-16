@@ -5,7 +5,7 @@
         {
             bool on = _selected.Contains(env);
             <Chip Text="@env" Color="@(on ? Color.Primary : Color.Default)" Variant="@(on ? Variant.Filled : Variant.Outlined)"
-                  Icon="@(on ? Icons.Material.Filled.Check : null)" Size="Size.Large" OnClick="() => Toggle(env)" />
+                  Icon="@(on ? Icons.Material.Filled.Check : null)" Size="Size.Large" OnClick="() => Toggle(env)" aria-pressed="@(on ? "true" : "false")" />
         }
     </div>
     <p class="text-sm text-base-content/70">Showing: @(_selected.Count == 0 ? "everything" : string.Join(", ", _selected))</p>

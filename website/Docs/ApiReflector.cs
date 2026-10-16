@@ -28,11 +28,12 @@ public static class ApiReflector
         object? instance = null, second = null;
         try
         {
-            if (!component.ContainsGenericParameters)
-            {
-                instance = Activator.CreateInstance(component);
-                second = Activator.CreateInstance(component);
-            }
+            // Open generics (Table<>) are listed so the API shows T; close them over object to read defaults.
+            Type closed = component.IsGenericTypeDefinition
+                ? component.MakeGenericType([.. component.GetGenericArguments().Select(_ => typeof(object))])
+                : component;
+            instance = Activator.CreateInstance(closed);
+            second = Activator.CreateInstance(closed);
         }
         catch { /* components with required ctor args: no defaults */ }
 
@@ -56,11 +57,13 @@ public static class ApiReflector
             }
             else if (instance is not null && kind == ParamKind.Property)
             {
+                // Read through the instance's own (closed) type: an open-generic PropertyInfo can't GetValue.
                 try
                 {
-                    def = FormatValue(p.GetValue(instance), p.PropertyType);
+                    PropertyInfo read = component.IsGenericTypeDefinition ? instance.GetType().GetProperty(p.Name)! : p;
+                    def = FormatValue(read.GetValue(instance), p.PropertyType);
                     // A default that differs per instance (Id = "drawer-" + Guid) is generated, not a value to show.
-                    if (second is not null && def != FormatValue(p.GetValue(second), p.PropertyType)) def = "generated";
+                    if (second is not null && def != FormatValue(read.GetValue(second), p.PropertyType)) def = "generated";
                 }
                 catch { }
             }
