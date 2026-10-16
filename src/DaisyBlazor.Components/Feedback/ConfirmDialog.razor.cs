@@ -14,9 +14,9 @@ public partial class ConfirmDialog
     [Parameter]
     public string ContentText { get; set; } = string.Empty;
 
-    /// <summary>Label of the confirm button.</summary>
+    /// <summary>Label of the confirm button. Defaults to <c>"Confirm"</c>; pass a localized string to override.</summary>
     [Parameter]
-    public string ButtonText { get; set; } = string.Empty;
+    public string ButtonText { get; set; } = "Confirm";
 
     /// <summary>Color applied to the confirm button.</summary>
     [Parameter]

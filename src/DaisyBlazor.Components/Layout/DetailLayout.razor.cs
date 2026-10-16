@@ -8,9 +8,6 @@ namespace DaisyBlazor.Layout;
 /// </summary>
 public partial class DetailLayout
 {
-    [Inject]
-    private NavigationManager Navigation { get; set; } = null!;
-
     /// <summary>Page title.</summary>
     [Parameter, EditorRequired]
     public string Title { get; set; } = null!;
@@ -19,7 +16,7 @@ public partial class DetailLayout
     [Parameter]
     public string? Subtitle { get; set; }
 
-    /// <summary>Route to navigate to when the back button is clicked.</summary>
+    /// <summary>Route the back link points to.</summary>
     [Parameter, EditorRequired]
     public string BackRoute { get; set; } = null!;
 
@@ -54,6 +51,4 @@ public partial class DetailLayout
     /// <summary>Unmatched attributes splatted onto the root container.</summary>
     [Parameter(CaptureUnmatchedValues = true)]
     public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
-
-    private void GoBack() => Navigation.NavigateTo(BackRoute);
 }

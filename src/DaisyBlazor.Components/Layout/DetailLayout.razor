@@ -4,7 +4,7 @@
    optional sidebar, optional related-content area. *@
 
 <Stack Spacing="4" Class="@Class" Style="@Style" @attributes="UserAttributes">
-    <Button Variant="Variant.Text" Color="Color.Primary" OnClick="GoBack"
+    <Button Variant="Variant.Text" Color="Color.Primary" Href="@BackRoute"
             StartIcon="@Icons.Material.Filled.ArrowBack" Class="self-start">
         @(BackLabel ?? "Back")
     </Button>
@@ -25,14 +25,14 @@
 
     <Grid>
         <Item xs="12" md="@(Sidebar is not null ? 8 : 12)">
-            <Paper Elevation="0" Outlined="true" Class="p-4 rounded-lg">
+            <Paper Elevation="0" Outlined="true" Class="p-4 rounded-lg h-full">
                 @MainContent
             </Paper>
         </Item>
         @if (Sidebar is not null)
         {
             <Item xs="12" md="4">
-                <Paper Elevation="0" Outlined="true" Class="p-4 rounded-lg">
+                <Paper Elevation="0" Outlined="true" Class="p-4 rounded-lg h-full">
                     @Sidebar
                 </Paper>
             </Item>

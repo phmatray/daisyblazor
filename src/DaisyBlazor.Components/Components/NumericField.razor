@@ -154,9 +154,30 @@
         ? fmt.ToString(f, CultureInfo.InvariantCulture)
         : Convert.ToString(Value, CultureInfo.InvariantCulture);
 
-    private string? _minStr => Convert.ToString(Min, CultureInfo.InvariantCulture);
-    private string? _maxStr => Convert.ToString(Max, CultureInfo.InvariantCulture);
-    private string? _stepStr => Convert.ToString(Step, CultureInfo.InvariantCulture);
+    // For a value-type T, an unset Min/Max/Step is default(T) = 0, indistinguishable from an
+    // explicit 0. Track which ones the parent actually passed so unset bounds render no attribute
+    // (otherwise every field gets max="0" step="0" and any positive value is :invalid).
+    private bool _minSet;
+    private bool _maxSet;
+    private bool _stepSet;
+
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        _minSet = parameters.TryGetValue<T?>(nameof(Min), out _);
+        _maxSet = parameters.TryGetValue<T?>(nameof(Max), out _);
+        _stepSet = parameters.TryGetValue<T?>(nameof(Step), out _);
+        return base.SetParametersAsync(parameters);
+    }
+
+    private string? _minStr => _minSet ? Convert.ToString(Min, CultureInfo.InvariantCulture) : null;
+    private string? _maxStr => _maxSet ? Convert.ToString(Max, CultureInfo.InvariantCulture) : null;
+    // Without a step the browser assumes 1, so a fractional value in a double/decimal field would be :invalid.
+    // step="0" is never valid HTML, so an explicit zero is treated as unset too.
+    private string? _stepStr => _stepSet && Convert.ToString(Step, CultureInfo.InvariantCulture) is { } step and not ("" or "0")
+        ? step
+        : (Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T)) is var t && (t == typeof(double) || t == typeof(float) || t == typeof(decimal))
+            ? "any"
+            : null;
 
     private string _fieldsetCls => CssClass.Merge(
         "fieldset",
