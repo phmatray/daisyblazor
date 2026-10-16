@@ -1,7 +1,11 @@
 @namespace DaisyBlazor
 
 @* MudDialog replacement. Renders title / body / actions sections inside the modal-box that the
-   DialogProvider establishes. Reads the cascaded IMudDialogInstance for the title fallback. *@
+   DialogProvider establishes. Reads the cascaded IMudDialogInstance for the title fallback.
+   Class, Style and extra attributes go on the root wrapper (MudDialog parity); pass Class="modal-box"
+   to give a dialog rendered outside a DialogProvider (e.g. a static preview) its own box. *@
+
+<div class="@Class" style="@Style" @attributes="UserAttributes">
 
 @if (TitleContent is not null)
 {
@@ -25,6 +29,7 @@ else if (!string.IsNullOrEmpty(_title))
         @_actions
     </div>
 }
+</div>
 
 @code {
     [CascadingParameter] private IMudDialogInstance? DialogInstance { get; set; }
@@ -45,9 +50,9 @@ else if (!string.IsNullOrEmpty(_title))
     /// <summary>Title text; falls back to the title passed to the dialog service when empty.</summary>
     [Parameter] public string? Title { get; set; }
 
-    /// <summary>Extra CSS classes applied to the title element only.</summary>
+    /// <summary>Extra CSS classes applied to the dialog's root wrapper.</summary>
     [Parameter] public string? Class { get; set; }
-    /// <summary>Accepted for API compatibility; currently not rendered anywhere.</summary>
+    /// <summary>Inline CSS style applied to the dialog's root wrapper.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
@@ -57,7 +62,7 @@ else if (!string.IsNullOrEmpty(_title))
 
     private RenderFragment? _actions => DialogActions ?? Actions;
 
-    private string _titleCls => CssClass.Merge("font-heading text-lg font-semibold", Class);
+    private string _titleCls => "font-heading text-lg font-semibold";
 
     private string _bodyCls => "py-2 text-base-content";
 }
