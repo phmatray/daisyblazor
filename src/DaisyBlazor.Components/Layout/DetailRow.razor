@@ -4,9 +4,10 @@
 
 <tr class="@Class" style="@Style" @attributes="UserAttributes">
     <td>
-        <Typography Color="Color.Secondary">@Label</Typography>
+        <Typography Class="text-base-content/70">@Label</Typography>
     </td>
-    <td>
+    @* Long unbroken values (emails, ids) must wrap: the card clips anything that overflows. *@
+    <td class="wrap-anywhere">
         @if (ValueContent is not null)
         {
             @ValueContent

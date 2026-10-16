@@ -31,6 +31,8 @@
                    value="@_displayValue"
                    @onchange="OnChange"
                    id="@_id"
+                   aria-invalid="@(_hasError ? "true" : null)"
+                   aria-describedby="@_describedBy"
                    @attributes="UserAttributes" />
             @if (Adornment == Adornment.End)
             {
@@ -52,16 +54,18 @@
                value="@_displayValue"
                @onchange="OnChange"
                id="@_id"
+               aria-invalid="@(_hasError ? "true" : null)"
+               aria-describedby="@_describedBy"
                @attributes="UserAttributes" />
     }
 
-    @if (_hasError && !string.IsNullOrEmpty(_errorText))
+    @if (_showError)
     {
-        <span class="label-text text-error text-xs mt-1">@_errorText</span>
+        <span id="@_helpId" class="label-text text-error text-xs mt-1">@_errorText</span>
     }
     else if (!string.IsNullOrEmpty(HelperText))
     {
-        <span class="label-text text-xs opacity-70 mt-1">@HelperText</span>
+        <span id="@_helpId" class="label-text text-xs opacity-70 mt-1">@HelperText</span>
     }
 </div>
 
@@ -77,7 +81,7 @@
     [Parameter] public string? Label { get; set; }
     /// <summary>Placeholder text shown in the empty number input.</summary>
     [Parameter] public string? Placeholder { get; set; }
-    /// <summary>Visual style: Outlined adds input-bordered, Filled adds input-bordered with bg-base-200; defaults to Outlined.</summary>
+    /// <summary>Visual style: Outlined (default) draws the daisyUI border, Filled adds bg-base-200, Text renders a borderless ghost field (input-ghost).</summary>
     [Parameter] public Variant Variant { get; set; } = Variant.Outlined;
     /// <summary>Margin.Dense makes the input compact (input-sm), like Dense.</summary>
     [Parameter] public Margin Margin { get; set; } = Margin.Normal;
@@ -142,6 +146,10 @@
 
     private string? _errorText => ErrorText ?? _serverError;
 
+    private bool _showError => _hasError && !string.IsNullOrEmpty(_errorText);
+    private string _helpId => _id + "-help";
+    private string? _describedBy => _showError || !string.IsNullOrEmpty(HelperText) ? _helpId : null;
+
     private string? _displayValue => Format is { } f && Value is IFormattable fmt
         ? fmt.ToString(f, CultureInfo.InvariantCulture)
         : Convert.ToString(Value, CultureInfo.InvariantCulture);
@@ -159,6 +167,7 @@
         "input",
         Variant == Variant.Outlined ? "input-bordered" : null,
         Variant == Variant.Filled ? "input-bordered bg-base-200" : null,
+        Variant == Variant.Text ? "input-ghost" : null,
         _isDense ? "input-sm" : null,
         FullWidth ? "w-full" : null,
         _hasError ? "input-error" : null);
@@ -167,6 +176,7 @@
         "input",
         Variant == Variant.Outlined ? "input-bordered" : null,
         Variant == Variant.Filled ? "input-bordered bg-base-200" : null,
+        Variant == Variant.Text ? "input-ghost" : null,
         _isDense ? "input-sm" : null,
         FullWidth ? "w-full" : null,
         _hasError ? "input-error" : null,

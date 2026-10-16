@@ -8,7 +8,7 @@ namespace DaisyBlazor.Layout;
 /// </summary>
 public partial class DetailRow
 {
-    /// <summary>Label shown in the left column (secondary color).</summary>
+    /// <summary>Label shown in the left column (muted text).</summary>
     [Parameter, EditorRequired]
     public string Label { get; set; } = null!;
 
