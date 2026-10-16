@@ -3,11 +3,12 @@
 @* daisyUI .diff side-by-side comparison slider. Uses .diff-item-1, .diff-item-2, and
    .diff-resizer. The aspect ratio is controlled by AspectClass (default "aspect-16/9"). *@
 
-<div class="@_cls" style="@Style" @attributes="UserAttributes">
-    <div class="diff-item-1" role="img">
+@* tabindex on the root and item 1 enables daisyUI's keyboard focus behaviour (.diff:focus / .diff-item-1:focus). *@
+<div class="@_cls" style="@Style" tabindex="0" @attributes="UserAttributes">
+    <div class="diff-item-1" tabindex="0" role="@(Item1Label is null ? null : "img")" aria-label="@Item1Label">
         @Item1
     </div>
-    <div class="diff-item-2" role="img">
+    <div class="diff-item-2" role="@(Item2Label is null ? null : "img")" aria-label="@Item2Label">
         @Item2
     </div>
     <div class="diff-resizer"></div>
@@ -19,6 +20,12 @@
 
     /// <summary>Content rendered in the second (right/top) diff pane.</summary>
     [Parameter] public RenderFragment? Item2 { get; set; }
+
+    /// <summary>Accessible name of the first pane; when set the pane is exposed as <c>role="img"</c>.</summary>
+    [Parameter] public string? Item1Label { get; set; }
+
+    /// <summary>Accessible name of the second pane; when set the pane is exposed as <c>role="img"</c>.</summary>
+    [Parameter] public string? Item2Label { get; set; }
 
     /// <summary>Tailwind aspect-ratio utility applied to the root element (e.g. "aspect-16/9", "aspect-4/3", "aspect-square"). Defaults to "aspect-16/9".</summary>
     [Parameter] public string? AspectClass { get; set; } = "aspect-16/9";

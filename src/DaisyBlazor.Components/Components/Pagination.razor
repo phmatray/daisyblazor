@@ -100,17 +100,7 @@
 
     private string _cls => CssClass.Merge("join", Class);
 
-    private string _activeColor => Color switch
-    {
-        Color.Primary => "btn-primary",
-        Color.Secondary => "btn-secondary",
-        Color.Tertiary => "btn-accent",
-        Color.Info => "btn-info",
-        Color.Success => "btn-success",
-        Color.Warning => "btn-warning",
-        Color.Error => "btn-error",
-        _ => "btn-active"
-    };
+    private string _activeColor => CssClass.ButtonColor(Color) is { Length: > 0 } c ? c : "btn-active";
 
     private string _pageCls(int page) => CssClass.Merge(
         "join-item btn btn-sm",

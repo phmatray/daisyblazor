@@ -4,7 +4,11 @@
 @* MudToggleItem<T> replacement. One button of a ToggleGroup segmented control. *@
 
 <button type="button" class="@_cls" disabled="@(Disabled || (Parent?.Disabled ?? false))"
-        @onclick="OnClickHandler" style="@Style" @attributes="UserAttributes">
+        @onclick="OnClickHandler" style="@Style" aria-pressed="@(_selected ? "true" : "false")" @attributes="UserAttributes">
+    @if (_selected && (Parent?.CheckMark ?? false))
+    {
+        <Icon Name="check" Size="Size.Small" />
+    }
     @if (!string.IsNullOrEmpty(Icon))
     {
         <Icon Name="@Icon" Size="Size.Small" />

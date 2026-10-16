@@ -20,6 +20,8 @@ else
 }
 
 @code {
+    [CascadingParameter] private ButtonGroup? Group { get; set; }
+
     /// <summary>Button label or content, rendered between the optional start and end icons.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
     /// <summary>Semantic color mapped to btn-{color} (e.g. btn-primary); Default adds no color class.</summary>
@@ -63,9 +65,9 @@ else
 
     private string _cls => CssClass.Merge(
         "btn",
-        CssClass.ButtonColor(Color),
-        CssClass.ButtonVariant(Variant),
-        CssClass.ButtonSize(Size),
+        CssClass.ButtonColor(Group is { OverrideStyles: true, Color: not Color.Default } g1 ? g1.Color : Color),
+        CssClass.ButtonVariant(Group is { OverrideStyles: true, Variant: not Variant.Text } g2 ? g2.Variant : Variant),
+        CssClass.ButtonSize(Group is { OverrideStyles: true, Size: not Size.Medium } g3 ? g3.Size : Size),
         FullWidth ? "btn-block" : null,
         Disabled && !string.IsNullOrEmpty(Href) ? "btn-disabled" : null,
         "gap-2 normal-case",
