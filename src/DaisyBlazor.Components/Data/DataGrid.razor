@@ -1,6 +1,9 @@
 @namespace DaisyBlazor.Data
 @typeparam T
 @attribute [CascadingTypeParameter(nameof(T))]
+@* The cascade reaches TemplateColumn<T> and DataGridPager<T> (also inside the Columns/PagerContent
+   fragments). It does NOT reach PropertyColumn<T, TProperty>: Razor cannot mix a cascaded type
+   argument with one inferred from a lambda, so PropertyColumn keeps an explicit T="...". *@
 
 @* MudDataGrid<T> replacement. daisyUI .table with sortable header + paged body.
    Columns register themselves via the cascaded grid reference. *@
