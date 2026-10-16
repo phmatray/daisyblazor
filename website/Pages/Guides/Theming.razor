@@ -1,5 +1,228 @@
 @page "/theming"
+@implements IDisposable
+@inject DocsJs Js
 
-<DocShell Title="Theming">
-    <Lede>Coming up.</Lede>
+<DocShell Title="Theming" Tracks="G.Tracks" Trail="G.Trail" Portrait="Portrait" PortraitCaption="@($"Now playing · {Current}")">
+    <Lede>
+        DaisyBlazor uses daisyUI themes. Set <code>data-theme</code> on <code>&lt;html&gt;</code> and every semantic colour token swaps,
+        so components re-skin automatically. <code>ThemeProvider</code> does it for you, with dark mode and persistence.
+    </Lede>
+    <ChildContent>
+        <div class="prose-doc">
+            <p>
+                A theme is selected by setting <code>data-theme="..."</code> on the <code>&lt;html&gt;</code> element; daisyUI swaps every
+                semantic colour token (<code>--color-primary</code>, <code>--color-base-100</code>, …). Try it on the cover: every page of
+                this site re-skins the same way.
+            </p>
+
+            @H(0)
+            <p>
+                <code>ThemeProvider</code> manages the active theme: it applies <code>data-theme</code>, follows the OS light/dark setting
+                (including live changes) when the preference is <code>"system"</code>, and persists the choice to <code>localStorage</code>
+                and a cookie. It cascades itself, so descendants can read the state and switch themes. Its JavaScript is a static ES module
+                (no <code>eval</code>), so it works under a strict Content-Security-Policy.
+            </p>
+            <CodeBlock Code="@Wrap" />
+
+            @H(1)
+            <p>
+                Add the pre-paint script to <code>&lt;head&gt;</code> in <code>App.razor</code>, after <code>&lt;base href&gt;</code>. It is a
+                plain static file (no inline code), runs before first paint, and works on static SSR pages that have no circuit:
+            </p>
+            <CodeBlock Language="xml" Title="App.razor" Code="@InitScript" />
+            <p>
+                It reads the same <code>localStorage</code> key as <code>ThemeProvider</code> and falls back to
+                <code>prefers-color-scheme</code>. If you changed the provider's defaults, mirror them on the tag:
+                <code>data-storage-key="..."</code>, <code>data-light="mybrand"</code>, <code>data-dark="mybrand-dark"</code>.
+            </p>
+
+            @H(2)
+            <p>The provider is brand-neutral and parameter-driven: every theme name is configurable.</p>
+            <table>
+                <thead><tr><th>Parameter</th><th>Default</th><th>Purpose</th></tr></thead>
+                <tbody>
+                    <tr><td><code>SystemLightTheme</code></td><td><code>"light"</code></td><td>Theme used for <code>"system"</code> in OS light mode.</td></tr>
+                    <tr><td><code>SystemDarkTheme</code></td><td><code>"dark"</code></td><td>Theme used for <code>"system"</code> in OS dark mode.</td></tr>
+                    <tr><td><code>Themes</code></td><td>all 35 built-in daisyUI themes</td><td>The selectable set (e.g. for a picker).</td></tr>
+                    <tr><td><code>DarkThemes</code></td><td>daisyUI's dark themes</td><td>Which themes count as "dark" for <code>IsDarkMode</code>.</td></tr>
+                    <tr><td><code>StorageKey</code> / <code>CookieKey</code> / <code>DarkModeCookieKey</code></td><td><code>daisy-theme</code> / <code>daisy-theme</code> / <code>daisy-darkmode</code></td><td>Persistence keys.</td></tr>
+                    <tr><td><code>InitialPreference</code></td><td><code>null</code></td><td>Seed from the server cookie during SSR to avoid a flash.</td></tr>
+                    <tr><td><code>OnThemeChanged</code></td><td>—</td><td>Raised with the resolved theme after a switch.</td></tr>
+                    <tr><td><code>ThemeChanged</code> (event)</td><td>—</td><td>Raised on every change; subscribe to refresh a component (see below).</td></tr>
+                </tbody>
+            </table>
+
+            @H(3)
+            <p>
+                The cascade is fixed (<code>IsFixed="true"</code>), so a theme change never re-renders the wrapped tree. Components that
+                <em>display</em> theme state subscribe to <code>ThemeChanged</code>:
+            </p>
+            <CodeBlock Code="@Reading" />
+            <p>
+                <code>Theme.Preference</code> is the stored choice (a theme name or <code>"system"</code>); <code>Theme.Theme</code> is the
+                concrete applied theme; <code>Theme.IsDarkMode</code> resolves against <code>DarkThemes</code>. Right now on this page:
+            </p>
+            <ul>
+                <li><code>Preference</code> = <code>@(Provider?.Preference ?? "—")</code></li>
+                <li><code>Theme</code> = <code>@Current</code></li>
+                <li><code>IsDarkMode</code> = <code>@((Provider?.IsDarkMode ?? false) ? "true" : "false")</code></li>
+            </ul>
+
+            @H(4)
+            <p>
+                All 35 daisyUI v5 themes are enabled by <code>preset.css</code> (<code>light</code>, <code>dark</code>, <code>cupcake</code>,
+                <code>synthwave</code>, <code>dracula</code>, <code>nord</code>, <code>business</code>, <code>night</code>, <code>dim</code>,
+                <code>sunset</code>, <code>abyss</code>, <code>silk</code>, …) plus the neutral DaisyBlazor defaults: <strong><code>daisyblazor</code></strong>
+                (light, default) and <strong><code>daisyblazor-dark</code></strong> (dark, <code>prefers-color-scheme: dark</code>). To ship only
+                the two DaisyBlazor themes, import <code>preset-core.css</code> instead of <code>preset.css</code> (see
+                <a href="css-preset">CSS preset</a>). See them all side by side in <a href="themes">the crate</a>.
+            </p>
+
+            @H(5)
+            <p>Add a daisyUI theme block to your <code>main.css</code> after the preset import, then point <code>ThemeProvider</code> at it:</p>
+            <CodeBlock Language="css" Title="Styles/main.css" Code="@BrandCss" />
+            <CodeBlock Code="@BrandProvider" />
+
+            @H(6)
+            <p>Build a picker from <code>Themes</code> and <code>SetThemeAsync</code>. This one is live and drives the whole site:</p>
+        </div>
+        <div class="mt-5 flex max-w-[70ch] flex-wrap items-center gap-4 rounded-2xl border border-base-300 bg-base-100 p-6">
+            <select class="select" aria-label="Theme" @onchange="@(e => Provider!.SetThemeAsync(e.Value!.ToString()!))">
+                <option value="system">System</option>
+                @foreach (string t in Provider?.Themes ?? [])
+                {
+                    <option value="@t" selected="@(t == Provider!.Preference)">@t</option>
+                }
+            </select>
+            <Chip Color="Color.Primary" Icon="@((Provider?.IsDarkMode ?? false) ? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode)">@Current</Chip>
+        </div>
+        <div class="prose-doc mt-5">
+            <CodeBlock Code="@Picker" />
+            <p>
+                daisyUI's pure-CSS <code>theme-controller</code> input is also wrapped as the <code>ThemeController</code> component for
+                no-JS toggles.
+            </p>
+        </div>
+    </ChildContent>
 </DocShell>
+
+@code {
+    private static readonly GuideDoc G = Guides.Get("theming");
+    private static readonly string[] CoverThemes = ["daisyblazor", "daisyblazor-dark", "retro", "synthwave", "cupcake", "dracula"];
+
+    [CascadingParameter] public ThemeProvider? Provider { get; set; }
+
+    private string Current => Provider?.Theme ?? ThemeDeck.Light;
+
+    private static RenderFragment H(int i) => __builder =>
+    {
+        <h2 id="@G.Tracks[i].Id" class="scroll-mt-6 font-display">@G.Tracks[i].Title</h2>
+    };
+
+    private RenderFragment Portrait => __builder =>
+    {
+        <div class="space-y-4">
+            <div>
+                <span class="block text-xs font-extrabold uppercase tracking-[0.2em] text-base-content/60">Put on a release</span>
+                <span class="block truncate font-display text-3xl font-bold leading-tight">@Current</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+                @foreach (string t in CoverThemes)
+                {
+                    string theme = t;
+                    <button type="button" data-theme="@theme" @onclick="e => PutOn(theme, e)"
+                            aria-pressed="@(theme == Current ? "true" : "false")" title="@theme"
+                            class="flex aspect-square flex-col justify-between rounded-md bg-primary p-2 text-left text-primary-content transition hover:-translate-y-0.5 @(theme == Current ? "ring-4 ring-base-content ring-offset-2 ring-offset-base-100" : "")">
+                        <span class="size-4 rounded-full bg-secondary"></span>
+                        <span class="truncate text-[0.7rem] font-bold">@theme</span>
+                    </button>
+                }
+            </div>
+            <ProgressLinear Color="Color.Tertiary" Value="@(100 * ThemeDeck.Number(Current) / ThemeDeck.Themes.Count)" />
+        </div>
+    };
+
+    private async Task PutOn(string theme, MouseEventArgs e)
+    {
+        if (Provider is null) return;
+        await ThemeDeck.PutOnAsync(Provider, Js, theme, e.ClientX, e.ClientY);
+    }
+
+    protected override void OnInitialized()
+    {
+        if (Provider is not null) Provider.ThemeChanged += Refresh;
+    }
+
+    private void Refresh() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        if (Provider is not null) Provider.ThemeChanged -= Refresh;
+    }
+
+    private const string Wrap = """
+        <ThemeProvider>
+            @Body
+        </ThemeProvider>
+        """;
+
+    private const string InitScript = """
+        <script src="_content/DaisyBlazor.Components/theme-init.js"></script>
+        """;
+
+    private const string Reading = """
+        @implements IDisposable
+
+        @code {
+            [CascadingParameter] private ThemeProvider? Theme { get; set; }
+
+            protected override void OnInitialized()
+            {
+                if (Theme is not null) Theme.ThemeChanged += Refresh;
+            }
+
+            private void Refresh() => _ = InvokeAsync(StateHasChanged);
+
+            public void Dispose()
+            {
+                if (Theme is not null) Theme.ThemeChanged -= Refresh;
+            }
+
+            private async Task UseDark() => await Theme!.SetThemeAsync("dark");
+            private bool IsDark => Theme?.IsDarkMode ?? false;
+        }
+        """;
+
+    private const string BrandCss = """
+        @import "tailwindcss";
+        @import "../obj/daisyblazor/preset.css";
+
+        @plugin "../obj/daisyblazor/daisyui-theme.mjs" {
+            name: "mybrand";
+            default: true;
+            color-scheme: light;
+            --color-primary: oklch(55% 0.2 264);
+            --color-secondary: oklch(60% 0.18 200);
+            /* …base/accent/neutral/info/success/warning/error… */
+            --radius-box: 0.75rem;
+        }
+        """;
+
+    private const string BrandProvider = """
+        <ThemeProvider SystemLightTheme="mybrand"
+                       SystemDarkTheme="daisyblazor-dark"
+                       Themes="@(new[] { "mybrand", "daisyblazor-dark", "light", "dark", "synthwave" })">
+            @Body
+        </ThemeProvider>
+        """;
+
+    private const string Picker = """
+        <select class="select" @onchange="@(e => Theme!.SetThemeAsync(e.Value!.ToString()!))">
+            <option value="system">System</option>
+            @foreach (string t in Theme!.Themes)
+            {
+                <option value="@t" selected="@(t == Theme.Preference)">@t</option>
+            }
+        </select>
+        """;
+}

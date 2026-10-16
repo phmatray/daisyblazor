@@ -1,27 +1,41 @@
 namespace DaisyBlazor.Docs.Docs;
 
 /// <summary>A guide page in the "Start here" side of the record.</summary>
-public sealed record GuideDoc(string Title, string Url, string Summary, params string[] Sections);
+public sealed record GuideDoc(string Title, string Url, string Summary, params string[] Sections)
+{
+    /// <summary>The sections as sleeve tracks; a guide page renders one h2 per track, so search and page stay in sync.</summary>
+    public IReadOnlyList<Track> Tracks { get; } = Sections.Select(Track.Of).ToArray();
+
+    /// <summary>Breadcrumb for the guide page.</summary>
+    public IReadOnlyList<(string Label, string? Href)> Trail => [("Guides", "getting-started"), (Title, null)];
+}
 
 public static class Guides
 {
+    public static GuideDoc Get(string url) => All.First(g => g.Url == url);
+
     public static IReadOnlyList<GuideDoc> All { get; } =
     [
         new("Getting started", "getting-started",
-            "Install the packages, wire the CSS preset, and render your first component.",
-            "Install", "Wire the CSS", "Register services", "Add the providers", "Your first component", "Start from the template"),
+            "Install the packages, turn on the CSS build, register services and render your first component.",
+            "Start from the template", "Add the package", "Turn on the CSS build", "Author your stylesheet",
+            "Register services", "Wrap your layout", "Use components"),
         new("Theming", "theming",
-            "ThemeProvider, the 37 themes, dark mode, persistence and building your own picker.",
-            "ThemeProvider", "Choosing themes", "Dark mode", "Build a picker", "Your own theme"),
+            "ThemeProvider, the built-in themes, dark mode, persistence, brand themes and a theme picker.",
+            "ThemeProvider", "No flash on first paint", "Parameters", "Reading and switching",
+            "Built-in themes", "A custom brand theme", "A theme picker"),
         new("CSS preset", "css-preset",
-            "One import wires daisyUI, the themes and the class safelist; NuGet runs Tailwind for you.",
-            "What the preset does", "NuGet-only build", "preset vs preset-core", "Using your own Tailwind"),
+            "What preset.css ships, how the NuGet package builds your CSS without Node, and the class safelist.",
+            "What the preset does", "Wiring it into your app", "MSBuild properties", "Only the DaisyBlazor themes",
+            "Only your own themes", "Source globs", "The comment-scanning gotcha", "The class safelist",
+            "The Material Symbols webfont"),
         new("Charts", "charts",
-            "Line, area, bar, pie, donut and sparkline charts rendered as plain SVG.",
-            "Install", "Series and data", "Theme colours", "Accessibility"),
+            "Dependency-free, theme-aware SVG charts: line, area, bar, pie, donut and sparkline, computed in C#.",
+            "Install", "The six components", "Data models", "Colours follow the theme", "Usage", "Notes and geometry"),
         new("Migrating from MudBlazor", "migration",
-            "Move a MudBlazor app over one MudX → X rename at a time.",
-            "The approach", "Compatible components", "Enums and icons", "Dialogs and snackbars", "What differs"),
+            "Move a MudBlazor app over incrementally, mostly by renaming MudX to X.",
+            "The approach", "The shared enums", "Icons", "Dialogs", "Snackbar", "Setup deltas",
+            "Component name map", "Beyond MudBlazor", "Migration recipe"),
         new("Themes", "themes",
             "Every release in the crate: all 37 themes rendered live, side by side."),
     ];
