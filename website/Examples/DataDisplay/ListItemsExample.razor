@@ -1,0 +1,12 @@
+@* ListItem is the MudListItem port: Icon + Text, and a link (Href) or button (OnClick). *@
+<List Shadowed="true" Class="menu w-full max-w-xs">
+    <ListItem Icon="@Icons.Material.Filled.Home" Text="All components" Href="components" />
+    <ListItem Icon="@Icons.Material.Filled.LibraryMusic" Text="Library" OnClick="@(() => _picked = "Library")" />
+    <ListItem Icon="@Icons.Material.Filled.QueueMusic" Text="Queue" OnClick="@(() => _picked = "Queue")" />
+    <ListItem Icon="@Icons.Material.Filled.Lock" Text="Studio (members only)" Disabled="true" OnClick="@(() => _picked = "Studio")" />
+</List>
+<p class="mt-3 text-sm text-base-content/70">Last clicked: @(_picked ?? "nothing yet")</p>
+
+@code {
+    private string? _picked;
+}

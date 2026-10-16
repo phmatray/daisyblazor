@@ -1,0 +1,18 @@
+@* A close button appears as soon as OnClose has a handler; Value tags the chip for you. *@
+<div class="flex flex-wrap items-center gap-2">
+    @foreach (string tag in _tags)
+    {
+        <Chip Value="tag" Text="@tag" Icon="@Icons.Material.Filled.MusicNote" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Large"
+              OnClose="c => _tags.Remove((string)c.Value!)" />
+    }
+    @if (_tags.Count == 0)
+    {
+        <Button Variant="Variant.Text" Size="Size.Small" OnClick="Reset">Restore tags</Button>
+    }
+</div>
+
+@code {
+    private List<string> _tags = ["Vinyl", "1960s", "French pop", "Mono"];
+
+    private void Reset() => _tags = ["Vinyl", "1960s", "French pop", "Mono"];
+}

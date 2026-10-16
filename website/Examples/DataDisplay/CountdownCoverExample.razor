@@ -1,0 +1,27 @@
+@implements IDisposable
+
+<div class="flex flex-col items-center gap-4 text-center">
+    <span class="text-xs font-bold uppercase tracking-[0.3em] text-base-content/60">Release in</span>
+    <div class="grid grid-cols-3 gap-2">
+        @foreach ((int value, string label) in Parts)
+        {
+            <div class="flex flex-col items-center rounded-box bg-primary px-3 py-3 text-primary-content">
+                <Countdown Value="value" Class="font-mono text-5xl" />
+                <span class="text-[0.65rem] font-bold uppercase tracking-widest">@label</span>
+            </div>
+        }
+    </div>
+    <span class="font-display text-xl font-bold">Side B · Friday</span>
+</div>
+
+@code {
+    private int _left = 7 * 3600 + 42 * 60 + 18;
+    private Timer? _timer;
+
+    private IEnumerable<(int, string)> Parts => Countdown.Digits(_left).Zip(["hours", "min", "sec"]);
+
+    protected override void OnInitialized() =>
+        _timer = new Timer(_ => InvokeAsync(() => { if (_left > 0) _left--; StateHasChanged(); }), null, 1000, 1000);
+
+    public void Dispose() => _timer?.Dispose();
+}

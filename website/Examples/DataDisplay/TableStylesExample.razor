@@ -1,0 +1,29 @@
+@* Striped is table-zebra, Dense is table-sm, Hover highlights the row under the pointer. *@
+<Table Items="_charts" Striped="true" Dense="true" Hover="true">
+    <HeaderContent>
+        <Th>#</Th>
+        <Th>Single</Th>
+        <Th>Weeks</Th>
+        <Th>Trend</Th>
+    </HeaderContent>
+    <RowTemplate>
+        <Td class="font-mono">@context.Rank</Td>
+        <Td>@context.Single</Td>
+        <Td>@context.Weeks</Td>
+        <Td>
+            <Chip Size="Size.Small" Variant="Variant.Text" Color="@(context.Up ? Color.Success : Color.Error)"
+                  Icon="@(context.Up ? Icons.Material.Filled.TrendingUp : Icons.Material.Filled.TrendingDown)"
+                  Text="@(context.Up ? "up" : "down")" />
+        </Td>
+    </RowTemplate>
+</Table>
+
+@code {
+    private record Entry(int Rank, string Single, int Weeks, bool Up);
+
+    private readonly Entry[] _charts =
+    [
+        new(1, "Bonnie and Clyde", 6, true), new(2, "Tous les garçons et les filles", 11, false),
+        new(3, "Bubble Gum", 3, true), new(4, "La Madrague", 8, false), new(5, "Harley Davidson", 2, true),
+    ];
+}

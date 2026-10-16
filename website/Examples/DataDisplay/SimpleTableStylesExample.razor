@@ -1,0 +1,28 @@
+@* Toggle the four styling flags and watch the same markup change. *@
+<div class="mb-4 flex flex-wrap gap-4">
+    <Switch @bind-Value="_striped" Color="Color.Primary">Striped</Switch>
+    <Switch @bind-Value="_hover" Color="Color.Primary">Hover</Switch>
+    <Switch @bind-Value="_dense" Color="Color.Primary">Dense</Switch>
+    <Switch @bind-Value="_bordered" Color="Color.Primary">Bordered</Switch>
+</div>
+<SimpleTable Striped="_striped" Hover="_hover" Dense="_dense" Bordered="_bordered">
+    <thead>
+        <tr><th>Artist</th><th>Label</th><th>Debut</th></tr>
+    </thead>
+    <tbody>
+        @foreach ((string artist, string label, int year) in _rows)
+        {
+            <tr><td>@artist</td><td>@label</td><td>@year</td></tr>
+        }
+    </tbody>
+</SimpleTable>
+
+@code {
+    private bool _striped = true, _hover = true, _dense, _bordered;
+
+    private readonly (string, string, int)[] _rows =
+    [
+        ("France Gall", "Philips", 1963), ("Françoise Hardy", "Vogue", 1962),
+        ("Sylvie Vartan", "RCA", 1961), ("Jacques Dutronc", "Vogue", 1966),
+    ];
+}

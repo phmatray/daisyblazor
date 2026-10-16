@@ -1,0 +1,23 @@
+@* OnRowClick makes rows clickable and hands you the item and its row index. *@
+<Table Items="_artists" OnRowClick="(TableRowClickEventArgs<Artist> e) => _selected = e.Item">
+    <HeaderContent>
+        <Th>Artist</Th>
+        <Th>Label</Th>
+    </HeaderContent>
+    <RowTemplate>
+        <Td class="@(context == _selected ? "font-bold text-primary" : null)">@context.Name</Td>
+        <Td>@context.Label</Td>
+    </RowTemplate>
+</Table>
+<p class="mt-3 text-sm text-base-content/70">Selected: @(_selected?.Name ?? "click a row")</p>
+
+@code {
+    private record Artist(string Name, string Label);
+
+    private readonly Artist[] _artists =
+    [
+        new("France Gall", "Philips"), new("Françoise Hardy", "Vogue"), new("Sylvie Vartan", "RCA"),
+    ];
+
+    private Artist? _selected;
+}

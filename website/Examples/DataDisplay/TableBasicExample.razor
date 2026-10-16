@@ -1,0 +1,27 @@
+@* Items + HeaderContent (Th) + RowTemplate (Td): the MudTable shape, rendered as a daisyUI table. *@
+<Table Items="_releases">
+    <HeaderContent>
+        <Th>Title</Th>
+        <Th>Artist</Th>
+        <Th>Year</Th>
+        <Th Class="text-right">Price</Th>
+    </HeaderContent>
+    <RowTemplate>
+        <Td DataLabel="Title" Class="font-semibold">@context.Title</Td>
+        <Td DataLabel="Artist">@context.Artist</Td>
+        <Td DataLabel="Year">@context.Year</Td>
+        <Td DataLabel="Price" Class="text-right font-mono">@context.Price.ToString("€0.00")</Td>
+    </RowTemplate>
+</Table>
+
+@code {
+    private record Release(string Title, string Artist, int Year, decimal Price);
+
+    private readonly Release[] _releases =
+    [
+        new("Poupée de cire, poupée de son", "France Gall", 1965, 18.50m),
+        new("Comment te dire adieu", "Françoise Hardy", 1968, 21.00m),
+        new("Initials B.B.", "Serge Gainsbourg", 1968, 24.90m),
+        new("Laisse tomber les filles", "France Gall", 1964, 16.00m),
+    ];
+}

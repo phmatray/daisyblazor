@@ -1,0 +1,22 @@
+<List Class="w-full bg-base-200">
+    <li class="flex items-baseline justify-between px-4 pb-1 pt-3">
+        <span class="font-display text-lg font-bold">Side A</span>
+        <span class="text-xs uppercase tracking-widest opacity-60">45 rpm</span>
+    </li>
+    @foreach ((int n, string title, string time) in _tracks)
+    {
+        <ListRow Class="items-center py-2.5">
+            <span class="font-mono text-xl font-bold text-primary">@n.ToString("00")</span>
+            <span class="list-col-grow truncate font-semibold">@title</span>
+            <span class="font-mono text-sm opacity-60">@time</span>
+        </ListRow>
+    }
+</List>
+
+@code {
+    private readonly (int, string, string)[] _tracks =
+    [
+        (1, "Bonnie and Clyde", "4:14"), (2, "Comic Strip", "2:15"),
+        (3, "Bubble Gum", "2:22"), (4, "Ford Mustang", "2:51"),
+    ];
+}

@@ -1,0 +1,23 @@
+@* FixedHeader caps the height and scrolls the body; add table-pin-rows to keep the header in view. *@
+<SimpleTable FixedHeader="true" Dense="true" Class="table-pin-rows">
+    <thead>
+        <tr><th>Year</th><th>Eurovision winner</th><th>Country</th></tr>
+    </thead>
+    <tbody>
+        @foreach ((int year, string song, string country) in _winners)
+        {
+            <tr><td class="font-mono">@year</td><td>@song</td><td>@country</td></tr>
+        }
+    </tbody>
+</SimpleTable>
+
+@code {
+    private readonly (int, string, string)[] _winners =
+    [
+        (1958, "Dors, mon amour", "France"), (1959, "Een beetje", "Netherlands"), (1960, "Tom Pillibi", "France"),
+        (1961, "Nous les amoureux", "Luxembourg"), (1962, "Un premier amour", "France"), (1963, "Dansevise", "Denmark"),
+        (1964, "Non ho l'età", "Italy"), (1965, "Poupée de cire, poupée de son", "Luxembourg"),
+        (1966, "Merci, Chérie", "Austria"), (1967, "Puppet on a String", "United Kingdom"), (1968, "La, la, la", "Spain"),
+        (1969, "Un jour, un enfant", "France"), (1970, "All Kinds of Everything", "Ireland"),
+    ];
+}
