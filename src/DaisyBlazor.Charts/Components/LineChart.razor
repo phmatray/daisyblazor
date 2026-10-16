@@ -10,59 +10,87 @@
         <div class="text-sm font-medium mb-2 text-base-content/80">@Title</div>
     }
 
-    <svg viewBox="0 0 @_w.ToString(_ci) @_h.ToString(_ci)"
-         preserveAspectRatio="none"
-         role="img"
-         class="w-full"
-         style="@($"height:{Height};")"
-         aria-label="@(_ariaLabel)">
-        <title>@_ariaLabel</title>
-
-        @* Horizontal gridlines + value labels *@
-        @if (ShowGrid)
-        {
-            @foreach ((double y, string label) in _yGrid)
+    @* Layout: a CSS grid with a y-label gutter (sized by its widest label), the plot, and an
+       x-label row. Only the plot's lines and fills live in the stretched SVG (with non-scaling
+       strokes); text and point markers are HTML, so they keep a fixed CSS size at any aspect ratio. *@
+    <div style="@_gridStyle">
+        <div style="@_yAxisStyle" aria-hidden="true">
+            @if (ShowGrid)
             {
-                <line x1="@_padLeft.ToString(_ci)" y1="@y.ToString(_ci)"
-                      x2="@((_w - _padRight).ToString(_ci))" y2="@y.ToString(_ci)"
-                      stroke="var(--color-base-content)" stroke-opacity="0.12" stroke-width="1" />
-                <SvgText X="@(_padLeft - 4)" Y="@(y + 4)" Anchor="end" FillOpacity="0.6" Text="@label" />
-            }
-        }
-
-        @* X axis labels *@
-        @if (Labels is { Count: > 0 })
-        {
-            @for (int i = 0; i < Labels.Count; i++)
-            {
-                <SvgText X="@_xAt(i)" Y="@(_h - _padBottom + 16)" Anchor="middle" FillOpacity="0.6" Text="@Labels[i]" />
-            }
-        }
-
-        @* Series: optional area fill then the line then points *@
-        @for (int s = 0; s < _series.Count; s++)
-        {
-            string color = ChartPalette.At(s, _series[s].Color);
-            string line = _linePath(_series[s].Data);
-
-            @if (Area && !string.IsNullOrEmpty(line))
-            {
-                <path d="@_areaPath(_series[s].Data)" fill="@color" fill-opacity="0.15" stroke="none" />
-            }
-
-            <path d="@line" fill="none" stroke="@color" stroke-width="2"
-                  stroke-linejoin="round" stroke-linecap="round" />
-
-            @if (ShowPoints)
-            {
-                @for (int i = 0; i < _series[s].Data.Count; i++)
+                @foreach ((double y, string label) in _yGrid)
                 {
-                    <circle cx="@(_xAt(i).ToString(_ci))" cy="@(_yAt(_series[s].Data[i]).ToString(_ci))"
-                            r="3" fill="var(--color-base-100)" stroke="@color" stroke-width="2" />
+                    <div style="height:0;overflow:hidden;visibility:hidden;white-space:nowrap;">@label</div>
+                }
+                @foreach ((double y, string label) in _yGrid)
+                {
+                    <span class="text-base-content/60" style="@($"position:absolute;right:6px;top:{_pct(y)}%;transform:translateY(-50%);white-space:nowrap;")">@label</span>
                 }
             }
-        }
-    </svg>
+        </div>
+
+        <div style="position:relative;min-width:0;">
+            <svg viewBox="0 0 100 100"
+                 preserveAspectRatio="none"
+                 role="img"
+                 aria-label="@_ariaLabel"
+                 aria-describedby="@_descId"
+                 style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;">
+                <title>@_ariaLabel</title>
+                <desc id="@_descId">@_description</desc>
+
+                @if (ShowGrid)
+                {
+                    @foreach ((double y, string label) in _yGrid)
+                    {
+                        <line x1="0" y1="@y.ToString(_ci)" x2="100" y2="@y.ToString(_ci)"
+                              stroke="var(--color-base-content)" stroke-opacity="0.12" stroke-width="1"
+                              vector-effect="non-scaling-stroke" />
+                    }
+                }
+
+                @for (int s = 0; s < _series.Count; s++)
+                {
+                    string color = ChartPalette.At(s, _series[s].Color);
+                    List<List<(double X, double Y)>> segments = _segments(_series[s].Data);
+
+                    @if (Area)
+                    {
+                        <path d="@_areaPath(segments)" fill="@color" fill-opacity="0.15" stroke="none" />
+                    }
+
+                    <path d="@_linePath(segments)" fill="none" stroke="@color" stroke-width="2"
+                          stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+                }
+            </svg>
+
+            @for (int s = 0; s < _series.Count; s++)
+            {
+                string color = ChartPalette.At(s, _series[s].Color);
+                IReadOnlyList<double> data = _series[s].Data ?? new List<double>();
+                @for (int i = 0; i < data.Count; i++)
+                {
+                    @* Markers on every point when ShowPoints; otherwise only on isolated points
+                       (a single value or one between gaps), which a line alone cannot show. *@
+                    @if (_finite(data[i]) && (ShowPoints || _isolated(data, i)))
+                    {
+                        <span title="@_tooltip(s, i, data[i])"
+                              style="@($"position:absolute;left:{_pct(_xAt(i))}%;top:{_pct(_yAt(data[i]))}%;width:8px;height:8px;border-radius:9999px;transform:translate(-50%,-50%);box-sizing:border-box;border:2px solid {color};background:var(--color-base-100);")"></span>
+                    }
+                }
+            }
+        </div>
+
+        <div></div>
+        <div style="@_xAxisStyle" aria-hidden="true">
+            @if (Labels is { Count: > 0 })
+            {
+                @for (int i = 0; i < Labels.Count; i += _labelStep)
+                {
+                    <span class="text-base-content/60" style="@($"position:absolute;top:6px;left:{_pct(_xAt(i))}%;width:{_pct(_slot * _labelStep)}%;transform:translateX(-50%);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")">@Labels[i]</span>
+                }
+            }
+        </div>
+    </div>
 
     @if (ShowLegend && _series.Count > 1)
     {
@@ -115,22 +143,18 @@
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
-    // Fixed user-space coordinate system; scaled responsively by the SVG viewBox.
-    private const double _w = 600;
-    private const double _h = 300;
-    private const double _padLeft = 40;
-    private const double _padRight = 12;
-    private const double _padTop = 12;
-    private const double _padBottom = 28;
-
+    // The plot SVG uses a 0..100 coordinate system on both axes, stretched to the plot box; HTML
+    // overlays position text and markers with the same numbers as percentages.
     private static readonly CultureInfo _ci = CultureInfo.InvariantCulture;
+
+    // Per-instance id for the SVG <desc> that exposes the plotted values to screen readers.
+    private readonly string _descId = "line-desc-" + Guid.NewGuid().ToString("N")[..8];
 
     private IReadOnlyList<ChartSeries> _series => Series ?? new List<ChartSeries>();
 
-    private int _count => _series.Count == 0 ? 0 : _series.Max(s => s.Data?.Count ?? 0);
-
     private double _min;
     private double _max;
+    private int _count;
     private List<(double Y, string Label)> _yGrid = new();
 
     private string _ariaLabel =>
@@ -138,96 +162,111 @@
 
     protected override void OnParametersSet()
     {
+        // Category count: enough slots for every point and every label.
+        int dataCount = _series.Count == 0 ? 0 : _series.Max(s => s.Data?.Count ?? 0);
+        _count = Math.Max(dataCount, Labels?.Count ?? 0);
+
         // Determine value range across all series, guarding empty/equal data.
-        IEnumerable<double> all = _series.SelectMany(s => s.Data ?? new List<double>())
-            .Where(v => !double.IsNaN(v) && !double.IsInfinity(v));
+        List<double> all = _series.SelectMany(s => s.Data ?? new List<double>()).Where(_finite).ToList();
+        double min = all.Count > 0 ? all.Min() : 0;
+        double max = all.Count > 0 ? all.Max() : 1;
 
-        if (all.Any())
-        {
-            _min = all.Min();
-            _max = all.Max();
-        }
-        else
-        {
-            _min = 0;
-            _max = 1;
-        }
+        // Always include the zero baseline so areas and negative values read naturally.
+        min = Math.Min(min, 0);
+        max = Math.Max(max, 0);
 
-        // Include zero baseline so areas read naturally.
-        if (_min > 0)
-        {
-            _min = 0;
-        }
-
-        if (Math.Abs(_max - _min) < double.Epsilon)
-        {
-            _max = _min + 1; // avoid divide-by-zero for flat data
-        }
+        (double niceMin, double niceMax, double step) = SvgGeometry.NiceScale(min, max);
+        _min = niceMin;
+        _max = niceMax;
 
         _yGrid.Clear();
-        const int ticks = 4;
-        for (int t = 0; t <= ticks; t++)
+        foreach (double value in SvgGeometry.Ticks(_min, _max, step))
         {
-            double value = _min + (_max - _min) * t / ticks;
-            _yGrid.Add((_yAt(value), value.ToString("0.##", _ci)));
+            _yGrid.Add((_yAt(value), SvgGeometry.FormatTick(value, _ci)));
         }
     }
 
-    private double _plotLeft => _padLeft;
-    private double _plotRight => _w - _padRight;
-    private double _plotTop => _padTop;
-    private double _plotBottom => _h - _padBottom;
+    private static bool _finite(double v) => !double.IsNaN(v) && !double.IsInfinity(v);
 
-    private double _xAt(int index)
+    private static string _pct(double v) => v.ToString("0.###", _ci);
+
+    // Width of one category slot; points sit in the middle of their slot so the first and last
+    // ones never collide with the y labels or the right edge.
+    private double _slot => _count == 0 ? 100 : 100.0 / _count;
+
+    private double _xAt(int index) => _slot * (index + 0.5);
+
+    private double _yAt(double value) => 100 - 100 * (value - _min) / (_max - _min);
+
+    // Show at most ~12 x labels; wider steps on long series so labels never overlap.
+    private int _labelStep => Math.Max(1, (int)Math.Ceiling((Labels?.Count ?? 0) / 12.0));
+
+    private bool _isolated(IReadOnlyList<double> data, int i) =>
+        (i == 0 || !_finite(data[i - 1])) && (i == data.Count - 1 || !_finite(data[i + 1]));
+
+    // Splits a series into runs of finite values; NaN/Infinity break the line instead of
+    // poisoning the whole path.
+    private List<List<(double X, double Y)>> _segments(IReadOnlyList<double>? data)
     {
-        if (_count <= 1)
+        List<List<(double X, double Y)>> segments = new();
+        List<(double X, double Y)>? current = null;
+        for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            return (_plotLeft + _plotRight) / 2; // single point: center it
+            if (!_finite(data![i]))
+            {
+                current = null;
+                continue;
+            }
+
+            if (current is null)
+            {
+                current = new List<(double X, double Y)>();
+                segments.Add(current);
+            }
+
+            current.Add((_xAt(i), _yAt(data[i])));
         }
 
-        return _plotLeft + (_plotRight - _plotLeft) * index / (_count - 1);
+        return segments;
     }
 
-    private double _yAt(double value)
+    private string _segmentPath(List<(double X, double Y)> pts) =>
+        Smooth ? SvgGeometry.SmoothPath(pts, _ci) : SvgGeometry.PolyPath(pts, _ci);
+
+    private string _linePath(List<List<(double X, double Y)>> segments) =>
+        string.Join(" ", segments.Where(seg => seg.Count > 1).Select(_segmentPath));
+
+    private string _areaPath(List<List<(double X, double Y)>> segments)
     {
-        double ratio = (value - _min) / (_max - _min);
-        return _plotBottom - (_plotBottom - _plotTop) * ratio;
+        // Close each run at the zero line (always inside the axis range).
+        string baseY = _yAt(0).ToString(_ci);
+        return string.Join(" ", segments.Where(seg => seg.Count > 1).Select(seg =>
+            $"{_segmentPath(seg)} L {seg[^1].X.ToString(_ci)} {baseY} L {seg[0].X.ToString(_ci)} {baseY} Z"));
     }
 
-    private string _linePath(IReadOnlyList<double> data)
+    private string _label(int i) => Labels is not null && i < Labels.Count ? Labels[i] : (i + 1).ToString(_ci);
+
+    private string _tooltip(int s, int i, double value)
     {
-        if (data is null || data.Count == 0)
-        {
-            return string.Empty;
-        }
-
-        List<(double X, double Y)> pts = new();
-        for (int i = 0; i < data.Count; i++)
-        {
-            pts.Add((_xAt(i), _yAt(data[i])));
-        }
-
-        if (Smooth && pts.Count > 1)
-        {
-            return SvgGeometry.SmoothPath(pts, _ci);
-        }
-
-        return SvgGeometry.PolyPath(pts, _ci);
+        string prefix = _series.Count > 1 && !string.IsNullOrEmpty(_series[s].Name) ? $"{_series[s].Name} · " : string.Empty;
+        return $"{prefix}{_label(i)}: {SvgGeometry.FormatValue(value, _ci)}";
     }
 
-    private string _areaPath(IReadOnlyList<double> data)
+    private string _description => string.Join("; ", _series.Select(series =>
     {
-        string line = _linePath(data);
-        if (string.IsNullOrEmpty(line) || data.Count == 0)
-        {
-            return string.Empty;
-        }
+        IReadOnlyList<double> data = series.Data ?? new List<double>();
+        string values = string.Join(", ", data.Select((v, i) =>
+            $"{_label(i)} {(_finite(v) ? SvgGeometry.FormatValue(v, _ci) : "no data")}"));
+        return string.IsNullOrEmpty(series.Name) ? values : $"{series.Name}: {values}";
+    }));
 
-        double baseY = _yAt(_min);
-        double firstX = _xAt(0);
-        double lastX = _xAt(data.Count - 1);
-        return $"{line} L {lastX.ToString(_ci)} {baseY.ToString(_ci)} L {firstX.ToString(_ci)} {baseY.ToString(_ci)} Z";
-    }
+    private string _gridStyle =>
+        "display:grid;grid-template-columns:fit-content(40%) minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;" +
+        $"box-sizing:border-box;height:{Height};padding:0.75em 0.5em 0 0;font-size:0.6875rem;line-height:1.2;";
+
+    private string _yAxisStyle => ShowGrid ? "position:relative;padding-right:6px;" : "position:relative;";
+
+    private string _xAxisStyle => Labels is { Count: > 0 } ? "position:relative;height:calc(1.2em + 6px);" : "position:relative;";
 
     private string _cls => CssClass.Merge("w-full", Class);
 
