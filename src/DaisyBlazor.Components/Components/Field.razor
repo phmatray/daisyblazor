@@ -4,21 +4,23 @@
    read-only bordered surface holding the ChildContent (and optional adornment). *@
 
 <div class="@_fieldsetCls" style="@Style" @attributes="UserAttributes">
+    @* A read-only value has no control to label, so the caption is a plain element that names
+       the value surface through aria-labelledby instead of an orphan <label>. *@
     @if (!string.IsNullOrEmpty(Label))
     {
-        <label class="label">
+        <div class="label" id="@_labelId">
             <span class="label-text">@Label</span>
-        </label>
+        </div>
     }
-    <div class="@_bodyCls">
-        @if (Adornment == Adornment.Start && !string.IsNullOrEmpty(AdornmentIcon))
+    <div class="@_bodyCls" role="group" aria-labelledby="@(string.IsNullOrEmpty(Label) ? null : _labelId)">
+        @if (Adornment == Adornment.Start)
         {
-            <Icon Name="@AdornmentIcon" Size="Size.Small" />
+            @AdornmentInner
         }
         <div class="grow">@ChildContent</div>
-        @if (Adornment == Adornment.End && !string.IsNullOrEmpty(AdornmentIcon))
+        @if (Adornment == Adornment.End)
         {
-            <Icon Name="@AdornmentIcon" Size="Size.Small" />
+            @AdornmentInner
         }
     </div>
 </div>
@@ -32,7 +34,7 @@
     [Parameter] public Adornment Adornment { get; set; } = Adornment.None;
     /// <summary>Icon name rendered at the position set by Adornment.</summary>
     [Parameter] public string? AdornmentIcon { get; set; }
-    /// <summary>Accepted for MudBlazor compatibility; currently not rendered.</summary>
+    /// <summary>Text rendered as the adornment at the position set by Adornment (after the icon when both are set).</summary>
     [Parameter] public string? AdornmentText { get; set; }
     /// <summary>The value content displayed inside the read-only surface.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -43,10 +45,23 @@
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
+    private readonly string _labelId = $"field-label-{Guid.NewGuid():N}";
+
+    private RenderFragment AdornmentInner => @<text>
+        @if (!string.IsNullOrEmpty(AdornmentIcon))
+        {
+            <Icon Name="@AdornmentIcon" Size="Size.Small" />
+        }
+        @if (!string.IsNullOrEmpty(AdornmentText))
+        {
+            <span class="opacity-70">@AdornmentText</span>
+        }
+    </text>;
+
     private string _fieldsetCls => CssClass.Merge("fieldset w-full", Class);
 
     private string _bodyCls => CssClass.Merge(
-        "flex items-center gap-2 min-h-10 px-3 py-2",
+        "flex items-center gap-2 min-h-10 px-3 py-2 text-sm",
         Variant == Variant.Outlined ? "border border-base-300 rounded-box" : null,
         Variant == Variant.Filled ? "bg-base-200 rounded-box" : null,
         Variant == Variant.Text ? "border-b border-base-300" : null);

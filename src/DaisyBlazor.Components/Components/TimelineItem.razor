@@ -1,53 +1,56 @@
 @namespace DaisyBlazor
+@implements IDisposable
 
-@* MudTimelineItem replacement. A daisyUI .timeline <li> with a colored dot (middle),
-   opposite content (timeline-start) and main content (timeline-end). *@
+@* MudTimelineItem replacement. A daisyUI .timeline <li> with a colored dot (middle), the main
+   content box and the opposite content on either side; the parent Timeline decides which side. *@
 
 <li @attributes="UserAttributes">
     <hr />
-    @if (ItemOpposite is not null)
+    @if (_contentOnStart)
     {
-        <div class="timeline-start">
-            @ItemOpposite
-        </div>
+        <div class="@_contentCls" style="@Style">@Body</div>
+    }
+    else if (ItemOpposite is not null)
+    {
+        <div class="@_oppositeCls">@ItemOpposite</div>
     }
     <div class="timeline-middle">
         @if (!string.IsNullOrEmpty(Icon))
         {
-            <Icon Name="@Icon" Size="Size.Small" Color="@Color" />
+            <Icon Name="@Icon" Size="@Size" Color="@Color" />
         }
         else
         {
             <span class="@_dotCls"></span>
         }
     </div>
-    <div class="@_contentCls" style="@Style">
-        @if (ItemContent is not null)
-        {
-            @ItemContent
-        }
-        else
-        {
-            @ChildContent
-        }
-    </div>
+    @if (!_contentOnStart)
+    {
+        <div class="@_contentCls" style="@Style">@Body</div>
+    }
+    else if (ItemOpposite is not null)
+    {
+        <div class="@_oppositeCls">@ItemOpposite</div>
+    }
     <hr />
 </li>
 
 @code {
-    /// <summary>Main content shown in the <c>timeline-end timeline-box</c>; ignored when <see cref="ItemContent"/> is set.</summary>
+    [CascadingParameter] private Timeline? Parent { get; set; }
+
+    /// <summary>Main content shown in the timeline box; ignored when <see cref="ItemContent"/> is set.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    /// <summary>Main content shown in the <c>timeline-end timeline-box</c>; takes precedence over <see cref="ChildContent"/>.</summary>
+    /// <summary>Main content shown in the timeline box; takes precedence over <see cref="ChildContent"/>.</summary>
     [Parameter] public RenderFragment? ItemContent { get; set; }
-    /// <summary>Content rendered on the opposite side, in <c>timeline-start</c>.</summary>
+    /// <summary>Content rendered on the opposite side of the line from the box (above the box in a compact Start timeline).</summary>
     [Parameter] public RenderFragment? ItemOpposite { get; set; }
     /// <summary>Color of the middle dot (e.g. <c>bg-primary</c>) or icon; defaults to a neutral <c>bg-base-300</c> dot.</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
-    /// <summary>Size of the middle dot (small, medium or large); does not affect the icon.</summary>
+    /// <summary>Size of the middle dot or icon (small, medium or large).</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
     /// <summary>Material Symbols ligature shown in the middle instead of the dot.</summary>
     [Parameter] public string? Icon { get; set; }
-    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
+    /// <summary>Vertical alignment of the box and opposite content against the dot: Start (top), End (bottom) or Default (centred).</summary>
     [Parameter] public TimelineAlign TimelineAlign { get; set; } = TimelineAlign.Default;
     /// <summary>Additional CSS classes merged onto the content box.</summary>
     [Parameter] public string? Class { get; set; }
@@ -77,5 +80,23 @@
 
     private string _dotCls => CssClass.Merge("inline-block rounded-full", _dotSize, _dotColor);
 
-    private string _contentCls => CssClass.Merge("timeline-end timeline-box", Class);
+    private bool _contentOnStart => Parent?.ContentOnStart(this) ?? false;
+
+    private RenderFragment? Body => ItemContent ?? ChildContent;
+
+    private string? _alignCls => TimelineAlign switch
+    {
+        TimelineAlign.Start => "self-start",
+        TimelineAlign.End => "self-end",
+        _ => null
+    };
+
+    private string _contentCls => CssClass.Merge(_contentOnStart ? "timeline-start" : "timeline-end", "timeline-box", _alignCls, Class);
+
+    private string _oppositeCls => CssClass.Merge(_contentOnStart ? "timeline-end" : "timeline-start", _alignCls);
+
+    protected override void OnInitialized() => Parent?.Register(this);
+
+    /// <summary>Removes the item from its parent timeline's numbering.</summary>
+    public void Dispose() => Parent?.Unregister(this);
 }

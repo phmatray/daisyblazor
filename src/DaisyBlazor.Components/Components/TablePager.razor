@@ -9,6 +9,7 @@
         <span class="text-sm opacity-70">@_rangeText</span>
 
         <select class="select select-bordered select-sm w-auto" value="@Host.PageSize"
+                aria-label="Rows per page"
                 @onchange="OnPageSizeChanged">
             @foreach (int option in PageSizeOptions)
             {
@@ -18,11 +19,13 @@
 
         <div class="join">
             <button type="button" class="btn btn-sm join-item"
+                    aria-label="Previous page"
                     disabled="@(Host.CurrentPage <= 0)"
                     @onclick="@(() => Host.SetPage(Host.CurrentPage - 1))">
                 <Icon Name="@Icons.Material.Filled.ChevronLeft" Size="Size.Small" />
             </button>
             <button type="button" class="btn btn-sm join-item"
+                    aria-label="Next page"
                     disabled="@(Host.CurrentPage >= Host.PageCount - 1)"
                     @onclick="@(() => Host.SetPage(Host.CurrentPage + 1))">
                 <Icon Name="@Icons.Material.Filled.ChevronRight" Size="Size.Small" />

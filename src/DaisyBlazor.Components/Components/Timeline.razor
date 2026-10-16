@@ -1,17 +1,22 @@
 @namespace DaisyBlazor
 
-@* MudTimeline replacement. daisyUI vertical .timeline. *@
+@* MudTimeline replacement. daisyUI vertical .timeline.
+   Alternate: boxes switch sides item by item (opposite content on the other side).
+   Start/Left/Top: compact, line on the start edge, everything on the end side.
+   End/Right/Bottom: line on the end edge, boxes on the start side. *@
 
 <ul class="@_cls" style="@Style" @attributes="UserAttributes">
-    @ChildContent
+    <CascadingValue Value="this" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
 </ul>
 
 @code {
-    /// <summary>The timeline items, rendered inside a vertical compact daisyUI timeline list.</summary>
+    /// <summary>The timeline items, rendered inside a vertical daisyUI timeline list.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    /// <summary>Accepted for MudBlazor compatibility; currently has no effect (layout is always compact).</summary>
+    /// <summary>Where the boxes sit: Alternate (default) switches sides per item, Start/Left/Top keeps them after a start-edge line (compact), End/Right/Bottom before an end-edge line.</summary>
     [Parameter] public TimelinePosition TimelinePosition { get; set; } = TimelinePosition.Alternate;
-    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
+    /// <summary>With Alternate, starts the alternation on the opposite side (first box on the start side).</summary>
     [Parameter] public bool Reverse { get; set; }
     /// <summary>Extra CSS classes merged onto the root element.</summary>
     [Parameter] public string? Class { get; set; }
@@ -19,7 +24,25 @@
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
+    // ponytail: items are numbered in registration order, which is render order for static and
+    // appended lists; an item inserted mid-list takes the next index until the list re-renders.
+    private readonly List<TimelineItem> _items = new();
+
+    internal void Register(TimelineItem item) => _items.Add(item);
+    internal void Unregister(TimelineItem item) => _items.Remove(item);
+
+    private bool Compact => TimelinePosition is TimelinePosition.Start or TimelinePosition.Left or TimelinePosition.Top;
+
+    /// <summary>True when the item's box goes in timeline-start (the side before the line).</summary>
+    internal bool ContentOnStart(TimelineItem item) => TimelinePosition switch
+    {
+        TimelinePosition.Alternate => (_items.IndexOf(item) % 2 == 1) != Reverse,
+        TimelinePosition.End or TimelinePosition.Right or TimelinePosition.Bottom => true,
+        _ => false
+    };
+
     private string _cls => CssClass.Merge(
-        "timeline timeline-vertical timeline-compact",
+        "timeline timeline-vertical",
+        Compact ? "timeline-compact" : null,
         Class);
 }
