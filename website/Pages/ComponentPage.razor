@@ -12,7 +12,7 @@ else
             <span class="rounded-full bg-primary-content px-3 py-1 text-sm font-bold text-primary">@_doc.Category.Title()</span>
             @if (_doc.DaisyClass is not null)
             {
-                <span class="rounded-full border-2 border-primary-content px-3 py-0.5 font-mono text-sm font-semibold">.@_doc.DaisyClass</span>
+                <span class="rounded-full border-2 border-primary-content px-3 py-0.5 font-mono text-sm font-semibold">@(string.Concat(_doc.DaisyClass.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(c => "." + c)))</span>
             }
             @if (_doc.MudEquivalent is not null)
             {
@@ -45,7 +45,7 @@ else
                     <h2 class="mb-4 font-display text-[2rem] font-bold leading-tight">From @_doc.MudEquivalent</h2>
                     <div class="prose-doc">
                         <p>
-                            <code>@_doc.Name</code> keeps @(_doc.MudEquivalent)'s parameter names, so most markup moves over by
+                            <code>@ApiReflector.TagName(_doc.Types[0])</code> keeps @(_doc.MudEquivalent)'s parameter names, so most markup moves over by
                             dropping the <code>Mud</code> prefix. See the <a href="migration">migration guide</a> for the shared enums, icons and services.
                         </p>
                         @if (_doc.MigrationNote is not null)

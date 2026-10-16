@@ -22,7 +22,6 @@
    never takes the ground colour. */
 @layer base {
     html {
-        scroll-padding-top: 5rem;
         -webkit-font-smoothing: antialiased;
         text-rendering: optimizeLegibility;
     }
@@ -32,7 +31,7 @@
         font-feature-settings: "ss01", "cv11";
     }
 
-    h1, h2, h3, h4, .font-display {
+    h1, h2, h3, h4, h5, h6, .font-display {
         font-family: var(--font-display);
         text-wrap: balance;
         letter-spacing: -0.02em;
@@ -120,9 +119,12 @@
     .track:hover { background: var(--color-primary-content); color: var(--color-primary); }
 
     /* Reading column prose. */
-    .prose-doc { max-width: 70ch; font-size: 1.0625rem; line-height: 1.7; }
+    /* 70ch at the 16px body size (ch follows this column's larger font), so the prose lines up with the
+       max-w-[70ch] demo boxes placed between its blocks. */
+    .prose-doc { max-width: calc(70ch / 1.0625); font-size: 1.0625rem; line-height: 1.7; }
     .prose-doc > * + * { margin-top: 1.1em; }
     .prose-doc h2 { font-size: 2rem; line-height: 1.1; font-weight: 700; margin-top: 2.6em; margin-bottom: .5em; }
+    .prose-doc > h2:first-child { margin-top: 0; }
     .prose-doc h3 { font-size: 1.35rem; line-height: 1.2; font-weight: 600; margin-top: 2em; margin-bottom: .4em; }
     .prose-doc a:not(.btn) {
         color: inherit;
@@ -145,6 +147,10 @@
     .prose-doc table { width: 100%; font-size: .95rem; }
     .prose-doc th { text-align: left; font-weight: 700; padding: .5rem .75rem .5rem 0; border-bottom: 2px solid var(--color-base-content); }
     .prose-doc td { padding: .5rem .75rem .5rem 0; border-bottom: 1px solid var(--color-base-300); vertical-align: top; }
+    /* On phones long mono tokens may break, so the tables fit (wider screens keep whole words). */
+    @media (width < 40rem) {
+        .prose-doc th, .prose-doc td { overflow-wrap: anywhere; }
+    }
 
     /* Syntax colours derive from the active theme, so code matches every theme. */
     .code-block { background: var(--color-neutral); color: var(--color-neutral-content); }
@@ -171,6 +177,9 @@
     ::view-transition-new(root) { animation: none; }
     .sleeve, .disc { transition: none; }
 }
+
+/* Theme picker light dismiss: a full-viewport catcher behind the open panel (unlayered, so it beats .hidden). */
+.theme-picker:has(> details[open]) > .theme-picker-dismiss { display: block; }
 
 /* Blazor boot + error chrome. */
 #blazor-error-ui {

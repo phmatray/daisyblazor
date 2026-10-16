@@ -15,7 +15,9 @@
     <div class="overflow-hidden rounded-2xl border-2 border-base-content">
         <div>
             <div class="grid min-h-56 place-items-center bg-base-100 p-8 sm:p-12">
-                <div class="flex max-w-full flex-wrap items-center justify-center">
+                @* A sized block, not a shrink-to-fit flex item: block components (Navbar, full-width fields) fill
+                   it, inline ones (buttons, badges) sit centred on the text axis. *@
+                <div class="w-full max-w-3xl text-center [&>*]:text-start">
                     <DynamicComponent @key="_renderKey" Type="Spec.Component" Parameters="_rendered" />
                 </div>
             </div>
@@ -183,15 +185,26 @@
             if (Equals(v, _defaults[p.Name]) || v is null) continue;
             attrs.Add($"{p.Name}=\"{Razor(v)}\"");
         }
+        // Parameters set only through Spec.Initial (Class="tooltip-open"...) are rendered too, so they belong in the code.
+        foreach ((string name, object? v) in _values)
+        {
+            if (v is null || _defaults.ContainsKey(name)) continue;
+            attrs.Add($"{name}=\"{Razor(v)}\"");
+        }
 
+        bool child = !string.IsNullOrEmpty(_childText);
+        int length = tag.Length + 1 + attrs.Sum(a => a.Length + 1) + (child ? _childText!.Length + tag.Length + 4 : 3);
+        bool wrap = length > 72;
         var sb = new StringBuilder("<").Append(tag);
-        bool wrap = attrs.Sum(a => a.Length + 1) + tag.Length > 72;
         foreach (string a in attrs)
         {
             sb.Append(wrap ? "\n" + new string(' ', tag.Length + 2) : " ").Append(a);
         }
-        if (string.IsNullOrEmpty(_childText)) return sb.Append(" />").ToString();
-        return sb.Append('>').Append(_childText).Append("</").Append(tag).Append('>').ToString();
+        if (!child) return sb.Append(" />").ToString();
+        sb.Append('>');
+        if (wrap) sb.Append("\n    ").Append(_childText).Append('\n');
+        else sb.Append(_childText);
+        return sb.Append("</").Append(tag).Append('>').ToString();
     }
 
     private static string Razor(object v) => v switch

@@ -6,10 +6,12 @@
 
 <dialog @ref="_dialog" class="modal modal-top sm:modal-middle" aria-label="Search the documentation" @onclose="OnClosed">
     <div class="modal-box mx-auto mt-4 w-[min(42rem,calc(100vw-2rem))] max-w-none overflow-hidden rounded-3xl p-0 sm:mt-0">
-        <div class="sleeve flex items-center gap-3 px-5 py-4">
+        @* Arrows and Enter drive the list: prevent their default for the key actually pressed (a Blazor
+           preventDefault flag would apply the previous key's decision and eat the next letter). *@
+        <div class="sleeve flex items-center gap-3 px-5 py-4"
+             onkeydown="if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') event.preventDefault()">
             <Icon Name="@Icons.Material.Filled.Search" />
             <input @ref="_input" type="search" value="@_query" @oninput="OnInput" @onkeydown="OnKey"
-                   @onkeydown:preventDefault="_preventKey"
                    class="w-full bg-transparent font-display text-xl font-semibold text-primary-content outline-none placeholder:text-primary-content/85"
                    placeholder="Button, Color, theming, MudDialog…" aria-label="Search" autocomplete="off" spellcheck="false"
                    role="combobox" aria-expanded="true" aria-controls="search-results"
@@ -27,7 +29,7 @@
             {
                 int index = i;
                 SearchHit hit = _hits[i];
-                <li id="hit-@index" role="option" aria-selected="@(index == _active ? "true" : "false")"
+                <li id="hit-@index" @ref="_hitRefs[index]" role="option" aria-selected="@(index == _active ? "true" : "false")"
                     @onmousemove="() => _active = index" @onclick="() => Go(hit)"
                     class="flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-2.5 @(index == _active ? "bg-primary text-primary-content" : "")">
                     <span class="grid size-9 shrink-0 place-items-center rounded-xl @(index == _active ? "bg-primary-content/15" : "bg-base-200")">
@@ -56,7 +58,8 @@
     private string _query = "";
     private IReadOnlyList<SearchHit> _hits = [];
     private int _active;
-    private bool _preventKey;
+    private readonly Dictionary<int, ElementReference> _hitRefs = [];
+    private bool _scrollToActive;
     private DotNetObjectReference<SearchPalette>? _self;
     private IJSObjectReference? _shortcuts;
 
@@ -64,6 +67,11 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_scrollToActive && _hitRefs.TryGetValue(_active, out ElementReference active))
+        {
+            _scrollToActive = false;
+            await Js.ScrollIntoView(active);
+        }
         if (!firstRender) return;
         _self = DotNetObjectReference.Create(this);
         _shortcuts = await Js.RegisterShortcuts(_self);
@@ -87,8 +95,8 @@
 
     private async Task OnKey(KeyboardEventArgs e)
     {
-        _preventKey = e.Key is "ArrowDown" or "ArrowUp" or "Enter";
         if (_hits.Count == 0) return;
+        _scrollToActive = e.Key is "ArrowDown" or "ArrowUp";
         switch (e.Key)
         {
             case "ArrowDown": _active = (_active + 1) % _hits.Count; break;

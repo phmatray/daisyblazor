@@ -4,10 +4,12 @@
     <div>
         <span class="sleeve-muted mb-2 block text-sm font-bold">Guides</span>
         <ul class="space-y-1 font-bold">
-            @foreach (GuideDoc g in Guides.All)
+            @foreach (GuideDoc g in Guides.All.Where(g => g.Url != "themes"))
             {
                 <li><a href="@g.Url">@g.Title</a></li>
             }
+            @* Themes is a top-level tab on wide screens; keep it explicit here so it never depends on the guide list. *@
+            <li><a href="themes">Themes</a></li>
             <li><a href="https://github.com/phmatray/daisyblazor" target="_blank" rel="noopener">GitHub</a></li>
         </ul>
     </div>

@@ -37,6 +37,6 @@ public static class Guides
             "The approach", "The shared enums", "Icons", "Dialogs", "Snackbar", "Setup deltas",
             "Component name map", "Beyond MudBlazor", "Migration recipe"),
         new("Themes", "themes",
-            "All 37 themes rendered live, side by side; switch the whole site with one click."),
+            $"All {ThemeDeck.Themes.Count} themes rendered live, side by side; switch the whole site with one click."),
     ];
 }

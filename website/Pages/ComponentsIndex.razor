@@ -19,8 +19,9 @@
                         Type? cover = d.Portrait ?? d.Examples.FirstOrDefault()?.Component;
                         <li>
                             <a href="@d.Url" class="group flex h-full flex-col overflow-hidden rounded-2xl border-2 border-base-content transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-18px_rgb(0_0_0/0.5)]">
-                                <div class="pointer-events-none grid h-48 place-items-center overflow-hidden bg-base-100 p-4" inert>
-                                    <div class="w-full origin-center scale-[0.78]">
+                                @* Tall covers start at the top and fade out at the bottom instead of being cut through the middle. *@
+                                <div class="pointer-events-none grid h-56 overflow-hidden bg-base-100 p-4 [place-items:safe_center] [mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)]" inert>
+                                    <div class="w-full origin-top scale-[0.78]">
                                         @if (cover is not null)
                                         {
                                             <DynamicComponent Type="cover" />

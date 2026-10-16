@@ -1,3 +1,6 @@
+@implements IDisposable
+@inject NavigationManager Nav
+
 @* The top bar: logotype, primary navigation, search and the theme picker. Sits on the primary ground. *@
 
 <header class="sleeve relative z-30">
@@ -9,20 +12,20 @@
             </span>
         </a>
 
-        <nav class="ml-6 hidden items-center gap-1 font-bold md:flex" aria-label="Primary">
-            <NavLink class="rounded-full px-3.5 py-1.5 hover:bg-primary-content/10 [&.active]:bg-primary-content [&.active]:text-primary" href="getting-started">Guides</NavLink>
-            <NavLink class="rounded-full px-3.5 py-1.5 hover:bg-primary-content/10 [&.active]:bg-primary-content [&.active]:text-primary" href="components">Components</NavLink>
-            <NavLink class="rounded-full px-3.5 py-1.5 hover:bg-primary-content/10 [&.active]:bg-primary-content [&.active]:text-primary" href="themes">Themes</NavLink>
-            <a class="rounded-full px-3.5 py-1.5 hover:bg-primary-content/10" href="https://github.com/phmatray/daisyblazor" target="_blank" rel="noopener">GitHub</a>
+        <nav class="ml-2 hidden items-center gap-0.5 whitespace-nowrap font-bold md:flex lg:ml-6 lg:gap-1" aria-label="Primary">
+            <a class="@Pill(_inGuides)" href="getting-started" aria-current="@(_inGuides ? "page" : null)">Guides</a>
+            <NavLink class="@Pill(false)" href="components">Components</NavLink>
+            <NavLink class="@Pill(false)" href="themes">Themes</NavLink>
+            <a class="@Pill(false)" href="https://github.com/phmatray/daisyblazor" target="_blank" rel="noopener">GitHub</a>
         </nav>
 
         <div class="ml-auto flex items-center gap-1.5 sm:gap-2">
             <button type="button" @onclick="OnSearch"
-                    class="flex h-11 items-center gap-3 rounded-full bg-base-100 px-3 sm:pl-4 sm:pr-1.5 text-base-content/70 shadow-[0_1px_0_rgb(0_0_0/0.08)] transition hover:text-base-content sm:min-w-64"
+                    class="flex h-11 items-center gap-3 rounded-full bg-base-100 px-3 xl:pl-4 xl:pr-1.5 text-base-content/70 shadow-[0_1px_0_rgb(0_0_0/0.08)] transition hover:text-base-content xl:min-w-60"
                     aria-label="Search the docs (Ctrl K)">
                 <Icon Name="@Icons.Material.Filled.Search" Size="Size.Small" />
-                <span class="hidden font-semibold sm:inline">Search components</span>
-                <span class="ml-auto hidden gap-1 sm:flex"><Kbd Size="Size.Small">Ctrl</Kbd><Kbd Size="Size.Small">K</Kbd></span>
+                <span class="hidden whitespace-nowrap font-semibold xl:inline">Search components</span>
+                <span class="ml-auto hidden gap-1 xl:flex"><Kbd Size="Size.Small">Ctrl</Kbd><Kbd Size="Size.Small">K</Kbd></span>
             </button>
             <ThemeSwitcher />
             <button type="button" class="btn btn-circle btn-ghost text-primary-content md:hidden" aria-label="Open navigation"
@@ -44,4 +47,29 @@
     [Parameter] public EventCallback OnSearch { get; set; }
 
     private bool _menu;
+    private bool _inGuides;
+
+    private static string Pill(bool active) =>
+        "rounded-full px-2.5 py-1.5 hover:bg-primary-content/10 lg:px-3.5 [&.active]:bg-primary-content [&.active]:text-primary" + (active ? " active" : "");
+
+    protected override void OnInitialized()
+    {
+        _inGuides = IsGuide(Nav.Uri);
+        Nav.LocationChanged += OnLocationChanged;
+    }
+
+    // Every guide except Themes, which has its own tab.
+    private bool IsGuide(string uri)
+    {
+        string path = Nav.ToBaseRelativePath(uri).Split('?', '#')[0];
+        return Guides.All.Any(g => g.Url == path && g.Url != "themes");
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        _inGuides = IsGuide(e.Location);
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
 }

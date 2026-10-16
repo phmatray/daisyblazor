@@ -44,6 +44,25 @@ public sealed class XmlDocs
         return map;
     }
 
+    /// <summary>
+    /// Readable name of a cref: "T:N.DataGrid`1" → "DataGrid&lt;T&gt;", "M:N.StatusMap.For``1(System.String)" → "For&lt;T&gt;()".
+    /// </summary>
+    internal static string CrefName(string cref)
+    {
+        bool method = cref.StartsWith("M:", StringComparison.Ordinal);
+        int paren = cref.IndexOf('(');
+        if (paren >= 0) cref = cref[..paren];
+        string name = cref[(cref.LastIndexOf('.') + 1)..];
+        if (name.Contains(':')) name = name[(name.IndexOf(':') + 1)..];
+        int tick = name.IndexOf('`');
+        if (tick >= 0)
+        {
+            int arity = int.TryParse(name.AsSpan(tick).TrimStart('`'), out int n) ? n : 1;
+            name = name[..tick] + "<" + (arity == 1 ? "T" : string.Join(", ", Enumerable.Range(1, arity).Select(i => $"T{i}"))) + ">";
+        }
+        return method ? name + "()" : name;
+    }
+
     /// <summary>Turns a summary element into plain text, keeping cref/c content readable.</summary>
     private static string Flatten(XElement el)
     {
@@ -54,8 +73,10 @@ public sealed class XmlDocs
             {
                 case XText t: sb.Append(t.Value); break;
                 case XElement e when e.Name == "see" || e.Name == "seealso":
-                    string? cref = e.Attribute("cref")?.Value ?? e.Attribute("langword")?.Value;
-                    sb.Append(e.Value.Length > 0 ? e.Value : cref is null ? "" : cref[(cref.LastIndexOf('.') + 1)..]);
+                    string? cref = e.Attribute("cref")?.Value;
+                    sb.Append(e.Value.Length > 0 ? e.Value
+                        : cref is not null ? CrefName(cref)
+                        : e.Attribute("langword")?.Value ?? "");
                     break;
                 case XElement e when e.Name == "paramref" || e.Name == "typeparamref":
                     sb.Append(e.Attribute("name")?.Value);

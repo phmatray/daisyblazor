@@ -25,9 +25,19 @@ public static class ApiReflector
             if (Cache.TryGetValue(component, out IReadOnlyList<ParamInfo>? hit)) return hit;
         }
 
-        object? instance = null;
-        try { if (!component.ContainsGenericParameters) instance = Activator.CreateInstance(component); }
+        object? instance = null, second = null;
+        try
+        {
+            if (!component.ContainsGenericParameters)
+            {
+                instance = Activator.CreateInstance(component);
+                second = Activator.CreateInstance(component);
+            }
+        }
         catch { /* components with required ctor args: no defaults */ }
+
+        // Type names come from the open definition, so DataGrid<string> documents Items as IEnumerable<T>.
+        Type definition = component.IsGenericType ? component.GetGenericTypeDefinition() : component;
 
         var list = new List<ParamInfo>();
         foreach (PropertyInfo p in component.GetProperties(BindingFlags.Public | BindingFlags.Instance))
@@ -40,12 +50,23 @@ public static class ApiReflector
                 : ParamKind.Property;
 
             string? def = null;
-            if (instance is not null && kind == ParamKind.Property)
+            if (p.GetCustomAttribute<EditorRequiredAttribute>() is not null)
             {
-                try { def = FormatValue(p.GetValue(instance), p.PropertyType); } catch { }
+                def = "required";
+            }
+            else if (instance is not null && kind == ParamKind.Property)
+            {
+                try
+                {
+                    def = FormatValue(p.GetValue(instance), p.PropertyType);
+                    // A default that differs per instance (Id = "drawer-" + Guid) is generated, not a value to show.
+                    if (second is not null && def != FormatValue(p.GetValue(second), p.PropertyType)) def = "generated";
+                }
+                catch { }
             }
 
-            list.Add(new ParamInfo(p, kind, FriendlyName(p.PropertyType), def, docs.Summary(p)));
+            Type declared = definition.GetProperty(p.Name, BindingFlags.Public | BindingFlags.Instance)?.PropertyType ?? p.PropertyType;
+            list.Add(new ParamInfo(p, kind, FriendlyName(declared), def, docs.Summary(p)));
         }
 
         IReadOnlyList<ParamInfo> result = [.. list.OrderBy(x => x.Kind).ThenBy(x => Rank(x.Name)).ThenBy(x => x.Name, StringComparer.Ordinal)];
@@ -56,9 +77,11 @@ public static class ApiReflector
     /// <summary>Common parameters sink to the bottom of each group.</summary>
     private static int Rank(string name) => name is "Class" or "Style" ? 1 : 0;
 
+    /// <summary>EventCallback and Action handlers; other delegates (Func data loaders) are plain parameters.</summary>
     public static bool IsEvent(Type t) =>
-        t == typeof(EventCallback) || (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(EventCallback<>))
-        || typeof(Delegate).IsAssignableFrom(t) && t != typeof(RenderFragment) && !(t.IsGenericType && t.GetGenericTypeDefinition() == typeof(RenderFragment<>));
+        t == typeof(EventCallback) || t == typeof(Action)
+        || (t.IsGenericType && t.GetGenericTypeDefinition() is var g
+            && (g == typeof(EventCallback<>) || g.FullName?.StartsWith("System.Action`", StringComparison.Ordinal) == true));
 
     public static bool IsContent(Type t) =>
         t == typeof(RenderFragment) || (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(RenderFragment<>));
@@ -73,7 +96,8 @@ public static class ApiReflector
             bool b => b ? "true" : "false",
             Enum e => $"{e.GetType().Name}.{e}",
             IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
-            System.Collections.IEnumerable => null,
+            System.Collections.IEnumerable items =>
+                $"[{string.Join(", ", items.Cast<object?>().Select(x => FormatValue(x, x?.GetType() ?? typeof(object))))}]",
             _ => value.ToString(),
         };
     }

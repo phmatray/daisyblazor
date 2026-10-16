@@ -14,7 +14,7 @@
         <Icon Name="@(_copied ? Icons.Material.Filled.Check : Icons.Material.Filled.ContentCopy)" Size="Size.Small" />
         <span>@(_copied ? "Copied" : "Copy")</span>
     </button>
-    <pre class="overflow-x-auto px-5 py-4 text-[0.85rem] leading-[1.7] @(Title is null ? "pt-11 sm:pt-4" : "")"><code>@((MarkupString)RazorHighlighter.Highlight(Code, Language))</code></pre>
+    <pre class="overflow-x-auto px-5 py-4 text-[0.85rem] leading-[1.7] @(Title is null ? "pt-10" : "")"><code>@((MarkupString)RazorHighlighter.Highlight(Code, Language))</code></pre>
 </div>
 
 @code {

@@ -2,18 +2,19 @@
 
 <button type="button" data-theme="@Theme" @onclick="OnClick" aria-pressed="@(Playing ? "true" : "false")"
         aria-label="Switch to the @Theme theme"
-        class="group relative flex aspect-square w-full flex-col overflow-hidden rounded-md bg-primary p-4 text-left text-primary-content transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_40px_-22px_rgb(0_0_0/0.6)] @(Playing ? "ring-4 ring-base-content ring-offset-4 ring-offset-base-100" : "") @Class">
+        class="@Container group relative flex aspect-square w-full flex-col overflow-hidden rounded-md bg-primary p-4 text-left text-primary-content transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_40px_-22px_rgb(0_0_0/0.6)] @(Playing ? "ring-4 ring-base-content ring-offset-4 ring-offset-base-100" : "") @Class">
     <span class="absolute -right-10 -top-10 size-28 rounded-full bg-secondary transition-transform duration-700 group-hover:-translate-x-2 group-hover:translate-y-2" aria-hidden="true"></span>
     <span class="relative text-sm font-bold opacity-90">@(ThemeDeck.DarkThemes.Contains(Theme) ? "Dark" : "Light")</span>
-    <span class="relative mt-1 font-display text-[clamp(1.4rem,2.6vw,2.1rem)] font-bold leading-none">@Theme</span>
+    <span class="relative mt-1 font-display text-[clamp(1.1rem,11cqw,2.1rem)] font-bold leading-none [overflow-wrap:anywhere]">@Theme</span>
     <span class="relative mt-auto flex flex-col gap-2 rounded bg-base-100 p-3 text-base-content" aria-hidden="true">
         <span class="flex gap-1.5">
             <span class="btn btn-primary btn-xs">Save</span>
             <span class="btn btn-secondary btn-xs">Edit</span>
-            <span class="btn btn-accent btn-outline btn-xs">More</span>
+            <span class="btn btn-accent btn-outline btn-xs @NarrowHidden">More</span>
         </span>
         <span class="flex items-center gap-2">
-            <input type="checkbox" class="toggle toggle-primary toggle-xs" checked tabindex="-1" />
+            @* A static look-alike: no form control inside the button. *@
+            <span class="toggle toggle-primary shrink-0 [--size:calc(var(--size-selector,.25rem)*4)]" aria-checked="true"></span>
             <progress class="progress progress-accent h-1.5 w-full" value="62" max="100"></progress>
         </span>
     </span>
@@ -28,4 +29,8 @@
     [Parameter] public bool Playing { get; set; }
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
     [Parameter] public string? Class { get; set; }
+
+    // Container-query classes start with "@", which Razor markup cannot hold literally.
+    private const string Container = "@container";
+    private const string NarrowHidden = "@max-[13rem]:hidden";
 }

@@ -16,7 +16,7 @@
         </span>
     </button>
 
-    <div class="relative z-10 mx-auto grid max-w-[1500px] gap-10 px-4 pb-10 pt-6 sm:px-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-16 lg:px-14 lg:pb-14 lg:pt-10 @(Portrait is null ? "" : "lg:pr-[17rem] 2xl:pr-[19rem]")">
+    <div class="relative z-10 mx-auto grid max-w-[1500px] gap-10 px-4 pb-10 pt-6 sm:px-8 xl:grid-cols-[minmax(0,1fr)_auto] lg:gap-16 lg:px-14 lg:pb-14 lg:pt-10 @(Portrait is null ? "" : "lg:pr-[17rem] 2xl:pr-[19rem]")">
         <div class="flex min-w-0 flex-col">
             @if (Trail is not null)
             {
@@ -82,7 +82,7 @@
 
         @if (Portrait is not null)
         {
-            <figure class="relative z-10 w-full max-w-[24rem] self-center justify-self-start lg:w-[22rem] lg:justify-self-end">
+            <figure class="relative z-10 w-full max-w-[24rem] self-center justify-self-start xl:w-[22rem] xl:justify-self-end">
                 <figcaption class="sr-only">@(PortraitCaption ?? "Cover")</figcaption>
                 <div class="grid place-items-center overflow-hidden rounded-md bg-base-100 p-6 text-base-content sm:aspect-square">
                     <div class="w-full">@Portrait</div>

@@ -73,8 +73,8 @@
         </div>
         <div class="mt-5 grid max-w-[70ch] gap-6 rounded-2xl border border-base-300 bg-base-100 p-6 sm:grid-cols-2">
             <LineChart Title="Weekly visitors" Labels="@Days" Series="@_traffic" Smooth Area Class="sm:col-span-2" />
-            <BarChart Data="@_bars" Height="12rem" />
-            <DonutChart Data="@_breakdown" CenterLabel="100%" Height="12rem" />
+            <BarChart Title="Signups by plan" Data="@_bars" Height="12rem" />
+            <DonutChart Title="Visits by source" Data="@_breakdown" CenterLabel="100" Height="12rem" />
             <div class="flex items-center gap-3 sm:col-span-2">
                 <span class="text-sm font-semibold">Sparkline</span>
                 <Sparkline Data="@(new double[] { 3, 5, 4, 8, 6, 9 })" Area />
@@ -115,7 +115,7 @@
         new("Signups", new double[] { 5, 8, 6, 12, 10 }),
     ];
 
-    private readonly ChartDataPoint[] _bars = [new("A", 12), new("B", 28), new("C", 19)];
+    private readonly ChartDataPoint[] _bars = [new("Starter", 12), new("Pro", 28), new("Team", 19)];
 
     private readonly ChartDataPoint[] _breakdown = [new("Direct", 40), new("Search", 35), new("Social", 25)];
 
@@ -169,14 +169,15 @@
                    Series="@_traffic"
                    Smooth Area />
 
-        <BarChart Data="@(new[]
+        <BarChart Title="Signups by plan"
+                  Data="@(new[]
                   {
-                      new ChartDataPoint("A", 12),
-                      new ChartDataPoint("B", 28),
-                      new ChartDataPoint("C", 19)
+                      new ChartDataPoint("Starter", 12),
+                      new ChartDataPoint("Pro", 28),
+                      new ChartDataPoint("Team", 19)
                   })" />
 
-        <DonutChart Data="@_breakdown" CenterLabel="100%" />
+        <DonutChart Title="Visits by source" Data="@_breakdown" CenterLabel="100" />
 
         <Sparkline Data="@(new double[] { 3, 5, 4, 8, 6, 9 })" Area />
 

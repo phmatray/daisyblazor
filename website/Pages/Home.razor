@@ -117,7 +117,7 @@
                 does the same through <code class="font-mono text-[0.9em]">ThemeProvider</code>.
             </p>
         </div>
-        <ul class="flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-6 sm:px-8 lg:px-14" aria-label="Themes">
+        <ul class="flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 pb-6 pt-3 sm:scroll-px-8 sm:px-8 lg:scroll-px-14 lg:px-14" aria-label="Themes">
             @foreach (string t in ThemeDeck.Themes)
             {
                 string theme = t;
@@ -146,7 +146,7 @@
                 </p>
                 <a href="migration" class="btn mt-7 rounded-full border-2 border-base-content bg-transparent px-6 hover:bg-base-content hover:text-base-100">Read the migration guide</a>
             </div>
-            <div class="grid min-w-0 gap-4 xl:grid-cols-2">
+            <div class="grid min-w-0 items-start gap-4 self-start xl:grid-cols-2">
                 <CodeBlock Title="Before · MudBlazor" Code="@MudSample" />
                 <CodeBlock Title="After · DaisyBlazor" Code="@DaisySample" />
             </div>
@@ -296,7 +296,7 @@
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <Button Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" StartIcon="@Icons.Material.Filled.RocketLaunch" Class="w-full px-2">Deploy</Button>
-                <Button Color="Color.Dark" Variant="Variant.Outlined" Size="Size.Small" Class="w-full px-2">Logs</Button>
+                <Button Color="Color.Default" Variant="Variant.Outlined" Size="Size.Small" Class="w-full px-2">Logs</Button>
             </div>
         </div>
     };
