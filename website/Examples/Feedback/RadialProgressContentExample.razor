@@ -1,0 +1,14 @@
+<div class="flex flex-wrap items-center gap-6">
+    <RadialProgress Value="@(_played * 100 / 214)" Color="Color.Secondary" SizeRem="7rem" Thickness="8px">
+        <span class="font-mono text-sm">@TimeSpan.FromSeconds(_played).ToString(@"m\:ss")</span>
+    </RadialProgress>
+    <div class="flex gap-2">
+        <Button Size="Size.Small" Variant="Variant.Outlined" OnClick="@(() => _played = Math.Max(0, _played - 30))">−30 s</Button>
+        <Button Size="Size.Small" Variant="Variant.Outlined" OnClick="@(() => _played = Math.Min(214, _played + 30))">+30 s</Button>
+    </div>
+</div>
+
+@code {
+    // A 3:34 track; the ring shows how much has played.
+    private int _played = 96;
+}

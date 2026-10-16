@@ -1,0 +1,10 @@
+<div class="grid w-full gap-4 sm:grid-cols-3">
+    @for (int i = 0; i < 3; i++)
+    {
+        <div class="flex flex-col gap-3">
+            <Skeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Class="aspect-square" />
+            <Skeleton Width="80%" Height="1rem" />
+            <Skeleton Width="50%" Height="0.75rem" />
+        </div>
+    }
+</div>

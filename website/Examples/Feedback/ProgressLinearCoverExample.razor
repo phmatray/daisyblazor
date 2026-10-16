@@ -1,0 +1,19 @@
+<div class="flex flex-col gap-4">
+    <p class="font-bold">Pressing run · 500 copies</p>
+    @foreach ((string stage, double value, Color color) in Stages)
+    {
+        <div class="flex flex-col gap-1">
+            <div class="flex justify-between text-sm"><span>@stage</span><span>@value%</span></div>
+            <ProgressLinear Value="value" Color="color" Size="Size.Large" Rounded="true" />
+        </div>
+    }
+</div>
+
+@code {
+    private static readonly (string, double, Color)[] Stages =
+    [
+        ("Lacquer cut", 100, Color.Success),
+        ("Plating", 72, Color.Primary),
+        ("Sleeves printed", 38, Color.Secondary),
+    ];
+}

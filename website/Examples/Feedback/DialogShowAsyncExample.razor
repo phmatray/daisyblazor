@@ -1,0 +1,22 @@
+@inject IDialogService DialogService
+
+<div class="flex flex-wrap items-center gap-3">
+    <Button Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Edit" OnClick="RenameAsync">Rename track</Button>
+    <span>Track 4: <strong>@_title</strong></span>
+</div>
+
+@code {
+    private string _title = "La Javanaise";
+
+    private async Task RenameAsync()
+    {
+        DialogParameters<DialogTrackEditorExample> parameters = new() { { x => x.Title, _title } };
+        IDialogReference dialog = await DialogService.ShowAsync<DialogTrackEditorExample>("Rename track", parameters);
+        DialogResult result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is string title)
+        {
+            _title = title;
+        }
+    }
+}

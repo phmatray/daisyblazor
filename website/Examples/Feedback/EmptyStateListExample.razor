@@ -1,0 +1,28 @@
+<div class="flex flex-col gap-3">
+    <Card Outlined="true">
+        @if (_queue.Count == 0)
+        {
+            <EmptyState Icon="@Icons.Material.Filled.QueueMusic" Message="Nothing queued" Subtitle="Add a track to start listening." />
+        }
+        else
+        {
+            <ul class="divide-y divide-base-300">
+                @foreach (string track in _queue)
+                {
+                    <li class="px-4 py-3">@track</li>
+                }
+            </ul>
+        }
+    </Card>
+    <div class="flex gap-2">
+        <Button Size="Size.Small" Variant="Variant.Outlined" OnClick="Add">Add track</Button>
+        <Button Size="Size.Small" Variant="Variant.Text" OnClick="_queue.Clear">Clear</Button>
+    </div>
+</div>
+
+@code {
+    private static readonly string[] Tracks = ["Comic Strip", "Ford Mustang", "Bonnie and Clyde", "Initials B.B."];
+    private readonly List<string> _queue = [];
+
+    private void Add() => _queue.Add(Tracks[_queue.Count % Tracks.Length]);
+}
