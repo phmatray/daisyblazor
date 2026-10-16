@@ -20,11 +20,11 @@ public static partial class DocRegistry
         },
 
         new("AreaChart", Category.Charts,
-            "A line chart with the area under each series filled, for showing volume over time. It is a LineChart with Area on; the examples write LineChart Area=\"true\", which renders the same chart and passes Title, Height and Width through reliably.",
+            "A line chart with the area under each series filled, for showing volume over time. It wraps LineChart with Area on and takes the same Series and Labels; unlike LineChart, ShowPoints is off by default.",
             [typeof(AreaChart), typeof(LineChart)],
             [
-                new("Basic", "One smoothed series with the area filled; turn ShowPoints off for a clean silhouette.", typeof(AreaChartBasicExample)),
-                new("Several series", "Fills are translucent so overlapping series stay readable; ShowPoints marks each value.", typeof(AreaChartSeriesExample)),
+                new("Basic", "One smoothed series with the area filled; points stay off by default for a clean silhouette.", typeof(AreaChartBasicExample)),
+                new("Several series", "Fills are translucent so overlapping series stay readable; turn ShowPoints on to mark each value.", typeof(AreaChartSeriesExample)),
             ])
         {
             Portrait = typeof(AreaChartCoverExample),
@@ -36,7 +36,7 @@ public static partial class DocRegistry
             [
                 new("Flat data", "A list of ChartDataPoint, one bar per label.", typeof(BarChartBasicExample)),
                 new("Grouped series", "Labels name the groups; each ChartSeries adds one bar per group and a legend entry.", typeof(BarChartGroupedExample)),
-                new("Horizontal", "Horizontal flips the axes, which suits long category names.", typeof(BarChartHorizontalExample)),
+                new("Horizontal", "Horizontal flips the axes so categories read down the side; keep their names short, as the label gutter has a fixed width.", typeof(BarChartHorizontalExample)),
                 new("Per-bar colours", "Give a point any CSS colour; ChartPalette.FromColor maps a Color value to its theme token.", typeof(BarChartColorsExample)),
             ])
         {
