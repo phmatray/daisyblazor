@@ -65,6 +65,8 @@ Then build it (once, or `watch:css` during development) and link the output in y
 <!-- Icons rendered by the Icon component + Icons.Material.* -->
 <link rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+<!-- Applies the saved/OS theme before first paint (no flash, works on static SSR pages) -->
+<script src="_content/DaisyBlazor.Components/theme-init.js"></script>
 ```
 
 ## 4. Register services

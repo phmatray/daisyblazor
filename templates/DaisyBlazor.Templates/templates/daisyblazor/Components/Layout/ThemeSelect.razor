@@ -1,5 +1,6 @@
 @* A minimal theme picker bound to the cascaded ThemeProvider. Swap this for the richer
    ThemePicker component, or a ThemeController swap toggle, whenever you like. *@
+@implements IDisposable
 
 @if (Theme is not null)
 {
@@ -15,6 +16,24 @@
 
 @code {
     [CascadingParameter] private ThemeProvider? Theme { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (Theme is not null)
+        {
+            Theme.ThemeChanged += Refresh;
+        }
+    }
+
+    private void Refresh() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        if (Theme is not null)
+        {
+            Theme.ThemeChanged -= Refresh;
+        }
+    }
 
     private async Task OnChanged(ChangeEventArgs e)
     {

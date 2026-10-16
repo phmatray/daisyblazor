@@ -10,15 +10,28 @@ DaisyBlazor uses [daisyUI themes](https://daisyui.com/docs/themes/). A theme is 
 ## ThemeProvider
 
 `ThemeProvider` manages the active theme: it applies `data-theme`, follows the OS light/dark setting
-when the preference is `"system"`, and persists the choice to `localStorage` + a cookie (so SSR paints
-the right theme with no flash). It cascades itself, so descendants can read the state and switch
-themes.
+(including live changes) when the preference is `"system"`, and persists the choice to `localStorage` +
+a cookie. It cascades itself, so descendants can read the state and switch themes. Its JavaScript is a
+static ES module (no `eval`), so it works under a strict Content-Security-Policy.
 
 ```razor
 <ThemeProvider>
     @Body
 </ThemeProvider>
 ```
+
+### No flash on first paint
+
+Add the pre-paint script to `<head>` in `App.razor`, after `<base href>`. It is a plain static file
+(no inline code), runs before first paint, and works on static SSR pages that have no circuit:
+
+```html
+<script src="_content/DaisyBlazor.Components/theme-init.js"></script>
+```
+
+It reads the same `localStorage` key as `ThemeProvider` and falls back to `prefers-color-scheme`.
+If you changed the provider's defaults, mirror them on the tag:
+`data-storage-key="..."`, `data-light="mybrand"`, `data-dark="mybrand-dark"`.
 
 It is **brand-neutral and parameter-driven** — every theme name is configurable:
 
@@ -31,12 +44,30 @@ It is **brand-neutral and parameter-driven** — every theme name is configurabl
 | `StorageKey` / `CookieKey` / `DarkModeCookieKey` | `daisy-theme` / `daisy-theme` / `daisy-darkmode` | Persistence keys. |
 | `InitialPreference` | `null` | Seed from the server cookie during SSR to avoid a flash. |
 | `OnThemeChanged` | — | Raised with the resolved theme after a switch. |
+| `ThemeChanged` (event) | — | Raised on every change; subscribe to refresh a component (see below). |
 
 ### Reading & switching from a component
 
+The cascade is fixed (`IsFixed="true"`), so a theme change never re-renders the wrapped tree.
+Components that *display* theme state subscribe to `ThemeChanged`:
+
 ```razor
+@implements IDisposable
+
 @code {
     [CascadingParameter] private ThemeProvider? Theme { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (Theme is not null) Theme.ThemeChanged += Refresh;
+    }
+
+    private void Refresh() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        if (Theme is not null) Theme.ThemeChanged -= Refresh;
+    }
 
     private async Task UseDark() => await Theme!.SetThemeAsync("dark");
     private bool IsDark => Theme?.IsDarkMode ?? false;

@@ -7,15 +7,20 @@ namespace DaisyBlazor.Theming;
 /// daisyUI theme provider. Manages the selected theme (any enabled daisyUI theme, or the
 /// special <c>"system"</c> value which follows the OS light/dark setting), applies it to the
 /// document <c>data-theme</c> attribute via <see cref="IJSRuntime"/>, and persists the choice
-/// to localStorage + cookie. Cascades itself so descendants can read <see cref="Preference"/> /
-/// <see cref="Theme"/> / <see cref="IsDarkMode"/> and call <see cref="SetThemeAsync"/>.
+/// to localStorage + cookie. Cascades itself (fixed, so changes never re-render the wrapped tree):
+/// descendants read <see cref="Preference"/> / <see cref="Theme"/> / <see cref="IsDarkMode"/>, call
+/// <see cref="SetThemeAsync"/>, and subscribe to <see cref="ThemeChanged"/> to refresh themselves.
+/// <para>
+/// Add <c>&lt;script src="_content/DaisyBlazor.Components/theme-init.js"&gt;&lt;/script&gt;</c> to <c>&lt;head&gt;</c>
+/// so the theme is applied before first paint, including on static SSR pages.
+/// </para>
 /// <para>
 /// Brand-neutral: the light/dark theme applied for <c>"system"</c>, the set of selectable themes,
 /// and the set of themes considered "dark" are all parameter-driven, so any application can plug in
 /// its own daisyUI themes without modifying this component.
 /// </para>
 /// </summary>
-public partial class ThemeProvider
+public partial class ThemeProvider : IAsyncDisposable
 {
     /// <summary>The special preference value that follows the OS light/dark setting.</summary>
     public const string SystemPreference = "system";
@@ -36,6 +41,8 @@ public partial class ThemeProvider
         "dark", "synthwave", "halloween", "forest", "black", "luxury", "dracula", "business",
         "night", "coffee", "dim", "sunset", "abyss"
     ];
+
+    private const string ModulePath = "./_content/DaisyBlazor.Components/theme.js";
 
     [Inject]
     private IJSRuntime JS { get; set; } = null!;
@@ -98,6 +105,17 @@ public partial class ThemeProvider
 
     private bool _isSystemDarkMode;
 
+    private IJSObjectReference? _module;
+    private IJSObjectReference? _subscription;
+    private DotNetObjectReference<ThemeProvider>? _selfRef;
+
+    /// <summary>
+    /// Raised after the applied theme or preference changes (user selection, stored preference loaded,
+    /// or OS light/dark switch in <c>"system"</c> mode). The cascade is fixed, so descendants that display
+    /// theme state subscribe here and call <c>InvokeAsync(StateHasChanged)</c>; unsubscribe on dispose.
+    /// </summary>
+    public event Action? ThemeChanged;
+
     /// <summary>Current selection: a theme name, or <c>"system"</c>.</summary>
     public string Preference => _preference;
 
@@ -110,8 +128,6 @@ public partial class ThemeProvider
     /// <inheritdoc />
     protected override void OnInitialized()
     {
-        _resolved = SystemLightTheme;
-
         if (!string.IsNullOrEmpty(InitialPreference))
         {
             _preference = InitialPreference;
@@ -131,25 +147,41 @@ public partial class ThemeProvider
 
         try
         {
-            _isSystemDarkMode = await JS.InvokeAsync<bool>(
-                "eval",
-                "window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches");
+            _module = await JS.InvokeAsync<IJSObjectReference>("import", ModulePath);
+            _isSystemDarkMode = await _module.InvokeAsync<bool>("prefersDark");
 
-            string? stored = await JS.InvokeAsync<string?>("localStorage.getItem", StorageKey);
+            string? stored = await _module.InvokeAsync<string?>("get", StorageKey);
             if (!string.IsNullOrEmpty(stored))
             {
                 _preference = stored;
             }
+
+            _selfRef = DotNetObjectReference.Create(this);
+            _subscription = await _module.InvokeAsync<IJSObjectReference?>("subscribe", _selfRef);
         }
-        catch
+        catch (Exception ex) when (IsJsUnavailable(ex))
         {
-            // localStorage / matchMedia not available
+            return;
         }
 
         _resolved = ResolveTheme(_preference, _isSystemDarkMode);
-        await ApplyThemeAttributeAsync();
-        await PersistAsync();
-        StateHasChanged();
+        await ApplyAsync();
+        ThemeChanged?.Invoke();
+    }
+
+    /// <summary>Called from JS when the OS light/dark setting changes.</summary>
+    [JSInvokable]
+    public async Task OnSystemThemeChanged(bool isDark)
+    {
+        _isSystemDarkMode = isDark;
+        if (!string.Equals(_preference, SystemPreference, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        _resolved = ResolveTheme(_preference, isDark);
+        await ApplyAsync();
+        await NotifyAsync();
     }
 
     /// <summary>Resolves a preference (theme name or "system") to a concrete daisyUI theme.</summary>
@@ -176,9 +208,13 @@ public partial class ThemeProvider
 
         _preference = preference;
         _resolved = ResolveTheme(_preference, _isSystemDarkMode);
-        await ApplyThemeAttributeAsync();
-        await PersistAsync();
-        StateHasChanged();
+        await ApplyAsync();
+        await NotifyAsync();
+    }
+
+    private async Task NotifyAsync()
+    {
+        ThemeChanged?.Invoke();
 
         if (OnThemeChanged.HasDelegate)
         {
@@ -186,31 +222,45 @@ public partial class ThemeProvider
         }
     }
 
-    private async Task ApplyThemeAttributeAsync()
+    /// <summary>Applies <c>data-theme</c> and persists to localStorage + cookies (no-op without a JS runtime).</summary>
+    private async Task ApplyAsync()
     {
         try
         {
-            await JS.InvokeVoidAsync("document.documentElement.setAttribute", "data-theme", _resolved);
+            _module ??= await JS.InvokeAsync<IJSObjectReference>("import", ModulePath);
+            await _module.InvokeVoidAsync("set", StorageKey, CookieKey, DarkModeCookieKey, _preference, _resolved);
         }
-        catch
+        catch (Exception ex) when (IsJsUnavailable(ex))
         {
-            // DOM not available
+            // Prerendering / static SSR / disconnected circuit: theme-init.js covers first paint.
         }
     }
 
-    private async Task PersistAsync()
+    private static bool IsJsUnavailable(Exception ex) =>
+        ex is JSDisconnectedException or InvalidOperationException or JSException or TaskCanceledException;
+
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
     {
         try
         {
-            await JS.InvokeVoidAsync("localStorage.setItem", StorageKey, _preference);
-            await JS.InvokeVoidAsync(
-                "eval",
-                $"document.cookie = '{CookieKey}={_preference};path=/;max-age=31536000';" +
-                $"document.cookie = '{DarkModeCookieKey}={_resolved};path=/;max-age=31536000'");
+            if (_subscription is not null)
+            {
+                await _subscription.InvokeVoidAsync("dispose");
+                await _subscription.DisposeAsync();
+            }
+
+            if (_module is not null)
+            {
+                await _module.DisposeAsync();
+            }
         }
-        catch
+        catch (Exception ex) when (IsJsUnavailable(ex))
         {
-            // localStorage / cookie not available
+            // Circuit already gone; the browser drops the listener with the page.
         }
+
+        _selfRef?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

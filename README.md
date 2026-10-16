@@ -148,6 +148,12 @@ Wrap your app in `ThemeProvider` once to get 35 daisyUI themes, dark-mode detect
 </ThemeProvider>
 ```
 
+Add the pre-paint script to `<head>` in `App.razor` so the saved theme is applied before first paint (no flash, works on static SSR pages, CSP-friendly):
+
+```html
+<script src="_content/DaisyBlazor.Components/theme-init.js"></script>
+```
+
 Explore every component live with the gallery sample:
 
 ```bash
