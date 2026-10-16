@@ -1,0 +1,85 @@
+name: release-please
+
+# Derives the next semantic version from Conventional Commits on every push to `main` and keeps a
+# release PR up to date (bumping <Version> in Directory.Build.props and the template's package
+# references via the x-release-please-version markers, plus CHANGELOG.md and
+# .release-please-manifest.json). Merging that PR tags vX.Y.Z, creates the GitHub Release, and the
+# publish job below pushes the packages to NuGet and attaches them to the Release.
+#
+# The publish job lives in THIS workflow, gated on `release_created`: a tag pushed by
+# release-please-action with the default GITHUB_TOKEN does not trigger other workflows.
+#
+# PRs land squash-merged, so the PR TITLE becomes the commit message on `main`: it is the PR title
+# that decides the next version.
+
+on:
+  push:
+    branches: [main]
+  # Manual re-run, e.g. after a failed publish. Idempotent: it refreshes the same release PR.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+# Serialize runs so two overlapping pushes can't race on the release PR or the tag.
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@v5
+        with:
+          target-branch: main
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish:
+    name: Pack & publish
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Test
+        run: dotnet test --project tests/DaisyBlazor.Components.Tests/DaisyBlazor.Components.Tests.csproj -c Release
+
+      - name: Pack
+        run: |
+          set -e
+          dotnet pack src/DaisyBlazor.Components/DaisyBlazor.Components.csproj -c Release -o artifacts
+          dotnet pack src/DaisyBlazor.Charts/DaisyBlazor.Charts.csproj         -c Release -o artifacts
+          dotnet pack templates/DaisyBlazor.Templates/DaisyBlazor.Templates.csproj -c Release -o artifacts
+          ls -1 artifacts/*.nupkg
+
+      - name: Push to NuGet
+        run: |
+          set -e
+          for pkg in artifacts/*.nupkg; do
+            dotnet nuget push "$pkg" \
+              -k "${{ secrets.NUGET_API_KEY }}" \
+              -s https://api.nuget.org/v3/index.json \
+              --skip-duplicate
+          done
+
+      - name: Attach packages to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ needs.release-please.outputs.tag_name }}" artifacts/*.nupkg --clobber

@@ -7,12 +7,11 @@
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
   </PropertyGroup>
 
-  <!-- Keep these in sync with <Version> in the repository's Directory.Build.props, so a freshly
-       scaffolded app pulls the version that was just published (they were left at 0.1.1 while
-       the kit shipped 0.2.3). -->
+  <!-- release-please bumps these with each DaisyBlazor release, so a freshly scaffolded app
+       pulls the version that was just published. -->
   <ItemGroup>
-    <PackageReference Include="DaisyBlazor.Components" Version="0.3.0" />
-    <PackageReference Include="DaisyBlazor.Charts" Version="0.3.0" />
+    <PackageReference Include="DaisyBlazor.Components" Version="0.3.0" /> <!-- x-release-please-version -->
+    <PackageReference Include="DaisyBlazor.Charts" Version="0.3.0" /> <!-- x-release-please-version -->
   </ItemGroup>
 
   <!-- DaisyBlazor.Components compiles Styles/main.css to wwwroot/css/app.css on every build with
