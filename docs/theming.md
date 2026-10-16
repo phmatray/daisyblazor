@@ -56,9 +56,9 @@ Add a daisyUI theme block to your `main.css` after the preset import, then point
 
 ```css
 @import "tailwindcss";
-@import "daisyblazor/preset.css";
+@import "../obj/daisyblazor/preset.css";
 
-@plugin "daisyui/theme" {
+@plugin "../obj/daisyblazor/daisyui-theme.mjs" {
     name: "mybrand";
     default: true;
     color-scheme: light;

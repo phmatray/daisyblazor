@@ -53,7 +53,7 @@
 - **MudBlazor-compatible API** — `Button`, `Card`, `Table`, `IDialogService`, `ISnackbar`, `Icons.Material.*` let existing MudBlazor apps migrate incrementally, one `MudX` → `X` rename at a time.
 - **`ThemeProvider` theming** — a cascading, MudThemeProvider-style component with 35 built-in daisyUI themes, dark-mode resolution via `prefers-color-scheme`, and SSR-safe persistence to localStorage/cookies.
 - **Dependency-free SVG charts** — `LineChart`, `AreaChart`, `BarChart`, `PieChart`, `DonutChart` render as plain SVG and automatically follow the active daisyUI theme, with no JS charting runtime.
-- **Shippable CSS preset** — one `@import "@daisyblazor/tailwind/preset.css";` wires up daisyUI, the theme set, and the dynamic-class safelist for Tailwind v4.
+- **Shippable CSS preset** — one `@import` wires up daisyUI, the theme set, and the class safelist for Tailwind v4 — shipped in the NuGet package, which also runs the Tailwind standalone CLI for you: no Node or npm needed.
 - **`dotnet new daisyblazor` template** — scaffolds a fully wired app (Tailwind, daisyUI, DI) in seconds.
 - **Runnable component gallery** — `samples/DaisyBlazor.Gallery` showcases every component and chart live.
 
@@ -85,14 +85,20 @@ Scaffold a new app:
 ```bash
 dotnet new install DaisyBlazor.Templates
 dotnet new daisyblazor -o MyApp
-cd MyApp && npm install && dotnet run
+cd MyApp && dotnet run
 ```
 
 …or add it to an existing Blazor app:
 
 ```bash
 dotnet add package DaisyBlazor.Components
-npm install -D tailwindcss @tailwindcss/cli @daisyblazor/tailwind
+```
+
+```xml
+<!-- MyApp.csproj: compile Styles/main.css with the Tailwind standalone CLI on every build (no Node/npm) -->
+<PropertyGroup>
+  <DaisyBlazorBuildCss>true</DaisyBlazorBuildCss>
+</PropertyGroup>
 ```
 
 ```csharp
@@ -101,9 +107,9 @@ builder.Services.AddDaisyBlazor();
 ```
 
 ```css
-/* Styles/main.css — the preset already safelists every class the components use. */
+/* Styles/main.css — the package copies the preset to obj/daisyblazor/ on every build. */
 @import "tailwindcss";
-@import "@daisyblazor/tailwind/preset.css";
+@import "../obj/daisyblazor/preset.css";
 @source "./Components/**/*.{razor,cs}";
 ```
 
@@ -166,7 +172,6 @@ dotnet run --project samples/DaisyBlazor.Gallery
 | **DaisyBlazor.Components** | [![nuget](https://img.shields.io/nuget/v/DaisyBlazor.Components?label=)](https://www.nuget.org/packages/DaisyBlazor.Components) | The component kit: daisyUI-native components + MudBlazor-compatible surface, `ThemeProvider`, dialog/snackbar services, and the CSS preset. |
 | **DaisyBlazor.Charts** | [![nuget](https://img.shields.io/nuget/v/DaisyBlazor.Charts?label=)](https://www.nuget.org/packages/DaisyBlazor.Charts) | Dependency-free SVG charts (line, area, bar, pie/donut, sparkline) themed by daisyUI. |
 | **DaisyBlazor.Templates** | [![nuget](https://img.shields.io/nuget/v/DaisyBlazor.Templates?label=)](https://www.nuget.org/packages/DaisyBlazor.Templates) | `dotnet new daisyblazor` starter template. |
-| **@daisyblazor/tailwind** | [![npm](https://img.shields.io/npm/v/@daisyblazor/tailwind?label=)](https://www.npmjs.com/package/@daisyblazor/tailwind) | npm package shipping the Tailwind/daisyUI preset for non-.NET build pipelines. |
 
 ## Screenshots
 
@@ -186,7 +191,7 @@ Run the live gallery yourself: `dotnet run --project samples/DaisyBlazor.Gallery
 ## Repo layout
 
 ```
-src/        DaisyBlazor.Components, DaisyBlazor.Charts, DaisyBlazor.Tailwind
+src/        DaisyBlazor.Components, DaisyBlazor.Charts
 samples/    DaisyBlazor.Gallery — a runnable showcase of every component
 templates/  DaisyBlazor.Templates — dotnet new template
 website/    Astro Starlight documentation site (GitHub Pages)
@@ -226,7 +231,6 @@ scripts/    update-deps, build-css, pack
 - [ ] Add more MudBlazor-compatible surfaces to ease larger migrations
 - [ ] Expand the `dotnet new daisyblazor` template with more starter layouts
 - [ ] Broaden bUnit test coverage across the component set
-- [ ] Publish additional recipes for the `@daisyblazor/tailwind` npm preset in non-.NET pipelines
 
 Track progress and proposals in the [open issues](https://github.com/phmatray/daisyblazor/issues).
 

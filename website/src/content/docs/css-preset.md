@@ -1,17 +1,57 @@
 ---
 title: CSS preset
-description: What preset.css ships — the daisyUI plugin, registered themes, the generated class safelist, and how to install it from npm.
+description: What preset.css ships, how the DaisyBlazor.Components NuGet package delivers it and builds your CSS without Node or npm, and the generated class safelist.
 ---
 
-DaisyBlazor ships a Tailwind CSS v4 + daisyUI v5 **preset** — `preset.css` — that does three jobs so
-your app doesn't have to:
+DaisyBlazor ships a Tailwind CSS v4 + daisyUI v5 **preset** inside the `DaisyBlazor.Components` NuGet
+package. Nothing comes from npm: the preset bundles daisyUI itself, and the package can run the
+Tailwind standalone CLI for you. The preset does three jobs:
 
-1. **Enables the daisyUI plugin** with `logs: false`.
+1. **Enables daisyUI** (a vendored copy of daisyUI's standalone bundle, so no `npm install daisyui`).
 2. **Registers themes**: the two neutral DaisyBlazor defaults — `daisyblazor` (light, the default) and
    `daisyblazor-dark` (dark, `prefers-color-scheme: dark`) — plus all 35 built-in daisyUI v5 themes
    (`light`, `dark`, `cupcake`, `synthwave`, `dracula`, `nord`, `business`, `night`, `dim`, `sunset`,
    `abyss`, `silk`, …).
 3. **Safelists every class the components emit** so they survive Tailwind's purge (see below).
+
+## Wiring it into your app
+
+On every build, the package copies the preset into your project's `obj/daisyblazor/` folder. Turn on
+the CSS build in your `.csproj`:
+
+```xml
+<PropertyGroup>
+  <DaisyBlazorBuildCss>true</DaisyBlazorBuildCss>
+</PropertyGroup>
+```
+
+and write `Styles/main.css`:
+
+```css
+@import "tailwindcss";
+@import "../obj/daisyblazor/preset.css";
+
+/* Your own markup. The packaged components need no glob: the preset safelists their classes. */
+@source "./Components/**/*.{razor,cs}";
+```
+
+`dotnet build` then compiles `Styles/main.css` to `wwwroot/css/app.css`. The first build downloads the
+pinned [Tailwind CSS standalone CLI](https://github.com/tailwindlabs/tailwindcss/releases) into a
+per-user cache (`~/.local/share/daisyblazor/tailwind/<version>/` on Linux,
+`%LOCALAPPDATA%\daisyblazor\tailwind\<version>\` on Windows); later builds reuse it. Link the output in
+your host page. The `dotnet new daisyblazor` template wires all of this for you.
+
+| MSBuild property | Default | Purpose |
+| --- | --- | --- |
+| `DaisyBlazorBuildCss` | `false` | Compile the CSS on build with the Tailwind standalone CLI. |
+| `DaisyBlazorCssInput` | `Styles/main.css` | Tailwind entry stylesheet. |
+| `DaisyBlazorCssOutput` | `wwwroot/css/app.css` | Compiled stylesheet. |
+| `DaisyBlazorTailwindVersion` | the version the package was tested with | Tailwind CLI release to download. |
+| `DaisyBlazorTailwindPath` | the cached download | Use your own Tailwind binary (offline builds, musl Linux). |
+| `DaisyBlazorStylesDir` | `obj/daisyblazor/` | Where the preset is copied. |
+
+Already building CSS with the npm `tailwindcss` CLI or Vite? Leave `DaisyBlazorBuildCss` off and just
+import `obj/daisyblazor/preset.css` from your stylesheet — the copy happens either way.
 
 ### Only the DaisyBlazor themes: `preset-core.css`
 
@@ -20,28 +60,26 @@ plus your own theme blocks), import `preset-core.css` instead. It is identical a
 
 ```css
 @import "tailwindcss";
-@import "@daisyblazor/tailwind/preset-core.css";
+@import "../obj/daisyblazor/preset-core.css";
 ```
 
-If you declare **all** your themes yourself, import just `@daisyblazor/tailwind/safelist.css` and keep
-your own `@plugin "daisyui"` block.
+### Only your own themes: `safelist.css`
 
-## Wiring it into your app
-
-Your app's source stylesheet (`Styles/main.css`) imports Tailwind, then the preset, then declares the
-`@source` globs Tailwind uses to discover the classes **your own** markup uses (the preset already
-covers the components' classes):
+If you declare **all** your themes yourself, import just the safelist and enable daisyUI with your own
+theme list, using the bundles the package copied next to it:
 
 ```css
 @import "tailwindcss";
-@import "@daisyblazor/tailwind/preset.css";
+@import "../obj/daisyblazor/safelist.css";
 
-@source "./Components/**/*.razor";
-@source "./Components/**/*.cs";
+@plugin "../obj/daisyblazor/daisyui.mjs" {
+    themes: mybrand --default, mybrand-dark --prefersdark;
+}
+@plugin "../obj/daisyblazor/daisyui-theme.mjs" {
+    name: "mybrand";
+    /* --color-primary: …; etc. */
+}
 ```
-
-Compile it with the Tailwind CLI (`npm run build:css` / `watch:css`) and link the output in your host
-page. The DaisyBlazor template wires all of this for you.
 
 ## `@source` globs
 
@@ -72,32 +110,6 @@ cannot scan them. `safelist.css` therefore force-generates, with `@source inline
 
 So you do **not** need any `@source` glob pointing at the DaisyBlazor packages.
 
-## The `@daisyblazor/tailwind` npm package
-
-So the preset is resolvable by name (rather than by a fragile relative path into a NuGet cache),
-DaisyBlazor publishes the preset as the npm package **`@daisyblazor/tailwind`**. Add it to your
-`devDependencies` and import it as `@daisyblazor/tailwind/preset.css`:
-
-```json
-{
-  "devDependencies": {
-    "@daisyblazor/tailwind": "^0.3.0",
-    "@tailwindcss/cli": "^4.1.0",
-    "tailwindcss": "^4.1.0"
-  }
-}
-```
-
-```css
-@import "@daisyblazor/tailwind/preset.css";
-```
-
-The package depends on `daisyui`, so you don't need to install it separately.
-
-> Alternatively, copy the `.css` files (`preset.css`, `preset-core.css`, `kit.css`, `safelist.css`)
-> out of the DaisyBlazor.Components NuGet package's `staticwebassets/styles` folder and import
-> `preset.css` by relative path.
-
 ## The required Material Symbols webfont
 
 The `Icon` component and the `Icons.Material.*` constants render
@@ -111,16 +123,6 @@ The `Icon` component and the `Icons.Material.*` constants render
 ```
 
 Without it, icons render as their literal ligature text.
-
-## Monorepo / workspace node_modules note
-
-The Tailwind CLI resolves the daisyUI plugin (referenced by the preset) through Node's normal module
-resolution. In a single app that's just the app's own `node_modules`. In a **monorepo** where the CSS is
-built from a nested project, Node walks up the directory tree — so daisyUI must be resolvable from
-either the project's `node_modules` **or** a workspace/root `node_modules`. This repo keeps a
-root-level `package.json` with `daisyui`/`tailwindcss` for exactly that reason: it lets the shipped
-preset's `@plugin "daisyui"` resolve during local CSS builds of the samples. If a build fails with
-"cannot find module 'daisyui'", add daisyUI to the nearest `node_modules` the CLI can see.
 
 ## See also
 

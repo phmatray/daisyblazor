@@ -20,9 +20,9 @@ dotnet new install DaisyBlazor.Templates
 ```bash
 dotnet new daisyblazor -o MyApp
 cd MyApp
-npm install
 dotnet run
 ```
 
-The generated app builds its Tailwind/daisyUI CSS automatically on `dotnet build`. See the project
+The generated app builds its Tailwind/daisyUI CSS automatically on `dotnet build`, with no Node or
+npm: the DaisyBlazor.Components package ships the preset and runs the Tailwind standalone CLI. See the project
 `README.md` for details.

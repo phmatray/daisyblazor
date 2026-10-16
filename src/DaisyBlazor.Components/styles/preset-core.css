@@ -10,7 +10,7 @@
    for a much smaller stylesheet.
    =========================================================================== */
 
-@plugin "daisyui" {
+@plugin "./daisyui.mjs" {
     themes: daisyblazor --default, daisyblazor-dark --prefersdark;
     logs: false;
 }

@@ -12,7 +12,7 @@
 @import "./safelist.css";
 
 /* ---- DaisyBlazor default light theme (neutral blue / purple / amber) ---- */
-@plugin "daisyui/theme" {
+@plugin "./daisyui-theme.mjs" {
     name: "daisyblazor";
     default: true;
     prefersdark: false;
@@ -52,7 +52,7 @@
 }
 
 /* ---- DaisyBlazor default dark theme ---- */
-@plugin "daisyui/theme" {
+@plugin "./daisyui-theme.mjs" {
     name: "daisyblazor-dark";
     default: false;
     prefersdark: true;

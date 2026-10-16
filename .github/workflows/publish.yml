@@ -1,7 +1,7 @@
 name: publish
 
 # Auto-publish on the release branch. To cut a release: bump <Version> in
-# Directory.Build.props (and src/DaisyBlazor.Tailwind/package.json) on main, then
+# Directory.Build.props on main, then
 # fast-forward `release` to that commit:  git push origin main:release
 on:
   push:
@@ -10,14 +10,11 @@ on:
 
 permissions:
   contents: write   # create tags + GitHub releases
-  id-token: write   # npm provenance
 
 jobs:
   publish:
     name: Pack & publish
     runs-on: ubuntu-latest
-    env:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -27,12 +24,6 @@ jobs:
         uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
-
-      - name: Setup Node
-        uses: actions/setup-node@v7
-        with:
-          node-version: '24'
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Read version
         id: ver
@@ -60,12 +51,6 @@ jobs:
               --skip-duplicate
           done
 
-      - name: Publish npm preset
-        if: env.NPM_TOKEN != ''
-        working-directory: src/DaisyBlazor.Tailwind
-        run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Tag + GitHub release
         env:

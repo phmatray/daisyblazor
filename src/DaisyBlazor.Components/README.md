@@ -14,7 +14,13 @@ Blazor (Server or WebAssembly). It gives you:
 
 ```bash
 dotnet add package DaisyBlazor.Components
-npm install -D tailwindcss @tailwindcss/cli @daisyblazor/tailwind
+```
+
+```xml
+<!-- MyApp.csproj: compile Styles/main.css with the Tailwind standalone CLI on every build (no Node/npm) -->
+<PropertyGroup>
+  <DaisyBlazorBuildCss>true</DaisyBlazorBuildCss>
+</PropertyGroup>
 ```
 
 ## Wire up
@@ -36,7 +42,7 @@ Your `main.css`:
 
 ```css
 @import "tailwindcss";
-@import "@daisyblazor/tailwind/preset.css";  /* daisyUI plugin + themes + class safelist */
+@import "../obj/daisyblazor/preset.css";      /* daisyUI + themes + class safelist, copied by the package */
 @source "./Components/**/*.{razor,cs}";       /* your own markup only */
 ```
 

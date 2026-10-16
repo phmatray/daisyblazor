@@ -11,7 +11,7 @@
    Import preset-core.css instead.
    =========================================================================== */
 
-@plugin "daisyui" {
+@plugin "./daisyui.mjs" {
     themes:
         daisyblazor --default, daisyblazor-dark --prefersdark,
         light, dark, cupcake, bumblebee, emerald, corporate, synthwave, retro,

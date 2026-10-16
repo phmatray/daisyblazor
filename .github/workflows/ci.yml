@@ -41,3 +41,7 @@ jobs:
 
       - name: Test
         run: dotnet test --no-build -c Release --verbosity normal
+
+      # Scaffold the dotnet-new app against the freshly packed packages: NuGet-only CSS build.
+      - name: Template smoke test
+        run: ./scripts/test-template.sh

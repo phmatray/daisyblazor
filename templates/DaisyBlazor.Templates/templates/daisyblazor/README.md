@@ -7,27 +7,20 @@ theme switching, and dependency-free SVG charts.
 ## Run it
 
 ```bash
-npm install     # restores Tailwind CLI + daisyUI + the DaisyBlazor preset (first run only)
 dotnet run      # builds the CSS, then starts the app on http://localhost:5080
 ```
 
-`dotnet build` / `dotnet run` automatically rebuild `wwwroot/css/app.css` via the
-`BuildDaisyBlazorCss` MSBuild target (it runs `npm install` on the first build, then
-`npm run build:css`). For a fast feedback loop while editing markup, run the Tailwind watcher in a
-second terminal:
-
-```bash
-npm run watch:css
-```
+No Node or npm needed: `dotnet build` / `dotnet run` rebuild `wwwroot/css/app.css` through the
+`DaisyBlazorBuildCss` target shipped in the DaisyBlazor.Components package. It downloads the
+Tailwind CSS standalone CLI once into a per-user cache, then compiles `Styles/main.css`.
 
 ## Where things live
 
 | Path | What it is |
 |------|------------|
-| `Styles/main.css` | Tailwind entry point: imports the local preset, declares `@source` globs, and the app brand layer. **Edit themes / source globs here.** |
-| `Styles/preset.css` | The DaisyBlazor Tailwind/daisyUI preset (daisyUI plugin + themes + C# safelist), vendored locally so the app needs no npm dependency on DaisyBlazor. Edit freely. |
+| `Styles/main.css` | Tailwind entry point: imports the DaisyBlazor preset, declares `@source` globs, and the app brand layer. **Edit themes / source globs here.** |
+| `obj/daisyblazor/` | The DaisyBlazor preset (daisyUI + themes + class safelist), copied from the NuGet package on every build. |
 | `wwwroot/css/app.css` | Generated stylesheet (do not hand-edit). |
-| `package.json` | Tailwind CLI + daisyUI (the front-end build tools). |
 | `Program.cs` | `AddRazorComponents().AddInteractiveServerComponents()` + `AddDaisyBlazor()`. |
 | `Components/App.razor` | Host page — links `app.css`, Material Symbols + Plus Jakarta Sans fonts. |
 | `Components/Layout/MainLayout.razor` | `ThemeProvider`, navbar, theme picker, `DialogProvider` + `SnackbarProvider`. |
@@ -37,6 +30,7 @@ npm run watch:css
 
 The `daisyblazor` (light) and `daisyblazor-dark` themes ship in the preset, alongside all built-in
 daisyUI themes. Switch at runtime via the picker in the navbar, or wire your own brand theme by
-adding a `@plugin "daisyui/theme"` block to `Styles/main.css` and pointing `ThemeProvider` at it.
+adding a `@plugin "../obj/daisyblazor/daisyui-theme.mjs" { name: "mybrand"; ... }` block to
+`Styles/main.css` and pointing `ThemeProvider` at it.
 
 See the DaisyBlazor docs: getting-started, theming, css-preset, components, and charts.

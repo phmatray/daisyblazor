@@ -2,7 +2,7 @@
   "name": "daisyblazor-workspace",
   "version": "0.1.0",
   "private": true,
-  "description": "Workspace-level front-end deps for DaisyBlazor (so the shipped preset's daisyUI plugin resolves during local CSS builds).",
+  "description": "Repo dev tooling: Tailwind CLI for the gallery and scripts/gen-styles.mjs. The daisyui version here is the one gen-styles.mjs vendors into the NuGet preset (Renovate bumps it).",
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.0",
     "daisyui": "5.7.50",
