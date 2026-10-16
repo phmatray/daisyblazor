@@ -5,7 +5,7 @@
 
 @if (!string.IsNullOrEmpty(Href))
 {
-    <a href="@Href" class="@_cls" style="@Style" aria-label="@_ariaLabel" @attributes="UserAttributes">
+    <a href="@Href" class="@_cls" style="@Style" aria-label="@_ariaLabel" aria-current="@(Active ? "page" : null)" @attributes="UserAttributes">
         @if (!string.IsNullOrEmpty(Icon))
         {
             <Icon Name="@Icon" />
@@ -18,7 +18,7 @@
 }
 else
 {
-    <button type="button" class="@_cls" style="@Style" aria-label="@_ariaLabel" @onclick="OnClick" @attributes="UserAttributes">
+    <button type="button" class="@_cls" style="@Style" aria-label="@_ariaLabel" aria-current="@(Active ? "true" : null)" @onclick="OnClick" @attributes="UserAttributes">
         @if (!string.IsNullOrEmpty(Icon))
         {
             <Icon Name="@Icon" />
@@ -31,7 +31,7 @@ else
 }
 
 @code {
-    /// <summary>Marks this item as the currently active/selected dock entry.</summary>
+    /// <summary>Marks this item as the currently active/selected dock entry (dock-active; aria-current="page" on links, "true" on buttons).</summary>
     [Parameter] public bool Active { get; set; }
 
     /// <summary>Optional text label rendered below the icon via the daisyUI .dock-label class.</summary>

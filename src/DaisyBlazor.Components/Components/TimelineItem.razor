@@ -5,7 +5,7 @@
    content box and the opposite content on either side; the parent Timeline decides which side. *@
 
 <li @attributes="UserAttributes">
-    <hr />
+    <hr class="[li:first-child>&]:hidden" />
     @if (_contentOnStart)
     {
         <div class="@_contentCls" style="@Style">@Body</div>
@@ -14,7 +14,7 @@
     {
         <div class="@_oppositeCls">@ItemOpposite</div>
     }
-    <div class="timeline-middle">
+    <div class="timeline-middle flex min-w-5 justify-center">
         @if (!string.IsNullOrEmpty(Icon))
         {
             <Icon Name="@Icon" Size="@Size" Color="@Color" />
@@ -32,7 +32,7 @@
     {
         <div class="@_oppositeCls">@ItemOpposite</div>
     }
-    <hr />
+    <hr class="[li:last-child>&]:hidden" />
 </li>
 
 @code {

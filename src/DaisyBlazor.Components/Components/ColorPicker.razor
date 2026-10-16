@@ -6,19 +6,21 @@
 <div class="@_fieldsetCls" style="@Style">
     @if (!string.IsNullOrEmpty(Label))
     {
-        <label class="label">
+        <label class="label" for="@_id">
             <span class="label-text">@Label</span>
         </label>
     }
-    <label class="@_wrapperCls">
+    @* A div, not a label: a wrapping label would add the hex text to the input's accessible name. *@
+    <div class="@_wrapperCls">
         <input type="color"
+               id="@_id"
                class="w-8 h-8 p-0 border-0 bg-transparent cursor-pointer"
                value="@_hex"
                disabled="@Disabled"
                @onchange="OnChange"
                @attributes="UserAttributes" />
         <span class="grow font-mono text-sm">@_current</span>
-    </label>
+    </div>
 </div>
 
 @code {
@@ -46,6 +48,9 @@
     /// <summary>Inline styles applied to the outer <c>fieldset</c>.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
+
+    private readonly string _generatedId = FieldId.New();
+    private string _id => FieldId.Resolve(UserAttributes, _generatedId);
 
     private string? _current => Text ?? Value;
 
