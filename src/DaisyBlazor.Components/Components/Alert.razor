@@ -3,10 +3,10 @@
 @* MudAlert replacement. daisyUI .alert with severity color, optional soft/outline variant,
    an automatic severity icon (unless NoIcon) and child content. *@
 
-<div role="alert" class="@_cls" style="@Style" @attributes="UserAttributes">
+<div role="@_role" class="@_cls" style="@Style" @attributes="UserAttributes">
     @if (!NoIcon)
     {
-        <Icon Name="@_icon" />
+        <Icon Name="@_icon" Class="@(_tinted ? _tint : null)" />
     }
     <span>@ChildContent</span>
 </div>
@@ -27,21 +27,43 @@
     /// <summary>Suppress the leading severity icon.</summary>
     [Parameter] public bool NoIcon { get; set; }
 
+    /// <summary>
+    /// ARIA role of the alert. When null (default), Warning and Error use the assertive
+    /// <c>alert</c> role and the other severities the polite <c>status</c> role.
+    /// </summary>
+    [Parameter] public string? Role { get; set; }
+
     /// <summary>Extra CSS classes added to the alert.</summary>
     [Parameter] public string? Class { get; set; }
     /// <summary>Inline CSS style applied to the alert.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
-    private string _icon => !string.IsNullOrEmpty(Icon)
-        ? Icon!
-        : Severity switch
-        {
-            Severity.Success => Icons.Material.Filled.CheckCircle,
-            Severity.Warning => Icons.Material.Filled.Warning,
-            Severity.Error => Icons.Material.Filled.Error,
-            _ => Icons.Material.Filled.Info
-        };
+    private string _icon => !string.IsNullOrEmpty(Icon) ? Icon! : SeverityIcon(Severity);
+
+    /// <summary>The default icon for a severity; shared with <see cref="SnackbarProvider"/>.</summary>
+    internal static string SeverityIcon(Severity severity) => severity switch
+    {
+        Severity.Success => Icons.Material.Filled.CheckCircle,
+        Severity.Warning => Icons.Material.Filled.Warning,
+        Severity.Error => Icons.Material.Filled.Error,
+        _ => Icons.Material.Filled.Info
+    };
+
+    private string _role => Role ?? (Severity is Severity.Warning or Severity.Error ? "alert" : "status");
+
+    private string? _tint => Severity switch
+    {
+        Severity.Info => "text-info",
+        Severity.Success => "text-success",
+        Severity.Warning => "text-warning",
+        Severity.Error => "text-error",
+        _ => null
+    };
+
+    // Outlined/soft alerts sit on the page background: tinted text there (amber on white) fails
+    // contrast, so keep the text base-content and tint only the border/background and the icon.
+    private bool _tinted => Variant is Variant.Outlined or Variant.Text && _tint is not null;
 
     private string _variantClass => Variant switch
     {
@@ -54,6 +76,7 @@
         "alert",
         CssClass.AlertSeverity(Severity),
         _variantClass,
+        _tinted ? "text-base-content" : null,
         Dense ? "py-2" : null,
         Class);
 }

@@ -9,8 +9,7 @@
                 disabled="@(Disabled || Selected <= 1)"
                 aria-label="@FirstPageLabel"
                 @onclick="@(() => SelectPage(1))">
-            <Icon Name="@Icons.Material.Filled.ChevronLeft" Size="Size.Small" />
-            <Icon Name="@Icons.Material.Filled.ChevronLeft" Size="Size.Small" />
+            <Icon Name="@Icons.Material.Filled.FirstPage" Size="Size.Small" />
         </button>
     }
 
@@ -25,7 +24,7 @@
     {
         if (page < 0)
         {
-            <button type="button" class="join-item btn btn-sm btn-disabled" disabled>…</button>
+            <span class="join-item btn btn-sm btn-disabled" aria-hidden="true">…</span>
         }
         else
         {
@@ -51,8 +50,7 @@
                 disabled="@(Disabled || Selected >= Count)"
                 aria-label="@LastPageLabel"
                 @onclick="@(() => SelectPage(Count))">
-            <Icon Name="@Icons.Material.Filled.ChevronRight" Size="Size.Small" />
-            <Icon Name="@Icons.Material.Filled.ChevronRight" Size="Size.Small" />
+            <Icon Name="@Icons.Material.Filled.LastPage" Size="Size.Small" />
         </button>
     }
 </nav>
@@ -72,7 +70,7 @@
     [Parameter] public int BoundaryCount { get; set; } = 1;
     /// <summary>Number of pages shown around the selected page; defaults to 3.</summary>
     [Parameter] public int MiddleCount { get; set; } = 3;
-    /// <summary>Color of the selected page button (btn-{color}); Default uses btn-active.</summary>
+    /// <summary>Color of the selected page button (btn-{color}); Default uses btn-neutral.</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
     /// <summary>Disables every page and navigation button.</summary>
     [Parameter] public bool Disabled { get; set; }
@@ -98,9 +96,10 @@
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
-    private string _cls => CssClass.Merge("join", Class);
+    // overflow-x-auto: long ranges scroll inside their container instead of being clipped.
+    private string _cls => CssClass.Merge("join max-w-full overflow-x-auto", Class);
 
-    private string _activeColor => CssClass.ButtonColor(Color) is { Length: > 0 } c ? c : "btn-active";
+    private string _activeColor => CssClass.ButtonColor(Color) is { Length: > 0 } c ? c : "btn-neutral";
 
     private string _pageCls(int page) => CssClass.Merge(
         "join-item btn btn-sm",
@@ -143,7 +142,12 @@
             int previous = 0;
             foreach (int page in ordered)
             {
-                if (previous != 0 && page - previous > 1)
+                // A one-page gap shows that page; an ellipsis would take the same space.
+                if (previous != 0 && page - previous == 2)
+                {
+                    result.Add(previous + 1);
+                }
+                else if (previous != 0 && page - previous > 2)
                 {
                     result.Add(-1);
                 }

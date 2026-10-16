@@ -166,11 +166,8 @@
 
     private static string SeverityIcon(Severity severity) => severity switch
     {
-        Severity.Info => Icons.Material.Filled.Info,
-        Severity.Success => Icons.Material.Filled.CheckCircle,
-        Severity.Warning => Icons.Material.Filled.Warning,
-        Severity.Error => Icons.Material.Outlined.Error,
-        _ => Icons.Material.Filled.Notifications
+        Severity.Normal => Icons.Material.Filled.Notifications,
+        _ => Alert.SeverityIcon(severity)
     };
 
     public void Dispose()
