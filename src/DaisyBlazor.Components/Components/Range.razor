@@ -7,10 +7,11 @@
 <input type="range"
        class="@_cls"
        style="@Style"
-       min="@Min"
-       max="@Max"
-       step="@Step"
-       value="@Value"
+       min="@Inv(Min)"
+       max="@Inv(Max)"
+       step="@Inv(Step)"
+       value="@Inv(Value)"
+       aria-label="@Label"
        @oninput="OnInput"
        @attributes="UserAttributes" />
 
@@ -29,6 +30,9 @@
 
     /// <summary>Granularity of each step. Defaults to 1.</summary>
     [Parameter] public double Step { get; set; } = 1;
+
+    /// <summary>Accessible name of the slider, emitted as <c>aria-label</c> (not rendered visibly).</summary>
+    [Parameter] public string? Label { get; set; }
 
     /// <summary>Semantic color applied as range-{token} (e.g. range-primary).</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
@@ -63,6 +67,9 @@
         _colorClass,
         _sizeClass,
         Class);
+
+    // input type=range only accepts "." decimals, so never format with the (browser) current culture.
+    private static string Inv(double v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
     private async Task OnInput(ChangeEventArgs e)
     {

@@ -2,26 +2,28 @@
 
 @* MudPaper replacement. A surface panel (daisyUI base-100 + rounded-box + optional border/shadow). *@
 
-<div class="@_cls" style="@Style" @onclick="OnClick" @attributes="UserAttributes">
+<div class="@_cls" style="@_style" @onclick="OnClick"
+     role="@(_clickable ? "button" : null)" tabindex="@(_clickable ? "0" : null)"
+     @onkeydown="OnKeyDown" @onkeyup="OnKeyUp" @attributes="UserAttributes">
     @ChildContent
 </div>
 
 @code {
     /// <summary>Content rendered inside the panel.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
-    /// <summary>Shadow depth: 0 none, 1 shadow-sm, up to shadow-xl above 12; ignored when <see cref="Outlined"/>.</summary>
+    /// <summary>Shadow depth: 0 none, 1 shadow-xs, 2-3 shadow-sm, 4-6 shadow-md, 7-12 shadow-lg, 13-18 shadow-xl, above 18 shadow-2xl; ignored when <see cref="Outlined"/>.</summary>
     [Parameter] public int Elevation { get; set; } = 1;
     /// <summary>Replaces the shadow with a border border-base-300 outline.</summary>
     [Parameter] public bool Outlined { get; set; }
     /// <summary>Uses square corners (rounded-none) instead of rounded-box.</summary>
     [Parameter] public bool Square { get; set; }
-    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
+    /// <summary>CSS width appended to the inline style (e.g. <c>320px</c>, <c>100%</c>).</summary>
     [Parameter] public string? Width { get; set; }
-    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
+    /// <summary>CSS height appended to the inline style (e.g. <c>320px</c>, <c>100%</c>).</summary>
     [Parameter] public string? Height { get; set; }
-    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
+    /// <summary>CSS max-width appended to the inline style (e.g. <c>320px</c>, <c>100%</c>).</summary>
     [Parameter] public string? MaxWidth { get; set; }
-    /// <summary>Raised when the panel is clicked.</summary>
+    /// <summary>Raised when the panel is clicked, or activated with Enter/Space; the panel then acts as a focusable button.</summary>
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
     /// <summary>Extra CSS classes added to the panel.</summary>
     [Parameter] public string? Class { get; set; }
@@ -32,16 +34,41 @@
     private string _shadow => Elevation switch
     {
         <= 0 => "",
-        1 => "shadow-sm",
-        <= 3 => "shadow",
+        1 => "shadow-xs",
+        <= 3 => "shadow-sm",
         <= 6 => "shadow-md",
         <= 12 => "shadow-lg",
-        _ => "shadow-xl"
+        <= 18 => "shadow-xl",
+        _ => "shadow-2xl"
     };
+
+    private bool _clickable => OnClick.HasDelegate;
+
+    private string? _style
+    {
+        get
+        {
+            string extra = string.Concat(
+                Width is { Length: > 0 } ? $"width:{Width};" : "",
+                Height is { Length: > 0 } ? $"height:{Height};" : "",
+                MaxWidth is { Length: > 0 } ? $"max-width:{MaxWidth};" : "");
+            if (extra.Length == 0) return Style;
+            return string.IsNullOrWhiteSpace(Style) ? extra : $"{Style.TrimEnd().TrimEnd(';')};{extra}";
+        }
+    }
+
+    // Enter activates on keydown, Space on keyup, like a native button.
+    // ponytail: Space still scrolls the page on keydown; preventing it needs a JS keydown listener.
+    private Task OnKeyDown(KeyboardEventArgs e) =>
+        _clickable && e.Key == "Enter" ? OnClick.InvokeAsync(new MouseEventArgs()) : Task.CompletedTask;
+
+    private Task OnKeyUp(KeyboardEventArgs e) =>
+        _clickable && e.Key == " " ? OnClick.InvokeAsync(new MouseEventArgs()) : Task.CompletedTask;
 
     private string _cls => CssClass.Merge(
         "bg-base-100 text-base-content",
         Square ? "rounded-none" : "rounded-box",
         Outlined ? "border border-base-300" : _shadow,
+        _clickable ? "cursor-pointer" : null,
         Class);
 }

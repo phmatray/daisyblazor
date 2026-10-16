@@ -3,7 +3,8 @@
 @* daisyUI mask shape clip. Applies .mask + one of the mask-* shape utilities to clip
    child content (usually an <img>) into a geometric silhouette.
    Classes: mask, mask-squircle, mask-circle, mask-hexagon, mask-star, mask-star-2,
-            mask-triangle, mask-heart, mask-diamond, mask-pentagon,
+            mask-triangle, mask-heart, mask-diamond, mask-pentagon, mask-hexagon-2,
+            mask-decagon, mask-triangle-2, mask-triangle-3, mask-triangle-4,
             mask-half-1, mask-half-2. *@
 
 <div class="@_cls" style="@Style" @attributes="UserAttributes">
@@ -40,6 +41,11 @@
         MaskShape.Heart    => "mask-heart",
         MaskShape.Diamond  => "mask-diamond",
         MaskShape.Pentagon => "mask-pentagon",
+        MaskShape.Hexagon2 => "mask-hexagon-2",
+        MaskShape.Decagon  => "mask-decagon",
+        MaskShape.Triangle2 => "mask-triangle-2",
+        MaskShape.Triangle3 => "mask-triangle-3",
+        MaskShape.Triangle4 => "mask-triangle-4",
         _                  => "mask-squircle"
     };
 
