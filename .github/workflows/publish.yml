@@ -38,7 +38,7 @@ jobs:
         run: echo "version=$(grep -oPm1 '(?<=<Version>)[^<]+' Directory.Build.props)" >> "$GITHUB_OUTPUT"
 
       - name: Test
-        run: dotnet test tests/DaisyBlazor.Components.Tests/DaisyBlazor.Components.Tests.csproj -c Release
+        run: dotnet test --project tests/DaisyBlazor.Components.Tests/DaisyBlazor.Components.Tests.csproj -c Release
 
       - name: Pack
         run: |
