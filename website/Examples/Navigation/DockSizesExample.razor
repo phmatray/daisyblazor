@@ -1,0 +1,12 @@
+<div class="flex w-full flex-col gap-4">
+    @foreach (DockSize size in new[] { DockSize.Xs, DockSize.Sm, DockSize.Md, DockSize.Lg })
+    {
+        <div class="overflow-hidden rounded-box border border-base-300">
+            <Dock Size="size" Class="relative">
+                <DockItem Icon="@Icons.Material.Filled.Home" Label="@size.ToString()" Active="true" />
+                <DockItem Icon="@Icons.Material.Filled.Radio" Label="Radio" />
+                <DockItem Icon="@Icons.Material.Filled.Settings" Label="Settings" />
+            </Dock>
+        </div>
+    }
+</div>

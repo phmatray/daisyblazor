@@ -1,0 +1,10 @@
+<div class="flex w-full flex-col gap-4">
+    @foreach (Size size in new[] { Size.Small, Size.Medium, Size.Large })
+    {
+        <Tabs Size="size" Variant="TabsVariant.Border">
+            <Tab Title="@size.ToString()" />
+            <Tab Title="Albums" />
+            <Tab Title="Singles" />
+        </Tabs>
+    }
+</div>
