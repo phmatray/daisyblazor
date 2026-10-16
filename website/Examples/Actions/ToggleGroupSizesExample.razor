@@ -1,0 +1,22 @@
+@* T can be any type: here the speeds are ints. *@
+<div class="flex flex-col items-start gap-3">
+    <ToggleGroup T="int" @bind-Value="_rpm" Size="Size.Small" Color="Color.Tertiary">
+        <ToggleItem Value="33" Text="33⅓ rpm" />
+        <ToggleItem Value="45" Text="45 rpm" />
+        <ToggleItem Value="78" Text="78 rpm" />
+    </ToggleGroup>
+    <ToggleGroup T="int" @bind-Value="_rpm" Color="Color.Tertiary">
+        <ToggleItem Value="33" Text="33⅓ rpm" />
+        <ToggleItem Value="45" Text="45 rpm" />
+        <ToggleItem Value="78" Text="78 rpm" />
+    </ToggleGroup>
+    <ToggleGroup T="int" @bind-Value="_rpm" Size="Size.Large" Color="Color.Tertiary">
+        <ToggleItem Value="33" Text="33⅓ rpm" />
+        <ToggleItem Value="45" Text="45 rpm" />
+        <ToggleItem Value="78" Text="78 rpm" />
+    </ToggleGroup>
+</div>
+
+@code {
+    private int _rpm = 45;
+}

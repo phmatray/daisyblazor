@@ -1,0 +1,15 @@
+@* Cover only: the arbitrary variants hold the speed dial open, and translateZ(0) keeps the fixed FAB in the frame. *@
+<div class="relative h-[17rem] w-full overflow-hidden rounded-box bg-base-200 [transform:translateZ(0)]">
+    <div class="space-y-3 p-5">
+        <p class="font-display text-lg font-bold leading-none">Side A</p>
+        <div class="h-3 w-4/5 rounded-full bg-base-300"></div>
+        <div class="h-3 w-3/5 rounded-full bg-base-300"></div>
+        <div class="h-3 w-2/3 rounded-full bg-base-300"></div>
+    </div>
+    <Fab Color="Color.Primary" Flower="true" ShowClose="false" AriaLabel="Actions"
+         Class="[&>*]:visible! [&>*]:opacity-100! [&>*]:scale-100!">
+        <FabAction Icon="@Icons.Material.Filled.QueueMusic" Color="Color.Secondary" />
+        <FabAction Icon="@Icons.Material.Filled.Mic" Color="Color.Tertiary" />
+        <FabAction Icon="@Icons.Material.Filled.Favorite" Color="Color.Error" />
+    </Fab>
+</div>

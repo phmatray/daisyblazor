@@ -1,0 +1,12 @@
+<div class="flex flex-wrap items-center gap-4">
+    <ToggleGroup T="string" @bind-Value="_format">
+        <ToggleItem Value="@("single")" Text="Single" />
+        <ToggleItem Value="@("ep")" Text="EP" />
+        <ToggleItem Value="@("lp")" Text="LP" />
+    </ToggleGroup>
+    <span class="text-sm">Showing: <strong>@_format?.ToUpperInvariant()</strong></span>
+</div>
+
+@code {
+    private string? _format = "lp";
+}
