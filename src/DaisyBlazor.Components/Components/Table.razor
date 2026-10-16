@@ -46,7 +46,9 @@
                     @foreach ((T item, int capturedIndex) in _pageItems.Select((x, i) => (x, i)))
                     {
                         <tr class="@_rowCls"
-                            @onclick="@(() => RaiseRowClick(item, capturedIndex))">
+                            tabindex="@(OnRowClick.HasDelegate ? "0" : null)"
+                            @onclick="@(() => RaiseRowClick(item, capturedIndex))"
+                            @onkeydown="@(e => OnRowKeyDown(e, item, capturedIndex))">
                             @RowTemplate?.Invoke(item)
                         </tr>
                     }
@@ -74,7 +76,7 @@
     [Parameter] public bool Striped { get; set; }
     /// <summary>When true, replaces the rows with <see cref="LoadingContent"/> or a default loading spinner.</summary>
     [Parameter] public bool Loading { get; set; }
-    /// <summary>Number of rows shown per page; defaults to 10 and is updated by the pager.</summary>
+    /// <summary>Initial number of rows shown per page; defaults to 10. The pager's choice is kept internally (see <see cref="PageSize"/>).</summary>
     [Parameter] public int RowsPerPage { get; set; } = 10;
     /// <summary>Header cells rendered inside the <c>thead</c> row.</summary>
     [Parameter] public RenderFragment? HeaderContent { get; set; }
@@ -97,6 +99,22 @@
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
     private int _currentPage;
+    // The user's page-size choice lives here, not in the RowsPerPage parameter, so a parent
+    // re-render does not overwrite it; a changed RowsPerPage from the parent still wins.
+    private int _pageSize = 10;
+    private int _lastRowsPerPage = -1;
+
+    protected override void OnParametersSet()
+    {
+        if (RowsPerPage != _lastRowsPerPage)
+        {
+            _lastRowsPerPage = RowsPerPage;
+            _pageSize = RowsPerPage <= 0 ? 1 : RowsPerPage;
+        }
+
+        // Items may have shrunk (e.g. a filter) while on a later page.
+        _currentPage = Math.Clamp(_currentPage, 0, PageCount - 1);
+    }
 
     private string _cls => CssClass.Merge(
         "table",
@@ -112,8 +130,8 @@
     private IReadOnlyList<T> _allItems => Items?.ToList() ?? new List<T>();
 
     private List<T> _pageItems => _allItems
-        .Skip(_currentPage * RowsPerPage)
-        .Take(RowsPerPage)
+        .Skip(_currentPage * _pageSize)
+        .Take(_pageSize)
         .ToList();
 
     /// <summary>Total number of rows across all pages.</summary>
@@ -123,10 +141,10 @@
     public int CurrentPage => _currentPage;
 
     /// <summary>Total page count.</summary>
-    public int PageCount => RowsPerPage <= 0 ? 1 : Math.Max(1, (int)Math.Ceiling(TotalItems / (double)RowsPerPage));
+    public int PageCount => Math.Max(1, (int)Math.Ceiling(TotalItems / (double)_pageSize));
 
     /// <summary>Rows shown per page (driven by the pager's page-size select).</summary>
-    public int PageSize => RowsPerPage;
+    public int PageSize => _pageSize;
 
     public void SetPage(int page)
     {
@@ -136,9 +154,17 @@
 
     public void SetPageSize(int size)
     {
-        RowsPerPage = size <= 0 ? 1 : size;
+        _pageSize = size <= 0 ? 1 : size;
         _currentPage = Math.Clamp(_currentPage, 0, PageCount - 1);
         StateHasChanged();
+    }
+
+    private async Task OnRowKeyDown(KeyboardEventArgs e, T item, int index)
+    {
+        if (e.Key is "Enter" or " " or "Spacebar")
+        {
+            await RaiseRowClick(item, index);
+        }
     }
 
     private async Task RaiseRowClick(T item, int index)

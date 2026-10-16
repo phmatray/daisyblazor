@@ -1,4 +1,5 @@
 @namespace DaisyBlazor
+@using System.Globalization
 
 @* MudBadge replacement. daisyUI .indicator wrapper with an overlaid .badge on the child content. *@
 
@@ -7,7 +8,7 @@
     @* Standalone inline badge: no indicator wrapper. *@
     @if (Visible)
     {
-        <span class="@CssClass.Merge("badge", CssClass.BadgeColor(Color), Class)" style="@Style" @attributes="UserAttributes">@(Dot ? null : _content)@ChildContent</span>
+        <span class="@_inlineCls" style="@Style" @attributes="UserAttributes">@(Dot ? null : _content)@(Dot ? null : ChildContent)</span>
     }
 }
 else
@@ -15,7 +16,7 @@ else
     <span class="indicator @Class" style="@Style" @attributes="UserAttributes">
         @if (Visible)
         {
-            <span class="@_badgeCls">
+            <span class="@_badgeCls" style="@(Overlap ? "--indicator-x:25%;--indicator-y:-25%" : null)">
                 @if (!Dot)
                 {
                     @_content
@@ -36,7 +37,7 @@ else
     /// <summary>Badge color mapped to a daisyUI <c>badge-*</c> class; defaults to Primary.</summary>
     [Parameter] public Color Color { get; set; } = Color.Primary;
 
-    /// <summary>Overlap the badge onto the child (kept for MudBlazor compatibility).</summary>
+    /// <summary>Pulls the overlay badge inward so it overlaps the child's corner instead of sitting centred on it.</summary>
     [Parameter] public bool Overlap { get; set; }
 
     /// <summary>Render a plain inline <c>.badge</c> (Content and/or ChildContent as its text) instead of the indicator overlay.</summary>
@@ -47,10 +48,10 @@ else
 
     /// <summary>Shows the badge; when false the badge is hidden but child content still renders. Defaults to true.</summary>
     [Parameter] public bool Visible { get; set; } = true;
-    /// <summary>Adds a <c>border-2 border-base-100</c> ring around the overlay badge; ignored in inline mode.</summary>
+    /// <summary>Adds a <c>border-2 border-base-100</c> ring around the badge.</summary>
     [Parameter] public bool Bordered { get; set; }
 
-    /// <summary>Maximum numeric value before showing "{Max}+".</summary>
+    /// <summary>Maximum numeric value before showing "{Max}+"; applies to any number or numeric string.</summary>
     [Parameter] public int Max { get; set; } = 99;
 
     /// <summary>Extra CSS classes on the indicator wrapper, or on the badge itself in inline mode.</summary>
@@ -66,11 +67,21 @@ else
         Dot ? "badge-xs" : "badge-sm",
         Bordered ? "border-2 border-base-100" : null);
 
+    private string _inlineCls => CssClass.Merge(
+        "badge",
+        CssClass.BadgeColor(Color),
+        Dot ? "badge-xs" : null,
+        Bordered ? "border-2 border-base-100" : null,
+        Class);
+
     private string? _content
     {
         get
         {
-            if (Content is int n && n > Max)
+            string? text = Convert.ToString(Content, CultureInfo.InvariantCulture);
+            if (Content is not bool
+                && double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double n)
+                && n > Max)
             {
                 return $"{Max}+";
             }

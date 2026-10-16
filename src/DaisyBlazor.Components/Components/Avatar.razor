@@ -3,11 +3,12 @@
 @* MudAvatar replacement. daisyUI .avatar; shows an image when Image is set,
    otherwise renders initials / icon via ChildContent inside a colored circle. *@
 
-<div class="@_wrapperCls" style="@Style" @attributes="UserAttributes">
-    <div class="@_innerCls">
+<div class="@_wrapperCls" @attributes="UserAttributes">
+    <div class="@_innerCls" style="@Style">
         @if (!string.IsNullOrEmpty(Image))
         {
-            <img src="@Image" alt="@Alt" />
+            @* alt="" (decorative) rather than no alt, so screen readers don't read the file name. *@
+            <img src="@Image" alt="@(Alt ?? string.Empty)" />
         }
         else
         {
@@ -23,19 +24,23 @@
     /// <summary>Image source; when set the avatar renders an &lt;img&gt;.</summary>
     [Parameter] public string? Image { get; set; }
 
-    /// <summary>Alt text for the image.</summary>
+    /// <summary>Alt text for the image; when null the image is treated as decorative (<c>alt=""</c>).</summary>
     [Parameter] public string? Alt { get; set; }
 
     /// <summary>Placeholder background and text color (e.g. <c>bg-primary</c>); ignored when an image is shown.</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
     /// <summary>Avatar width: Small is <c>w-8</c>, Medium (default) <c>w-12</c>, Large <c>w-16</c>.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
-    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
+    /// <summary>Placeholder style: Filled (default) colored background, Outlined colored border, Text colored text only.</summary>
     [Parameter] public Variant Variant { get; set; } = Variant.Filled;
+    /// <summary>Square corners (<c>rounded-none</c>) instead of a circle.</summary>
+    [Parameter] public bool Square { get; set; }
+    /// <summary>Rounded-box corners (<c>rounded-box</c>) instead of a circle.</summary>
+    [Parameter] public bool Rounded { get; set; }
 
-    /// <summary>Extra CSS classes added to the outer <c>avatar</c> element.</summary>
+    /// <summary>Extra CSS classes added to the visible, sized avatar element (e.g. <c>w-24</c>, ring classes); a <c>w-*</c> class replaces the <see cref="Size"/> width.</summary>
     [Parameter] public string? Class { get; set; }
-    /// <summary>Inline styles applied to the outer <c>avatar</c> element.</summary>
+    /// <summary>Inline styles applied to the visible, sized avatar element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
@@ -50,7 +55,27 @@
 
     private string _colorClass => _hasImage
         ? string.Empty
-        : Color switch
+        : Variant switch
+        {
+            Variant.Outlined => CssClass.Merge("border-2 bg-transparent", _textClass),
+            Variant.Text => CssClass.Merge("bg-transparent", _textClass),
+            _ => _filledClass
+        };
+
+    // Literal class names so the safelist generator sees them.
+    private string _textClass => Color switch
+    {
+        Color.Primary => "text-primary",
+        Color.Secondary => "text-secondary",
+        Color.Tertiary => "text-accent",
+        Color.Info => "text-info",
+        Color.Success => "text-success",
+        Color.Warning => "text-warning",
+        Color.Error => "text-error",
+        _ => "text-base-content"
+    };
+
+    private string _filledClass => Color switch
         {
             Color.Primary => "bg-primary text-primary-content",
             Color.Secondary => "bg-secondary text-secondary-content",
@@ -65,12 +90,15 @@
 
     private string _wrapperCls => CssClass.Merge(
         "avatar",
-        _hasImage ? null : "avatar-placeholder",
-        Class);
+        _hasImage ? null : "avatar-placeholder");
+
+    private bool _classSetsWidth => Class?.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Any(c => c.StartsWith("w-", StringComparison.Ordinal)) == true;
 
     private string _innerCls => CssClass.Merge(
-        _sizeClass,
+        _classSetsWidth ? null : _sizeClass,
         _colorClass,
-        "rounded-full",
-        "flex items-center justify-center overflow-hidden");
+        Square ? "rounded-none" : Rounded ? "rounded-box" : "rounded-full",
+        "flex items-center justify-center overflow-hidden",
+        Class);
 }
