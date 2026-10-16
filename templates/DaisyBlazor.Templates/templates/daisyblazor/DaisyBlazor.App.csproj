@@ -11,8 +11,8 @@
        scaffolded app pulls the version that was just published (they were left at 0.1.1 while
        the kit shipped 0.2.3). -->
   <ItemGroup>
-    <PackageReference Include="DaisyBlazor.Components" Version="0.2.4" />
-    <PackageReference Include="DaisyBlazor.Charts" Version="0.2.4" />
+    <PackageReference Include="DaisyBlazor.Components" Version="0.3.0" />
+    <PackageReference Include="DaisyBlazor.Charts" Version="0.3.0" />
   </ItemGroup>
 
   <!-- Build the Tailwind/daisyUI CSS as part of `dotnet build` (runs `npm install` on first run). -->
