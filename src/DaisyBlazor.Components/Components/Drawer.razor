@@ -2,7 +2,8 @@
 @using Microsoft.JSInterop
 
 @* daisyUI drawer layout component. Uses the CSS-only checkbox toggle pattern.
-   Root: .drawer (.drawer-end when End=true, .drawer-open when Open=true).
+   Root: .drawer (.drawer-end when End=true, .drawer-open when Open=true unless Variant is Temporary).
+   Variant=Temporary keeps the overlay pattern: Open checks the toggle and the panel slides over the content.
    Children: .drawer-toggle (hidden checkbox), .drawer-content (main), .drawer-side (.drawer-overlay + side panel).
    A11y: optional built-in toggle button (ToggleContent) with aria-expanded/aria-controls, Escape closes,
    focus moves into the side panel on open and back to the toggle on close, and the closed panel is inert. *@
@@ -62,6 +63,14 @@
     /// <summary>Raised when the open state changes (toggle, overlay click, or Escape).</summary>
     [Parameter] public EventCallback<bool> OpenChanged { get; set; }
 
+    /// <summary>
+    /// Persistent (default) docks the open panel beside the content (<c>drawer-open</c>).
+    /// Temporary slides it over the content with an overlay; daisyUI's overlay panel is
+    /// <c>position: fixed</c>, so it covers the viewport unless an ancestor sets a <c>transform</c>.
+    /// Mini and Responsive behave like Persistent.
+    /// </summary>
+    [Parameter] public DrawerVariant Variant { get; set; } = DrawerVariant.Persistent;
+
     /// <summary>When true, the drawer slides in from the right end instead of the left.</summary>
     [Parameter] public bool End { get; set; }
 
@@ -92,7 +101,7 @@
     private string _cls => CssClass.Merge(
         "drawer",
         End ? "drawer-end" : null,
-        Open ? "drawer-open" : null,
+        Open && Variant != DrawerVariant.Temporary ? "drawer-open" : null,
         Class);
 
     /// <summary>Opens or closes the drawer and raises <see cref="OpenChanged"/>.</summary>
