@@ -10,7 +10,7 @@
             <Icon Name="@Icons.Material.Filled.Search" />
             <input @ref="_input" type="search" value="@_query" @oninput="OnInput" @onkeydown="OnKey"
                    @onkeydown:preventDefault="_preventKey"
-                   class="w-full bg-transparent font-display text-xl font-semibold text-primary-content outline-none placeholder:text-primary-content/60"
+                   class="w-full bg-transparent font-display text-xl font-semibold text-primary-content outline-none placeholder:text-primary-content/85"
                    placeholder="Button, Color, theming, MudDialog…" aria-label="Search" autocomplete="off" spellcheck="false"
                    role="combobox" aria-expanded="true" aria-controls="search-results"
                    aria-activedescendant="@(_hits.Count > 0 ? $"hit-{_active}" : null)" />
@@ -37,7 +37,7 @@
                         <span class="block truncate font-bold @(hit.Kind == HitKind.Parameter ? "font-mono text-[0.9rem]" : "")">@hit.Title</span>
                         <span class="block truncate text-sm @(index == _active ? "text-primary-content/80" : "text-base-content/65")">@hit.Context</span>
                     </span>
-                    <span class="ml-auto shrink-0 text-xs font-bold uppercase tracking-wider opacity-60">@KindLabel(hit.Kind)</span>
+                    <span class="ml-auto shrink-0 text-xs font-bold opacity-70">@KindLabel(hit.Kind)</span>
                 </li>
             }
         </ul>
