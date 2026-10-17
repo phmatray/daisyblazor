@@ -1,5 +1,8 @@
 @namespace DaisyBlazor
 @using Microsoft.JSInterop
+@using Microsoft.AspNetCore.Components.Routing
+@implements IDisposable
+@inject NavigationManager Navigation
 
 @* daisyUI drawer layout component. Uses the CSS-only checkbox toggle pattern.
    Root: .drawer (.drawer-end when End=true, .drawer-open when Open=true unless Variant is Temporary).
@@ -7,9 +10,10 @@
    Children: .drawer-toggle (hidden checkbox), .drawer-content (main), .drawer-side (.drawer-overlay + side panel).
    A11y: optional built-in toggle button (ToggleContent) with aria-expanded/aria-controls, Escape closes,
    focus moves into the side panel on open and back to the toggle on close, and the closed panel is inert.
-   Static SSR (no circuit): data-drawer-static hands the toggle, Escape, focus and inert sync to drawer.js. *@
+   Static SSR (no circuit): data-drawer-static hands the toggle, Escape, focus and inert sync to drawer.js.
+   CloseOnNavigation closes the drawer on a location change (drawer.js: a panel link followed, popstate). *@
 
-<div class="@_cls" style="@Style" data-drawer-static="@(!_interactive)" @attributes="UserAttributes">
+<div class="@_cls" style="@Style" data-drawer-static="@(!_interactive)" data-drawer-close-on-navigate="@CloseOnNavigation" @attributes="UserAttributes">
     <input id="@Id"
            type="checkbox"
            class="drawer-toggle"
@@ -99,6 +103,9 @@
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
+    /// <summary>Closes the drawer when the location changes, e.g. after following a link in the panel.</summary>
+    [Parameter] public bool CloseOnNavigation { get; set; }
+
     /// <summary>Element id of the side panel; point a custom toggle's <c>aria-controls</c> at it.</summary>
     public string SideId => $"{Id}-side";
 
@@ -130,6 +137,22 @@
 
     private Task OnSideKeyDown(KeyboardEventArgs e) =>
         e.Key == "Escape" && Open ? SetOpenAsync(false) : Task.CompletedTask;
+
+    protected override void OnInitialized() => Navigation.LocationChanged += OnLocationChanged;
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        if (CloseOnNavigation && Open)
+        {
+            _ = InvokeAsync(async () =>
+            {
+                await SetOpenAsync(false);
+                StateHasChanged();
+            });
+        }
+    }
+
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
