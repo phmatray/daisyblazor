@@ -38,7 +38,7 @@
   </ItemGroup>
 
   <!-- XML docs of the libraries feed the API tables. -->
-  <Target Name="EmbedLibraryXmlDocs" AfterTargets="ResolveProjectReferences" BeforeTargets="PrepareForBuild;AssignTargetPaths">
+  <Target Name="EmbedLibraryXmlDocs" AfterTargets="ResolveProjectReferences" BeforeTargets="PrepareResourceNames">
     <ItemGroup>
       <EmbeddedResource Include="..\src\DaisyBlazor.Components\bin\$(Configuration)\$(TargetFramework)\DaisyBlazor.Components.xml" LogicalName="xmldoc:DaisyBlazor.Components" Condition="Exists('..\src\DaisyBlazor.Components\bin\$(Configuration)\$(TargetFramework)\DaisyBlazor.Components.xml')" />
       <EmbeddedResource Include="..\src\DaisyBlazor.Charts\bin\$(Configuration)\$(TargetFramework)\DaisyBlazor.Charts.xml" LogicalName="xmldoc:DaisyBlazor.Charts" Condition="Exists('..\src\DaisyBlazor.Charts\bin\$(Configuration)\$(TargetFramework)\DaisyBlazor.Charts.xml')" />
