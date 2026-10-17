@@ -184,15 +184,18 @@ public partial class ThemeProvider : IAsyncDisposable
         await NotifyAsync();
     }
 
-    /// <summary>Resolves a preference (theme name or "system") to a concrete daisyUI theme.</summary>
+    /// <summary>
+    /// Resolves a preference (theme name or "system") to a concrete daisyUI theme. A name not in
+    /// <see cref="Themes"/> (stale or unknown) resolves like "system", matching theme-init.js's <c>data-themes</c>.
+    /// </summary>
     private string ResolveTheme(string preference, bool systemPrefersDark)
     {
-        if (string.Equals(preference, SystemPreference, StringComparison.OrdinalIgnoreCase))
+        if (Themes.Contains(preference))
         {
-            return systemPrefersDark ? SystemDarkTheme : SystemLightTheme;
+            return preference;
         }
 
-        return Themes.Contains(preference) ? preference : SystemLightTheme;
+        return systemPrefersDark ? SystemDarkTheme : SystemLightTheme;
     }
 
     /// <summary>

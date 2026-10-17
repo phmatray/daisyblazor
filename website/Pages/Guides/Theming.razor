@@ -35,6 +35,12 @@
                 <code>prefers-color-scheme</code>. If you changed the provider's defaults, mirror them on the tag:
                 <code>data-storage-key="..."</code>, <code>data-light="mybrand"</code>, <code>data-dark="mybrand-dark"</code>.
             </p>
+            <p>
+                By default a stored value is applied as-is. Add <code>data-themes</code> (space- or comma-separated, the same list as the
+                provider's <code>Themes</code>) to ignore a stale or unknown stored name and fall back to the light/dark default instead.
+                <code>ThemeProvider</code> does the same for names outside <code>Themes</code>:
+            </p>
+            <CodeBlock Language="xml" Title="App.razor" Code="@InitScriptThemes" />
 
             @H(2)
             <p>The provider is brand-neutral and parameter-driven: every theme name is configurable.</p>
@@ -167,6 +173,12 @@
 
     private const string InitScript = """
         <script src="_content/DaisyBlazor.Components/theme-init.js"></script>
+        """;
+
+    private const string InitScriptThemes = """
+        <script src="_content/DaisyBlazor.Components/theme-init.js"
+                data-light="mybrand" data-dark="daisyblazor-dark"
+                data-themes="mybrand daisyblazor-dark light dark synthwave"></script>
         """;
 
     private const string Reading = """
