@@ -4,7 +4,7 @@ namespace DaisyBlazor.Docs.Docs;
 /// <param name="Name">Display name, usually the primary type name (e.g. "Button").</param>
 /// <param name="Category">The daisyUI category it belongs to.</param>
 /// <param name="Summary">One or two sentences: what it is and when to reach for it.</param>
-/// <param name="Types">Public component types documented in the API section (the primary first).</param>
+/// <param name="Types">Public types documented in the API section: components (the primary first), then any service interfaces or options classes.</param>
 /// <param name="Examples">Live examples, in reading order; each type lives under <c>Examples/</c>.</param>
 public sealed record ComponentDoc(
     string Name,

@@ -4,12 +4,18 @@ using Microsoft.AspNetCore.Components;
 
 namespace DaisyBlazor.Docs.Docs;
 
-public enum ParamKind { Property, Event, Content }
+public enum ParamKind { Property, Event, Content, Method }
 
-/// <summary>One public <c>[Parameter]</c> of a component, as shown in the API table and the playground.</summary>
-public sealed record ParamInfo(PropertyInfo Property, ParamKind Kind, string TypeName, string? Default, string? Summary)
+/// <summary>
+/// One documented member: a component <c>[Parameter]</c>, or a property, event or method of a service or options type.
+/// For a method, <see cref="TypeName"/> holds its signature.
+/// </summary>
+public sealed record ParamInfo(MemberInfo Member, ParamKind Kind, string TypeName, string? Default, string? Summary)
 {
-    public string Name => Property.Name;
+    public string Name => Member is MethodInfo { IsGenericMethodDefinition: true } m
+        ? $"{m.Name}<{string.Join(", ", m.GetGenericArguments().Select(a => a.Name))}>"
+        : Member.Name;
+    public PropertyInfo Property => (PropertyInfo)Member;
     public Type Type => Property.PropertyType;
 }
 
@@ -23,6 +29,12 @@ public static class ApiReflector
         lock (Cache)
         {
             if (Cache.TryGetValue(component, out IReadOnlyList<ParamInfo>? hit)) return hit;
+        }
+        if (!IsComponent(component))
+        {
+            IReadOnlyList<ParamInfo> members = Members(component, docs);
+            lock (Cache) Cache[component] = members;
+            return members;
         }
 
         object? instance = null, second = null;
@@ -77,6 +89,52 @@ public static class ApiReflector
         return result;
     }
 
+    public static bool IsComponent(Type t) => typeof(IComponent).IsAssignableFrom(t);
+
+    /// <summary>
+    /// Public surface of a service interface or options class: properties (settable ones only on classes,
+    /// with defaults from a fresh instance), events and methods with their signatures.
+    /// </summary>
+    private static IReadOnlyList<ParamInfo> Members(Type type, XmlDocs docs)
+    {
+        object? instance = null;
+        if (!type.IsInterface && !type.IsAbstract)
+        {
+            try { instance = Activator.CreateInstance(type); } catch { /* no parameterless ctor: no defaults */ }
+        }
+
+        const BindingFlags flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly;
+        List<ParamInfo> list = [];
+        foreach (PropertyInfo p in type.GetProperties(flags))
+        {
+            if (!type.IsInterface && p.SetMethod?.IsPublic != true) continue;
+            string? def = null;
+            if (instance is not null)
+            {
+                try { def = FormatValue(p.GetValue(instance), p.PropertyType); } catch { }
+            }
+            list.Add(new ParamInfo(p, ParamKind.Property, FriendlyName(p.PropertyType), def, docs.Summary(p)));
+        }
+        foreach (EventInfo e in type.GetEvents(flags))
+        {
+            list.Add(new ParamInfo(e, ParamKind.Event, FriendlyName(e.EventHandlerType!), null, docs.Summary(e)));
+        }
+        foreach (MethodInfo m in type.GetMethods(flags))
+        {
+            if (m.IsSpecialName) continue;
+            list.Add(new ParamInfo(m, ParamKind.Method, Signature(m), null, docs.Summary(m)));
+        }
+        return [.. list.OrderBy(x => x.Kind).ThenBy(x => x.Name, StringComparer.Ordinal)];
+    }
+
+    /// <summary>"(string message, Severity severity = Severity.Normal) → void".</summary>
+    private static string Signature(MethodInfo m)
+    {
+        IEnumerable<string> args = m.GetParameters().Select(p =>
+            $"{FriendlyName(p.ParameterType)} {p.Name}" + (p.HasDefaultValue ? $" = {FormatValue(p.DefaultValue, p.ParameterType) ?? "default"}" : ""));
+        return $"({string.Join(", ", args)}) → {FriendlyName(m.ReturnType)}";
+    }
+
     /// <summary>Common parameters sink to the bottom of each group.</summary>
     private static int Rank(string name) => name is "Class" or "Style" ? 1 : 0;
 
@@ -116,6 +174,7 @@ public static class ApiReflector
         if (t == typeof(decimal)) return "decimal";
         if (t == typeof(float)) return "float";
         if (t == typeof(object)) return "object";
+        if (t == typeof(void)) return "void";
         if (t.IsArray) return FriendlyName(t.GetElementType()!) + "[]";
         if (t.IsGenericParameter) return t.Name;
         if (!t.IsGenericType) return t.Name;

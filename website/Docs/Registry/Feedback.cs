@@ -139,7 +139,7 @@ public static partial class DocRegistry
 
         new("Dialog", Category.Feedback,
             "Modal dialogs opened from code through IDialogService and hosted by DialogProvider. ShowMessageBoxAsync covers quick questions; ShowAsync opens your own component built on Dialog and returns its result.",
-            [typeof(Dialog), typeof(MessageBoxDialog), typeof(DialogProvider)],
+            [typeof(Dialog), typeof(MessageBoxDialog), typeof(DialogProvider), typeof(IDialogService), typeof(DialogOptions)],
             [
                 new("Message box", "ShowMessageBoxAsync returns true for yes, false for no and null when cancelled or dismissed.", typeof(DialogMessageBoxExample)),
                 new("A dialog component", "Lay out the content with Dialog's DialogContent and DialogActions, then close through the cascaded IMudDialogInstance.", typeof(DialogTaskEditorExample)),
@@ -155,7 +155,7 @@ public static partial class DocRegistry
 
         new("Snackbar", Category.Feedback,
             "Toast messages raised from code with ISnackbar.Add and shown bottom-right by SnackbarProvider. Each one auto-dismisses after a delay, pausing while it is hovered or focused.",
-            [typeof(SnackbarProvider)],
+            [typeof(SnackbarProvider), typeof(ISnackbar), typeof(SnackbarOptions)],
             [
                 new("Severities", "The Severity argument picks the alert colour and icon.", typeof(SnackbarSeveritiesExample)),
                 new("Options", "The configure callback sets SnackbarOptions: VisibleStateDuration (ms, default 5000), ShowCloseIcon (default true) and PreventDuplicates (default true). ISnackbar.Remove(message) drops one toast, Clear removes them all and Shown lists the visible ones.", typeof(SnackbarOptionsExample)),
