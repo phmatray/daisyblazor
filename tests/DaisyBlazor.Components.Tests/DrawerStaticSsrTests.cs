@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection;
 using DaisyBlazor;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
@@ -38,5 +39,22 @@ public class DrawerStaticSsrTests : BunitContext
         Render<Drawer>().Find(".drawer-overlay").GetAttribute("aria-label").ShouldBe("close sidebar");
         Render<Drawer>(ps => ps.Add(p => p.CloseLabel, "Fermer le menu"))
             .Find(".drawer-overlay").GetAttribute("aria-label").ShouldBe("Fermer le menu");
+    }
+
+    [Fact]
+    public void CloseOnNavigation_closes_an_open_drawer_on_a_location_change()
+    {
+        bool? reported = null;
+        IRenderedComponent<Drawer> cut = Render<Drawer>(ps => ps
+            .Add(p => p.Open, true)
+            .Add(p => p.Variant, DrawerVariant.Temporary)
+            .Add(p => p.CloseOnNavigation, true)
+            .Add(p => p.OpenChanged, v => reported = v));
+        cut.Find(".drawer").HasAttribute("data-drawer-close-on-navigate").ShouldBeTrue();
+
+        Services.GetRequiredService<NavigationManager>().NavigateTo("/songs");
+
+        cut.WaitForAssertion(() => reported.ShouldBe(false));
+        cut.Find(".drawer-side").HasAttribute("inert").ShouldBeTrue();
     }
 }
