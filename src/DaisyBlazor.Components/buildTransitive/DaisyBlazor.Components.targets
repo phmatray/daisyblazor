@@ -3,11 +3,13 @@
     DaisyBlazor CSS, NuGet only (no npm, no Node):
     1. Every build copies the preset (preset.css, preset-core.css, kit.css, safelist.css and the
        vendored daisyUI bundles) into $(DaisyBlazorStylesDir), by default obj/daisyblazor/, so a
-       stylesheet in Styles/ imports it as "../obj/daisyblazor/preset.css".
+       stylesheet in Styles/ imports it as "../obj/daisyblazor/preset.css". Set
+       $(DaisyBlazorDaisyUIVersion) to download and use another daisyUI release instead of the vendored one.
     2. With <DaisyBlazorBuildCss>true</DaisyBlazorBuildCss>, it also downloads the Tailwind CSS
        standalone CLI (once, into a per-user cache) and compiles $(DaisyBlazorCssInput) to
        $(DaisyBlazorCssOutput). Set $(DaisyBlazorTailwindPath) to use a Tailwind binary of your own
-       (e.g. offline builds or musl Linux).
+       (e.g. offline builds or musl Linux). The compile is skipped when no @(DaisyBlazorCssSource) file
+       changed, and if the CLI download fails an existing output is kept with a warning.
   -->
   <PropertyGroup>
     <DaisyBlazorStylesDir Condition="'$(DaisyBlazorStylesDir)' == ''">$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '$(BaseIntermediateOutputPath)', 'daisyblazor'))</DaisyBlazorStylesDir>
@@ -15,35 +17,54 @@
     <DaisyBlazorCssInput Condition="'$(DaisyBlazorCssInput)' == ''">Styles/main.css</DaisyBlazorCssInput>
     <DaisyBlazorCssOutput Condition="'$(DaisyBlazorCssOutput)' == ''">wwwroot/css/app.css</DaisyBlazorCssOutput>
     <DaisyBlazorTailwindVersion Condition="'$(DaisyBlazorTailwindVersion)' == ''">4.3.0</DaisyBlazorTailwindVersion>
+
+    <_DaisyBlazorUserCache>$([System.Environment]::GetFolderPath(SpecialFolder.LocalApplicationData))</_DaisyBlazorUserCache>
+    <_DaisyBlazorDaisyUICache>$([MSBuild]::NormalizeDirectory('$(_DaisyBlazorUserCache)', 'daisyblazor', 'daisyui', '$(DaisyBlazorDaisyUIVersion)'))</_DaisyBlazorDaisyUICache>
+
+    <_DaisyBlazorOs Condition="$([MSBuild]::IsOSPlatform('Windows'))">windows</_DaisyBlazorOs>
+    <_DaisyBlazorOs Condition="$([MSBuild]::IsOSPlatform('OSX'))">macos</_DaisyBlazorOs>
+    <_DaisyBlazorOs Condition="'$(_DaisyBlazorOs)' == ''">linux</_DaisyBlazorOs>
+    <_DaisyBlazorArch Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'Arm64'">arm64</_DaisyBlazorArch>
+    <_DaisyBlazorArch Condition="'$(_DaisyBlazorArch)' == ''">x64</_DaisyBlazorArch>
+    <_DaisyBlazorExe Condition="'$(_DaisyBlazorOs)' == 'windows'">.exe</_DaisyBlazorExe>
+    <_DaisyBlazorAsset>tailwindcss-$(_DaisyBlazorOs)-$(_DaisyBlazorArch)$(_DaisyBlazorExe)</_DaisyBlazorAsset>
+    <_DaisyBlazorCache>$([MSBuild]::NormalizeDirectory('$(_DaisyBlazorUserCache)', 'daisyblazor', 'tailwind', '$(DaisyBlazorTailwindVersion)'))</_DaisyBlazorCache>
+    <DaisyBlazorTailwindPath Condition="'$(DaisyBlazorTailwindPath)' == ''">$(_DaisyBlazorCache)$(_DaisyBlazorAsset)</DaisyBlazorTailwindPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <_DaisyBlazorStyleFile Include="$(MSBuildThisFileDirectory)../staticwebassets/styles/*.css;$(MSBuildThisFileDirectory)../staticwebassets/styles/*.mjs" />
+    <_DaisyBlazorStyleFile Include="$(MSBuildThisFileDirectory)../staticwebassets/styles/*.css" />
+    <_DaisyBlazorStyleFile Include="$(MSBuildThisFileDirectory)../staticwebassets/styles/*.mjs" Condition="'$(DaisyBlazorDaisyUIVersion)' == ''" />
+    <_DaisyBlazorDaisyUIBundle Include="daisyui.mjs;daisyui-theme.mjs" />
+    <_DaisyBlazorStyleFile Include="@(_DaisyBlazorDaisyUIBundle->'$(_DaisyBlazorDaisyUICache)%(Identity)')" Condition="'$(DaisyBlazorDaisyUIVersion)' != ''" />
+
+    <!-- Files whose change makes the Tailwind compile run again; add your own @source paths outside the project. -->
+    <DaisyBlazorCssSource Include="**/*.razor;**/*.cs;**/*.cshtml;**/*.html;**/*.css" Exclude="$(DefaultItemExcludes);$(DaisyBlazorCssOutput)" />
   </ItemGroup>
 
-  <Target Name="DaisyBlazorCopyStyles" BeforeTargets="BeforeBuild">
+  <Target Name="DaisyBlazorDownloadDaisyUI" BeforeTargets="BeforeBuild" Condition="'$(DaisyBlazorDaisyUIVersion)' != ''">
+    <DownloadFile Condition="!Exists('$(_DaisyBlazorDaisyUICache)%(_DaisyBlazorDaisyUIBundle.Identity)')"
+                  SourceUrl="https://github.com/saadeghi/daisyui/releases/download/v$(DaisyBlazorDaisyUIVersion)/%(_DaisyBlazorDaisyUIBundle.Identity)"
+                  DestinationFolder="$(_DaisyBlazorDaisyUICache)" />
+  </Target>
+
+  <Target Name="DaisyBlazorCopyStyles" BeforeTargets="BeforeBuild" DependsOnTargets="DaisyBlazorDownloadDaisyUI">
     <Copy SourceFiles="@(_DaisyBlazorStyleFile)" DestinationFolder="$(DaisyBlazorStylesDir)" SkipUnchangedFiles="true" />
   </Target>
 
   <Target Name="DaisyBlazorBuildCss" AfterTargets="DaisyBlazorCopyStyles" BeforeTargets="BeforeBuild"
-          Condition="'$(DaisyBlazorBuildCss)' == 'true'">
-    <PropertyGroup>
-      <_DaisyBlazorOs Condition="$([MSBuild]::IsOSPlatform('Windows'))">windows</_DaisyBlazorOs>
-      <_DaisyBlazorOs Condition="$([MSBuild]::IsOSPlatform('OSX'))">macos</_DaisyBlazorOs>
-      <_DaisyBlazorOs Condition="'$(_DaisyBlazorOs)' == ''">linux</_DaisyBlazorOs>
-      <_DaisyBlazorArch Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'Arm64'">arm64</_DaisyBlazorArch>
-      <_DaisyBlazorArch Condition="'$(_DaisyBlazorArch)' == ''">x64</_DaisyBlazorArch>
-      <_DaisyBlazorExe Condition="'$(_DaisyBlazorOs)' == 'windows'">.exe</_DaisyBlazorExe>
-      <_DaisyBlazorAsset>tailwindcss-$(_DaisyBlazorOs)-$(_DaisyBlazorArch)$(_DaisyBlazorExe)</_DaisyBlazorAsset>
-      <_DaisyBlazorCache>$([MSBuild]::NormalizeDirectory($([System.Environment]::GetFolderPath(SpecialFolder.LocalApplicationData)), 'daisyblazor', 'tailwind', '$(DaisyBlazorTailwindVersion)'))</_DaisyBlazorCache>
-      <DaisyBlazorTailwindPath Condition="'$(DaisyBlazorTailwindPath)' == ''">$(_DaisyBlazorCache)$(_DaisyBlazorAsset)</DaisyBlazorTailwindPath>
-    </PropertyGroup>
-
-    <DownloadFile Condition="!Exists('$(DaisyBlazorTailwindPath)')"
+          Condition="'$(DaisyBlazorBuildCss)' == 'true'"
+          Inputs="$(DaisyBlazorCssInput);@(DaisyBlazorCssSource);@(_DaisyBlazorStyleFile);$(DaisyBlazorTailwindPath);$(MSBuildProjectFullPath);$(MSBuildThisFileFullPath)"
+          Outputs="$(DaisyBlazorCssOutput)">
+    <DownloadFile Condition="!Exists('$(DaisyBlazorTailwindPath)')" ContinueOnError="true"
                   SourceUrl="https://github.com/tailwindlabs/tailwindcss/releases/download/v$(DaisyBlazorTailwindVersion)/$(_DaisyBlazorAsset)"
                   DestinationFolder="$(_DaisyBlazorCache)" />
-    <Exec Condition="'$(_DaisyBlazorOs)' != 'windows'" Command="chmod +x &quot;$(DaisyBlazorTailwindPath)&quot;" />
-    <Exec Command="&quot;$(DaisyBlazorTailwindPath)&quot; -i &quot;$(DaisyBlazorCssInput)&quot; -o &quot;$(DaisyBlazorCssOutput)&quot; --minify"
+    <Warning Condition="!Exists('$(DaisyBlazorTailwindPath)') And Exists('$(DaisyBlazorCssOutput)')"
+             Text="DaisyBlazor: the Tailwind CLI is unavailable at '$(DaisyBlazorTailwindPath)', so the existing '$(DaisyBlazorCssOutput)' was kept unchanged. Set DaisyBlazorTailwindPath to a local binary to compile it." />
+    <Error Condition="!Exists('$(DaisyBlazorTailwindPath)') And !Exists('$(DaisyBlazorCssOutput)')"
+           Text="DaisyBlazor: the Tailwind CLI could not be downloaded to '$(DaisyBlazorTailwindPath)' and there is no existing '$(DaisyBlazorCssOutput)' to fall back to. Restore network access, set DaisyBlazorTailwindPath to a local Tailwind binary, or set DaisyBlazorBuildCss=false and provide the CSS yourself." />
+    <Exec Condition="Exists('$(DaisyBlazorTailwindPath)') And '$(_DaisyBlazorOs)' != 'windows'" Command="chmod +x &quot;$(DaisyBlazorTailwindPath)&quot;" />
+    <Exec Condition="Exists('$(DaisyBlazorTailwindPath)')" Command="&quot;$(DaisyBlazorTailwindPath)&quot; -i &quot;$(DaisyBlazorCssInput)&quot; -o &quot;$(DaisyBlazorCssOutput)&quot; --minify"
           WorkingDirectory="$(MSBuildProjectDirectory)" />
   </Target>
 </Project>

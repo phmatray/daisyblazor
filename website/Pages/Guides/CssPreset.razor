@@ -58,8 +58,20 @@
                     <tr><td><code>DaisyBlazorTailwindVersion</code></td><td>the version the package was tested with</td><td>Tailwind CLI release to download.</td></tr>
                     <tr><td><code>DaisyBlazorTailwindPath</code></td><td>the cached download</td><td>Use your own Tailwind binary (offline builds, musl Linux).</td></tr>
                     <tr><td><code>DaisyBlazorStylesDir</code></td><td><code>obj/daisyblazor/</code></td><td>Where the preset is copied.</td></tr>
+                    <tr><td><code>DaisyBlazorDaisyUIVersion</code></td><td>empty (the vendored daisyUI)</td><td>daisyUI release to download (into the same per-user cache) and copy instead of the vendored bundles, e.g. <code>5.5.20</code>.</td></tr>
                 </tbody>
             </table>
+            <p>
+                The CSS build is incremental: it is skipped when <code>DaisyBlazorCssInput</code>, the preset and the <code>DaisyBlazorCssSource</code>
+                items (by default every <code>.razor</code>, <code>.cs</code>, <code>.cshtml</code>, <code>.html</code> and <code>.css</code> file in
+                the project) are older than <code>DaisyBlazorCssOutput</code>. If a <code>@@source</code> glob scans files outside the project, add
+                them as <code>&lt;DaisyBlazorCssSource Include="../Shared/**/*.razor" /&gt;</code> so a change there recompiles.
+            </p>
+            <p>
+                If the Tailwind CLI download fails (offline, unknown version) and <code>DaisyBlazorCssOutput</code> already exists, the build keeps
+                that file and warns instead of failing; with no existing output it fails with a message naming the ways out
+                (<code>DaisyBlazorTailwindPath</code>, or <code>DaisyBlazorBuildCss=false</code> with a committed CSS file).
+            </p>
             <p>
                 Already building CSS with the npm <code>tailwindcss</code> CLI or Vite? Leave <code>DaisyBlazorBuildCss</code> off and just import
                 <code>obj/daisyblazor/preset.css</code> from your stylesheet: the copy happens either way.
