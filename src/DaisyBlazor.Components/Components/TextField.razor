@@ -1,5 +1,7 @@
 @namespace DaisyBlazor
 @using System.Linq.Expressions
+@implements IFormField
+@implements IDisposable
 
 @* MudTextField replacement. daisyUI .input / .textarea inside a .fieldset with a .label.
    Supports adornments, helper/error text, multi-line (Lines > 1 => textarea). *@
@@ -111,8 +113,10 @@
     [Parameter] public bool ReadOnly { get; set; }
     /// <summary>Sets the HTML required attribute and appends an asterisk to the label.</summary>
     [Parameter] public bool Required { get; set; }
-    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
+    /// <summary>Message shown when an enclosing <see cref="Form"/> validates this Required field while it is empty. Defaults to "Required".</summary>
     [Parameter] public string? RequiredError { get; set; }
+    /// <summary>Checked by an enclosing <see cref="Form"/>: <c>Func&lt;string?, string?&gt;</c> (error or null), <c>Func&lt;string?, bool&gt;</c> or <c>Func&lt;string?, IEnumerable&lt;string&gt;&gt;</c>.</summary>
+    [Parameter] public object? Validation { get; set; }
     /// <summary>Accepted for MudBlazor compatibility; currently has no effect (value always updates on each keystroke).</summary>
     [Parameter] public bool Immediate { get; set; }
     /// <summary>Raised on each keyup event in the field.</summary>
@@ -145,6 +149,18 @@
     [Parameter] public string? FieldName { get; set; }
 
     [CascadingParameter] private ServerValidationState? ServerValidation { get; set; }
+    [CascadingParameter] private Form? Form { get; set; }
+    private string? _validationError;
+
+    protected override void OnInitialized() => Form?.Register(this);
+    public void Dispose() => Form?.Unregister(this);
+    string? IFormField.GetError() => FormValidation.Run(Form, Required, RequiredError, Validation, Value, FieldName);
+    void IFormField.ShowError(string? error)
+    {
+        _validationError = error;
+        StateHasChanged();
+    }
+
     /// <summary>HTML input type to render (text, password, email, number, date, ...). Defaults to Text.</summary>
     [Parameter] public InputType InputType { get; set; } = InputType.Text;
     /// <summary>Validation expression (MudBlazor compat; not used for HTML rendering).</summary>
@@ -164,9 +180,9 @@
     // That keeps every existing usage byte-identical when no ServerValidation is present.
     private string? _serverError => FieldName is null ? null : ServerValidation?.FirstErrorFor(FieldName);
 
-    private bool _hasError => Error || _serverError is not null;
+    private bool _hasError => Error || _validationError is not null || _serverError is not null;
 
-    private string? _errorText => ErrorText ?? _serverError;
+    private string? _errorText => ErrorText ?? _validationError ?? _serverError;
 
     private bool _showError => _hasError && !string.IsNullOrEmpty(_errorText);
     private string _helpId => _id + "-help";
@@ -237,12 +253,20 @@
     {
         Value = args.Value?.ToString();
         await ValueChanged.InvokeAsync(Value);
+        if (Form is not null)
+        {
+            await Form.FieldChanged(this);
+        }
     }
 
     private async Task ClearAsync()
     {
         Value = null;
         await ValueChanged.InvokeAsync(Value);
+        if (Form is not null)
+        {
+            await Form.FieldChanged(this);
+        }
     }
 
     private async Task OnKeyUpHandler(KeyboardEventArgs args)

@@ -1,6 +1,8 @@
 @namespace DaisyBlazor
 @typeparam T
 @attribute [CascadingTypeParameter(nameof(T))]
+@implements IFormField
+@implements IDisposable
 
 @* MudSelect<T> replacement. daisyUI .select. SelectItem children register via a cascading
    value; we render a native <select> of <option>s and map the chosen index back to T.
@@ -92,6 +94,10 @@
     [Parameter] public bool MultiSelection { get; set; }
     /// <summary>Appends an asterisk to the label and sets the native HTML <c>required</c> attribute.</summary>
     [Parameter] public bool Required { get; set; }
+    /// <summary>Message shown when an enclosing <see cref="Form"/> validates this Required select while nothing is chosen. Defaults to "Required".</summary>
+    [Parameter] public string? RequiredError { get; set; }
+    /// <summary>Checked by an enclosing <see cref="Form"/> against <see cref="Value"/>: <c>Func&lt;T, string?&gt;</c> (error or null), <c>Func&lt;T, bool&gt;</c> or <c>Func&lt;T, IEnumerable&lt;string&gt;&gt;</c>.</summary>
+    [Parameter] public object? Validation { get; set; }
     /// <summary>Stretches the wrapper and select to full width (<c>w-full</c>); on by default.</summary>
     [Parameter] public bool FullWidth { get; set; } = true;
     /// <summary>Hint text shown beneath the select; hidden while an error message is showing.</summary>
@@ -112,6 +118,18 @@
     [Parameter] public string? FieldName { get; set; }
 
     [CascadingParameter] private ServerValidationState? ServerValidation { get; set; }
+    [CascadingParameter] private Form? Form { get; set; }
+    private string? _validationError;
+
+    protected override void OnInitialized() => Form?.Register(this);
+    public void Dispose() => Form?.Unregister(this);
+    string? IFormField.GetError() => FormValidation.Run(
+        Form, Required && FormValidation.IsEmpty(MultiSelection ? SelectedValues : Value), RequiredError, Validation, Value, FieldName);
+    void IFormField.ShowError(string? error)
+    {
+        _validationError = error;
+        StateHasChanged();
+    }
 
     /// <summary>Label of the empty option added when <see cref="Clearable"/> is set; empty by default.</summary>
     [Parameter] public string ClearText { get; set; } = "";
@@ -133,9 +151,9 @@
     // Explicit Error/ErrorText wins; the cascaded server state only fills the gap.
     private string? _serverError => FieldName is null ? null : ServerValidation?.FirstErrorFor(FieldName);
 
-    private bool _hasError => Error || _serverError is not null;
+    private bool _hasError => Error || _validationError is not null || _serverError is not null;
 
-    private string? _errorText => ErrorText ?? _serverError;
+    private string? _errorText => ErrorText ?? _validationError ?? _serverError;
 
     private bool _showError => _hasError && !string.IsNullOrEmpty(_errorText);
     private string _helpId => _id + "-help";
@@ -208,6 +226,15 @@
         _hasError ? "select-error" : null);
 
     private async Task OnSelectChanged(ChangeEventArgs args)
+    {
+        await ApplySelection(args);
+        if (Form is not null)
+        {
+            await Form.FieldChanged(this);
+        }
+    }
+
+    private async Task ApplySelection(ChangeEventArgs args)
     {
         if (MultiSelection)
         {

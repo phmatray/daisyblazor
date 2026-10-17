@@ -246,17 +246,18 @@ public static partial class DocRegistry
         },
 
         new("Form", Category.DataInput,
-            "Form stacks fields with even spacing and keeps MudForm's Validate and ResetAsync methods so existing code compiles. Validator and ValidatorHint add daisyUI's CSS-only validation; ServerValidation and FieldError show errors returned by an API.",
+            "Form stacks fields with even spacing and validates the TextField, NumericField and Select inside it: Validate() runs each field's Required and Validation checks and updates IsValid, as MudForm does. Validator and ValidatorHint add daisyUI's CSS-only validation; ServerValidation and FieldError show errors returned by an API.",
             [typeof(Form), typeof(Validator), typeof(ValidatorHint), typeof(ServerValidation), typeof(FieldError)],
             [
                 new("Layout", "A bound order form; the record below echoes every field as you edit.", typeof(FormBasicExample)),
+                new("Field validation", "Validate() checks Required and each field's Validation func and binds IsValid; fields re-check as you edit them.", typeof(FormFieldValidationExample)),
                 new("CSS validation", "Validator turns the browser's :invalid state into daisyUI colours and reveals its hint after the user touches the field.", typeof(FormValidatorExample)),
                 new("Server errors", "ServerValidation cascades an error set; fields with a FieldName and any FieldError pick their message up.", typeof(FormServerValidationExample)),
             ])
         {
             DaisyClass = "validator",
             MudEquivalent = "MudForm",
-            MigrationNote = "Form does not run validation itself: Validate() and ResetAsync() are no-ops kept for compatibility. Use EditForm with DataAnnotations, Validator, or ServerValidation for real checks.",
+            MigrationNote = "Validate(), IsValid/IsValidChanged, Required/RequiredError and field Validation funcs (Func<T, string?>, Func<T, bool>, Func<T, IEnumerable<string>>) work as in MudForm on TextField, NumericField and Select. Validation is synchronous, For expressions are ignored, and a form-level Validation of shape Func<object, string, IEnumerable<string>> receives Model and the field's FieldName. ResetAsync() clears errors but not values.",
             Portrait = typeof(FormCoverExample),
         },
     ];
