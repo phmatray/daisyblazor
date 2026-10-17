@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.6.0](https://github.com/phmatray/daisyblazor/compare/v0.5.1...v0.6.0) (2026-10-17)
+
+
+### Features
+
+* **drawer:** wire any aria-controls toggle on static SSR; add CloseOnNavigation ([#117](https://github.com/phmatray/daisyblazor/issues/117)) ([06df8b8](https://github.com/phmatray/daisyblazor/commit/06df8b8064937f4379bfe901321f9dc2829fa3fc)), closes [#105](https://github.com/phmatray/daisyblazor/issues/105)
+* label the Tabs tablist and add PageHeader TitleClass/SubtitleClass ([#116](https://github.com/phmatray/daisyblazor/issues/116)) ([42c497c](https://github.com/phmatray/daisyblazor/commit/42c497cdfcbfe524efe73d53c3258282e19d22ca)), closes [#103](https://github.com/phmatray/daisyblazor/issues/103) [#104](https://github.com/phmatray/daisyblazor/issues/104)
+* **snackbar:** action button, progress bar, focus return and a provider default duration ([#118](https://github.com/phmatray/daisyblazor/issues/118)) ([20d4483](https://github.com/phmatray/daisyblazor/commit/20d448333f2b9fc74537748bff717f4b66e837fe)), closes [#106](https://github.com/phmatray/daisyblazor/issues/106) [#112](https://github.com/phmatray/daisyblazor/issues/112)
+
+
+### Bug Fixes
+
+* **build:** make a freshly generated CSS output a static web asset ([#119](https://github.com/phmatray/daisyblazor/issues/119)) ([538b50c](https://github.com/phmatray/daisyblazor/commit/538b50c766f5c443466772f14933d7b33ebe5443)), closes [#107](https://github.com/phmatray/daisyblazor/issues/107)
+* **menu:** keep uncontrolled menus open, manage focus, expose IsOpen, click tabindex activators ([#115](https://github.com/phmatray/daisyblazor/issues/115)) ([f2630bf](https://github.com/phmatray/daisyblazor/commit/f2630bf4a8a05fd3ac002374e9aeb76ff9f12d80)), closes [#108](https://github.com/phmatray/daisyblazor/issues/108) [#109](https://github.com/phmatray/daisyblazor/issues/109) [#110](https://github.com/phmatray/daisyblazor/issues/110) [#111](https://github.com/phmatray/daisyblazor/issues/111)
+* **modal:** restore focus when unmounted while open; add BodyClass ([#113](https://github.com/phmatray/daisyblazor/issues/113)) ([e916e38](https://github.com/phmatray/daisyblazor/commit/e916e384368a93f033a7e167084f0b9dc08c898a)), closes [#101](https://github.com/phmatray/daisyblazor/issues/101) [#102](https://github.com/phmatray/daisyblazor/issues/102)
+
 ## [0.5.1](https://github.com/phmatray/daisyblazor/compare/v0.5.0...v0.5.1) (2026-10-17)
 
 
