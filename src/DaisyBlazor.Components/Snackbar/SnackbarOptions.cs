@@ -13,4 +13,13 @@ public sealed class SnackbarOptions
 
     /// <summary>When true, an identical message will not be added again while it is still shown.</summary>
     public bool PreventDuplicates { get; set; } = true;
+
+    /// <summary>
+    /// Alert style of this toast: Filled is solid, Outlined adds <c>alert-outline</c>, Text adds <c>alert-soft</c>.
+    /// When null (default), the toast uses <see cref="SnackbarProvider.Variant"/>.
+    /// </summary>
+    public Variant? Variant { get; set; }
+
+    /// <summary>Extra CSS classes merged onto this toast's alert element, after <see cref="SnackbarProvider.AlertClass"/>.</summary>
+    public string? Class { get; set; }
 }
