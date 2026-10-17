@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/phmatray/daisyblazor/compare/v0.5.0...v0.5.1) (2026-10-17)
+
+
+### Bug Fixes
+
+* **dialog:** keep a closing service dialog from being re-opened before it leaves the DOM ([#98](https://github.com/phmatray/daisyblazor/issues/98)) ([8581435](https://github.com/phmatray/daisyblazor/commit/85814358429021543d2c8ad11b89700526130946)), closes [#97](https://github.com/phmatray/daisyblazor/issues/97)
+
 ## [0.5.0](https://github.com/phmatray/daisyblazor/compare/v0.4.0...v0.5.0) (2026-10-17)
 
 
