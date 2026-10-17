@@ -21,6 +21,12 @@
     <ProjectReference Include="..\src\DaisyBlazor.Charts\DaisyBlazor.Charts.csproj" />
   </ItemGroup>
 
+  <!-- main.css also scans the library sources: recompile the CSS when they change. -->
+  <ItemGroup>
+    <DaisyBlazorCssSource Include="..\src\DaisyBlazor.Components\**\*.razor;..\src\DaisyBlazor.Components\**\*.cs;..\src\DaisyBlazor.Components\styles\*;..\src\DaisyBlazor.Charts\**\*.razor;..\src\DaisyBlazor.Charts\**\*.cs"
+                          Exclude="..\src\*\bin\**;..\src\*\obj\**" />
+  </ItemGroup>
+
   <ItemGroup>
     <TrimmerRootAssembly Include="DaisyBlazor.Components" />
     <TrimmerRootAssembly Include="DaisyBlazor.Charts" />

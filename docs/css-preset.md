@@ -46,6 +46,22 @@ your host page. The `dotnet new daisyblazor` template wires all of this for you.
 | `DaisyBlazorTailwindVersion` | the version the package was tested with | Tailwind CLI release to download. |
 | `DaisyBlazorTailwindPath` | the cached download | Use your own Tailwind binary (offline builds, musl Linux). |
 | `DaisyBlazorStylesDir` | `obj/daisyblazor/` | Where the preset is copied. |
+| `DaisyBlazorDaisyUIVersion` | empty (the vendored daisyUI) | daisyUI release to download (into the same per-user cache) and copy instead of the vendored bundles, e.g. `5.5.20`. |
+
+The CSS build is incremental: it is skipped when `DaisyBlazorCssInput`, the preset and the
+`DaisyBlazorCssSource` items (by default every `.razor`, `.cs`, `.cshtml`, `.html` and `.css` file in the
+project) are older than `DaisyBlazorCssOutput`. If a `@source` glob scans files outside the project, add
+them so a change there recompiles:
+
+```xml
+<ItemGroup>
+  <DaisyBlazorCssSource Include="../Shared/**/*.razor" />
+</ItemGroup>
+```
+
+If the Tailwind CLI download fails (offline, unknown version) and `DaisyBlazorCssOutput` already exists,
+the build keeps that file and warns instead of failing; with no existing output it fails with a message
+naming the ways out (`DaisyBlazorTailwindPath`, or `DaisyBlazorBuildCss=false` with a committed CSS file).
 
 Already building CSS with the npm `tailwindcss` CLI or Vite? Leave `DaisyBlazorBuildCss` off and just
 import `obj/daisyblazor/preset.css` from your stylesheet — the copy happens either way.
