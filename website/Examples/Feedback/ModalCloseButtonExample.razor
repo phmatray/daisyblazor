@@ -1,0 +1,23 @@
+@* CloseButton adds the corner (x); OnClose runs whenever the modal dismisses itself. Class sizes the box. *@
+<div class="flex flex-wrap items-center gap-3">
+    <Button Variant="Variant.Outlined" OnClick="() => _open = true">What's new</Button>
+    <span>Dismissed @_dismissed time(s)</span>
+</div>
+
+<Modal @bind-Open="_open" CloseButton="true" Class="max-w-3xl" OnClose="() => _dismissed++">
+    <TitleContent>
+        <span class="flex items-center gap-2"><Chip Color="Color.Primary" Size="Size.Small" Text="v2.4" /> Release notes</span>
+    </TitleContent>
+    <ChildContent>
+        <ul class="list-disc space-y-1 pl-5">
+            <li>Single sign-on with any SAML 2.0 provider.</li>
+            <li>Audit logs for every admin action, kept for 12 months.</li>
+            <li>The dashboard loads twice as fast on large accounts.</li>
+        </ul>
+    </ChildContent>
+</Modal>
+
+@code {
+    private bool _open;
+    private int _dismissed;
+}

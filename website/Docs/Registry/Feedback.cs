@@ -153,6 +153,21 @@ public static partial class DocRegistry
             Portrait = typeof(DialogCoverExample),
         },
 
+        new("Modal", Category.Feedback,
+            "A modal declared inline in your markup and shown with @bind-Open, no service needed. It renders the same accessible box as DialogProvider: focus moves in, the page behind is inert, Escape closes it and focus returns to the button that opened it.",
+            [typeof(Modal)],
+            [
+                new("Bind Open", "@bind-Open shows the modal; Escape, the backdrop or your own button sets it back to false.", typeof(ModalBindOpenExample)),
+                new("Confirmation", "AlertDialog sets role=\"alertdialog\". With BackdropClick and CloseOnEscapeKey off, only the buttons close it.", typeof(ModalConfirmExample)),
+                new("Close button and OnClose", "CloseButton adds the corner (x), TitleContent takes custom title markup, Class widens the box and OnClose runs each time the modal dismisses itself.", typeof(ModalCloseButtonExample)),
+            ])
+        {
+            DaisyClass = "modal",
+            MudEquivalent = "MudDialog (inline)",
+            MigrationNote = "An inline <MudDialog @bind-Visible> becomes <Modal @bind-Open> and keeps TitleContent, DialogContent and DialogActions. CloseButton, CloseOnEscapeKey and BackdropClick are plain parameters instead of DialogOptions.",
+            Portrait = typeof(ModalCoverExample),
+        },
+
         new("Snackbar", Category.Feedback,
             "Toast messages raised from code with ISnackbar.Add and shown bottom-right by SnackbarProvider. Each one auto-dismisses after a delay, pausing while it is hovered or focused.",
             [typeof(SnackbarProvider)],

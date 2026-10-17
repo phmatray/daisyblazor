@@ -1,0 +1,26 @@
+@* A confirmation: AlertDialog sets role="alertdialog"; BackdropClick and CloseOnEscapeKey off make the user pick a button. *@
+<div class="flex flex-wrap items-center gap-3">
+    <Button Color="Color.Error" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Delete" OnClick="() => _open = true">Delete workspace</Button>
+    <span>@_status</span>
+</div>
+
+<Modal @bind-Open="_open" Title="Delete “Acme Marketing”?" AlertDialog="true" BackdropClick="false" CloseOnEscapeKey="false">
+    <ChildContent>
+        <p>All 18 projects and 342 tasks in this workspace will be removed. This can't be undone.</p>
+    </ChildContent>
+    <DialogActions>
+        <Button Variant="Variant.Text" OnClick="() => Done(false)">Keep it</Button>
+        <Button Color="Color.Error" Variant="Variant.Filled" OnClick="() => Done(true)">Delete</Button>
+    </DialogActions>
+</Modal>
+
+@code {
+    private bool _open;
+    private string _status = "Workspace active";
+
+    private void Done(bool deleted)
+    {
+        _status = deleted ? "Workspace deleted" : "Workspace kept";
+        _open = false;
+    }
+}
