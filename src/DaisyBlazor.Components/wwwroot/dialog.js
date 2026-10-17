@@ -13,12 +13,25 @@ export function open(dialog) {
     }
     if (dialog.open) dialog.close();
     dialog.showModal();
+    // A dialog removed while open (e.g. an `@if` around a Modal) never gets close(): its ElementReference
+    // no longer resolves, so watch for the removal and give focus back then (#101).
+    dialog.__daisyRemoval?.disconnect();
+    if (typeof MutationObserver === "function") {
+        dialog.__daisyRemoval = new MutationObserver(() => { if (!dialog.isConnected) restoreFocus(dialog); });
+        dialog.__daisyRemoval.observe(document.body, { childList: true, subtree: true });
+    }
 }
 
 export function close(dialog) {
     if (!dialog) return;
+    if (dialog.open) dialog.close();
+    restoreFocus(dialog);
+}
+
+function restoreFocus(dialog) {
+    dialog.__daisyRemoval?.disconnect();
+    dialog.__daisyRemoval = null;
     const target = dialog.__daisyReturnFocus;
     dialog.__daisyReturnFocus = null;
-    if (dialog.open) dialog.close();
     if (target && typeof target.focus === "function" && target.isConnected) target.focus();
 }

@@ -81,4 +81,15 @@ public class ModalTests : BunitContext
         JSInterop.VerifyInvoke("close");
         cut.FindAll("dialog").Count.ShouldBe(0);
     }
+
+    [Fact]
+    public void BodyClass_replaces_the_default_body_wrapper_classes()
+    {
+        IRenderedComponent<Modal> cut = Render<Modal>(ps => ps
+            .Add(p => p.Open, true)
+            .Add(p => p.BodyClass, "contents")
+            .AddChildContent("<p id=\"b\">Body</p>"));
+
+        cut.Find("#b").ParentElement!.ClassName.ShouldBe("contents");
+    }
 }

@@ -35,7 +35,7 @@
             {
                 <h3 id="@_titleId" class="font-heading text-lg font-semibold">@Title</h3>
             }
-            <div class="py-2 text-base-content">@DialogContent @ChildContent</div>
+            <div class="@(BodyClass ?? "py-2 text-base-content")">@DialogContent @ChildContent</div>
             @if (DialogActions is not null)
             {
                 <div class="modal-action mt-6">@DialogActions</div>
@@ -79,6 +79,10 @@
 
     /// <summary>Extra CSS classes on the .modal-box (e.g. <c>max-w-4xl</c>).</summary>
     [Parameter] public string? Class { get; set; }
+    /// <summary>CSS classes of the body wrapper, replacing the default <c>py-2 text-base-content</c>.
+    /// In a <c>flex flex-col</c> box, use <c>contents</c> to lay the body out as if unwrapped, or
+    /// <c>min-h-0 flex-1 overflow-y-auto</c> for a scrolling body between a fixed header and footer.</summary>
+    [Parameter] public string? BodyClass { get; set; }
     /// <summary>Inline CSS style on the .modal-box.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
