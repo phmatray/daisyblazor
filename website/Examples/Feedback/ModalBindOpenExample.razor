@@ -1,0 +1,30 @@
+@* Inline markup, no service: @bind-Open shows the modal and the modal sets it back to false when dismissed. *@
+<div class="flex flex-wrap items-center gap-3">
+    <Button Color="Color.Primary" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.PersonAdd" OnClick="() => _open = true">Invite member</Button>
+    @if (_invited is not null)
+    {
+        <span>Invitation sent to <strong>@_invited</strong></span>
+    }
+</div>
+
+<Modal @bind-Open="_open" Title="Invite a team member">
+    <ChildContent>
+        <TextField Label="Email address" @bind-Value="_email" Immediate="true" />
+    </ChildContent>
+    <DialogActions>
+        <Button Variant="Variant.Text" OnClick="() => _open = false">Cancel</Button>
+        <Button Color="Color.Primary" Variant="Variant.Filled" Disabled="string.IsNullOrWhiteSpace(_email)" OnClick="Send">Send invite</Button>
+    </DialogActions>
+</Modal>
+
+@code {
+    private bool _open;
+    private string? _email = "dana@acme.io";
+    private string? _invited;
+
+    private void Send()
+    {
+        _invited = _email;
+        _open = false;
+    }
+}

@@ -1,0 +1,173 @@
+@namespace DaisyBlazor
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+@* Declarative modal: the inline counterpart of IDialogService/DialogProvider (MudDialog @bind-Visible
+   maps to @bind-Open, as on Drawer). Renders the same daisyUI <dialog class="modal" open> + .modal-box
+   as DialogProvider and reuses dialog.js: showModal() once interactive (focus moved in, background inert,
+   native Escape) and focus restored to the opener on close. Without JS the open <dialog> still renders. *@
+
+@if (Open)
+{
+    <dialog class="modal modal-open" open @ref="_element"
+            @oncancel="OnEscape" @oncancel:preventDefault
+            @onkeydown="OnKeyDown">
+        <div class="@_boxCls"
+             role="@(AlertDialog ? "alertdialog" : "dialog")"
+             aria-modal="true"
+             aria-labelledby="@(_hasTitle ? _titleId : null)"
+             style="@Style"
+             @attributes="UserAttributes">
+            @if (CloseButton)
+            {
+                <button type="button"
+                        class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                        @onclick="CloseAsync"
+                        aria-label="@CloseLabel">
+                    <Icon Name="@Icons.Material.Filled.Close" Size="Size.Small" />
+                </button>
+            }
+            @if (TitleContent is not null)
+            {
+                <div id="@_titleId" class="font-heading text-lg font-semibold">@TitleContent</div>
+            }
+            else if (!string.IsNullOrEmpty(Title))
+            {
+                <h3 id="@_titleId" class="font-heading text-lg font-semibold">@Title</h3>
+            }
+            <div class="py-2 text-base-content">@DialogContent @ChildContent</div>
+            @if (DialogActions is not null)
+            {
+                <div class="modal-action mt-6">@DialogActions</div>
+            }
+        </div>
+        <form method="dialog" class="modal-backdrop" @onclick="OnBackdrop">
+            <button type="button" tabindex="-1">@CloseLabel</button>
+        </form>
+    </dialog>
+}
+
+@code {
+    /// <summary>Whether the modal is shown. Use <c>@bind-Open</c> (MudDialog's <c>@bind-Visible</c>).</summary>
+    [Parameter] public bool Open { get; set; }
+    /// <summary>Raised with <c>false</c> when the modal closes itself (Escape, backdrop, close button).</summary>
+    [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+    /// <summary>Raised after the modal closes itself (Escape, backdrop, close button).</summary>
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    /// <summary>Title text; labels the dialog through <c>aria-labelledby</c>.</summary>
+    [Parameter] public string? Title { get; set; }
+    /// <summary>Custom title markup; takes precedence over <see cref="Title"/>.</summary>
+    [Parameter] public RenderFragment? TitleContent { get; set; }
+    /// <summary>Body content (MudDialog name), rendered before <see cref="ChildContent"/>.</summary>
+    [Parameter] public RenderFragment? DialogContent { get; set; }
+    /// <summary>Body content, rendered after <see cref="DialogContent"/>.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>Footer actions, as on <see cref="Dialog"/>.</summary>
+    [Parameter] public RenderFragment? DialogActions { get; set; }
+
+    /// <summary>Render with <c>role="alertdialog"</c> for confirmations.</summary>
+    [Parameter] public bool AlertDialog { get; set; }
+    /// <summary>Show a close (x) button in the corner.</summary>
+    [Parameter] public bool CloseButton { get; set; }
+    /// <summary>Allow dismissing with the Escape key.</summary>
+    [Parameter] public bool CloseOnEscapeKey { get; set; } = true;
+    /// <summary>Allow dismissing by clicking the backdrop.</summary>
+    [Parameter] public bool BackdropClick { get; set; } = true;
+    /// <summary>Accessible label of the close button and backdrop. Override to localise.</summary>
+    [Parameter] public string CloseLabel { get; set; } = "Close";
+
+    /// <summary>Extra CSS classes on the .modal-box (e.g. <c>max-w-4xl</c>).</summary>
+    [Parameter] public string? Class { get; set; }
+    /// <summary>Inline CSS style on the .modal-box.</summary>
+    [Parameter] public string? Style { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
+
+    private readonly string _titleId = $"modal-{Guid.NewGuid():N}-title";
+    private ElementReference _element;
+    private bool _shown;
+    private IJSObjectReference? _module;
+
+    private bool _hasTitle => TitleContent is not null || !string.IsNullOrEmpty(Title);
+
+    private string _boxCls => CssClass.Merge(
+        "modal-box relative",
+        CloseButton ? "[&_[id$=-title]]:pr-8" : null,
+        Class);
+
+    /// <summary>Closes the modal and raises <see cref="OpenChanged"/> and <see cref="OnClose"/>.</summary>
+    public async Task CloseAsync()
+    {
+        if (!Open)
+        {
+            return;
+        }
+
+        Open = false; // first, so the keydown + cancel pair from one Escape closes once
+        await HideAsync();
+        await OpenChanged.InvokeAsync(false);
+        await OnClose.InvokeAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Parent set Open=false: close the native modal while the element still exists so focus
+        // returns to the opener (the page is inert while it is open), then let it leave the tree.
+        if (!Open && _shown)
+        {
+            await HideAsync();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Open && !_shown)
+        {
+            _shown = true;
+            await InvokeJsAsync("open");
+        }
+    }
+
+    private async Task HideAsync()
+    {
+        if (_shown)
+        {
+            _shown = false;
+            await InvokeJsAsync("close");
+        }
+    }
+
+    private Task OnEscape() => CloseOnEscapeKey ? CloseAsync() : Task.CompletedTask;
+
+    private Task OnKeyDown(KeyboardEventArgs e) => e.Key == "Escape" ? OnEscape() : Task.CompletedTask;
+
+    private Task OnBackdrop() => BackdropClick ? CloseAsync() : Task.CompletedTask;
+
+    private async Task InvokeJsAsync(string identifier)
+    {
+        try
+        {
+            _module ??= await JS.InvokeAsync<IJSObjectReference>(
+                "import", "./_content/DaisyBlazor.Components/dialog.js");
+            await _module.InvokeVoidAsync(identifier, _element);
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or InvalidOperationException or JSException)
+        {
+            // Prerender / disconnected circuit / JS unavailable: the inline <dialog open> fallback stays.
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            if (_module is not null)
+            {
+                await _module.DisposeAsync();
+            }
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+    }
+}
