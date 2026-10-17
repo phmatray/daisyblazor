@@ -35,7 +35,7 @@ jobs:
         run: node scripts/gen-styles.mjs --check
 
       - name: Test static JS
-        run: node --test tests/
+        run: node --test "tests/*.test.mjs"
 
       - name: Restore
         run: dotnet restore
