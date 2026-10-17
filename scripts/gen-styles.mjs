@@ -40,7 +40,8 @@ const sources = ["DaisyBlazor.Components", "DaisyBlazor.Charts"].flatMap((p) =>
 const candidates = new Scanner({ sources }).scan();
 
 const ds = await __unstable__loadDesignSystem(
-  '@import "tailwindcss"; @plugin "./daisyui.mjs" { themes: light --default; logs: false; }',
+  // safelist.css brings the kit's own @utility rules (font-heading) so their classes compile too.
+  '@import "tailwindcss"; @plugin "./daisyui.mjs" { themes: light --default; logs: false; } @import "./safelist.css";',
   { base: styles });
 const css = ds.candidatesToCss(candidates);
 const classes = candidates
