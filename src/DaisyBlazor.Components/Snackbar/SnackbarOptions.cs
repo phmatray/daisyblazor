@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Components;
+
 namespace DaisyBlazor;
 
 /// <summary>
@@ -5,8 +7,34 @@ namespace DaisyBlazor;
 /// </summary>
 public sealed class SnackbarOptions
 {
-    /// <summary>How long (ms) the toast stays visible before it auto-dismisses.</summary>
-    public int VisibleStateDuration { get; set; } = 5000;
+    private int? _visibleStateDuration;
+
+    /// <summary>
+    /// How long (ms) the toast stays visible before it auto-dismisses. When not set, the toast uses
+    /// <see cref="SnackbarProvider.VisibleStateDuration"/> (5000 by default).
+    /// </summary>
+    public int VisibleStateDuration
+    {
+        get => _visibleStateDuration ?? 5000;
+        set => _visibleStateDuration = value;
+    }
+
+    internal bool HasVisibleStateDuration => _visibleStateDuration is not null;
+
+    /// <summary>Label of an action button on the toast (e.g. "Undo"); no button when null.</summary>
+    public string? Action { get; set; }
+
+    /// <summary>Raised when the <see cref="Action"/> button is clicked; the toast then closes.</summary>
+    public Func<Task>? OnAction { get; set; }
+
+    /// <summary>Show a bar with the time left before the toast auto-dismisses (it pauses with the countdown).</summary>
+    public bool ShowProgress { get; set; }
+
+    /// <summary>
+    /// Element that gets focus back when the toast closes while it held focus (e.g. after its action
+    /// button was clicked); otherwise focus would fall to the page body.
+    /// </summary>
+    public ElementReference? ReturnFocus { get; set; }
 
     /// <summary>Show a manual close button on the toast.</summary>
     public bool ShowCloseIcon { get; set; } = true;
