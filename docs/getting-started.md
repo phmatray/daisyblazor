@@ -55,6 +55,8 @@ once). Link the output in your host page
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
 <!-- Applies the saved/OS theme before first paint (no flash, works on static SSR pages) -->
 <script src="_content/DaisyBlazor.Components/theme-init.js"></script>
+<!-- Static SSR pages only: Drawer toggle, Escape and focus handling without a circuit -->
+<script src="_content/DaisyBlazor.Components/drawer.js" defer></script>
 ```
 
 ## 4. Register services

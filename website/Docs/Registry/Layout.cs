@@ -72,11 +72,11 @@ public static partial class DocRegistry
         },
 
         new("Drawer", Category.Layout,
-            "A daisyUI drawer: a side panel next to the main content, opened through two-way bound Open. Ships an accessible toggle button, closes on Escape and moves focus in and out of the panel.",
+            "A daisyUI drawer: a side panel next to the main content, opened through two-way bound Open. Ships an accessible toggle button, closes on Escape and moves focus in and out of the panel. On static SSR pages, load drawer.js to keep that behaviour without a circuit.",
             [typeof(Drawer)],
             [
                 new("Built-in toggle", "ToggleContent renders a real button wired to the panel with aria-expanded; bind Open to follow the state.", typeof(DrawerToggleExample)),
-                new("From the end", "End slides the panel in from the right; open and close it from your own buttons.", typeof(DrawerEndExample)),
+                new("From the end", "End slides the panel in from the right; open and close it from your own buttons. CloseLabel names the overlay for screen readers.", typeof(DrawerEndExample)),
                 new("Responsive sidebar", "Add lg:drawer-open to keep the panel docked on large screens, and hide the toggle there.", typeof(DrawerResponsiveExample)),
             ])
         {

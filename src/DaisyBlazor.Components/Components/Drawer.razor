@@ -6,9 +6,10 @@
    Variant=Temporary keeps the overlay pattern: Open checks the toggle and the panel slides over the content.
    Children: .drawer-toggle (hidden checkbox), .drawer-content (main), .drawer-side (.drawer-overlay + side panel).
    A11y: optional built-in toggle button (ToggleContent) with aria-expanded/aria-controls, Escape closes,
-   focus moves into the side panel on open and back to the toggle on close, and the closed panel is inert. *@
+   focus moves into the side panel on open and back to the toggle on close, and the closed panel is inert.
+   Static SSR (no circuit): data-drawer-static hands the toggle, Escape, focus and inert sync to drawer.js. *@
 
-<div class="@_cls" style="@Style" @attributes="UserAttributes">
+<div class="@_cls" style="@Style" data-drawer-static="@(!_interactive)" @attributes="UserAttributes">
     <input id="@Id"
            type="checkbox"
            class="drawer-toggle"
@@ -41,7 +42,7 @@
          inert="@(!Open && !_persistent)"
          @ref="_side"
          @onkeydown="OnSideKeyDown">
-        <label for="@Id" aria-label="close sidebar" class="drawer-overlay"></label>
+        <label for="@Id" aria-label="@CloseLabel" class="drawer-overlay"></label>
         @SideContent
     </div>
 </div>
@@ -50,6 +51,9 @@
     private ElementReference _toggle;
     private ElementReference _side;
     private bool? _renderedOpen;
+
+    // OnAfterRender never runs on static SSR, so the drawer.js marker stays until a circuit takes over.
+    private bool _interactive;
 
     /// <summary>The main content rendered inside the drawer-content region.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -85,6 +89,9 @@
 
     /// <summary>CSS classes of the built-in toggle button (e.g. add <c>lg:hidden</c> for a responsive drawer).</summary>
     [Parameter] public string ToggleClass { get; set; } = "btn drawer-button";
+
+    /// <summary>Accessible name of the overlay that closes the open panel; set it to localise the label.</summary>
+    [Parameter] public string CloseLabel { get; set; } = "close sidebar";
 
     /// <summary>Extra CSS classes merged onto the .drawer root; a responsive drawer-open class keeps the side panel active.</summary>
     [Parameter] public string? Class { get; set; }
@@ -126,6 +133,12 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender)
+        {
+            _interactive = true;
+            StateHasChanged();
+        }
+
         // Move focus only on an open-state transition, never on first render (e.g. a persistent sidebar).
         bool? previous = _renderedOpen;
         _renderedOpen = Open;
