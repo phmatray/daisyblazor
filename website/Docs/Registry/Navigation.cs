@@ -51,7 +51,7 @@ public static partial class DocRegistry
         },
 
         new("NavMenuLink", Category.Navigation,
-            "A Blazor NavLink styled as a daisyUI menu row, for sidebars and nav menus. It highlights itself with menu-active and aria-current=\"page\" when the route matches; wrap each one in an <li> inside a ul.menu.",
+            "A Blazor NavLink styled as a daisyUI menu row, for sidebars and nav menus. It highlights itself with menu-active and aria-current=\"page\" when the route matches; it renders its own <li>, so place it directly inside a ul.menu.",
             [typeof(NavMenuLink)],
             [
                 new("Sidebar", "The link to the current page lights up on its own; try the links to move around the docs.", typeof(NavMenuLinkBasicExample)),
@@ -61,7 +61,7 @@ public static partial class DocRegistry
         {
             DaisyClass = "menu",
             MudEquivalent = "MudNavLink",
-            MigrationNote = "Named NavMenuLink rather than NavLink to avoid clashing with the framework's NavLink.",
+            MigrationNote = "Named NavMenuLink rather than NavLink to avoid clashing with the framework's NavLink. Since 0.5 it renders its own <li>: remove any <li> you wrapped it in.",
             Portrait = typeof(NavMenuLinkCoverExample),
         },
 
