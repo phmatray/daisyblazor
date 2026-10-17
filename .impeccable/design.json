@@ -1,0 +1,490 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-16T22:28:22+00:00",
+  "title": "Design System: DaisyBlazor Docs",
+  "extensions": {
+    "colorMeta": {
+      "ground": {
+        "role": "primary",
+        "displayName": "Ground",
+        "canonical": "var(--color-primary)",
+        "note": "Theme-bound daisyUI role; frontmatter value is the default 'daisyblazor' theme.",
+        "tonalRamp": [
+          "oklch(15% 0.18 256)",
+          "oklch(25% 0.18 256)",
+          "oklch(35% 0.18 256)",
+          "oklch(45% 0.18 256)",
+          "oklch(55% 0.18 256)",
+          "oklch(65% 0.18 256)",
+          "oklch(80% 0.18 256)",
+          "oklch(95% 0.18 256)"
+        ]
+      },
+      "ground-ink": {
+        "role": "primary",
+        "displayName": "Ground Ink",
+        "canonical": "var(--color-primary-content)",
+        "note": "Theme-bound daisyUI role; frontmatter value is the default 'daisyblazor' theme.",
+        "tonalRamp": [
+          "oklch(15% 0.01 256)",
+          "oklch(25% 0.01 256)",
+          "oklch(35% 0.01 256)",
+          "oklch(45% 0.01 256)",
+          "oklch(55% 0.01 256)",
+          "oklch(65% 0.01 256)",
+          "oklch(80% 0.01 256)",
+          "oklch(95% 0.01 256)"
+        ]
+      },
+      "reading-surface": {
+        "role": "neutral",
+        "displayName": "Reading Surface",
+        "canonical": "var(--color-base-100)",
+        "note": "Theme-bound daisyUI role; frontmatter value is the default 'daisyblazor' theme.",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(25% 0 0)",
+          "oklch(35% 0 0)",
+          "oklch(45% 0 0)",
+          "oklch(55% 0 0)",
+          "oklch(65% 0 0)",
+          "oklch(80% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "surface-shade": {
+        "role": "neutral",
+        "displayName": "Surface Shade",
+        "canonical": "var(--color-base-200)",
+        "note": "Theme-bound daisyUI role; frontmatter value is the default 'daisyblazor' theme.",
+        "tonalRamp": [
+          "oklch(15% 0.002 264)",
+          "oklch(25% 0.002 264)",
+          "oklch(35% 0.002 264)",
+          "oklch(45% 0.002 264)",
+          "oklch(55% 0.002 264)",
+          "oklch(65% 0.002 264)",
+          "oklch(80% 0.002 264)",
+          "oklch(95% 0.002 264)"
+        ]
+      },
+      "surface-rule": {
+        "role": "neutral",
+        "displayName": "Surface Rule",
+        "canonical": "var(--color-base-300)",
+        "note": "Theme-bound daisyUI role; frontmatter value is the default 'daisyblazor' theme.",
+        "tonalRamp": [
+          "oklch(15% 0.004 264)",
+          "oklch(25% 0.004 264)",
+          "oklch(35% 0.004 264)",
+          "oklch(45% 0.004 264)",
+          "oklch(55% 0.004 264)",
+          "oklch(65% 0.004 264)",
+          "oklch(80% 0.004 264)",
+          "oklch(95% 0.004 264)"
+        ]
+      },
+      "reading-ink": {
+        "role": "neutral",
+        "displayName": "Reading Ink",
+        "canonical": "var(--color-base-content)",
+        "note": "Theme-bound daisyUI role; frontmatter value is the default 'daisyblazor' theme.",
+        "tonalRamp": [
+          "oklch(15% 0.02 264)",
+          "oklch(25% 0.02 264)",
+          "oklch(35% 0.02 264)",
+          "oklch(45% 0.02 264)",
+          "oklch(55% 0.02 264)",
+          "oklch(65% 0.02 264)",
+          "oklch(80% 0.02 264)",
+          "oklch(95% 0.02 264)"
+        ]
+      },
+      "code-surface": {
+        "role": "neutral",
+        "displayName": "Code Surface",
+        "canonical": "var(--color-neutral)",
+        "note": "Theme-bound daisyUI role; frontmatter value is the default 'daisyblazor' theme.",
+        "tonalRamp": [
+          "oklch(15% 0.02 264)",
+          "oklch(25% 0.02 264)",
+          "oklch(35% 0.02 264)",
+          "oklch(45% 0.02 264)",
+          "oklch(55% 0.02 264)",
+          "oklch(65% 0.02 264)",
+          "oklch(80% 0.02 264)",
+          "oklch(95% 0.02 264)"
+        ]
+      },
+      "code-ink": {
+        "role": "neutral",
+        "displayName": "Code Ink",
+        "canonical": "var(--color-neutral-content)",
+        "note": "Theme-bound daisyUI role; frontmatter value is the default 'daisyblazor' theme.",
+        "tonalRamp": [
+          "oklch(15% 0.01 264)",
+          "oklch(25% 0.01 264)",
+          "oklch(35% 0.01 264)",
+          "oklch(45% 0.01 264)",
+          "oklch(55% 0.01 264)",
+          "oklch(65% 0.01 264)",
+          "oklch(80% 0.01 264)",
+          "oklch(95% 0.01 264)"
+        ]
+      },
+      "secondary": {
+        "role": "secondary",
+        "displayName": "Secondary",
+        "canonical": "var(--color-secondary)",
+        "note": "Theme-bound daisyUI role; frontmatter value is the default 'daisyblazor' theme.",
+        "tonalRamp": [
+          "oklch(15% 0.22 312)",
+          "oklch(25% 0.22 312)",
+          "oklch(35% 0.22 312)",
+          "oklch(45% 0.22 312)",
+          "oklch(55% 0.22 312)",
+          "oklch(65% 0.22 312)",
+          "oklch(80% 0.22 312)",
+          "oklch(95% 0.22 312)"
+        ]
+      },
+      "accent": {
+        "role": "tertiary",
+        "displayName": "Accent",
+        "canonical": "var(--color-accent)",
+        "note": "Theme-bound daisyUI role; frontmatter value is the default 'daisyblazor' theme.",
+        "tonalRamp": [
+          "oklch(15% 0.17 65)",
+          "oklch(25% 0.17 65)",
+          "oklch(35% 0.17 65)",
+          "oklch(45% 0.17 65)",
+          "oklch(55% 0.17 65)",
+          "oklch(65% 0.17 65)",
+          "oklch(80% 0.17 65)",
+          "oklch(95% 0.17 65)"
+        ]
+      },
+      "info": {
+        "role": "neutral",
+        "displayName": "Info (syntax tint)",
+        "canonical": "var(--color-info)",
+        "note": "Theme-bound daisyUI role; frontmatter value is the default 'daisyblazor' theme.",
+        "tonalRamp": [
+          "oklch(15% 0.14 233)",
+          "oklch(25% 0.14 233)",
+          "oklch(35% 0.14 233)",
+          "oklch(45% 0.14 233)",
+          "oklch(55% 0.14 233)",
+          "oklch(65% 0.14 233)",
+          "oklch(80% 0.14 233)",
+          "oklch(95% 0.14 233)"
+        ]
+      },
+      "success": {
+        "role": "neutral",
+        "displayName": "Success (syntax tint)",
+        "canonical": "var(--color-success)",
+        "note": "Theme-bound daisyUI role; frontmatter value is the default 'daisyblazor' theme.",
+        "tonalRamp": [
+          "oklch(15% 0.16 150)",
+          "oklch(25% 0.16 150)",
+          "oklch(35% 0.16 150)",
+          "oklch(45% 0.16 150)",
+          "oklch(55% 0.16 150)",
+          "oklch(65% 0.16 150)",
+          "oklch(80% 0.16 150)",
+          "oklch(95% 0.16 150)"
+        ]
+      },
+      "warning": {
+        "role": "neutral",
+        "displayName": "Warning (syntax tint)",
+        "canonical": "var(--color-warning)",
+        "note": "Theme-bound daisyUI role; frontmatter value is the default 'daisyblazor' theme.",
+        "tonalRamp": [
+          "oklch(15% 0.16 75)",
+          "oklch(25% 0.16 75)",
+          "oklch(35% 0.16 75)",
+          "oklch(45% 0.16 75)",
+          "oklch(55% 0.16 75)",
+          "oklch(65% 0.16 75)",
+          "oklch(80% 0.16 75)",
+          "oklch(95% 0.16 75)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Home page H1 in the masthead."
+      },
+      "display-page": {
+        "displayName": "Display page",
+        "purpose": "Every other page's H1: the component or guide name."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Home section titles, stated plainly."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Prose H2s and the playground heading."
+      },
+      "title-sm": {
+        "displayName": "Title small",
+        "purpose": "Example titles, prose H3s, pager targets."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Reading column, max 70ch."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "Masthead lede, max 40rem."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Nav pills, jump pills, nav group labels, table heads; sentence case."
+      },
+      "code": {
+        "displayName": "Code",
+        "purpose": "Code blocks, parameter names, types, paths."
+      }
+    },
+    "shadows": [
+      {
+        "name": "wheel-lift",
+        "value": "0 18px 40px -18px rgb(0 0 0 / 0.45)",
+        "purpose": "Under the next-theme colour wheel only."
+      },
+      {
+        "name": "tile-lift",
+        "value": "0 22px 40px -22px rgb(0 0 0 / 0.6)",
+        "purpose": "Theme tile on hover, with a 4px lift."
+      },
+      {
+        "name": "pill-seat",
+        "value": "0 1px 0 rgb(0 0 0 / 0.08)",
+        "purpose": "Hairline under the search pill on the ground."
+      }
+    ],
+    "motion": [
+      {
+        "name": "theme-reveal",
+        "value": "clip-path circle(0 → 150vmax at pointer) 820ms cubic-bezier(.16, 1, .3, 1)",
+        "purpose": "View-transition reveal when switching theme; skipped under reduced motion."
+      },
+      {
+        "name": "ground-crossfade",
+        "value": "background-color, color 600ms cubic-bezier(.2, .8, .2, 1)",
+        "purpose": "Ground and ink cross-fade fallback without view transitions; removed under reduced motion."
+      },
+      {
+        "name": "wheel-rotate",
+        "value": "transform rotate(40deg) translateX(-12px) 900ms cubic-bezier(.16, 1, .3, 1)",
+        "purpose": "Next-theme colour wheel on hover/focus; removed under reduced motion."
+      },
+      {
+        "name": "jump-pill-invert",
+        "value": "background-color, color 200ms",
+        "purpose": "\"On this page\" jump pill inverting to ink fill on hover."
+      },
+      {
+        "name": "mark-spin",
+        "value": "rotate(120deg) 700ms ease-out",
+        "purpose": "Daisy mark in the logotype on hover."
+      },
+      {
+        "name": "boot-spin",
+        "value": "rotate(360deg) 2.4s cubic-bezier(.45, 0, .55, 1) infinite",
+        "purpose": "Boot screen mark; stopped under reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      },
+      {
+        "name": "2xl",
+        "value": "1536px"
+      },
+      {
+        "name": "frame",
+        "value": "1500px max content width"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Masthead",
+      "kind": "custom",
+      "refersTo": "masthead",
+      "description": "Page cover: primary ground, primary-content ink, H1, theme swatches, jump pills, live cover, next-theme colour wheel.",
+      "html": "<section class=\"ds-mast\"><div class=\"ds-mast-copy\"><h1>Button</h1><p>Every action, in every theme.</p><span class=\"ds-otp\">On this page</span><ul class=\"ds-jumps\"><li><a class=\"ds-jump\">Examples</a></li><li><a class=\"ds-jump\">Playground</a></li><li><a class=\"ds-jump\">API</a></li></ul></div><div class=\"ds-cover\"><button class=\"ds-cta\">Deploy</button></div><button class=\"ds-wheel\" aria-label=\"Try the next theme: dark\"><span class=\"ds-wheel-c\"><small>Try theme</small><b>dark</b></span></button></section>",
+      "css": ".ds-mast { position: relative; overflow: hidden; display: flex; gap: 32px; align-items: center; padding: 32px 170px 32px 32px; background: var(--color-primary, oklch(55% 0.18 256)); color: var(--color-primary-content, oklch(98% 0.01 256)); font-family: Manrope, ui-sans-serif, system-ui, sans-serif; transition: background-color 600ms cubic-bezier(.2,.8,.2,1); } .ds-mast h1 { font-family: Fredoka, Manrope, ui-rounded, sans-serif; font-weight: 700; font-size: 4rem; line-height: .92; letter-spacing: -0.03em; margin: 0; } .ds-mast p { font-size: 1.125rem; margin: 16px 0 24px; } .ds-otp { display: block; font-size: .875rem; font-weight: 700; margin-bottom: 8px; } .ds-jumps { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; } .ds-jump { display: inline-block; border: 2px solid var(--color-primary-content, oklch(98% 0.01 256)); border-radius: 9999px; padding: .2rem .8rem; font-size: .9rem; font-weight: 700; cursor: pointer; transition: background-color 200ms, color 200ms; } .ds-jump:hover { background: var(--color-primary-content, oklch(98% 0.01 256)); color: var(--color-primary, oklch(55% 0.18 256)); } .ds-cover { position: relative; z-index: 1; display: grid; place-items: center; width: 180px; aspect-ratio: 1; background: var(--color-base-100, #fff); color: var(--color-base-content, oklch(22% 0.02 264)); border-radius: 6px; flex-shrink: 0; } .ds-cta { border: 0; border-radius: 9999px; padding: 8px 20px; background: var(--color-primary, oklch(55% 0.18 256)); color: var(--color-primary-content, oklch(98% 0.01 256)); font-weight: 700; } .ds-wheel { position: absolute; right: -60px; top: -40px; width: 210px; height: 210px; border: 0; padding: 0; border-radius: 9999px; cursor: pointer; background: conic-gradient(from -30deg, var(--color-primary, oklch(55% 0.18 256)) 0 40%, var(--color-secondary, oklch(50% 0.22 312)) 0 62%, var(--color-accent, oklch(72% 0.17 65)) 0 80%, var(--color-neutral, oklch(32% 0.02 264)) 0 100%); box-shadow: 0 18px 40px -18px rgb(0 0 0 / .45); transition: transform 900ms cubic-bezier(.16,1,.3,1); } .ds-wheel:hover, .ds-wheel:focus-visible { transform: rotate(40deg) translateX(-12px); } .ds-wheel:focus-visible { outline: 2.5px solid var(--color-primary-content, oklch(98% 0.01 256)); outline-offset: 3px; } .ds-wheel-c { position: absolute; inset: 31%; display: grid; place-content: center; gap: .15rem; border-radius: 9999px; background: var(--color-base-100, #fff); color: var(--color-base-content, oklch(22% 0.02 264)); text-align: center; font-family: Fredoka, Manrope, ui-rounded, sans-serif; line-height: 1; box-shadow: 0 0 0 .35rem color-mix(in oklab, var(--color-primary, oklch(55% 0.18 256)) 80%, black); } .ds-wheel-c small { font-size: .65rem; font-weight: 600; opacity: .7; } .ds-wheel-c b { font-size: .75rem; }"
+    },
+    {
+      "name": "Primary Button (on ground)",
+      "kind": "button",
+      "refersTo": "button-ground-primary",
+      "description": "Main call to action on the ground: ink fill, ground text, pill.",
+      "html": "<div class=\"ds-ground\"><button class=\"ds-btn-ground\">Get started</button></div>",
+      "css": ".ds-ground { background: var(--color-primary, oklch(55% 0.18 256)); padding: 24px; } .ds-btn-ground { height: 48px; padding: 0 28px; border: 0; border-radius: 9999px; background: var(--color-primary-content, oklch(98% 0.01 256)); color: var(--color-primary, oklch(55% 0.18 256)); font-family: Manrope, ui-sans-serif, system-ui, sans-serif; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: background .2s; } .ds-btn-ground:hover { background: color-mix(in oklab, var(--color-primary-content, oklch(98% 0.01 256)) 90%, transparent); } .ds-btn-ground:focus-visible { outline: 2.5px solid var(--color-primary, oklch(55% 0.18 256)); outline-offset: 3px; }"
+    },
+    {
+      "name": "Outline Button (on ground)",
+      "kind": "button",
+      "refersTo": "button-ground-outline",
+      "description": "Secondary action on the ground: 2px ink border, inverts on hover.",
+      "html": "<div class=\"ds-ground-o\"><button class=\"ds-btn-ground-o\">Browse components</button></div>",
+      "css": ".ds-ground-o { background: var(--color-primary, oklch(55% 0.18 256)); padding: 24px; } .ds-btn-ground-o { height: 48px; padding: 0 28px; border: 2px solid var(--color-primary-content, oklch(98% 0.01 256)); border-radius: 9999px; background: transparent; color: var(--color-primary-content, oklch(98% 0.01 256)); font-family: Manrope, ui-sans-serif, system-ui, sans-serif; font-weight: 700; font-size: 1.05rem; cursor: pointer; transition: background .2s, color .2s; } .ds-btn-ground-o:hover { background: var(--color-primary-content, oklch(98% 0.01 256)); color: var(--color-primary, oklch(55% 0.18 256)); } .ds-btn-ground-o:focus-visible { outline: 2.5px solid var(--color-primary, oklch(55% 0.18 256)); outline-offset: 3px; }"
+    },
+    {
+      "name": "Top Bar Navigation",
+      "kind": "nav",
+      "refersTo": "nav-pill-active",
+      "description": "Logotype, nav pills (active inverted to ink), search pill, all on the ground.",
+      "html": "<header class=\"ds-topbar\"><span class=\"ds-logo\">daisy<span>Blazor</span></span><nav><a class=\"ds-pill\">Guides</a><a class=\"ds-pill ds-on\">Components</a><a class=\"ds-pill\">Themes</a></nav><button class=\"ds-search\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z\"/></svg>Search components</button></header>",
+      "css": ".ds-topbar { display: flex; align-items: center; gap: 16px; padding: 16px 24px; background: var(--color-primary, oklch(55% 0.18 256)); color: var(--color-primary-content, oklch(98% 0.01 256)); font-family: Manrope, ui-sans-serif, system-ui, sans-serif; } .ds-logo { font-family: Fredoka, Manrope, ui-rounded, sans-serif; font-weight: 700; font-size: 1.7rem; letter-spacing: -0.02em; } .ds-logo span { color: color-mix(in oklab, var(--color-primary-content, oklch(98% 0.01 256)) 75%, var(--color-primary, oklch(55% 0.18 256))); } .ds-topbar nav { display: flex; gap: 4px; font-weight: 700; } .ds-pill { padding: 6px 14px; border-radius: 9999px; cursor: pointer; } .ds-pill:hover { background: color-mix(in oklab, var(--color-primary-content, oklch(98% 0.01 256)) 10%, transparent); } .ds-pill.ds-on { background: var(--color-primary-content, oklch(98% 0.01 256)); color: var(--color-primary, oklch(55% 0.18 256)); } .ds-search { margin-left: auto; display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 16px; border: 0; border-radius: 9999px; background: var(--color-base-100, #fff); color: var(--color-base-content, oklch(22% 0.02 264)); font-weight: 600; box-shadow: 0 1px 0 rgb(0 0 0 / .08); } .ds-search:focus-visible { outline: 2.5px solid var(--color-primary, oklch(55% 0.18 256)); outline-offset: 3px; }"
+    },
+    {
+      "name": "Theme Swatches",
+      "kind": "chip",
+      "refersTo": "theme-swatch",
+      "description": "28px circles, each in its own theme's primary; the active one ringed in ink.",
+      "html": "<div class=\"ds-swatches\"><button class=\"ds-sw ds-sw-on\" style=\"--sw: oklch(55% 0.18 256)\"></button><button class=\"ds-sw\" style=\"--sw: oklch(75% 0.13 256)\"></button><button class=\"ds-sw\" style=\"--sw: oklch(45% 0.24 277)\"></button><button class=\"ds-sw\" style=\"--sw: oklch(65% 0.24 354)\"></button></div>",
+      "css": ".ds-swatches { display: flex; gap: 8px; padding: 20px; background: var(--color-primary, oklch(55% 0.18 256)); } .ds-sw { width: 28px; height: 28px; border-radius: 9999px; border: 3px solid var(--color-base-100, #fff); background: var(--sw); cursor: pointer; transition: transform .15s; } .ds-sw:hover { transform: scale(1.1); } .ds-sw-on { border-color: var(--color-base-content, oklch(22% 0.02 264)); box-shadow: 0 0 0 2px var(--color-base-100, #fff); } .ds-sw:focus-visible { outline: 2.5px solid var(--color-primary, oklch(55% 0.18 256)); outline-offset: 3px; }"
+    },
+    {
+      "name": "Theme Tile",
+      "kind": "card",
+      "refersTo": "theme-tile",
+      "description": "One theme as a square tile rendered in its own theme with real daisyUI parts.",
+      "html": "<button class=\"ds-tile\" aria-pressed=\"true\"><span class=\"ds-tile-dot\"></span><span class=\"ds-tile-mode\">Light</span><span class=\"ds-tile-name\">daisyblazor</span><span class=\"ds-tile-on\">Active</span><span class=\"ds-tile-inset\"><span class=\"ds-mini\">Save</span><span class=\"ds-mini ds-mini-2\">Edit</span></span></button>",
+      "css": ".ds-tile { position: relative; overflow: hidden; display: flex; flex-direction: column; width: 220px; aspect-ratio: 1; padding: 16px; border: 0; border-radius: 6px; background: var(--color-primary, oklch(55% 0.18 256)); color: var(--color-primary-content, oklch(98% 0.01 256)); text-align: left; font-family: Manrope, ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: transform .3s, box-shadow .3s; } .ds-tile:hover { transform: translateY(-4px); box-shadow: 0 22px 40px -22px rgb(0 0 0 / .6); } .ds-tile:focus-visible { outline: 2.5px solid var(--color-primary, oklch(55% 0.18 256)); outline-offset: 3px; } .ds-tile-dot { position: absolute; right: -40px; top: -40px; width: 112px; height: 112px; border-radius: 9999px; background: var(--color-secondary, oklch(50% 0.22 312)); transition: transform .7s; } .ds-tile:hover .ds-tile-dot { transform: translate(-8px, 8px); } .ds-tile-mode { position: relative; font-size: .875rem; font-weight: 700; } .ds-tile-name { position: relative; font-family: Fredoka, Manrope, ui-rounded, sans-serif; font-size: 1.8rem; font-weight: 700; line-height: 1; margin-top: 4px; } .ds-tile-inset { position: relative; margin-top: auto; display: flex; gap: 6px; padding: 12px; border-radius: 4px; background: var(--color-base-100, #fff); } .ds-mini { padding: 2px 10px; border-radius: 6px; font-size: .75rem; font-weight: 600; background: var(--color-primary, oklch(55% 0.18 256)); color: var(--color-primary-content, oklch(98% 0.01 256)); } .ds-mini-2 { background: var(--color-secondary, oklch(50% 0.22 312)); color: var(--color-secondary-content, #fff); } .ds-tile-on { position: absolute; right: 12px; top: 12px; padding: 2px 8px; border-radius: 9999px; background: var(--color-base-100, #fff); color: var(--color-base-content, oklch(22% 0.02 264)); font-size: .75rem; font-weight: 700; }"
+    },
+    {
+      "name": "Example Card",
+      "kind": "card",
+      "refersTo": "example-card",
+      "description": "Live example on base-100 inside a 2px ink frame, with a pill Preview/Code toggle and source footer.",
+      "html": "<section class=\"ds-ex\"><div class=\"ds-ex-head\"><h3>Colors</h3><div class=\"ds-toggle\"><button class=\"ds-on\">Preview</button><button>Code</button></div></div><div class=\"ds-ex-box\"><div class=\"ds-ex-preview\"><button class=\"ds-ex-btn\">Primary</button></div><div class=\"ds-ex-foot\"><code>Examples/Actions/ButtonColorsExample.razor</code><a>Source</a></div></div></section>",
+      "css": ".ds-ex { font-family: Manrope, ui-sans-serif, system-ui, sans-serif; color: var(--color-base-content, oklch(22% 0.02 264)); background: var(--color-base-100, #fff); padding: 16px; } .ds-ex-head { display: flex; justify-content: space-between; align-items: end; margin-bottom: 12px; } .ds-ex h3 { font-family: Fredoka, Manrope, ui-rounded, sans-serif; font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em; margin: 0; } .ds-toggle { display: flex; padding: 2px; border: 2px solid var(--color-base-content, oklch(22% 0.02 264)); border-radius: 9999px; font-size: .875rem; font-weight: 700; } .ds-toggle button { border: 0; background: transparent; color: inherit; padding: 4px 12px; border-radius: 9999px; font: inherit; cursor: pointer; } .ds-toggle button:hover { background: var(--color-base-200, oklch(97% 0.002 264)); } .ds-toggle .ds-on, .ds-toggle .ds-on:hover { background: var(--color-base-content, oklch(22% 0.02 264)); color: var(--color-base-100, #fff); } .ds-toggle button:focus-visible { outline: 2.5px solid var(--color-primary, oklch(55% 0.18 256)); outline-offset: 3px; } .ds-ex-box { overflow: hidden; border: 2px solid var(--color-base-content, oklch(22% 0.02 264)); border-radius: 16px; } .ds-ex-preview { padding: 32px; background: var(--color-base-100, #fff); } .ds-ex-btn { border: 0; border-radius: 8px; padding: 8px 16px; background: var(--color-primary, oklch(55% 0.18 256)); color: var(--color-primary-content, oklch(98% 0.01 256)); font-weight: 600; } .ds-ex-foot { display: flex; justify-content: space-between; padding: 8px 16px; border-top: 2px solid var(--color-base-content, oklch(22% 0.02 264)); background: color-mix(in oklab, var(--color-base-200, oklch(97% 0.002 264)) 60%, transparent); font-size: .75rem; } .ds-ex-foot code { font-family: 'JetBrains Mono', ui-monospace, monospace; opacity: .7; } .ds-ex-foot a { font-weight: 700; }"
+    },
+    {
+      "name": "Code Block",
+      "kind": "custom",
+      "refersTo": "code-block",
+      "description": "Theme neutral with syntax colours mixed from the theme's own roles, plus a ghost Copy button.",
+      "html": "<div class=\"ds-code\"><button class=\"ds-copy\">Copy</button><pre><code><span class=\"t\">&lt;Button</span> <span class=\"a\">Color</span>=<span class=\"s\">\"Color.Primary\"</span><span class=\"t\">&gt;</span>Deploy<span class=\"t\">&lt;/Button&gt;</span>\n<span class=\"r\">@code</span> { <span class=\"k\">private</span> <span class=\"k\">int</span> _seats = <span class=\"n\">12</span>; } <span class=\"c\">// Acme Cloud</span></code></pre></div>",
+      "css": ".ds-code { position: relative; border-radius: 16px; background: var(--color-neutral, oklch(32% 0.02 264)); color: var(--color-neutral-content, oklch(96% 0.01 264)); overflow: hidden; } .ds-code pre { margin: 0; padding: 16px 20px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .85rem; line-height: 1.7; font-variant-ligatures: none; overflow-x: auto; } .ds-copy { position: absolute; right: 8px; top: 8px; border: 0; border-radius: 8px; padding: 2px 8px; background: var(--color-neutral, oklch(32% 0.02 264)); color: color-mix(in oklab, var(--color-neutral-content, oklch(96% 0.01 264)) 85%, transparent); font-size: .75rem; font-weight: 600; box-shadow: -14px 0 10px var(--color-neutral, oklch(32% 0.02 264)); cursor: pointer; } .ds-copy:hover, .ds-copy:focus-visible { color: var(--color-neutral-content, oklch(96% 0.01 264)); } .ds-code .t { color: color-mix(in oklab, var(--color-primary, oklch(55% 0.18 256)) 70%, var(--color-neutral-content, oklch(96% 0.01 264))); font-weight: 600; } .ds-code .a { color: color-mix(in oklab, var(--color-secondary, oklch(50% 0.22 312)) 70%, var(--color-neutral-content, oklch(96% 0.01 264))); } .ds-code .s { color: color-mix(in oklab, var(--color-accent, oklch(72% 0.17 65)) 75%, var(--color-neutral-content, oklch(96% 0.01 264))); } .ds-code .r { color: color-mix(in oklab, var(--color-warning, oklch(78% 0.16 75)) 75%, var(--color-neutral-content, oklch(96% 0.01 264))); font-weight: 600; } .ds-code .k { color: color-mix(in oklab, var(--color-info, oklch(62% 0.14 233)) 75%, var(--color-neutral-content, oklch(96% 0.01 264))); font-weight: 600; } .ds-code .n { color: color-mix(in oklab, var(--color-success, oklch(62% 0.16 150)) 75%, var(--color-neutral-content, oklch(96% 0.01 264))); } .ds-code .c { color: color-mix(in oklab, var(--color-neutral-content, oklch(96% 0.01 264)) 50%, var(--color-neutral, oklch(32% 0.02 264))); font-style: italic; }"
+    },
+    {
+      "name": "Playground",
+      "kind": "custom",
+      "refersTo": "playground-controls",
+      "description": "Live component on base-100 over a base-200 controls grid: mono parameter names and types, pill enum chips.",
+      "html": "<div class=\"ds-pg\"><div class=\"ds-pg-stage\"><button class=\"ds-pg-btn\">Invite teammate</button></div><div class=\"ds-pg-ctl\"><div><span class=\"ds-pg-h\"><span>Color</span><em>Color</em></span><div class=\"ds-chips\" role=\"radiogroup\"><button class=\"ds-chip ds-chip-on\" role=\"radio\" aria-checked=\"true\">Primary</button><button class=\"ds-chip\" role=\"radio\" aria-checked=\"false\">Secondary</button><button class=\"ds-chip\" role=\"radio\" aria-checked=\"false\">Error</button></div></div><div><span class=\"ds-pg-h\"><span>Disabled</span><em>Boolean</em></span><input type=\"checkbox\"></div></div></div>",
+      "css": ".ds-pg { overflow: hidden; border: 2px solid var(--color-base-content, oklch(22% 0.02 264)); border-radius: 16px; font-family: Manrope, ui-sans-serif, system-ui, sans-serif; color: var(--color-base-content, oklch(22% 0.02 264)); } .ds-pg-stage { display: grid; place-items: center; min-height: 10rem; background: var(--color-base-100, #fff); } .ds-pg-btn { border: 0; border-radius: 8px; padding: 8px 16px; background: var(--color-primary, oklch(55% 0.18 256)); color: var(--color-primary-content, oklch(98% 0.01 256)); font-weight: 600; } .ds-pg-ctl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 24px; padding: 20px; border-top: 2px solid var(--color-base-content, oklch(22% 0.02 264)); background: var(--color-base-200, oklch(97% 0.002 264)); } .ds-pg-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .875rem; font-weight: 700; } .ds-pg-h em { font-style: normal; font-size: .75rem; font-weight: 500; opacity: .6; } .ds-chips { display: flex; flex-wrap: wrap; gap: 4px; } .ds-chip { border: 2px solid var(--color-base-300, oklch(93% 0.004 264)); border-radius: 9999px; padding: 2px 10px; background: transparent; color: inherit; font: inherit; font-size: .75rem; font-weight: 700; cursor: pointer; transition: border-color .2s, background .2s; } .ds-chip:hover { border-color: var(--color-base-content, oklch(22% 0.02 264)); } .ds-chip-on { border-color: var(--color-base-content, oklch(22% 0.02 264)); background: var(--color-base-content, oklch(22% 0.02 264)); color: var(--color-base-100, #fff); } .ds-chip:focus-visible { outline: 2.5px solid var(--color-primary, oklch(55% 0.18 256)); outline-offset: 3px; }"
+    },
+    {
+      "name": "Search Palette",
+      "kind": "input",
+      "refersTo": "search-palette",
+      "description": "Ctrl K dialog: ground header with Fredoka input, results whose active row floods primary.",
+      "html": "<div class=\"ds-pal\"><div class=\"ds-pal-head\"><input placeholder=\"Button, Color, theming…\" value=\"Tab\"><kbd>Esc</kbd></div><ul><li class=\"ds-act\"><b>Tabs</b><small>Navigation</small></li><li><b>Table</b><small>Data display</small></li></ul></div>",
+      "css": ".ds-pal { width: 420px; border-radius: 24px; overflow: hidden; background: var(--color-base-100, #fff); color: var(--color-base-content, oklch(22% 0.02 264)); font-family: Manrope, ui-sans-serif, system-ui, sans-serif; box-shadow: 0 20px 50px -20px rgb(0 0 0 / .4); } .ds-pal-head { display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: var(--color-primary, oklch(55% 0.18 256)); color: var(--color-primary-content, oklch(98% 0.01 256)); } .ds-pal-head input::placeholder { color: color-mix(in oklab, var(--color-primary-content, oklch(98% 0.01 256)) 85%, transparent); } .ds-pal-head input { flex: 1; border: 0; background: transparent; outline: none; color: var(--color-primary-content, oklch(98% 0.01 256)); font-family: Fredoka, Manrope, ui-rounded, sans-serif; font-size: 1.25rem; font-weight: 600; } .ds-pal-head kbd { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .75rem; padding: 2px 6px; border-radius: 6px; background: var(--color-base-100, #fff); color: var(--color-base-content, oklch(22% 0.02 264)); } .ds-pal ul { list-style: none; margin: 0; padding: 8px; } .ds-pal li { display: flex; flex-direction: column; padding: 10px 12px; border-radius: 16px; cursor: pointer; } .ds-pal li small { font-size: .875rem; opacity: .7; } .ds-pal li.ds-act, .ds-pal li:hover { background: var(--color-primary, oklch(55% 0.18 256)); color: var(--color-primary-content, oklch(98% 0.01 256)); }"
+    },
+    {
+      "name": "API Rows (mobile)",
+      "kind": "custom",
+      "refersTo": "",
+      "description": "Below md, each parameter is a stacked row between 2px ink rules: mono name and type, default, summary.",
+      "html": "<ul class=\"ds-api\"><li><div><b>Color</b> <span>Color</span></div><div class=\"ds-def\">= Color.Default</div><p>The semantic colour role.</p></li><li><div><b>Disabled</b> <span>bool</span></div><div class=\"ds-def\">= false</div><p>Prevents interaction.</p></li></ul>",
+      "css": ".ds-api { list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--color-base-content, oklch(22% 0.02 264)); border-bottom: 2px solid var(--color-base-content, oklch(22% 0.02 264)); color: var(--color-base-content, oklch(22% 0.02 264)); background: var(--color-base-100, #fff); font-family: Manrope, ui-sans-serif, system-ui, sans-serif; } .ds-api li { padding: 12px 0; } .ds-api li + li { border-top: 1px solid var(--color-base-300, oklch(93% 0.004 264)); } .ds-api b { font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 600; } .ds-api span, .ds-def { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: .8rem; opacity: .75; } .ds-api p { margin: 4px 0 0; font-size: .92rem; opacity: .85; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Flat Theme Poster",
+    "overview": "The docs prove the library by wearing it. Every page opens on a flat field in the active theme's primary, with that theme's primary-content as the ink printed on it; the top bar, the masthead, the home page's closing band and the footer share that field, so the page is framed front and back in the theme. Below the masthead the page turns to base-100 for reading. Switching theme re-colours the whole site with a circular reveal from the point you clicked, which demonstrates in one gesture that every component works in every theme.\n\nThe visual world borrows its form from flat 1960s pop print: rounded, confident Fredoka set tight and large, a single saturated ground, simple circles and squares. It borrows form only. Every label, heading and piece of demo data speaks the product's own words (components, themes, parameters, examples), and demo content comes from one neutral SaaS domain. Each page's component runs live on a base-100 square inside the ground, the cover. The next theme peeks off the masthead's right edge as a colour wheel; clicking it switches to that theme. Structure on the reading surface comes from 2px ink rules and pill controls, not from grey panels or shadows.\n\nThe world is built entirely from daisyUI semantic colour roles. Every value in the frontmatter is the default \"daisyblazor\" theme's binding of a role; under any of the 37 themes the same roles re-bind, so the page re-colours itself with no extra rules.",
+    "keyCharacteristics": [
+      "One flat ground per theme: `--color-primary` as surface, `--color-primary-content` as ink, edge to edge.",
+      "base-100 is the only relief for reading; the reading column never takes the ground colour.",
+      "Rounded display type (Fredoka 700) set at 0.92 line-height and -0.03em tracking.",
+      "The live component is the cover of every page; the next theme waits at the edge as a colour wheel.",
+      "2px ink rules (base-content) frame cards, tables and section breaks.",
+      "Pills for every small control; near-square 6px corners for covers and theme tiles; 12-16px for cards.",
+      "Code takes the theme's neutral with syntax colours mixed from the theme's own roles.",
+      "Labels, headings and demo data use the product's words; demo data is the Acme Cloud SaaS admin."
+    ],
+    "rules": [
+      {
+        "name": "The One Ground Rule",
+        "body": "The ground is `--color-primary` and nothing else; its ink is `--color-primary-content`. No second accent ground, no hard-coded hex anywhere in the site layer, so all 37 themes work unchanged. The colour wheel's conic gradient is the one place several roles share a surface, because it previews a theme.",
+        "section": "colors"
+      },
+      {
+        "name": "The Full-Ink Rule",
+        "body": "Small text on the ground is printed at full `--color-primary-content`, including muted labels, breadcrumbs and footer copy. The softened ink (75% primary-content mixed into primary) is reserved for large type only: the \"Blazor\" half of the logotype.",
+        "section": "colors"
+      },
+      {
+        "name": "The Reading Relief Rule",
+        "body": "Reading happens on base-100. The ground floods mastheads, top bar, closing band and footer; it never floods the reading column.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tight Display Rule",
+        "body": "All headings use Fredoka with negative tracking (-0.02em, -0.03em for H1) and balanced wrapping. Body and labels never take letter-spacing.",
+        "section": "typography"
+      },
+      {
+        "name": "The Sentence-Case Rule",
+        "body": "Labels, buttons, nav groups and section titles are sentence case. No uppercase tracked eyebrows, kickers or numbered lead-ins above headings; a heading stands on its own.",
+        "section": "typography"
+      },
+      {
+        "name": "The Style, Not Metaphor Rule",
+        "body": "The visual world lends form only. Labels, headings and demo data use the product's words (components, themes, parameters, examples, guides). Demo data uses the Acme Cloud SaaS domain: customers, orders, invoices, projects, team, deployments, plans, usage.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Surface Rule",
+        "body": "Cards, covers and panels are flat at rest. A shadow appears only under the colour wheel and under a theme tile being hovered.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** use only daisyUI semantic roles (`primary`, `primary-content`, `base-100/200/300`, `base-content`, `neutral`, `neutral-content`, and status roles as tints) so all 37 themes work.",
+      "**Do** print small text on the ground at full `primary-content`; keep the 75% softened ink for the large logotype only.",
+      "**Do** frame cards, tables and section breaks with 2px base-content rules, and divide rows with 1px base-300.",
+      "**Do** use pills for small controls, 6px corners for covers and theme tiles, and 12-16px for cards and tiles.",
+      "**Do** put the live component first: a live cover in the masthead, a preview before code in every example card.",
+      "**Do** derive syntax colours from the theme's own roles mixed into neutral-content.",
+      "**Do** name things in the product's words and draw demo data from the Acme Cloud SaaS domain (customers, orders, invoices, projects, team, deployments).",
+      "**Do** honour `prefers-reduced-motion` with an instant theme change instead of the reveal."
+    ],
+    "donts": [
+      "**Don't** hard-code hex or any colour outside the theme roles in the site layer.",
+      "**Don't** flood the reading column with the ground colour; reading stays on base-100.",
+      "**Don't** use uppercase tracked eyebrows, kickers or numbered lead-ins above headings; labels are sentence case.",
+      "**Don't** soften small ink on the ground with opacity.",
+      "**Don't** add shadows to cards or panels; depth belongs to the colour wheel and the hovered theme tile only.",
+      "**Don't** let the visual style leak into vocabulary: no releases, tracks, sides, discs or music demo data in labels, headings or examples.",
+      "**Don't** fall back to a grey app bar and drawer layout; the top bar is part of the ground."
+    ]
+  }
+}
