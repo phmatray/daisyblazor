@@ -52,7 +52,10 @@
 
     private string _role => Role ?? (Severity is Severity.Warning or Severity.Error ? "alert" : "status");
 
-    private string? _tint => Severity switch
+    private string? _tint => Tint(Severity);
+
+    /// <summary>Severity text colour used to tint the icon of outlined/soft alerts; shared with <see cref="SnackbarProvider"/>.</summary>
+    internal static string? Tint(Severity severity) => severity switch
     {
         Severity.Info => "text-info",
         Severity.Success => "text-success",
@@ -65,7 +68,10 @@
     // contrast, so keep the text base-content and tint only the border/background and the icon.
     private bool _tinted => Variant is Variant.Outlined or Variant.Text && _tint is not null;
 
-    private string _variantClass => Variant switch
+    private string _variantClass => VariantClass(Variant);
+
+    /// <summary>The daisyUI alert style class for a variant; shared with <see cref="SnackbarProvider"/>.</summary>
+    internal static string VariantClass(Variant variant) => variant switch
     {
         Variant.Outlined => "alert-outline",
         Variant.Text => "alert-soft",

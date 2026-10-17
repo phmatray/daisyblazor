@@ -4,6 +4,8 @@
     <Button Variant="Variant.Outlined" OnClick="Sticky">Stays 30 s</Button>
     <Button Variant="Variant.Outlined" OnClick="Brief">Brief, no close button</Button>
     <Button Variant="Variant.Outlined" OnClick="Repeat">Allow duplicates</Button>
+    <Button Variant="Variant.Outlined" OnClick="Soft">Soft style</Button>
+    <Button Variant="Variant.Outlined" OnClick="Outline">Outline style</Button>
     <Button Variant="Variant.Text" OnClick="Snackbar.Clear">Clear all</Button>
 </div>
 
@@ -18,4 +20,12 @@
     });
 
     private void Repeat() => Snackbar.Add("Task added", Severity.Normal, o => o.PreventDuplicates = false);
+
+    private void Soft() => Snackbar.Add("Invoice INV-1042 sent to the client", Severity.Success, o => o.Variant = Variant.Text);
+
+    private void Outline() => Snackbar.Add("Storage almost full", Severity.Warning, o =>
+    {
+        o.Variant = Variant.Outlined;
+        o.Class = "max-w-sm";
+    });
 }

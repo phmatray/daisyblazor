@@ -14,12 +14,12 @@
      @attributes="UserAttributes">
     @foreach (SnackbarMessage message in Snackbar.Shown)
     {
-        <div class="@AlertClass(message.Severity)" @key="message.Id"
+        <div class="@ToastClass(message)" @key="message.Id"
              @onmouseenter="() => Pause(message, hover: true)"
              @onmouseleave="() => Resume(message, hover: true)"
              @onfocusin="() => Pause(message, hover: false)"
              @onfocusout="() => Resume(message, hover: false)">
-            <Icon Name="@SeverityIcon(message.Severity)" Size="Size.Small" />
+            <Icon Name="@SeverityIcon(message.Severity)" Size="Size.Small" Class="@(IsTinted(message) ? Alert.Tint(message.Severity) : null)" />
             <span>@message.Message</span>
             @if (message.Options.ShowCloseIcon)
             {
@@ -43,6 +43,15 @@
 
     /// <summary>Accessible label of each toast's close button. Override to localise; defaults to "Close".</summary>
     [Parameter] public string CloseLabel { get; set; } = "Close";
+
+    /// <summary>
+    /// Default alert style of every toast: Filled (default) is solid, Outlined adds <c>alert-outline</c>,
+    /// Text adds <c>alert-soft</c>. A message overrides it with <see cref="SnackbarOptions.Variant"/>.
+    /// </summary>
+    [Parameter] public Variant Variant { get; set; } = Variant.Filled;
+
+    /// <summary>Extra CSS classes merged onto every toast's alert element. Per message, use <see cref="SnackbarOptions.Class"/>.</summary>
+    [Parameter] public string? AlertClass { get; set; }
 
     // Auto-dismiss state per toast: the countdown is cancelled while hovered/focused and resumes
     // with the remaining time once neither applies.
@@ -155,14 +164,20 @@
         }
     }
 
-    private static string AlertClass(Severity severity) => severity switch
-    {
-        Severity.Info => "alert alert-info shadow-lg",
-        Severity.Success => "alert alert-success shadow-lg",
-        Severity.Warning => "alert alert-warning shadow-lg",
-        Severity.Error => "alert alert-error shadow-lg",
-        _ => "alert shadow-lg"
-    };
+    private Variant VariantOf(SnackbarMessage message) => message.Options.Variant ?? Variant;
+
+    // Same contrast rule as Alert: outlined/soft toasts keep base-content text and tint only the icon.
+    private bool IsTinted(SnackbarMessage message) =>
+        VariantOf(message) is Variant.Outlined or Variant.Text && Alert.Tint(message.Severity) is not null;
+
+    private string ToastClass(SnackbarMessage message) => CssClass.Merge(
+        "alert",
+        CssClass.AlertSeverity(message.Severity),
+        Alert.VariantClass(VariantOf(message)),
+        IsTinted(message) ? "text-base-content" : null,
+        "shadow-lg",
+        AlertClass,
+        message.Options.Class);
 
     private static string SeverityIcon(Severity severity) => severity switch
     {
