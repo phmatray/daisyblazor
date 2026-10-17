@@ -14,6 +14,7 @@
      @attributes="UserAttributes">
     @foreach (SnackbarMessage message in Snackbar.Shown)
     {
+        DismissTimer? timer = _timers.GetValueOrDefault(message.Id);
         <div class="@ToastClass(message)" @key="message.Id"
              @onmouseenter="() => Pause(message, hover: true)"
              @onmouseleave="() => Resume(message, hover: true)"
@@ -21,6 +22,12 @@
              @onfocusout="() => Resume(message, hover: false)">
             <Icon Name="@SeverityIcon(message.Severity)" Size="Size.Small" Class="@(IsTinted(message) ? Alert.Tint(message.Severity) : null)" />
             <span>@message.Message</span>
+            @if (!string.IsNullOrEmpty(message.Options.Action))
+            {
+                <button type="button" class="btn btn-sm btn-ghost" @onclick="() => OnActionAsync(message)">
+                    @message.Options.Action
+                </button>
+            }
             @if (message.Options.ShowCloseIcon)
             {
                 <button type="button"
@@ -29,6 +36,11 @@
                         @onclick="() => Snackbar.Remove(message)">
                     <Icon Name="@Icons.Material.Filled.Close" Size="Size.Small" />
                 </button>
+            }
+            @if (message.Options.ShowProgress && timer is not null)
+            {
+                <span class="snackbar-progress" aria-hidden="true"
+                      style="animation-duration:@(timer.TotalMs)ms;animation-play-state:@(timer.Cts is null ? "paused" : "running")"></span>
             }
         </div>
     }
@@ -53,6 +65,12 @@
     /// <summary>Extra CSS classes merged onto every toast's alert element. Per message, use <see cref="SnackbarOptions.Class"/>.</summary>
     [Parameter] public string? AlertClass { get; set; }
 
+    /// <summary>
+    /// House default (ms) for how long a toast stays visible, used when a message does not set
+    /// <see cref="SnackbarOptions.VisibleStateDuration"/>.
+    /// </summary>
+    [Parameter] public int VisibleStateDuration { get; set; } = 5000;
+
     // Auto-dismiss state per toast: the countdown is cancelled while hovered/focused and resumes
     // with the remaining time once neither applies.
     private sealed class DismissTimer
@@ -60,8 +78,10 @@
         public CancellationTokenSource? Cts;
         public long StartedAt;
         public int RemainingMs;
+        public int TotalMs;
         public bool Hovered;
         public bool Focused;
+        public ElementReference? ReturnFocus;
     }
 
     private readonly Dictionary<Guid, DismissTimer> _timers = [];
@@ -88,8 +108,14 @@
         IReadOnlyList<SnackbarMessage> shown = Snackbar.Shown;
         foreach (Guid gone in _timers.Keys.Where(id => shown.All(m => m.Id != id)).ToArray())
         {
-            _timers[gone].Cts?.Cancel();
+            DismissTimer timer = _timers[gone];
+            timer.Cts?.Cancel();
             _timers.Remove(gone);
+            // The toast held focus (e.g. its action was clicked): hand it back instead of to <body>.
+            if (timer.Focused && timer.ReturnFocus is { } target)
+            {
+                _ = FocusAsync(target);
+            }
         }
 
         foreach (SnackbarMessage message in shown)
@@ -99,10 +125,10 @@
                 continue;
             }
 
-            DismissTimer timer = new()
-            {
-                RemainingMs = message.Options.VisibleStateDuration > 0 ? message.Options.VisibleStateDuration : 5000
-            };
+            int duration = message.Options.HasVisibleStateDuration ? message.Options.VisibleStateDuration : VisibleStateDuration;
+            DismissTimer timer = new() { RemainingMs = duration > 0 ? duration : 5000 };
+            timer.TotalMs = timer.RemainingMs;
+            timer.ReturnFocus = message.Options.ReturnFocus;
             _timers[message.Id] = timer;
             Start(message, timer);
         }
@@ -164,6 +190,28 @@
         }
     }
 
+    private async Task OnActionAsync(SnackbarMessage message)
+    {
+        if (message.Options.OnAction is not null)
+        {
+            await message.Options.OnAction();
+        }
+
+        Snackbar.Remove(message);
+    }
+
+    private static async Task FocusAsync(ElementReference target)
+    {
+        try
+        {
+            await target.FocusAsync();
+        }
+        catch (Exception ex) when (ex is JSException or JSDisconnectedException or InvalidOperationException)
+        {
+            // The element left the page or JS is unavailable: focus is best-effort.
+        }
+    }
+
     private Variant VariantOf(SnackbarMessage message) => message.Options.Variant ?? Variant;
 
     // Same contrast rule as Alert: outlined/soft toasts keep base-content text and tint only the icon.
@@ -176,6 +224,7 @@
         Alert.VariantClass(VariantOf(message)),
         IsTinted(message) ? "text-base-content" : null,
         "shadow-lg",
+        message.Options.ShowProgress ? "relative overflow-hidden" : null,
         AlertClass,
         message.Options.Class);
 
