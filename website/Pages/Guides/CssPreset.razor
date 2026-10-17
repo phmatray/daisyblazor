@@ -125,6 +125,19 @@
             </p>
             <CodeBlock Language="xml" Title="App.razor" Code="@Font" />
             <p>Without it, icons render as their literal ligature text.</p>
+
+            @H(9)
+            <p>
+                Components that render a title (the <code>Dialog</code> header, for one) add the <code>font-heading</code> class.
+                <code>safelist.css</code> ships a default <code>@@utility font-heading</code> that reads <code>--font-heading</code> and
+                falls back to the inherited body font, so headings look right with no setup. To give them their own face, define the
+                variable after the preset import:
+            </p>
+            <CodeBlock Language="css" Title="Styles/main.css" Code="@HeadingFont" />
+            <p>
+                Need more than a font family (weight, letter-spacing)? Redeclare <code>@@utility font-heading &#123; … &#125;</code> after the
+                import; Tailwind emits both rules and yours, coming later, wins.
+            </p>
             <p>See also: <a href="getting-started">Getting started</a> for the full install walkthrough, and <a href="theming">Theming</a> for the themes the preset registers and how to switch or extend them.</p>
         </div>
     </ChildContent>
@@ -184,6 +197,15 @@
         @plugin "../obj/daisyblazor/daisyui-theme.mjs" {
             name: "mybrand";
             /* --color-primary: …; etc. */
+        }
+        """;
+
+    private const string HeadingFont = """
+        @import "tailwindcss";
+        @import "../obj/daisyblazor/preset.css";
+
+        @theme {
+            --font-heading: "Plus Jakarta Sans", "Helvetica Neue", sans-serif;
         }
         """;
 

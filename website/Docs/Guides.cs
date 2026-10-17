@@ -28,7 +28,7 @@ public static class Guides
             "What preset.css ships, how the NuGet package builds your CSS without Node, and the class safelist.",
             "What the preset does", "Wiring it into your app", "MSBuild properties", "Only the DaisyBlazor themes",
             "Only your own themes", "Source globs", "The comment-scanning gotcha", "The class safelist",
-            "The Material Symbols webfont"),
+            "The Material Symbols webfont", "The heading font"),
         new("Charts", "charts",
             "Dependency-free, theme-aware SVG charts: line, area, bar, pie, donut and sparkline, computed in C#.",
             "Install", "The six components", "Data models", "Colours follow the theme", "Usage", "Notes and geometry"),
