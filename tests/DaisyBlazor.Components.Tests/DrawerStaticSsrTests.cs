@@ -1,7 +1,7 @@
-using Microsoft.Extensions.DependencyInjection;
 using DaisyBlazor;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DaisyBlazor.Components.Tests;

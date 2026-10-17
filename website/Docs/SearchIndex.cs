@@ -51,7 +51,7 @@ public sealed class SearchIndex(XmlDocs docs)
 
     private static List<SearchHit> Build(XmlDocs docs)
     {
-        var list = new List<SearchHit>();
+        List<SearchHit> list = new();
         foreach (GuideDoc g in Guides.All)
         {
             list.Add(new(HitKind.Guide, g.Title, g.Summary, g.Url));

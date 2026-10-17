@@ -38,7 +38,7 @@ public sealed class XmlDocs
 
     private static Dictionary<string, string> Load()
     {
-        var map = new Dictionary<string, string>(StringComparer.Ordinal);
+        Dictionary<string, string> map = new(StringComparer.Ordinal);
         Assembly asm = typeof(XmlDocs).Assembly;
         foreach (string res in asm.GetManifestResourceNames().Where(n => n.StartsWith("xmldoc:", StringComparison.Ordinal)))
         {
@@ -78,7 +78,7 @@ public sealed class XmlDocs
     /// <summary>Turns a summary element into plain text, keeping cref/c content readable.</summary>
     private static string Flatten(XElement el)
     {
-        var sb = new StringBuilder();
+        StringBuilder sb = new();
         foreach (XNode node in el.Nodes())
         {
             switch (node)
