@@ -20,6 +20,13 @@ public partial class PageHeader
     public string? Subtitle { get; set; }
 
     /// <summary>
+    /// Colour of <see cref="Subtitle"/>. Defaults to <see cref="Color.Surface"/> (muted base content);
+    /// use <see cref="Color.Dark"/> for full contrast or <see cref="Color.Inherit"/> to follow the parent.
+    /// </summary>
+    [Parameter]
+    public Color SubtitleColor { get; set; } = Color.Surface;
+
+    /// <summary>
     /// Optional Material symbol ligature shown to the left of <see cref="Title"/>. When omitted the
     /// title renders exactly as before, so adding this parameter cannot shift an existing header.
     /// </summary>

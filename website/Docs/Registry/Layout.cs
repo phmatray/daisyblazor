@@ -171,10 +171,11 @@ public static partial class DocRegistry
                 new("Title and subtitle", "The minimal header: a title and a short line underneath.", typeof(PageHeaderBasicExample)),
                 new("Icon and actions", "Icon leads the title; Actions holds right-aligned buttons.", typeof(PageHeaderActionsExample)),
                 new("Heading level", "HeadingLevel (1 to 6, default 4) sets both the element and its size.", typeof(PageHeaderLevelExample)),
+                new("Subtitle colour", "SubtitleColor overrides the muted default (Surface); Dark gives full contrast. On narrow screens the actions wrap below the title.", typeof(PageHeaderSubtitleColorExample)),
             ])
         {
             Portrait = typeof(PageHeaderCoverExample),
-            Playground = new(typeof(PageHeader), "Title", "Subtitle", "Icon", "HeadingLevel")
+            Playground = new(typeof(PageHeader), "Title", "Subtitle", "SubtitleColor", "Icon", "HeadingLevel")
             {
                 Initial = new Dictionary<string, object?>
                 {
