@@ -1,0 +1,12 @@
+<AreaChart Title="Active users by plan (thousands)" Labels="_months" Series="_plans" Stacked="true" />
+
+@code {
+    private readonly string[] _months = ["Apr", "May", "Jun", "Jul", "Aug", "Sep"];
+
+    private readonly ChartSeries[] _plans =
+    [
+        new("Free", [41, 44, 47, 52, 50, 58]),
+        new("Pro", [28, 30, 35, 33, 38, 42]),
+        new("Enterprise", [9, 10, 12, 13, 15, 17]),
+    ];
+}

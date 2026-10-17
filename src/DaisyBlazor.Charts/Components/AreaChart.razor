@@ -6,6 +6,7 @@
 <LineChart Series="Series"
            Labels="Labels"
            Area="true"
+           Stacked="Stacked"
            Smooth="Smooth"
            ShowGrid="ShowGrid"
            ShowPoints="ShowPoints"
@@ -23,6 +24,12 @@
 
     /// <summary>X-axis category labels (index-aligned with each series' values).</summary>
     [Parameter] public IReadOnlyList<string>? Labels { get; set; }
+
+    /// <summary>
+    /// Stack the series so each fill sits on top of the previous ones instead of overlapping,
+    /// for part-of-whole data. Fills are near-opaque so they match the legend swatches.
+    /// </summary>
+    [Parameter] public bool Stacked { get; set; }
 
     /// <summary>Smooth the line with cubic curves instead of straight segments.</summary>
     [Parameter] public bool Smooth { get; set; }
