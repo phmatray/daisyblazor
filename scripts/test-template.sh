@@ -32,3 +32,13 @@ NUGET_PACKAGES="$WORK/packages" dotnet build "$WORK/App" -c Release
 test -s "$WORK/App/wwwroot/css/app.css"
 grep -q 'navbar' "$WORK/App/wwwroot/css/app.css"
 echo "template OK: $(wc -c < "$WORK/App/wwwroot/css/app.css") bytes of CSS"
+
+# A fresh clone has no app.css at evaluation time: the build must still make it a static web asset,
+# so a publish ships it (#107).
+rm -rf "$WORK/App/wwwroot/css" "$WORK/App/obj" "$WORK/App/bin"
+NUGET_PACKAGES="$WORK/packages" dotnet publish "$WORK/App" -c Release -o "$WORK/publish"
+test -s "$WORK/publish/wwwroot/css/app.css"
+grep -q '"Route":"css/app.css"' "$WORK/publish/DaisyBlazor.App.staticwebassets.endpoints.json" \
+  || { echo "app.css is not a static web asset (no endpoint)"; exit 1; }
+test -s "$WORK/publish/wwwroot/css/app.css.gz"
+echo "publish OK: app.css shipped from a clean tree"

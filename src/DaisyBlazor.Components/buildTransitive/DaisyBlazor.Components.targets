@@ -67,4 +67,15 @@
     <Exec Condition="Exists('$(DaisyBlazorTailwindPath)')" Command="&quot;$(DaisyBlazorTailwindPath)&quot; -i &quot;$(DaisyBlazorCssInput)&quot; -o &quot;$(DaisyBlazorCssOutput)&quot; --minify"
           WorkingDirectory="$(MSBuildProjectDirectory)" />
   </Target>
+
+  <!-- The wwwroot/** Content glob is evaluated before the compile writes the output, so on a fresh clone
+       the CSS would never become a static web asset (no endpoint, not compressed or published). Add it
+       back once it exists; the Remove keeps an output the glob already found from being listed twice. -->
+  <Target Name="DaisyBlazorIncludeCssOutput" AfterTargets="DaisyBlazorBuildCss" BeforeTargets="BeforeBuild"
+          Condition="'$(DaisyBlazorBuildCss)' == 'true' And Exists('$(DaisyBlazorCssOutput)')">
+    <ItemGroup>
+      <Content Remove="$(DaisyBlazorCssOutput)" />
+      <Content Include="$(DaisyBlazorCssOutput)" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+    </ItemGroup>
+  </Target>
 </Project>
