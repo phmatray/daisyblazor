@@ -25,6 +25,7 @@ public static partial class DocRegistry
             [
                 new("Basic", "One smoothed series with the area filled; points stay off by default for a clean silhouette.", typeof(AreaChartBasicExample)),
                 new("Several series", "Fills are translucent so overlapping series stay readable; turn ShowPoints on to mark each value.", typeof(AreaChartSeriesExample)),
+                new("Stacked", "Stacked draws each series on top of the running total, so the bands add up to the whole and the fills never mix; tooltips still show each series' own value.", typeof(AreaChartStackedExample)),
             ])
         {
             Portrait = typeof(AreaChartCoverExample),

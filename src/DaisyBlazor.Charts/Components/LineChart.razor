@@ -51,9 +51,13 @@
                 @for (int s = 0; s < _series.Count; s++)
                 {
                     string color = ChartPalette.At(s, _series[s].Color);
-                    List<List<(double X, double Y)>> segments = _segments(_series[s].Data);
+                    List<List<(double X, double Y)>> segments = _segments(_plot[s]);
 
-                    @if (Area)
+                    @if (Area && Stacked)
+                    {
+                        <path d="@_bandPath(segments, s)" fill="@color" fill-opacity="0.7" stroke="none" />
+                    }
+                    else if (Area)
                     {
                         <path d="@_areaPath(segments)" fill="@color" fill-opacity="0.15" stroke="none" />
                     }
@@ -71,10 +75,10 @@
                 {
                     @* Markers on every point when ShowPoints; otherwise only on isolated points
                        (a single value or one between gaps), which a line alone cannot show. *@
-                    @if (_finite(data[i]) && (ShowPoints || _isolated(data, i)))
+                    @if (_finite(data[i]) && (ShowPoints || _isolated(Stacked ? _plot[s] : data, i)))
                     {
                         <span title="@_tooltip(s, i, data[i])"
-                              style="@($"position:absolute;left:{_pct(_xAt(i))}%;top:{_pct(_yAt(data[i]))}%;width:8px;height:8px;border-radius:9999px;transform:translate(-50%,-50%);box-sizing:border-box;border:2px solid {color};background:var(--color-base-100);")"></span>
+                              style="@($"position:absolute;left:{_pct(_xAt(i))}%;top:{_pct(_yAt(_plot[s][i]))}%;width:8px;height:8px;border-radius:9999px;transform:translate(-50%,-50%);box-sizing:border-box;border:2px solid {color};background:var(--color-base-100);")"></span>
                     }
                 }
             }
@@ -116,6 +120,13 @@
     /// <summary>Fill the area under each line.</summary>
     [Parameter] public bool Area { get; set; }
 
+    /// <summary>
+    /// Stack the series: each one is drawn on top of the running total of the previous ones, and
+    /// with <see cref="Area"/> each fill spans only its own band. Missing or non-finite values count
+    /// as 0; tooltips still show each series' own value.
+    /// </summary>
+    [Parameter] public bool Stacked { get; set; }
+
     /// <summary>Smooth the line with cubic curves instead of straight segments.</summary>
     [Parameter] public bool Smooth { get; set; }
 
@@ -155,6 +166,8 @@
     private double _min;
     private double _max;
     private int _count;
+    // The y values actually drawn: each series' own data, or the running totals when Stacked.
+    private List<IReadOnlyList<double>> _plot = new();
     private List<(double Y, string Label)> _yGrid = new();
 
     private string _ariaLabel =>
@@ -167,7 +180,8 @@
         _count = Math.Max(dataCount, Labels?.Count ?? 0);
 
         // Determine value range across all series, guarding empty/equal data.
-        List<double> all = _series.SelectMany(s => s.Data ?? new List<double>()).Where(_finite).ToList();
+        _plot = Stacked ? _stack(dataCount) : _series.Select(s => s.Data ?? new List<double>()).ToList();
+        List<double> all = _plot.SelectMany(d => d).Where(_finite).ToList();
         double min = all.Count > 0 ? all.Min() : 0;
         double max = all.Count > 0 ? all.Max() : 1;
 
@@ -242,6 +256,43 @@
         string baseY = _yAt(0).ToString(_ci);
         return string.Join(" ", segments.Where(seg => seg.Count > 1).Select(seg =>
             $"{_segmentPath(seg)} L {seg[^1].X.ToString(_ci)} {baseY} L {seg[0].X.ToString(_ci)} {baseY} Z"));
+    }
+
+    // Running totals per index; missing/non-finite values count as 0. Negative values simply lower
+    // the total, so a negative series' band sits below the previous line.
+    private List<IReadOnlyList<double>> _stack(int count)
+    {
+        List<IReadOnlyList<double>> result = new();
+        double[] running = new double[count];
+        foreach (ChartSeries series in _series)
+        {
+            IReadOnlyList<double> data = series.Data ?? new List<double>();
+            for (int i = 0; i < count; i++)
+            {
+                running[i] += i < data.Count && _finite(data[i]) ? data[i] : 0;
+            }
+
+            result.Add((double[])running.Clone());
+        }
+
+        return result;
+    }
+
+    // Stacked fill: along this series' line, then back along the previous running total (or the
+    // zero line for the first series). Stacked data has no gaps, so there is a single segment.
+    private string _bandPath(List<List<(double X, double Y)>> segments, int s)
+    {
+        if (segments.Count == 0 || segments[0].Count < 2)
+        {
+            return string.Empty;
+        }
+
+        List<(double X, double Y)> top = segments[0];
+        List<(double X, double Y)> back = top
+            .Select((p, i) => (p.X, s == 0 ? _yAt(0) : _yAt(_plot[s - 1][i])))
+            .Reverse()
+            .ToList();
+        return $"{_segmentPath(top)} L{_segmentPath(back)[1..]} Z";
     }
 
     private string _label(int i) => Labels is not null && i < Labels.Count ? Labels[i] : (i + 1).ToString(_ci);
