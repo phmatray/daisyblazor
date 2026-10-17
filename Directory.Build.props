@@ -25,7 +25,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>blazor;tailwind;daisyui;ui;components;razor</PackageTags>
     <!-- Owned by release-please (release-please-config.json -> extra-files). -->
-    <Version>0.5.0</Version> <!-- x-release-please-version -->
+    <Version>0.5.1</Version> <!-- x-release-please-version -->
   </PropertyGroup>
 
   <!-- Debug symbols / source link friendliness -->
