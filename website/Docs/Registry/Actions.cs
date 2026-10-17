@@ -19,6 +19,7 @@ public static partial class DocRegistry
         {
             DaisyClass = "btn",
             MudEquivalent = "MudButton",
+            MigrationNote = "Since daisyUI 5.7 (the version the preset bundles), any .btn with aria-disabled=\"true\" gets pointer-events: none, so it no longer receives clicks or hover. That is what Disabled wants, but a button you deliberately keep clickable while marked aria-disabled (to explain why the action is unavailable) goes dead. Put the explanation on a wrapper instead (a Tooltip around the disabled Button still shows on hover), or opt back in with your own rule after the preset import, e.g. .btn.btn-explain[aria-disabled=\"true\"] { pointer-events: auto; }.",
             Portrait = typeof(ButtonCoverExample),
             Playground = new(typeof(Button), "Color", "Variant", "Size", "StartIcon", "EndIcon", "Disabled", "Loading", "FullWidth")
             {
