@@ -20,3 +20,8 @@ npm-debug.log*
 Thumbs.db
 *.swp
 .idea/
+
+# Impeccable session artifacts (keep only the durable design context)
+.impeccable/questions/
+.impeccable/review/
+.impeccable/mocks/
