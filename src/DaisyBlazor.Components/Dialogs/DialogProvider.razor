@@ -83,12 +83,15 @@
         InvokeAsync(async () =>
         {
             // Close the native modal first so focus can return to the opener (the rest of the
-            // page is inert while it is open), then drop it from the render tree.
-            if (_opened.Remove(reference.Id) && _elements.TryGetValue(reference.Id, out ElementReference element))
+            // page is inert while it is open), then drop it from the render tree. The id stays in
+            // _opened until then: a render in between (the close button / Escape handler re-renders
+            // the provider) must not see it as new and showModal() it again (#97).
+            if (_opened.Contains(reference.Id) && _elements.TryGetValue(reference.Id, out ElementReference element))
             {
                 await InvokeJsAsync("close", element);
             }
 
+            _opened.Remove(reference.Id);
             _dialogs.Remove(reference);
             _elements.Remove(reference.Id);
             StateHasChanged();
