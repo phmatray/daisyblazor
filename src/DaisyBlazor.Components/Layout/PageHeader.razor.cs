@@ -41,6 +41,14 @@ public partial class PageHeader
     [Parameter]
     public string? Class { get; set; }
 
+    /// <summary>Extra CSS classes on the title heading (e.g. a display face, size or leading).</summary>
+    [Parameter]
+    public string? TitleClass { get; set; }
+
+    /// <summary>Extra CSS classes on the subtitle line.</summary>
+    [Parameter]
+    public string? SubtitleClass { get; set; }
+
     /// <summary>Optional inline style forwarded to the root container.</summary>
     [Parameter]
     public string? Style { get; set; }

@@ -11,7 +11,7 @@
 
     <div class="@_cls" style="@Style" @attributes="UserAttributes">
         @* Tab button row *@
-        <div role="tablist" class="tabs @_variantClass @_sizeClass" @ref="_tabList" @onkeydown="OnTabListKeyDown" @onfocusin="OnTabListFocusIn">
+        <div role="tablist" aria-label="@AriaLabel" aria-labelledby="@AriaLabelledBy" class="tabs @_variantClass @_sizeClass" @ref="_tabList" @onkeydown="OnTabListKeyDown" @onfocusin="OnTabListFocusIn">
             @foreach (Tab tab in _tabs)
             {
                 bool isActive = _activeTab == tab;
@@ -90,6 +90,11 @@
 
     /// <summary>Size of the tab buttons.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
+
+    /// <summary>Accessible name of the <c>role="tablist"</c> (other attributes go to the outer container).</summary>
+    [Parameter] public string? AriaLabel { get; set; }
+    /// <summary>Id of the element that labels the <c>role="tablist"</c>.</summary>
+    [Parameter] public string? AriaLabelledBy { get; set; }
 
     /// <summary>Extra CSS classes merged onto the outer <c>w-full</c> container.</summary>
     [Parameter] public string? Class { get; set; }
