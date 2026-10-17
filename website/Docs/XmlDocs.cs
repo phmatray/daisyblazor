@@ -16,6 +16,18 @@ public sealed class XmlDocs
     public string? Summary(PropertyInfo prop) =>
         prop.DeclaringType is null ? null : Get($"P:{XmlName(prop.DeclaringType)}.{prop.Name}");
 
+    /// <summary>Summary of an event or method (by name; the first overload wins), or null.</summary>
+    public string? Summary(MemberInfo member)
+    {
+        if (member is PropertyInfo p) return Summary(p);
+        if (member.DeclaringType is null) return null;
+        string prefix = $"{(member is EventInfo ? "E" : "M")}:{XmlName(member.DeclaringType)}.{member.Name}";
+        if (Get(prefix) is { } exact) return exact;
+        // ponytail: prefix match instead of building the full XML-doc signature; overloads share the first summary.
+        return _members.Value.FirstOrDefault(kv => kv.Key.StartsWith(prefix + "(", StringComparison.Ordinal)
+            || kv.Key.StartsWith(prefix + "`", StringComparison.Ordinal)).Value;
+    }
+
     private string? Get(string key) => _members.Value.TryGetValue(key, out string? v) ? v : null;
 
     private static string XmlName(Type type)

@@ -26,6 +26,6 @@ public sealed class DialogOptions
     /// </summary>
     public bool? AlertDialog { get; set; }
 
-    /// <summary>Center the dialog vertically (no-op placeholder for parity).</summary>
+    /// <summary>Hide the dialog header. Accepted for MudBlazor parity; DialogProvider ignores it for now.</summary>
     public bool? NoHeader { get; set; }
 }

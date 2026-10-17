@@ -1,9 +1,9 @@
-@* The parameters of one component, reflected at runtime with defaults and XML-doc summaries. *@
+@* The parameters of one component, or the members of a service or options type, reflected at runtime with defaults and XML-doc summaries. *@
 @inject XmlDocs Docs
 
 <section class="mb-12" aria-labelledby="@_id">
     <div class="mb-1 flex flex-wrap items-baseline gap-x-4">
-        <h3 id="@_id" class="font-mono text-xl font-semibold">&lt;@ApiReflector.ComponentName(Component)&gt;</h3>
+        <h3 id="@_id" class="font-mono text-xl font-semibold">@(_component ? $"<{ApiReflector.ComponentName(Component)}>" : ApiReflector.ComponentName(Component))</h3>
         <span class="text-sm text-base-content/65">@Component.Namespace</span>
     </div>
     @if (_summary is not null)
@@ -13,6 +13,7 @@
 
     @foreach (IGrouping<ParamKind, ParamInfo> group in _params.GroupBy(p => p.Kind))
     {
+        bool showDefault = group.Key == ParamKind.Property && group.Any(p => p.Default is not null);
         <h4 class="mb-2 text-sm font-bold text-base-content/70">@GroupTitle(group.Key)</h4>
         <ul class="mb-6 divide-y divide-base-300 border-y-2 border-base-content md:hidden">
             @foreach (ParamInfo p in group)
@@ -22,7 +23,7 @@
                         <span class="font-mono font-semibold">@p.Name</span>
                         <span class="font-mono text-[0.8rem] text-base-content/75 [overflow-wrap:anywhere]">@p.TypeName</span>
                     </div>
-                    @if (group.Key == ParamKind.Property && p.Default is not null)
+                    @if (showDefault && p.Default is not null)
                     {
                         <div class="mt-0.5 font-mono text-[0.8rem] text-base-content/75">= @p.Default</div>
                     }
@@ -39,8 +40,8 @@
                 <thead>
                     <tr class="border-b-2 border-base-content text-left">
                         <th class="w-[24%] py-2 pr-4 font-bold">Name</th>
-                        <th class="w-[22%] py-2 pr-4 font-bold">Type</th>
-                        @if (group.Key == ParamKind.Property)
+                        <th class="@(group.Key == ParamKind.Method ? "w-[40%]" : "w-[22%]") py-2 pr-4 font-bold">@(group.Key == ParamKind.Method ? "Signature" : "Type")</th>
+                        @if (showDefault)
                         {
                             <th class="w-[18%] py-2 pr-4 font-bold">Default</th>
                         }
@@ -56,7 +57,7 @@
                         <tr class="border-b border-base-300 align-top">
                             <td class="py-2.5 pr-4 font-mono font-semibold [overflow-wrap:anywhere]">@p.Name</td>
                             <td class="py-2.5 pr-4 font-mono text-[0.85rem] text-base-content/80 [overflow-wrap:anywhere]">@p.TypeName</td>
-                            @if (group.Key == ParamKind.Property)
+                            @if (showDefault)
                             {
                                 <td class="py-2.5 pr-4 font-mono text-[0.85rem] text-base-content/80 [overflow-wrap:anywhere]">@(p.Default ?? "—")</td>
                             }
@@ -79,19 +80,22 @@
     private string? _summary;
     private string _id = "";
     private bool _described;
+    private bool _component;
 
     protected override void OnParametersSet()
     {
         _params = ApiReflector.Parameters(Component, Docs);
+        _component = ApiReflector.IsComponent(Component);
         _summary = Docs.Summary(Component);
         _described = _params.Any(p => p.Summary is not null);
         _id = "api-" + Slugify.Of(ApiReflector.TagName(Component));
     }
 
-    private static string GroupTitle(ParamKind k) => k switch
+    private string GroupTitle(ParamKind k) => k switch
     {
         ParamKind.Event => "Events",
         ParamKind.Content => "Content",
-        _ => "Parameters",
+        ParamKind.Method => "Methods",
+        _ => _component ? "Parameters" : "Properties",
     };
 }
