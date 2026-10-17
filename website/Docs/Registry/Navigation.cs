@@ -123,6 +123,7 @@ public static partial class DocRegistry
                 new("Variants", "Box (default), Border and Lift map to tabs-box, tabs-border and tabs-lift.", typeof(TabsVariantsExample)),
                 new("Binding and disabled", "Bind ActiveIndex to switch tabs from code; a Disabled tab cannot be selected.", typeof(TabsBindingExample)),
                 new("Sizes", "Size maps to tabs-sm, tabs-md and tabs-lg.", typeof(TabsSizesExample)),
+                new("Icons and counts", "TitleContent renders an icon or a count badge in the tab button; Title then becomes its aria-label.", typeof(TabsTitleContentExample)),
             ])
         {
             DaisyClass = "tabs",

@@ -18,7 +18,9 @@
                 @* WAI-ARIA tabs: each tab declares its selected state and is linked to the shared
                    panel; the panel is labelled back by the active tab (aria-labelledby below).
                    Roving tabindex: only the selected tab is in the tab order; arrows move between tabs. *@
-                <button @attributes="tab.UserAttributes"
+                @* With TitleContent, Title (if any) is the accessible name; placed before the splat so a user aria-label wins. *@
+                <button aria-label="@(tab.TitleContent is not null && !string.IsNullOrEmpty(tab.Title) ? tab.Title : null)"
+                        @attributes="tab.UserAttributes"
                         role="tab"
                         type="button"
                         id="@TabId(tab)"
@@ -31,7 +33,14 @@
                         disabled="@tab.Disabled"
                         aria-disabled="@(tab.Disabled ? "true" : null)"
                         @onclick="() => SetActive(tab)">
-                    @tab.Title
+                    @if (tab.TitleContent is not null)
+                    {
+                        @tab.TitleContent
+                    }
+                    else
+                    {
+                        @tab.Title
+                    }
                 </button>
             }
         </div>

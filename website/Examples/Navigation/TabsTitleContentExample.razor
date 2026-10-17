@@ -1,0 +1,24 @@
+@* TitleContent renders rich tab labels; Title then becomes the tab's aria-label, so give it the count too. *@
+<Tabs Variant="TabsVariant.Border">
+    <Tab Title="Members, 12 pending">
+        <TitleContent>
+            <Icon Name="@Icons.Material.Filled.Group" Size="Size.Small" />
+            <span class="mx-2">Members</span>
+            <Badge Inline="true" Content="12" Color="Color.Primary" Class="badge-sm" />
+        </TitleContent>
+        <ChildContent>
+            <p class="p-4">Ana Silva, Tom Becker and 10 others are waiting for approval.</p>
+        </ChildContent>
+    </Tab>
+    <Tab Title="Invoices, 3 overdue">
+        <TitleContent>
+            <Icon Name="@Icons.Material.Filled.Receipt" Size="Size.Small" />
+            <span class="mx-2">Invoices</span>
+            <Badge Inline="true" Content="3" Color="Color.Error" Class="badge-sm" />
+        </TitleContent>
+        <ChildContent>
+            <p class="p-4">INV-1042, INV-1043 and INV-1051 are past due.</p>
+        </ChildContent>
+    </Tab>
+    <Tab Title="Settings" />
+</Tabs>
