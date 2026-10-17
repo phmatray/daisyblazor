@@ -1,21 +1,25 @@
 @namespace DaisyBlazor
 
-@* MudForm replacement. Minimal form wrapper: renders ChildContent and exposes IsValid +
-   Validate()/ResetAsync() so existing @ref usage keeps compiling. Validation is left to the
-   individual field components / page logic. *@
+@* MudForm replacement. Cascades itself so TextField, NumericField and Select inside register;
+   Validate() runs their Required / Validation checks, shows the errors and updates IsValid.
+   A field also re-validates (and IsValid is recomputed) whenever the user edits it, as in MudForm. *@
 
-<div class="@_cls" style="@Style" @attributes="UserAttributes">
-    @ChildContent
-</div>
+<CascadingValue Value="this" IsFixed="true">
+    <div class="@_cls" style="@Style" @attributes="UserAttributes">
+        @ChildContent
+    </div>
+</CascadingValue>
 
 @code {
-    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
+    private readonly List<IFormField> _fields = [];
+
+    /// <summary>The object passed to a form-level <see cref="Validation"/> of shape <c>Func&lt;object, string, IEnumerable&lt;string&gt;&gt;</c> (model, FieldName).</summary>
     [Parameter] public object? Model { get; set; }
-    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
+    /// <summary>Validation applied to every field that has no Validation of its own. Same shapes as a field's Validation, plus <c>Func&lt;object, string, IEnumerable&lt;string&gt;&gt;</c> called with (Model, FieldName).</summary>
     [Parameter] public object? Validation { get; set; }
-    /// <summary>Accepted for MudBlazor compatibility; never computed or updated by the form, defaults to true.</summary>
+    /// <summary>True when every registered field passed its last check. Updated by Validate() and by field edits; bind with <c>@bind-IsValid</c>.</summary>
     [Parameter] public bool IsValid { get; set; } = true;
-    /// <summary>Accepted for MudBlazor compatibility; never raised.</summary>
+    /// <summary>Raised when <see cref="IsValid"/> changes.</summary>
     [Parameter] public EventCallback<bool> IsValidChanged { get; set; }
     /// <summary>Form fields rendered inside a vertical flex container with gap-3.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -28,20 +32,54 @@
 
     private string _cls => CssClass.Merge("flex flex-col gap-3", Class);
 
-    /// <summary>MudBlazor compat: trigger validation. No-op (returns current validity).</summary>
+    internal void Register(IFormField field) => _fields.Add(field);
+    internal void Unregister(IFormField field) => _fields.Remove(field);
+
+    /// <summary>Validates every registered field, shows their errors and updates <see cref="IsValid"/>.</summary>
     public Task Validate()
     {
-        return Task.CompletedTask;
+        bool valid = true;
+        foreach (IFormField field in _fields.ToList())
+        {
+            string? error = field.GetError();
+            field.ShowError(error);
+            valid &= error is null;
+        }
+
+        return SetIsValid(valid);
     }
 
-    /// <summary>MudBlazor compat: reset the form's validation state. No-op.</summary>
+    // Called by a field after the user edits it: show only that field's error, recompute IsValid from all.
+    internal Task FieldChanged(IFormField field)
+    {
+        field.ShowError(field.GetError());
+        return SetIsValid(_fields.All(f => f.GetError() is null));
+    }
+
+    /// <summary>Clears every field's validation error and sets <see cref="IsValid"/> back to true. Field values are left as they are.</summary>
     public Task ResetAsync()
     {
-        return Task.CompletedTask;
+        ResetValidation();
+        return SetIsValid(true);
     }
 
-    /// <summary>MudBlazor compat: reset validation only. No-op.</summary>
+    /// <summary>Clears every field's validation error without touching values or <see cref="IsValid"/>.</summary>
     public void ResetValidation()
     {
+        foreach (IFormField field in _fields)
+        {
+            field.ShowError(null);
+        }
+    }
+
+    private async Task SetIsValid(bool valid)
+    {
+        if (IsValid == valid)
+        {
+            return;
+        }
+
+        IsValid = valid;
+        await IsValidChanged.InvokeAsync(valid);
     }
 }

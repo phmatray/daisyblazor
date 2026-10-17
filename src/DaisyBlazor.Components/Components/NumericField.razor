@@ -1,6 +1,8 @@
 @namespace DaisyBlazor
 @typeparam T
 @using System.Globalization
+@implements IFormField
+@implements IDisposable
 
 @* MudNumericField<T> replacement. daisyUI .input type=number inside a .fieldset with a .label. *@
 
@@ -93,8 +95,10 @@
     [Parameter] public bool ReadOnly { get; set; }
     /// <summary>Sets the HTML required attribute and appends an asterisk to the label.</summary>
     [Parameter] public bool Required { get; set; }
-    /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
+    /// <summary>Message shown when an enclosing <see cref="Form"/> validates this Required field while it is empty. Defaults to "Required".</summary>
     [Parameter] public string? RequiredError { get; set; }
+    /// <summary>Checked by an enclosing <see cref="Form"/>: <c>Func&lt;T, string?&gt;</c> (error or null), <c>Func&lt;T, bool&gt;</c> or <c>Func&lt;T, IEnumerable&lt;string&gt;&gt;</c>.</summary>
+    [Parameter] public object? Validation { get; set; }
     /// <summary>Accepted for MudBlazor compatibility; currently has no effect (value updates on change, not on each keystroke).</summary>
     [Parameter] public bool Immediate { get; set; }
     /// <summary>When true (the default), the fieldset and input stretch to full width (w-full).</summary>
@@ -128,6 +132,17 @@
     [Parameter] public string? FieldName { get; set; }
 
     [CascadingParameter] private ServerValidationState? ServerValidation { get; set; }
+    [CascadingParameter] private Form? Form { get; set; }
+    private string? _validationError;
+
+    protected override void OnInitialized() => Form?.Register(this);
+    public void Dispose() => Form?.Unregister(this);
+    string? IFormField.GetError() => FormValidation.Run(Form, Required, RequiredError, Validation, Value, FieldName);
+    void IFormField.ShowError(string? error)
+    {
+        _validationError = error;
+        StateHasChanged();
+    }
     /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public object? For { get; set; }
 
@@ -142,9 +157,9 @@
     // Explicit Error/ErrorText wins; the cascaded server state only fills the gap.
     private string? _serverError => FieldName is null ? null : ServerValidation?.FirstErrorFor(FieldName);
 
-    private bool _hasError => Error || _serverError is not null;
+    private bool _hasError => Error || _validationError is not null || _serverError is not null;
 
-    private string? _errorText => ErrorText ?? _serverError;
+    private string? _errorText => ErrorText ?? _validationError ?? _serverError;
 
     private bool _showError => _hasError && !string.IsNullOrEmpty(_errorText);
     private string _helpId => _id + "-help";
@@ -220,6 +235,10 @@
         T? parsed = Parse(raw);
         Value = parsed;
         await ValueChanged.InvokeAsync(parsed);
+        if (Form is not null)
+        {
+            await Form.FieldChanged(this);
+        }
     }
 
     private static T? Parse(string? raw)

@@ -1,0 +1,46 @@
+@* Form validates the TextField, NumericField and Select inside it: Validate() runs Required and each
+   field's Validation func, shows the messages and updates IsValid. Fields then re-check as you type. *@
+@inject ISnackbar Snackbar
+
+<Form @ref="_form" @bind-IsValid="_isValid" Class="max-w-md">
+    <TextField Label="Workspace name" Required="true" RequiredError="Give the workspace a name."
+               @bind-Value="_name" Margin="Margin.None" />
+    <TextField Label="URL slug" Required="true" Validation="@(new Func<string?, string?>(CheckSlug))"
+               HelperText="Lowercase letters, digits and dashes." @bind-Value="_slug" Margin="Margin.None" />
+    <NumericField T="int?" Label="Seats" Required="true" RequiredError="Enter a seat count."
+                  Validation="@(new Func<int?, string?>(s => s is < 1 or > 500 ? "Between 1 and 500 seats." : null))"
+                  @bind-Value="_seats" Margin="Margin.None" />
+    <Select T="string" Label="Region" Required="true" RequiredError="Choose a data region." @bind-Value="_region" Margin="Margin.None">
+        <SelectItem Value="@((string?)null)">Select a region</SelectItem>
+        <SelectItem Value="@("eu-west")">EU (Frankfurt)</SelectItem>
+        <SelectItem Value="@("us-east")">US (Virginia)</SelectItem>
+    </Select>
+    <div class="flex items-center justify-end gap-2">
+        <span class="mr-auto text-xs opacity-70">IsValid: @_isValid</span>
+        <Button Variant="Variant.Text" OnClick="() => _form.ResetAsync()">Clear errors</Button>
+        <Button Color="Color.Primary" Variant="Variant.Filled" OnClick="Create">Create workspace</Button>
+    </div>
+</Form>
+
+@code {
+    private Form _form = null!;
+    private bool _isValid = true;
+    private string? _name;
+    private string? _slug;
+    private int? _seats;
+    private string? _region;
+
+    private static string? CheckSlug(string? slug) =>
+        slug is null || System.Text.RegularExpressions.Regex.IsMatch(slug, "^[a-z0-9-]+$")
+            ? null
+            : "Use lowercase letters, digits and dashes only.";
+
+    private async Task Create()
+    {
+        await _form.Validate();
+        if (_form.IsValid)
+        {
+            Snackbar.Add($"Workspace {_name} created in {_region}.", Severity.Success);
+        }
+    }
+}
