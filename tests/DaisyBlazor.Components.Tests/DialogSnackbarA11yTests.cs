@@ -79,11 +79,11 @@ public class DialogSnackbarA11yTests : BunitContext
     public async Task Snackbar_pauses_auto_hide_while_hovered()
     {
         IRenderedComponent<SnackbarProvider> cut = Render<SnackbarProvider>();
-        await cut.InvokeAsync(() => _snackbar.Add("Saved", Severity.Success, o => o.VisibleStateDuration = 100));
+        await cut.InvokeAsync(() => _snackbar.Add("Saved", Severity.Success, o => o.VisibleStateDuration = 1000)); // long enough to hover before it expires under CI load
         cut.WaitForAssertion(() => cut.Markup.ShouldContain("Saved"));
 
         cut.Find(".alert").MouseEnter();
-        await Task.Delay(400, Xunit.TestContext.Current.CancellationToken);
+        await Task.Delay(1500, Xunit.TestContext.Current.CancellationToken);
         _snackbar.Shown.Count.ShouldBe(1);
 
         cut.Find(".alert").MouseLeave();
