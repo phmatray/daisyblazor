@@ -1,0 +1,22 @@
+/* Time-left bar of a toast with ShowProgress; the provider pauses it with the countdown. */
+.snackbar-progress {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 0.25rem;
+    background: currentColor;
+    opacity: 0.35;
+    transform-origin: left;
+    animation-name: snackbar-countdown;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+}
+
+[dir=rtl] .snackbar-progress {
+    transform-origin: right;
+}
+
+@keyframes snackbar-countdown {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+}

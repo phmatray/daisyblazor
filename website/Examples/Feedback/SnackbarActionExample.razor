@@ -1,0 +1,27 @@
+@inject ISnackbar Snackbar
+
+<div class="flex flex-wrap items-center gap-3">
+    <Button Variant="Variant.Outlined" Color="Color.Error" OnClick="Delete" Disabled="_deleted">Delete invoice</Button>
+    <span class="text-sm">@(_deleted ? "Invoice INV-1042 deleted" : "Invoice INV-1042")</span>
+</div>
+
+@code {
+    private bool _deleted;
+
+    private void Delete()
+    {
+        _deleted = true;
+        Snackbar.Add("Invoice INV-1042 deleted", Severity.Normal, o =>
+        {
+            o.Action = "Undo";
+            o.OnAction = () =>
+            {
+                _deleted = false;
+                StateHasChanged();
+                return Task.CompletedTask;
+            };
+            o.ShowProgress = true;
+            o.VisibleStateDuration = 8000;
+        });
+    }
+}
