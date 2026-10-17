@@ -19,6 +19,12 @@
                 </li>
                 <li><strong>Safelists every class the components emit</strong> so they survive Tailwind's purge (see <a href="css-preset#@G.Tracks[7].Id">below</a>).</li>
             </ol>
+            <Alert Severity="Severity.Warning" Dense="true">
+                The bundled daisyUI 5.7 adds <code>pointer-events: none</code> to <code>.btn[aria-disabled=true]</code> (5.5 left aria-disabled
+                buttons alone). Buttons you keep clickable while marked <code>aria-disabled</code> stop
+                receiving clicks and hover: move the explanation to a wrapper, or re-enable them with your own rule after the preset import,
+                e.g. <code>.btn.btn-explain[aria-disabled="true"] { pointer-events: auto; }</code>. See <a href="components/button">Button</a>.
+            </Alert>
 
             @H(1)
             <p>On every build, the package copies the preset into your project's <code>obj/daisyblazor/</code> folder. Turn on the CSS build in your <code>.csproj</code>:</p>
