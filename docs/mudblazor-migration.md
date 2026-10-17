@@ -127,7 +127,7 @@ Drop the `Mud` prefix. A representative mapping:
 | `MudList` / `MudListItem` | `List` / `ListItem` | |
 | `MudBreadcrumbs` | `Breadcrumbs` | |
 | `MudPagination` | `Pagination` | |
-| `MudNavMenu` / `MudNavLink` | `Menu` / `NavMenuLink` | |
+| `MudNavMenu` / `MudNavLink` | `Menu` / `NavMenuLink` | `NavMenuLink` renders its own `<li>` (since 0.5); don't wrap it in another one. |
 | `MudDrawer` | `Drawer` | |
 | `MudAppBar` | `Navbar` | |
 | `MudTextField` | `TextField` | `InputType`, `Adornment`. |

@@ -1,25 +1,26 @@
 @namespace DaisyBlazor
 @using Microsoft.AspNetCore.Components.Routing
-@* Alias the framework NavLink so the unqualified <NavLink> in this file resolves to it,
-   not to this component (which is also named NavLink). *@
-
-@* MudNavLink replacement (named NavMenuLink to avoid the framework NavLink clash). Renders a Blazor NavLink styled as a daisyUI menu link.
+@* MudNavLink replacement (named NavMenuLink to avoid the framework NavLink clash). Renders a daisyUI menu
+   <li> holding a Blazor NavLink, so it goes straight inside a ul.menu (like MenuItem).
+   Breaking since 0.5: it used to render a bare <a>; drop any <li> you wrapped it in.
    The framework NavLink applies ActiveClass (and aria-current="page") when the route matches;
    daisyUI 5's .menu highlights ".menu-active", so that is the class emitted. *@
 
-@if (Disabled)
-{
-    <span role="link" aria-disabled="true" class="@_disabledCls" style="@Style" @attributes="UserAttributes">
-        @LinkInner
-    </span>
-}
-else
-{
-    <Microsoft.AspNetCore.Components.Routing.NavLink href="@Href" Match="Match" target="@Target"
-                   class="@_cls" ActiveClass="menu-active" style="@Style" @attributes="UserAttributes">
-        @LinkInner
-    </Microsoft.AspNetCore.Components.Routing.NavLink>
-}
+<li class="@(Disabled ? "menu-disabled" : null)">
+    @if (Disabled)
+    {
+        <span role="link" aria-disabled="true" class="@_disabledCls" style="@Style" @attributes="UserAttributes">
+            @LinkInner
+        </span>
+    }
+    else
+    {
+        <Microsoft.AspNetCore.Components.Routing.NavLink href="@Href" Match="Match" target="@Target"
+                       class="@_cls" ActiveClass="menu-active" style="@Style" @attributes="UserAttributes">
+            @LinkInner
+        </Microsoft.AspNetCore.Components.Routing.NavLink>
+    }
+</li>
 
 @code {
     /// <summary>The link label rendered after the optional icon.</summary>
