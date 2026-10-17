@@ -31,7 +31,7 @@ public static partial class RazorHighlighter
 
     private static string Tokens(string code, Regex rx)
     {
-        var sb = new StringBuilder(code.Length * 2);
+        StringBuilder sb = new(code.Length * 2);
         int last = 0;
         foreach (Match m in rx.Matches(code))
         {

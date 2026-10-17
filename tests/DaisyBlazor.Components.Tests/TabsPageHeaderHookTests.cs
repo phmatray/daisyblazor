@@ -1,3 +1,4 @@
+using AngleSharp.Dom;
 using DaisyBlazor;
 using DaisyBlazor.Layout;
 
@@ -16,7 +17,7 @@ public class TabsPageHeaderHookTests : BunitContext
             .Add(p => p.AriaLabelledBy, "heading")
             .AddChildContent<Tab>(t => t.Add(x => x.Title, "One").AddChildContent("1")));
 
-        var tablist = cut.Find("[role=tablist]");
+        IElement tablist = cut.Find("[role=tablist]");
         tablist.GetAttribute("aria-label").ShouldBe("Song sections");
         tablist.GetAttribute("aria-labelledby").ShouldBe("heading");
     }

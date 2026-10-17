@@ -92,7 +92,7 @@ public class LibraryComponents8FixTests : BunitContext
         cut.FindAll("button button").ShouldBeEmpty();
         cut.Find("span.badge").ShouldNotBeNull();
 
-        var buttons = cut.FindAll("span.badge > button");
+        IReadOnlyList<IElement> buttons = cut.FindAll("span.badge > button");
         buttons.Count.ShouldBe(2);
         buttons[0].Click();
         cut.Find("button[aria-label='Remove Staging']").Click();

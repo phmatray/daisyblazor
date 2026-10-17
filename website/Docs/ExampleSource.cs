@@ -19,7 +19,7 @@ public static class ExampleSource
     {
         if (!Resources.TryGetValue(example.Name, out string? res)) return $"@* source for {example.Name} not embedded *@";
         using Stream s = Asm.GetManifestResourceStream(res)!;
-        using var reader = new StreamReader(s);
+        using StreamReader reader = new(s);
         return reader.ReadToEnd().Replace("\r\n", "\n").Trim();
     }
 

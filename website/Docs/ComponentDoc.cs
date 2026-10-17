@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace DaisyBlazor.Docs.Docs;
 
 /// <summary>One documented component page (<c>/components/{Slug}</c>).</summary>
@@ -97,7 +99,7 @@ public static class Slugify
 {
     public static string Of(string text)
     {
-        var sb = new System.Text.StringBuilder(text.Length);
+        StringBuilder sb = new(text.Length);
         bool dash = false;
         foreach (char ch in text.ToLowerInvariant())
         {

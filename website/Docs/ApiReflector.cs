@@ -52,7 +52,7 @@ public static class ApiReflector
         // Type names come from the open definition, so DataGrid<string> documents Items as IEnumerable<T>.
         Type definition = component.IsGenericType ? component.GetGenericTypeDefinition() : component;
 
-        var list = new List<ParamInfo>();
+        List<ParamInfo> list = new();
         foreach (PropertyInfo p in component.GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
             ParameterAttribute? attr = p.GetCustomAttribute<ParameterAttribute>();

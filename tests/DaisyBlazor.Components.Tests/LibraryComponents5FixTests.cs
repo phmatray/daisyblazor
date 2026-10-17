@@ -1,3 +1,4 @@
+using AngleSharp.Dom;
 using DaisyBlazor.Feedback;
 using Microsoft.AspNetCore.Components;
 
@@ -37,7 +38,7 @@ public class LibraryComponents5FixTests : BunitContext
             .Add(p => p.Href, "/billing")
             .Add(p => p.Loading, true));
 
-        var a = cut.Find("a");
+        IElement a = cut.Find("a");
         a.HasAttribute("href").ShouldBeFalse();
         a.GetAttribute("aria-disabled").ShouldBe("true");
         a.ClassList.ShouldContain("btn-disabled");
@@ -66,7 +67,7 @@ public class LibraryComponents5FixTests : BunitContext
             .Add(p => p.Subtitle, "New support tickets will show up here.")
             .Add(p => p.ChildContent, (RenderFragment)(b => b.AddMarkupContent(0, "<button>Add ticket</button>"))));
 
-        var ps = cut.FindAll("p");
+        IReadOnlyList<IElement> ps = cut.FindAll("p");
         ps.ShouldAllBe(p => p.ClassList.Contains("text-center"));
         cut.Markup.ShouldNotContain("text-secondary");
         ps[1].ClassList.ShouldContain("text-base-content/60");
@@ -78,7 +79,7 @@ public class LibraryComponents5FixTests : BunitContext
     {
         IRenderedComponent<Swap> cut = Render<Swap>(ps => ps.Add(p => p.AriaLabel, "Dark mode"));
 
-        var input = cut.Find("input[type=checkbox]");
+        IElement input = cut.Find("input[type=checkbox]");
         input.ClassList.ShouldNotContain("hidden");
         input.GetAttribute("aria-label").ShouldBe("Dark mode");
     }
@@ -100,7 +101,7 @@ public class LibraryComponents5FixTests : BunitContext
                 b.CloseComponent();
             })));
 
-        var buttons = cut.FindAll("button");
+        IReadOnlyList<IElement> buttons = cut.FindAll("button");
         buttons[0].GetAttribute("aria-pressed").ShouldBe("true");
         buttons[1].GetAttribute("aria-pressed").ShouldBe("false");
     }
