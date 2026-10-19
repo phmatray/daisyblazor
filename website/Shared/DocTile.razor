@@ -2,10 +2,11 @@
 
 <a href="@Doc.Url" class="group flex h-full flex-col overflow-hidden rounded-2xl border-2 border-base-content bg-base-100 transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-18px_rgb(0_0_0/0.5)]">
     @* Tall covers start at the top and fade out at the bottom instead of being cut through the middle. *@
-    <div class="pointer-events-none @(Compact ? "relative h-48" : "grid h-56 p-4 [place-items:safe_center]") overflow-hidden bg-base-100 [mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)]" inert>
-        @* Charts size their height from their width: cap the width so the whole chart fits the tile. A compact
-           tile lays its cover out at a fixed 16rem and shrinks the picture, so narrow tiles show it whole. *@
-        <div class="@(Compact ? "absolute left-1/2 top-4 w-[16rem] -translate-x-1/2 scale-[0.6] sm:scale-[0.7]" : IsChart ? "mx-auto w-full max-w-[15rem] scale-[0.78]" : "w-full scale-[0.78]") origin-top">
+    <div class="pointer-events-none relative @(Compact ? "h-48" : "h-56") overflow-hidden bg-base-100 [mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)]" inert data-cover>
+        @* The cover is laid out at a set width and shrunk; docs.js (fitCovers) shrinks it further when it is wider
+           than the tile, and centres it, so no cover is ever cut at the sides. Charts size their height from their
+           width: cap it so the whole chart fits. A compact tile lays its cover out at a fixed 16rem. *@
+        <div class="absolute left-1/2 top-4 -translate-x-1/2 origin-top @(Compact ? "w-[16rem] scale-[0.6] sm:scale-[0.7]" : IsChart ? "w-[calc(100%-2rem)] max-w-[15rem] scale-[0.78]" : "w-[calc(100%-2rem)] scale-[0.78]")">
             @if (Cover is not null)
             {
                 <DynamicComponent Type="Cover" />

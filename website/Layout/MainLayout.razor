@@ -40,5 +40,10 @@
         }
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) await Js.WatchCovers();
+    }
+
     public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
 }
