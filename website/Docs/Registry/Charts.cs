@@ -55,6 +55,8 @@ public static partial class DocRegistry
             [
                 new("Basic", "Slices start at 12 o'clock and run clockwise, coloured from the theme palette.", typeof(PieChartBasicExample)),
                 new("Colours and legend", "Set a Color per point and hide the legend with ShowLegend=\"false\".", typeof(PieChartColorsExample)),
+                new("Others slice", "OthersThreshold (a fraction: 0.05 is 5 %) merges the slices below it into one slice named OthersLabel, drawn last; its tooltip lists what it holds. A single small slice is kept as it is.", typeof(PieChartOthersExample)),
+                new("Exploded slice", "Exploded lists the labels of the slices to pull out along their bisector, by ExplodeOffset times the radius (default 0.08); the pie shrinks so they stay in the box.", typeof(PieChartExplodedExample)),
             ])
         {
             Portrait = typeof(PieChartCoverExample),
@@ -66,17 +68,20 @@ public static partial class DocRegistry
             [
                 new("With a center label", "CenterLabel prints a headline figure inside the ring.", typeof(DonutChartBasicExample)),
                 new("Ring thickness", "InnerRadiusRatio (default 0.6) sets the hole size: higher is a thinner ring, which makes a neat progress gauge.", typeof(DonutChartRingExample)),
+                new("Several rings", "Rings takes a list of DonutRing (a name and its data), drawn as concentric rings sharing the hole, outermost first. A label keeps one colour in every ring, the legend lists each label once, and tooltips name the ring.", typeof(DonutChartRingsExample)),
             ])
         {
             Portrait = typeof(DonutChartCoverExample),
         },
 
         new("Sparkline", Category.Charts,
-            "A tiny trend line with no axes, sized to sit inline in text, table cells or KPI tiles. Takes a plain list of numbers. D3 draws the line at the box's real size.",
+            "A tiny trend line, column or win/loss chart with no axes, sized to sit inline in text, table cells or KPI tiles. Takes a plain list of numbers. D3 draws it at the box's real size.",
             [typeof(Sparkline)],
             [
                 new("Basic", "Area fills under the line, ShowEndDot marks the latest value, StrokeWidth sets the weight.", typeof(SparklineBasicExample)),
                 new("In a table", "Width and Color (any CSS colour) let each row show its own trend.", typeof(SparklineTableExample)),
+                new("Column and win/loss", "Type=\"SparklineKind.Column\" draws one bar per value from zero, negative ones down in NegativeColor (the error colour by default); SparklineKind.WinLoss draws equal bars up or down by sign, with a gap for zero.", typeof(SparklineKindsExample)),
+                new("Trend line and normal range", "ShowTrendline adds the dashed least-squares line across the values; NormalMin and NormalMax shade the expected range behind them. Both work on lines and columns.", typeof(SparklineTrendExample)),
             ])
         {
             Portrait = typeof(SparklineCoverExample),

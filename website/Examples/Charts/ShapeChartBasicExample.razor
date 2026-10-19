@@ -1,0 +1,23 @@
+<ShapeChart Title="Hall B, rack occupancy" Shapes="_racks" KeepAspect="true" XTitle="Metres" YTitle="Metres" />
+
+@code {
+    // Two rows of racks (0.6 m × 1.2 m) facing a cold aisle; each rack is a polygon, coloured by occupancy.
+    private readonly ChartShape[] _racks = Build();
+
+    private static ChartShape[] Build()
+    {
+        string[] occupancy = ["Full", "Full", "Over 50%", "Full", "Under 50%", "Over 50%", "Empty", "Full", "Over 50%", "Under 50%", "Empty", "Full"];
+        List<ChartShape> racks = [];
+        for (int i = 0; i < 12; i++)
+        {
+            int row = i / 6;
+            double x = 1 + (i % 6) * 0.8;
+            double y = row == 0 ? 1 : 3.6;
+            racks.Add(new ChartShape($"Rack {(row == 0 ? 'A' : 'B')}{i % 6 + 1}", [Rect(x, y, 0.6, 1.2)], Group: occupancy[i]));
+        }
+
+        return [.. racks];
+    }
+
+    private static ShapePoint[] Rect(double x, double y, double w, double h) => [new(x, y), new(x + w, y), new(x + w, y + h), new(x, y + h)];
+}

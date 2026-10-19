@@ -1,0 +1,13 @@
+<PolarChart Title="Edge requests by compass bearing of the client region (thousands)" Series="_traffic" Mode="PolarChartMode.Area" Smooth="true"
+            AngleStep="45" AngleFormat="{0}°" ValueFormat="{0:N0} k" ShowPoints="false" />
+
+@code {
+    // Seen from the Frankfurt edge: requests per hour grouped by the bearing of the client region.
+    private static readonly double[] _bearings = [0, 45, 90, 135, 180, 225, 270, 315];
+
+    private readonly PolarSeries[] _traffic =
+    [
+        new("Weekdays", [.. new double[] { 42, 58, 71, 36, 28, 33, 96, 64 }.Select((v, i) => new PolarPoint(_bearings[i], v))]),
+        new("Weekends", [.. new double[] { 25, 31, 44, 22, 19, 21, 57, 38 }.Select((v, i) => new PolarPoint(_bearings[i], v))]),
+    ];
+}

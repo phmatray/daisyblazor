@@ -1,0 +1,14 @@
+<PolarChart Title="API latency by hour of day (UTC)" Series="_latency" AngleMax="24" AngleStep="3" AngleFormat="{0:00}:00"
+            ValueFormat="{0:N0} ms" Closed="true" />
+
+@code {
+    // p95 and p50 latency of the Acme Cloud API, one point per hour; Closed joins 23:00 back to 00:00.
+    private static readonly double[] _p95 = [118, 112, 106, 104, 108, 121, 146, 182, 214, 236, 241, 238, 232, 236, 244, 239, 226, 205, 184, 168, 152, 140, 131, 124];
+    private static readonly double[] _p50 = [42, 40, 38, 37, 39, 44, 53, 66, 78, 86, 88, 87, 84, 86, 89, 87, 82, 74, 66, 60, 55, 51, 47, 44];
+
+    private readonly PolarSeries[] _latency =
+    [
+        new("p95", [.. _p95.Select((v, h) => new PolarPoint(h, v))]),
+        new("p50", [.. _p50.Select((v, h) => new PolarPoint(h, v))]),
+    ];
+}

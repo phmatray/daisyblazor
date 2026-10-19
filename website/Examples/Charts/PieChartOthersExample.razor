@@ -1,0 +1,15 @@
+<PieChart Title="Requests by region" Data="_regions" OthersThreshold="0.05" OthersLabel="Other regions" Height="13rem" />
+
+@code {
+    // Regions under 5 % of the requests are merged into one slice; its tooltip lists them.
+    private readonly ChartDataPoint[] _regions =
+    [
+        new("eu-west", 4_120),
+        new("us-east", 3_560),
+        new("ap-south", 1_240),
+        new("us-west", 980),
+        new("sa-east", 310),
+        new("af-south", 140),
+        new("me-central", 120),
+    ];
+}

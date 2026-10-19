@@ -1,0 +1,12 @@
+<div class="flex flex-wrap items-center gap-8">
+    <span class="inline-flex items-center gap-2">Net new workspaces <Sparkline Data="_netNew" Type="SparklineKind.Column" Width="7rem" /></span>
+    <span class="inline-flex items-center gap-2">Nightly builds <Sparkline Data="_builds" Type="SparklineKind.WinLoss" Width="7rem" Color="var(--color-success)" Title="Nightly builds, passed or failed" /></span>
+</div>
+
+@code {
+    // Column: one bar per day from zero, losses hang down in NegativeColor (the error colour by default).
+    private readonly double[] _netNew = [14, 9, -3, 12, 18, -6, 7, 11, 16, -2, 9, 21];
+
+    // WinLoss: only the sign counts, 1 for a passing build, -1 for a failing one, 0 when none ran.
+    private readonly double[] _builds = [1, 1, -1, 1, 1, 1, 0, 1, -1, -1, 1, 1, 1, 1];
+}
