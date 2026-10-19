@@ -11,6 +11,7 @@
     <IsPackable>true</IsPackable>
     <PackageId>DaisyBlazor.Charts</PackageId>
     <Description>Dependency-free, theme-aware SVG charts for Blazor: line, area, bar, pie, donut and sparkline components rendered as pure inline SVG. Colors follow the active daisyUI v5 theme via CSS custom properties (--color-primary, etc.) with zero charting runtime dependency.</Description>
+    <PackageTags>$(PackageTags);charts;svg;sparkline</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
