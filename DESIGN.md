@@ -12,8 +12,8 @@ colors:
   code-ink: "oklch(96% 0.01 264)"
   secondary: "oklch(50% 0.22 312)"
   accent: "oklch(72% 0.17 65)"
-  info: "oklch(62% 0.14 233)"
-  success: "oklch(62% 0.16 150)"
+  info: "oklch(52% 0.14 233)"
+  success: "oklch(52% 0.15 150)"
   warning: "oklch(78% 0.16 75)"
 typography:
   display:

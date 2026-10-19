@@ -4,7 +4,7 @@
     <div>
         <span class="sleeve-muted mb-2 block text-sm font-bold">Guides</span>
         <ul class="space-y-1 font-bold">
-            @foreach (GuideDoc g in Guides.All.Where(g => g.Url != "themes"))
+            @foreach (GuideDoc g in Guides.All.Where(g => g.Url is not ("themes" or "charts")))
             {
                 <li><a href="@g.Url">@g.Title</a></li>
             }
@@ -18,7 +18,7 @@
         <ul class="space-y-1 font-bold">
             <li><a href="components">All components</a></li>
             <li><a href="charts">All charts <span class="sleeve-muted font-semibold">@DocRegistry.ChartCount</span></a></li>
-            @foreach (IGrouping<Category, ComponentDoc> group in DocRegistry.ByCategory())
+            @foreach (IGrouping<Category, ComponentDoc> group in DocRegistry.ByCategory().Where(g => g.Key != Category.Charts))
             {
                 <li><a href="@($"components#{group.Key.Slug()}")">@group.Key.Title() <span class="sleeve-muted font-semibold">@group.Count()</span></a></li>
             }

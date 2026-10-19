@@ -13,7 +13,7 @@
             <section class="mt-10" aria-labelledby="@($"family-{family.Slug}")">
                 <h3 id="@($"family-{family.Slug}")" class="font-display text-[1.5rem] font-semibold leading-tight">@family.Title <span class="text-base tabular-nums text-base-content/75">@family.Docs.Count</span></h3>
                 <p class="mb-4 mt-1 max-w-[70ch] text-base-content/80">@family.Blurb</p>
-                <ul class="grid grid-cols-2 gap-3 md:grid-cols-3 2xl:grid-cols-4">
+                <ul class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
                     @foreach (ComponentDoc doc in family.Docs)
                     {
                         <li><DocTile Doc="doc" Compact /></li>

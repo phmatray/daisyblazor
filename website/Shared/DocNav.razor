@@ -3,7 +3,7 @@
 <nav class="text-[0.95rem]" aria-label="Documentation sections">
     <span class="mb-2 block text-sm font-bold text-base-content/75">Guides</span>
     <ul class="mb-7 space-y-0.5">
-        @foreach (GuideDoc g in Guides.All)
+        @foreach (GuideDoc g in Guides.All.Where(g => g.Url != "charts"))
         {
             <li><NavLink href="@g.Url" Match="NavLinkMatch.All" class="@LinkClass">@g.Title</NavLink></li>
         }
@@ -12,7 +12,7 @@
     <span class="mb-2 block text-sm font-bold text-base-content/75">
         <NavLink href="components" Match="NavLinkMatch.All" class="hover:text-base-content">Components</NavLink>
     </span>
-    @foreach (IGrouping<Category, ComponentDoc> group in DocRegistry.ByCategory())
+    @foreach (IGrouping<Category, ComponentDoc> group in DocRegistry.ByCategory().Where(g => g.Key != Category.Charts))
     {
         <div class="mb-4">
             <a href="@($"components#{group.Key.Slug()}")"
@@ -21,6 +21,25 @@
             </a>
             <ul class="ml-1 space-y-px border-l-2 border-base-300 pl-3">
                 @foreach (ComponentDoc d in group)
+                {
+                    <li><NavLink href="@d.Url" Match="NavLinkMatch.All" class="@SubLinkClass">@d.Name</NavLink></li>
+                }
+            </ul>
+        </div>
+    }
+
+    <span class="mb-2 mt-7 block text-sm font-bold text-base-content/75">
+        <NavLink href="charts" Match="NavLinkMatch.All" class="hover:text-base-content">Charts</NavLink>
+    </span>
+    @foreach (ChartFamily family in DocRegistry.ChartFamilies)
+    {
+        <div class="mb-4">
+            <a href="@($"charts#family-{family.Slug}")"
+               class="flex items-baseline justify-between py-1 font-bold hover:underline hover:decoration-primary hover:decoration-2 hover:underline-offset-4">
+                @family.Title <span class="text-xs font-semibold tabular-nums text-base-content/75">@family.Docs.Count</span>
+            </a>
+            <ul class="ml-1 space-y-px border-l-2 border-base-300 pl-3">
+                @foreach (ComponentDoc d in family.Docs)
                 {
                     <li><NavLink href="@d.Url" Match="NavLinkMatch.All" class="@SubLinkClass">@d.Name</NavLink></li>
                 }

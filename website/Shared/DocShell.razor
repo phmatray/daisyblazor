@@ -9,7 +9,7 @@
 
 <div class="mx-auto grid max-w-[1500px] gap-10 px-4 pb-24 pt-10 sm:px-8 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-14 lg:px-14 lg:pt-14 xl:grid-cols-[15rem_minmax(0,1fr)_12rem]">
     <aside class="hidden lg:block" aria-label="Documentation">
-        <div class="sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto pb-10 pr-2">
+        <div @ref="_nav" class="sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto pb-10 pr-2">
             <DocNav />
         </div>
     </aside>
@@ -60,6 +60,8 @@
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     private string? _active;
+    private ElementReference _nav;
+    private string? _revealed;
     private string _observed = "";
     private DotNetObjectReference<DocShell>? _self;
     private IJSObjectReference? _spy;
@@ -68,6 +70,13 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_revealed != Path)
+        {
+            // A long side nav opens on the current page's link, not on its first entries.
+            _revealed = Path;
+            try { await Js.RevealActiveLink(_nav); } catch (JSException) { }
+        }
+
         string key = Path + string.Join(',', Tracks?.Select(t => t.Id) ?? []);
         if (Tracks is not { Count: > 1 } || key == _observed) return;
         _observed = key;

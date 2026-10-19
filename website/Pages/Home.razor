@@ -126,8 +126,8 @@
             <div>
                 <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]">Try every parameter.</h2>
                 <p class="mt-5 text-lg text-base-content/80">
-                    Each component page carries a playground. Its controls are built from DaisyBlazor's own inputs, generated
-                    from the component's parameters, and the Razor underneath rewrites itself as you go. Copy it when it sounds right.
+                    Most component pages, and the main charts, carry a playground. Its controls are built from DaisyBlazor's own
+                    inputs, generated from the component's parameters, and the Razor underneath rewrites itself as you go. Copy it once it looks right.
                 </p>
             </div>
             @if (_buttonPlayground is not null)
@@ -242,6 +242,7 @@
     private readonly List<string> _buildLines = ["dotnet build", "DaisyBlazor: tailwindcss -i Styles/main.css -o wwwroot/css/app.css", "Build succeeded."];
 
     private string Current => Provider?.Theme ?? ThemeDeck.Light;
+
 
     private const string MudSample = """
         <MudButton Color="Color.Primary"
