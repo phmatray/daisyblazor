@@ -22,7 +22,7 @@
 
   <!-- Testing (bUnit + xUnit v3) -->
   <ItemGroup>
-    <PackageVersion Include="bunit" Version="2.11.3" />
+    <PackageVersion Include="bunit" Version="2.12.5" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageVersion Include="Shouldly" Version="4.3.0" />
     <PackageVersion Include="xunit.v3" Version="4.0.2" />
