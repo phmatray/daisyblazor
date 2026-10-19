@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/phmatray/daisyblazor/compare/v0.7.0...v0.8.0) (2026-10-19)
+
+
+### Features
+
+* **docs:** prerendered pages for SEO, charts up front, and chart fixes from a page-by-page QA ([#135](https://github.com/phmatray/daisyblazor/issues/135)) ([2a2bffb](https://github.com/phmatray/daisyblazor/commit/2a2bffbce9fe21bcceda1422c7be5e50406ed4f5))
+
 ## [0.7.0](https://github.com/phmatray/daisyblazor/compare/v0.6.1...v0.7.0) (2026-10-19)
 
 

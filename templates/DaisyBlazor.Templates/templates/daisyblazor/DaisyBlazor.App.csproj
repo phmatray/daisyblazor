@@ -10,9 +10,9 @@
   <!-- release-please bumps these with each DaisyBlazor release, so a freshly scaffolded app
        pulls the version that was just published. -->
   <ItemGroup>
-    <PackageReference Include="DaisyBlazor.Components" Version="0.7.0" /> <!-- x-release-please-version -->
-    <PackageReference Include="DaisyBlazor.Charts" Version="0.7.0" /> <!-- x-release-please-version -->
-    <PackageReference Include="DaisyBlazor.Charts.Server" Version="0.7.0" /> <!-- x-release-please-version -->
+    <PackageReference Include="DaisyBlazor.Components" Version="0.8.0" /> <!-- x-release-please-version -->
+    <PackageReference Include="DaisyBlazor.Charts" Version="0.8.0" /> <!-- x-release-please-version -->
+    <PackageReference Include="DaisyBlazor.Charts.Server" Version="0.8.0" /> <!-- x-release-please-version -->
   </ItemGroup>
 
   <!-- DaisyBlazor.Components compiles Styles/main.css to wwwroot/css/app.css on every build with
