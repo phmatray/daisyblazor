@@ -33,7 +33,7 @@ public sealed record ChartLine(double X1, double Y1, double X2, double Y2);
 /// target, a limit or a break-even point.
 /// </summary>
 /// <param name="Value">Where the line sits on the value axis; the axis grows to show it.</param>
-/// <param name="Label">Optional text written inside the plot beside the line.</param>
+/// <param name="Label">Optional text written at the end of the line, outside the plot.</param>
 /// <param name="Color">Optional CSS colour of the line and its label; defaults to the base content colour.</param>
 /// <param name="Dashed">Draw the line dashed (the default) or solid.</param>
 public sealed record ChartReference(double Value, string? Label = null, string? Color = null, bool Dashed = true);
@@ -44,12 +44,12 @@ public sealed record ChartReference(double Value, string? Label = null, string? 
 /// </summary>
 /// <param name="From">One end of the range.</param>
 /// <param name="To">The other end of the range.</param>
-/// <param name="Label">Optional text written inside the band, in its corner.</param>
+/// <param name="Label">Optional text written beside the band, outside the plot.</param>
 /// <param name="Color">Optional CSS colour of the shading; defaults to the base content colour.</param>
 public sealed record ChartBand(double From, double To, string? Label = null, string? Color = null);
 
-/// <summary>A placed <see cref="ChartReference"/> (<paramref name="Index"/> is its position in the input): the line and its label's anchor point.</summary>
-public sealed record ReferenceLineLayout(int Index, double X1, double Y1, double X2, double Y2, double LabelX, double LabelY, string Anchor);
+/// <summary>A placed <see cref="ChartReference"/> (<paramref name="Index"/> is its position in the input): the line, its label's anchor point and its label as it fits beside the plot.</summary>
+public sealed record ReferenceLineLayout(int Index, double X1, double Y1, double X2, double Y2, double LabelX, double LabelY, string Anchor, string? Label = null);
 
-/// <summary>A placed <see cref="ChartBand"/> (<paramref name="Index"/> is its position in the input): its rectangle within the plot and its label's anchor point.</summary>
-public sealed record ReferenceBandLayout(int Index, double X, double Y, double Width, double Height, double LabelX, double LabelY, string Anchor);
+/// <summary>A placed <see cref="ChartBand"/> (<paramref name="Index"/> is its position in the input): its rectangle within the plot, its label's anchor point and its label as it fits beside the plot.</summary>
+public sealed record ReferenceBandLayout(int Index, double X, double Y, double Width, double Height, double LabelX, double LabelY, string Anchor, string? Label = null);

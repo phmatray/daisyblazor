@@ -424,6 +424,7 @@ test('scatter: horizontal and vertical references and bands, reference values ta
     assert.ok(Math.abs(h.y1 - yAt(10)) < 0.02 && h.y1 === h.y2 && h.x1 === out.plot.left && h.x2 === out.plot.right, 'horizontal at y = 10, across the plot');
     assert.ok(Math.abs(v.x1 - xAt(3)) < 0.02 && v.x1 === v.x2 && v.y1 === out.plot.top && v.y2 === out.plot.bottom, 'vertical at x = 3');
     assert.ok(out.yTicks.some(t => t.value >= 10), 'the y axis grows to show the reference');
+    assert.ok(h.labelX > out.plot.right && out.bands[0].labelX > out.plot.right && v.labelY < out.plot.top, 'labels beside and above the plot, off the points');
     assert.ok(Math.abs(out.bands[0].y - yAt(3)) < 0.02 && Math.abs(out.bands[0].height - (yAt(2) - yAt(3))) < 0.02);
     assert.ok(Math.abs(out.xBands[0].x - xAt(2)) < 0.02 && Math.abs(out.xBands[0].width - (xAt(4) - xAt(2))) < 0.02);
     // A log axis drops what it cannot show, keeping each mark's input index.
