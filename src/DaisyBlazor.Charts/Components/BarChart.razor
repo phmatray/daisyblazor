@@ -44,6 +44,16 @@
                           fill="@_color(bar.C, bar.S)"><title>@_tooltip(bar.C, bar.S)</title></rect>
                 }
 
+                @foreach (ScatterTrend trend in geo.Trends ?? [])
+                {
+                    string color = _grouped && trend.Series < _seriesCount ? ChartPalette.At(trend.Series, _series![trend.Series].Color) : "var(--color-base-content)";
+                    <g>
+                        <title>@ChartText.Trend(trend, _grouped && _seriesCount > 1 && trend.Series < _seriesCount ? _series![trend.Series].Name ?? string.Empty : string.Empty)</title>
+                        <path d="@trend.Path" fill="none" stroke="transparent" stroke-width="10" />
+                        <path d="@trend.Path" fill="none" stroke="@color" stroke-width="2" stroke-dasharray="6 4" pointer-events="none" />
+                    </g>
+                }
+
                 @if (geo.References is { Count: > 0 } || geo.Bands is { Count: > 0 })
                 {
                     <ChartReferences References="_references" Ranges="_bands" Lines="@(geo.References ?? [])" Bands="@(geo.Bands ?? [])" />
@@ -103,6 +113,20 @@
     /// <summary>Shaded value ranges (plot bands) drawn behind the bars, cut to the plot, each with an optional label in its corner.</summary>
     [Parameter] public IReadOnlyList<ChartBand>? Bands { get; set; }
 
+    /// <summary>
+    /// Fit and draw a dashed trend line per series, over the category index (0, 1, …) on the series'
+    /// own values, through the category positions (also when <see cref="Horizontal"/>); a flat <see cref="Data"/> list is one series; its tooltip
+    /// gives the equation and R², or the period of a moving average. Ignored when <see cref="Stacked"/>
+    /// or <see cref="Percent"/> is on: a fit of the own values would not follow the stacked bars.
+    /// </summary>
+    [Parameter] public ChartTrendline Trendline { get; set; } = ChartTrendline.None;
+
+    /// <summary>Degree of a <see cref="ChartTrendline.Polynomial"/> trend line, from 2 to 6 (other values are clamped).</summary>
+    [Parameter] public int TrendlineOrder { get; set; } = 2;
+
+    /// <summary>Number of points a <see cref="ChartTrendline.MovingAverage"/> trend line averages (at least 2).</summary>
+    [Parameter] public int TrendlinePeriod { get; set; } = 3;
+
     /// <summary>Draw value gridlines and labels.</summary>
     [Parameter] public bool ShowGrid { get; set; } = true;
 
@@ -151,7 +175,9 @@
             : Title!;
 
     /// <inheritdoc />
-    protected override object BuildSpec()
+    protected override object BuildSpec() => WithTrendline(_spec(), Stacked || Percent ? ChartTrendline.None : Trendline, TrendlineOrder, TrendlinePeriod);
+
+    private object _spec()
     {
         _series = Series is { Count: > 0 } ? Series : null;
         _points = Data ?? [];

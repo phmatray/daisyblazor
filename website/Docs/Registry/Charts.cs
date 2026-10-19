@@ -17,6 +17,7 @@ public static partial class DocRegistry
                 new("Step", "Step draws each value as a step that holds until the next one (step-after), for counts that change in jumps; it wins over Smooth.", typeof(LineChartStepExample)),
                 new("Rotated", "Horizontal puts the labels down the side and the values along the bottom, each line reading top to bottom; it works with Smooth, Step, Stacked, Percent and Area.", typeof(LineChartRotatedExample)),
                 new("Reference lines and bands", "References draws a ChartReference line across the plot at a value (dashed unless Dashed is false) and Bands shades a ChartBand range behind the data; labels sit inside the plot, and the axis grows to show every line.", typeof(LineChartReferencesExample)),
+                new("Trend lines", "Trendline fits a dashed trend to each series over the label index (Linear, Exponential, Logarithmic, Power, Polynomial of TrendlineOrder 2 to 6, or a MovingAverage of TrendlinePeriod points) and draws it through the label positions; here a three-day moving average. Hover it for the equation and R², or the period. Ignored when Stacked or Percent.", typeof(LineChartTrendlineExample)),
             ])
         {
             Portrait = typeof(LineChartCoverExample),
@@ -48,6 +49,7 @@ public static partial class DocRegistry
                 new("Side-by-side stacks", "Give each ChartSeries a Stack name: series with the same name stack together and the stacks stand side by side in each label.", typeof(BarChartStackGroupsExample)),
                 new("Per-bar colours", "Give a point any CSS colour; ChartPalette.FromColor maps a Color value to its theme token.", typeof(BarChartColorsExample)),
                 new("Reference lines and bands", "References draws a line across the bars at a value (a target, a limit) and Bands shades a value range behind them; on a Horizontal chart both run down the plot.", typeof(BarChartReferencesExample)),
+                new("Trend lines", "Trendline fits a dashed trend to each series over the categories and draws it through their centres, also on a Horizontal chart; the same kinds as LineChart, here Linear. Hover it for the equation and R². Ignored when Stacked or Percent.", typeof(BarChartTrendlineExample)),
             ])
         {
             Portrait = typeof(BarChartCoverExample),

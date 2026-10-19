@@ -126,6 +126,12 @@
     /// </summary>
     [Parameter] public ChartTrendline Trendline { get; set; } = ChartTrendline.None;
 
+    /// <summary>Degree of a <see cref="ChartTrendline.Polynomial"/> trend line, from 2 to 6 (other values are clamped).</summary>
+    [Parameter] public int TrendlineOrder { get; set; } = 2;
+
+    /// <summary>Number of points a <see cref="ChartTrendline.MovingAverage"/> trend line averages (at least 2).</summary>
+    [Parameter] public int TrendlinePeriod { get; set; } = 3;
+
     /// <summary>With <see cref="ShowLine"/>, draw each series' line as a smooth monotone spline through its points (a scatter spline) instead of straight segments.</summary>
     [Parameter] public bool Smooth { get; set; }
 
@@ -188,7 +194,7 @@
 
     // Non-finite numbers cannot be serialized, so they are dropped here; the view drops the rest.
     /// <inheritdoc />
-    protected override object BuildSpec() => new
+    protected override object BuildSpec() => WithTrendline(new
     {
         // High density sends only what it counts, to keep large requests small.
         Points = HighDensity
@@ -206,7 +212,7 @@
         MinRadius = MinBubbleRadius,
         MaxRadius = MaxBubbleRadius,
         ShowLine,
-        Trendline = Trendline.ToString().ToLowerInvariant(),
+        Trendline = ChartText.TrendKind(Trendline),
         Smooth,
         HighDensity,
         CellSize,
@@ -215,7 +221,7 @@
         Bands = _bands.Select(b => new { b.From, b.To, b.Label }).ToArray(),
         XReferences = _xReferences.Select(r => new { r.Value, r.Label }).ToArray(),
         XBands = _xBands.Select(b => new { b.From, b.To, b.Label }).ToArray(),
-    };
+    }, Trendline, TrendlineOrder, TrendlinePeriod);
 
     private IReadOnlyList<ChartReference> _references => References ?? [];
 
@@ -337,24 +343,8 @@
 
     private string _error(ScatterWhisker? w) => w is null ? string.Empty : $" ± {_format(ValueFormat, w.Error)}";
 
-    private static string _coef(double value) => value.ToString("G4", CultureInfo.CurrentCulture);
-
-    private static string _plus(double value) => (value < 0 ? " − " : " + ") + _coef(Math.Abs(value));
-
-    private static string _equation(ScatterTrend t) => t.Kind switch
-    {
-        "exponential" => $"y = {_coef(t.A)}·e^({_coef(t.B)}x)",
-        "logarithmic" => $"y = {_coef(t.B)}·ln(x){_plus(t.A)}",
-        "power" => $"y = {_coef(t.A)}·x^{_coef(t.B)}",
-        _ => $"y = {_coef(t.B)}x{_plus(t.A)}",
-    };
-
-    private string _trendTooltip(ScatterTrend t, ScatterLayout view)
-    {
-        string series = t.Series < view.Series.Count ? view.Series[t.Series] : string.Empty;
-        string body = $"{t.Kind} trend: {_equation(t)}, R² = {t.R2.ToString("0.###", CultureInfo.CurrentCulture)}";
-        return series.Length > 0 ? $"{series} {body}" : char.ToUpperInvariant(body[0]) + body[1..];
-    }
+    private string _trendTooltip(ScatterTrend t, ScatterLayout view) =>
+        ChartText.Trend(t, t.Series < view.Series.Count ? view.Series[t.Series] : string.Empty);
 
     private RenderFragment? _legend => !ShowLegend || Layout is not { } view ? null
         : view.Density is not null ? _densityLegend(view)
@@ -395,5 +385,5 @@
         + (_references.Count + _xReferences.Count > 0 ? ", with reference lines" : string.Empty)
         + (_bands.Count + _xBands.Count > 0 ? ", with shaded ranges" : string.Empty)
         + (XScale == AxisScale.Log || YScale == AxisScale.Log ? ", on a logarithmic scale" : string.Empty)
-        + (Trendline != ChartTrendline.None && !Stacked ? $", with a {Trendline.ToString().ToLowerInvariant()} trend line per series" : string.Empty) + ".";
+        + (Trendline != ChartTrendline.None && !Stacked ? $", with a {ChartText.TrendName(ChartText.TrendKind(Trendline))} trend line per series" : string.Empty) + ".";
 }

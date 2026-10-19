@@ -83,14 +83,18 @@ public sealed record ScatterWhisker(double Error, double From, double To);
 public sealed record ScatterLine(int Series, string Path);
 
 /// <summary>
-/// A series' fitted trend: its kind, coefficients A and B (see <see cref="ChartTrendline"/>), the
-/// coefficient of determination R2, and the curve as an SVG path.
+/// A series' fitted trend, on a <see cref="ScatterChart"/>, <see cref="LineChart"/> or <see cref="BarChart"/>:
+/// its kind, coefficients A and B (see <see cref="ChartTrendline"/>), the coefficient of determination R2,
+/// and the curve as an SVG path. A polynomial also gives all its Coefficients (c0, c1, … for x⁰, x¹, …;
+/// A and B are c0 and c1); a moving average gives its Period instead (A, B and R2 are then 0).
 /// </summary>
-public sealed record ScatterTrend(int Series, string Kind, double A, double B, double R2, string Path);
+public sealed record ScatterTrend(int Series, string Kind, double A, double B, double R2, string Path,
+    IReadOnlyList<double>? Coefficients = null, int? Period = null);
 
 /// <summary>
-/// A least-squares trend line fitted to each series of a <see cref="ScatterChart"/>, in data space.
-/// R² is that of the straight-line fit after the transform, as spreadsheets report it.
+/// A trend line fitted to each series of a <see cref="ScatterChart"/> (in data space), or of a
+/// <see cref="LineChart"/> or <see cref="BarChart"/> (over the category index 0, 1, …). For the
+/// transformed kinds R² is that of the straight-line fit after the transform, as spreadsheets report it.
 /// </summary>
 public enum ChartTrendline
 {
@@ -108,6 +112,18 @@ public enum ChartTrendline
 
     /// <summary>y = a·x^b, fitted to ln y against ln x; points with x or y ≤ 0 are left out of the fit.</summary>
     Power,
+
+    /// <summary>
+    /// y = c0 + c1·x + … + cn·xⁿ by least squares, n being the chart's TrendlineOrder (2 to 6, and
+    /// below the number of distinct x); R² = 1 − SSres/SStot.
+    /// </summary>
+    Polynomial,
+
+    /// <summary>
+    /// The simple trailing average of the last TrendlinePeriod points (at least 2), in x order, drawn
+    /// from the Period-th point on. It has no equation or R².
+    /// </summary>
+    MovingAverage,
 }
 
 /// <summary>A placed point: its values, series index, circle and Voronoi cell (an SVG path); when stacked, the stacked Total it is drawn at; with errors, its whiskers.</summary>

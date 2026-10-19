@@ -2,6 +2,7 @@
 // keeps this file out of reach of layout(kind), which only accepts names starting with a letter.
 import { extent } from '../d3/d3-array.mjs';
 import { scaleLinear, scaleLog } from '../d3/d3-scale.mjs';
+import { line } from '../d3/d3-shape.mjs';
 
 /** Axis text size in chart units; the components draw tick and category labels at this size. */
 export const FONT = 11;
@@ -145,12 +146,19 @@ const TRENDS = {
 };
 
 /**
- * Least-squares fit of `kind` to the points, done in data space. Points the transform cannot take
+ * Least-squares fit of `kind` to the points, done in data space. 'polynomial' and 'movingaverage'
+ * take `order` and `period` (see fitPolynomial and movingAverage). Points the transform cannot take
  * (y ≤ 0 for exponential and power, x ≤ 0 for logarithmic and power) are left out. R² is that of the
  * straight-line fit in the transformed space, as spreadsheets report it. Null with fewer than two
  * usable points or all x equal.
  */
-export function fitTrend(kind, xs, ys) {
+export function fitTrend(kind, xs, ys, { order = 2, period = 3 } = {}) {
+    if (kind === 'polynomial') {
+        return fitPolynomial(xs, ys, order);
+    }
+    if (kind === 'movingaverage') {
+        return movingAverage(xs, ys, period);
+    }
     const t = TRENDS[kind];
     if (!t) {
         return null;
@@ -181,4 +189,134 @@ export function fitTrend(kind, xs, ys) {
     const r2 = syy === 0 ? 1 : (sxy * sxy) / (sxx * syy);
     const a = t.a(c0);
     return { a, b, r2, f: v => t.f(a, b, v) };
+}
+
+/**
+ * Least-squares polynomial y = c0 + c1·x + … + cn·xⁿ, n = order clamped to 2–6 (and below the number
+ * of distinct x). Solved on x centred and scaled to [-1, 1] (normal equations with partial pivoting,
+ * well conditioned there), then expanded back to powers of x. Returns { a: c0, b: c1, coefficients,
+ * r2, f }; R² = 1 − SSres/SStot. Null with fewer than two distinct x.
+ */
+export function fitPolynomial(xs, ys, order = 2) {
+    const X = [], Y = [];
+    xs.forEach((xv, i) => {
+        if (finite(xv) && finite(ys[i])) {
+            X.push(xv);
+            Y.push(ys[i]);
+        }
+    });
+    const n = Math.min(Math.max(2, Math.round(finite(order) ? order : 2)), 6, new Set(X).size - 1);
+    if (n < 1) {
+        return null;
+    }
+    const lo = Math.min(...X), hi = Math.max(...X), m = (lo + hi) / 2, h = (hi - lo) / 2;
+    // Normal equations A·d = r on t = (x − m) / h.
+    const A = Array.from({ length: n + 1 }, () => new Array(n + 2).fill(0));
+    X.forEach((xv, k) => {
+        const t = (xv - m) / h;
+        const pw = Array.from({ length: n + 1 }, (_, j) => t ** j);
+        for (let i = 0; i <= n; i++) {
+            for (let j = 0; j <= n; j++) {
+                A[i][j] += pw[i] * pw[j];
+            }
+            A[i][n + 1] += pw[i] * Y[k];
+        }
+    });
+    for (let c = 0; c <= n; c++) {
+        let p = c;
+        for (let r = c + 1; r <= n; r++) {
+            if (Math.abs(A[r][c]) > Math.abs(A[p][c])) {
+                p = r;
+            }
+        }
+        [A[c], A[p]] = [A[p], A[c]];
+        for (let r = 0; r <= n; r++) {
+            if (r !== c) {
+                const f = A[r][c] / A[c][c];
+                for (let k = c; k <= n + 1; k++) {
+                    A[r][k] -= f * A[c][k];
+                }
+            }
+        }
+    }
+    const d = A.map((row, i) => row[n + 1] / row[i]);
+    // Σ d_k·((x − m)/h)^k expanded binomially into powers of x.
+    const coefficients = new Array(n + 1).fill(0);
+    d.forEach((dk, k) => {
+        let binom = 1;
+        for (let j = 0; j <= k; j++) {
+            coefficients[j] += dk * binom * (-m) ** (k - j) / h ** k;
+            binom = binom * (k - j) / (j + 1);
+        }
+    });
+    const scaled = v => d.reduce((s, dk, k) => s + dk * ((v - m) / h) ** k, 0);
+    const my = Y.reduce((s, v) => s + v, 0) / Y.length;
+    const ssTot = Y.reduce((s, v) => s + (v - my) ** 2, 0);
+    const ssRes = Y.reduce((s, v, k) => s + (v - scaled(X[k])) ** 2, 0);
+    const r2 = ssTot === 0 ? 1 : Math.max(0, 1 - ssRes / ssTot);
+    return { a: coefficients[0], b: coefficients[1], coefficients, r2, f: scaled };
+}
+
+/**
+ * Simple trailing moving average over the points in x order (ties keep their order): point i ≥
+ * period − 1 gets the mean of itself and the period − 1 points before it. period is at least 2.
+ * Returns { period, points: [[x, mean]] } (from the period-th point), or null with fewer points than period.
+ */
+export function movingAverage(xs, ys, period = 3) {
+    const k = Math.max(2, Math.round(finite(period) ? period : 3));
+    const pts = xs.map((x, i) => [x, ys[i], i]).filter(([x, y]) => finite(x) && finite(y)).sort((p, q) => p[0] - q[0] || p[2] - q[2]);
+    if (pts.length < k) {
+        return null;
+    }
+    const points = [];
+    let sum = 0;
+    pts.forEach(([x, y], i) => {
+        sum += y - (i >= k ? pts[i - k][1] : 0);
+        if (i >= k - 1) {
+            points.push([x, sum / k]);
+        }
+    });
+    return { period: k, points };
+}
+
+/** What a layout returns for a fitted trend: its kind, coefficients (or period) and path. */
+export function trendOf(fit, kind, series, path) {
+    return fit.points
+        ? { series, kind, a: 0, b: 0, r2: 0, period: fit.period, path }
+        : { series, kind, a: fit.a, b: fit.b, r2: fit.r2, ...(fit.coefficients ? { coefficients: fit.coefficients } : {}), path };
+}
+
+/**
+ * A trend per series of a category chart, fitted over the category index (0..n−1) on the series'
+ * own values (missing values left out) and drawn through the category positions: place(i) is
+ * index i's position along the category axis, value the value scale. Curves are sampled between
+ * the first and last fitted index and broken where they leave the plot. spec: { kind, order, period }.
+ */
+export function categoryTrends(series, place, value, horizontal, plot, { kind, order, period }) {
+    const point = (i, v) => {
+        const lo = Math.floor(i), hi = Math.min(lo + 1, Math.ceil(i));
+        const p = lo === hi ? place(lo) : place(lo) + (place(hi) - place(lo)) * (i - lo);
+        const q = value(v);
+        return horizontal ? [r2(q), r2(p)] : [r2(p), r2(q)];
+    };
+    const [qLo, qHi] = horizontal ? [plot.left, plot.right] : [plot.top, plot.bottom];
+    const inPlot = pt => finite(pt[0]) && finite(pt[1]) && pt[horizontal ? 0 : 1] >= qLo - 1e-6 && pt[horizontal ? 0 : 1] <= qHi + 1e-6;
+    return series.map((data, s) => {
+        const xs = [], ys = [];
+        data.forEach((v, i) => {
+            if (finite(v)) {
+                xs.push(i);
+                ys.push(v);
+            }
+        });
+        const fit = fitTrend(kind, xs, ys, { order, period });
+        if (!fit) {
+            return null;
+        }
+        const steps = 48, first = xs[0], last = xs.at(-1);
+        const pts = fit.points
+            ? fit.points.map(([i, v]) => point(i, v))
+            : Array.from({ length: steps + 1 }, (_, k) => point(first + (last - first) * k / steps, fit.f(first + (last - first) * k / steps)));
+        return trendOf(fit, kind, s, line().defined(inPlot)(pts) ?? '');
+    }).filter(Boolean);
 }

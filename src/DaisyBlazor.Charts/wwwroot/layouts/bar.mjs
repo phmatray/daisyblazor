@@ -1,5 +1,5 @@
 import { scaleBand } from '../d3/d3-scale.mjs';
-import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, compact, valueScale, ticks, referenceMarks, referenceValues } from './_shared.mjs';
+import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, compact, valueScale, ticks, referenceMarks, referenceValues, categoryTrends } from './_shared.mjs';
 
 // Bar chart, flat or grouped. spec: { categories: [string], series: [[number|null]], horizontal,
 // showGrid, width, height } (px); a flat chart is one series. Bars run from the zero line to their
@@ -11,7 +11,11 @@ import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, compact, valueScale, t
 // (implies stacked) turns each value into its share of its stack's total of absolute values, in %.
 // references ([{ value, label }], taken into the value axis) and bands ([{ from, to, label }]) add
 // reference lines and value bands (see referenceMarks); the result then carries `references` and `bands`.
-export default function bar({ categories = [], series = [], horizontal = false, showGrid = true, stacked = false, percent = false, stacks = [], references, bands, width, height }) {
+// trendline ('linear', 'exponential', 'logarithmic', 'power', 'polynomial' of trendlineOrder,
+// 'movingaverage' of trendlinePeriod points) adds `trends`, one per series fitted over the category
+// index on its own values and drawn through the category centres (see categoryTrends); it is
+// ignored when stacked or percent.
+export default function bar({ trendline = 'none', trendlineOrder = 2, trendlinePeriod = 3, categories = [], series = [], horizontal = false, showGrid = true, stacked = false, percent = false, stacks = [], references, bands, width, height }) {
     stacked ||= percent;
     const stackOf = s => (stacked ? stacks[s] ?? 0 : s);
     // [from, to] per series and category, null for no bar; unstacked bars start at zero.
@@ -94,5 +98,8 @@ export default function bar({ categories = [], series = [], horizontal = false, 
         yTicks: horizontal ? categoryTicks : valueTicks,
         bars,
     };
+    if (trendline && trendline !== 'none' && !stacked) {
+        out.trends = categoryTrends(series, c => band(c) + band.bandwidth() / 2, value, horizontal, plot, { kind: trendline, order: trendlineOrder, period: trendlinePeriod });
+    }
     return references?.length || bands?.length ? { ...out, ...referenceMarks(value, horizontal, plot, references, bands) } : out;
 }

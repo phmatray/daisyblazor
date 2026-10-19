@@ -61,6 +61,29 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
     /// <summary>The layout's input. It is serialized to JSON (camelCase); a new layout is requested only when that JSON changes.</summary>
     protected abstract object BuildSpec();
 
+    // The spec with the trend line's keys (trendline, and the order or period its kind takes); the
+    // spec itself when there is none, so the spec (and the layout cache key) of a chart without a trend stays as it was.
+    private protected static object WithTrendline(object spec, ChartTrendline trendline, int order, int period)
+    {
+        if (trendline == ChartTrendline.None)
+        {
+            return spec;
+        }
+
+        System.Text.Json.Nodes.JsonObject node = JsonSerializer.SerializeToNode(spec, spec.GetType(), _json)!.AsObject();
+        node["trendline"] = ChartText.TrendKind(trendline);
+        if (trendline == ChartTrendline.Polynomial)
+        {
+            node["trendlineOrder"] = order;
+        }
+        else if (trendline == ChartTrendline.MovingAverage)
+        {
+            node["trendlinePeriod"] = period;
+        }
+
+        return node;
+    }
+
     /// <summary>
     /// A cheap change check run before <see cref="BuildSpec"/> on every parameter set: return true
     /// when none of the spec's inputs changed (compared by reference or value) since the last call,

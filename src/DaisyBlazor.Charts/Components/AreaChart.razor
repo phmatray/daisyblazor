@@ -13,6 +13,9 @@
            Horizontal="Horizontal"
            References="References"
            Bands="Bands"
+           Trendline="Trendline"
+           TrendlineOrder="TrendlineOrder"
+           TrendlinePeriod="TrendlinePeriod"
            ShowGrid="ShowGrid"
            ShowPoints="ShowPoints"
            ShowLegend="ShowLegend"
@@ -63,6 +66,20 @@
 
     /// <summary>Shaded value ranges (plot bands) drawn behind the areas, each with an optional label.</summary>
     [Parameter] public IReadOnlyList<ChartBand>? Bands { get; set; }
+
+    /// <summary>
+    /// Fit and draw a dashed trend line per series, over the category index (0, 1, …) on the series'
+    /// own values, through the category positions (also when <see cref="Horizontal"/>); its tooltip
+    /// gives the equation and R², or the period of a moving average. Ignored when <see cref="Stacked"/>
+    /// or <see cref="Percent"/> is on: a fit of the own values would not follow the stacked areas.
+    /// </summary>
+    [Parameter] public ChartTrendline Trendline { get; set; } = ChartTrendline.None;
+
+    /// <summary>Degree of a <see cref="ChartTrendline.Polynomial"/> trend line, from 2 to 6 (other values are clamped).</summary>
+    [Parameter] public int TrendlineOrder { get; set; } = 2;
+
+    /// <summary>Number of points a <see cref="ChartTrendline.MovingAverage"/> trend line averages (at least 2).</summary>
+    [Parameter] public int TrendlinePeriod { get; set; } = 3;
 
     /// <summary>Draw horizontal gridlines and value labels.</summary>
     [Parameter] public bool ShowGrid { get; set; } = true;
