@@ -1,13 +1,14 @@
-import { area, line, curveMonotoneX, curveLinear } from '../d3/d3-shape.mjs';
+import { area, line, curveMonotoneX, curveLinear, curveStepAfter } from '../d3/d3-shape.mjs';
 import { finite, r2, ticks, valueScale } from './_shared.mjs';
 import { xScale, yAxisWidth, byDate } from './_time.mjs';
 
 const EMPTY = { band: '', center: '', points: [], xTicks: [], yTicks: [], plot: { left: 0, top: 0, right: 0, bottom: 0 } };
 
-// spec: { points: [{ date, label, low, high, center }], width, height, smooth }
+// spec: { points: [{ date, label, low, high, center }], width, height, smooth, step }
+// step draws the band and the center line as step-after segments and wins over smooth.
 // The x axis is a time axis when every point has a date, a category axis otherwise. Points
 // without a finite low and high are left out; a missing center only breaks the center line.
-export default function rangeArea({ points, width, height, smooth = true }) {
+export default function rangeArea({ points, width, height, smooth = true, step = false }) {
     const valid = byDate((points ?? []).filter(p => p)).filter(p => finite(p.low) && finite(p.high))
         .map(p => ({ ...p, low: Math.min(p.low, p.high), high: Math.max(p.low, p.high) }));
     if (valid.length === 0) {
@@ -26,7 +27,7 @@ export default function rangeArea({ points, width, height, smooth = true }) {
         labels: valid.map(p => p.label),
         count: valid.length, x0: plot.left, x1: plot.right, pad: 4,
     });
-    const curve = smooth ? curveMonotoneX : curveLinear;
+    const curve = step ? curveStepAfter : smooth ? curveMonotoneX : curveLinear;
     const xs = valid.map((_, i) => x.at(i));
 
     return {

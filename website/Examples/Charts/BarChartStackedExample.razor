@@ -1,0 +1,13 @@
+<BarChart Title="Net seat change by plan and quarter" Labels="_quarters" Series="_plans" Stacked="true" />
+
+@code {
+    private readonly string[] _quarters = ["Q1", "Q2", "Q3", "Q4"];
+
+    // Seats added are positive and stack up; seats removed are negative and stack down from zero.
+    private readonly ChartSeries[] _plans =
+    [
+        new("Pro added", [420, 510, 480, 620]),
+        new("Team added", [180, 220, 260, 240]),
+        new("Seats removed", [-140, -90, -210, -160]),
+    ];
+}

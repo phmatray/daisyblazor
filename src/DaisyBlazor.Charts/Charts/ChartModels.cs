@@ -27,6 +27,13 @@ public class ChartSeries
     /// <summary>Optional CSS color override; falls back to the cycling palette when null.</summary>
     public string? Color { get; set; }
 
+    /// <summary>
+    /// Optional stack name for a stacked <see cref="BarChart"/>: series with the same name stack
+    /// together and different stacks stand side by side in each category. Series without one
+    /// share a single stack. Ignored by other charts and when the bars are not stacked.
+    /// </summary>
+    public string? Stack { get; set; }
+
     /// <summary>Creates an empty series.</summary>
     public ChartSeries()
     {

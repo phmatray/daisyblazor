@@ -1,5 +1,5 @@
 import { scalePoint } from '../d3/d3-scale.mjs';
-import { line as d3Line, area as d3Area, stack, curveMonotoneX, curveLinear } from '../d3/d3-shape.mjs';
+import { line as d3Line, area as d3Area, stack, stackOffsetExpand, curveMonotoneX, curveLinear, curveStepAfter } from '../d3/d3-shape.mjs';
 import { LABEL_ROW, finite, r2, textWidth, fit, stride, compact, valueScale, ticks } from './_shared.mjs';
 
 // Line and area charts. spec: { series: [[number|null]], labels: [string], stacked, smooth,
@@ -7,14 +7,20 @@ import { LABEL_ROW, finite, r2, textWidth, fit, stride, compact, valueScale, tic
 // Non-finite values (null) leave a gap; Stacked draws each series on the running total, a missing
 // value counting as 0. Returns pixel geometry: the plot box, the x and y ticks (long x labels are
 // cut with an ellipsis, full keeps the text) and, per series,
-// its line and area paths and its points (isolated = no neighbour to draw a line to).
-export default function line({ series = [], labels = [], stacked = false, smooth = false, showGrid = true, width, height }) {
+// its line and area paths and its points (isolated = no neighbour to draw a line to). percent
+// (implies stacked) draws each value as its share of the index's total, in %, negative values
+// counting as 0. step draws step-after segments and wins over smooth.
+export default function line({ series = [], labels = [], stacked = false, percent = false, smooth = false, step = false, showGrid = true, width, height }) {
+    stacked ||= percent;
     const dataCount = Math.max(0, ...series.map(s => s.length));
     const count = Math.max(dataCount, labels.length);
     const indices = [...Array(dataCount).keys()];
 
     // [base, top] per series and index; unstacked bands start at zero.
-    const bands = stacked
+    const bands = percent
+        ? stack().keys([...series.keys()]).value((i, s) => (finite(series[s][i]) && series[s][i] > 0 ? series[s][i] : 0)).offset(stackOffsetExpand)(indices)
+              .map(layer => layer.map(([base, top]) => [base * 100, top * 100]))
+        : stacked
         ? stack().keys([...series.keys()]).value((i, s) => (finite(series[s][i]) ? series[s][i] : 0))(indices)
               .map(layer => layer.map(([base, top]) => [base, top]))
         : series.map(s => indices.map(i => [0, finite(s[i]) ? s[i] : null]));
@@ -23,7 +29,7 @@ export default function line({ series = [], labels = [], stacked = false, smooth
     const top = 8;
     const bottom = height - (labels.length > 0 ? LABEL_ROW : 4);
     const y = valueScale(values, { zero: true, count: 5 }).range([bottom, top]);
-    const yTicks = showGrid ? ticks(y, 5, compact) : [];
+    const yTicks = showGrid ? ticks(y, 5, percent ? v => `${compact(v)}%` : compact) : [];
     const left = yTicks.length > 0 ? Math.max(...yTicks.map(t => textWidth(t.label))) + 6 : 0;
     const right = width - 6;
 
@@ -36,7 +42,7 @@ export default function line({ series = [], labels = [], stacked = false, smooth
         xTicks.push({ pos: r2(x(i)), label: fit(labels[i], slot * every - 4), full: String(labels[i] ?? '') });
     }
 
-    const curve = smooth ? curveMonotoneX : curveLinear;
+    const curve = step ? curveStepAfter : smooth ? curveMonotoneX : curveLinear;
     return {
         plot: { left: r2(left), top, right: r2(right), bottom: r2(bottom) },
         xTicks,

@@ -1,0 +1,13 @@
+<AreaChart Title="Share of API requests by region" Labels="_months" Series="_regions" Percent="true" />
+
+@code {
+    private readonly string[] _months = ["Apr", "May", "Jun", "Jul", "Aug", "Sep"];
+
+    // Millions of requests; Percent shows each region's share of the month.
+    private readonly ChartSeries[] _regions =
+    [
+        new("Europe", [4.1, 4.4, 4.8, 5.0, 5.3, 5.9]),
+        new("Americas", [6.2, 6.0, 6.3, 6.1, 6.4, 6.6]),
+        new("Asia Pacific", [1.4, 1.7, 2.2, 2.6, 3.1, 3.4]),
+    ];
+}
