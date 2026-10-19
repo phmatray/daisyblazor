@@ -5,6 +5,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { layout, observe, update, unobserve } from '../src/DaisyBlazor.Charts/wwwroot/charts.mjs';
 import { compact } from '../src/DaisyBlazor.Charts/wwwroot/layouts/_shared.mjs';
+// Sweeps call the layouts directly, so the replay fixture does not record thousands of specs.
+import barLayout from '../src/DaisyBlazor.Charts/wwwroot/layouts/bar.mjs';
+import lineLayout from '../src/DaisyBlazor.Charts/wwwroot/layouts/line.mjs';
 
 const size = { width: 640, height: 256 };
 const moves = path => path.split('M').filter(Boolean).length;
@@ -170,9 +173,11 @@ const triples = [];
 for (let a = 1; a <= 25; a++) for (let b = 1; b <= 25; b += 2) for (let c = 1; c <= 9; c += 2) triples.push([a, b, c]);
 
 test('bar: 100% stacks keep the axis at exactly 100%, whatever the rounding (vertical, horizontal, negatives)', async () => {
+    // The reported case, through layout() so the replay fixture holds it: 1/11 + 1/11 + 9/11 > 1.
+    assert.equal((await layout('bar', { categories: ['A'], series: [[1], [1], [9]], percent: true, ...size })).yTicks.at(-1).label, '100%');
     for (const [a, b, c] of triples) {
         for (const [horizontal, sign] of [[false, 1], [true, 1], [false, -1]]) {
-            const { xTicks, yTicks } = await layout('bar', { categories: ['A'], series: [[a * sign], [b * sign], [c * sign]], percent: true, horizontal, ...size });
+            const { xTicks, yTicks } = barLayout({ categories: ['A'], series: [[a * sign], [b * sign], [c * sign]], percent: true, horizontal, ...size });
             const values = (horizontal ? xTicks : yTicks).map(t => t.value);
             assert.equal(sign > 0 ? Math.max(...values) : Math.min(...values), 100 * sign, `${a},${b},${c}`);
         }
@@ -180,8 +185,9 @@ test('bar: 100% stacks keep the axis at exactly 100%, whatever the rounding (ver
 });
 
 test('line: 100% stacks keep the axis at exactly 100%, whatever the rounding', async () => {
+    assert.equal((await layout('line', { series: [[6, 1], [23, 1], [1, 1]], percent: true, ...size })).yTicks.at(-1).label, '100%');
     for (const [a, b, c] of triples) {
-        const { yTicks } = await layout('line', { series: [[a, 1], [b, 1], [c, 1]], percent: true, ...size });
+        const { yTicks } = lineLayout({ series: [[a, 1], [b, 1], [c, 1]], percent: true, ...size });
         assert.equal(yTicks.at(-1).value, 100, `${a},${b},${c}`);
     }
 });

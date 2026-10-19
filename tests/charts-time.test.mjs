@@ -2,6 +2,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { layout } from '../src/DaisyBlazor.Charts/wwwroot/charts.mjs';
+// Sweeps call the layouts directly, so the replay fixture does not record thousands of specs.
+import streamLayout from '../src/DaisyBlazor.Charts/wwwroot/layouts/stream.mjs';
+import candlestickLayout from '../src/DaisyBlazor.Charts/wwwroot/layouts/candlestick.mjs';
 
 const W = 640, H = 360;
 const inside = (x, y, w = W, h = H) => x >= 0 && x <= w && y >= 0 && y <= h;
@@ -157,7 +160,7 @@ test('stream: wiggle has no value axis, stacked and percent stack from zero', as
 test('stream: percent keeps the axis at exactly 100%, whatever the rounding', async () => {
     for (let a = 1; a <= 25; a++) for (let b = 1; b <= 25; b += 2) for (let c = 1; c <= 9; c += 2) {
         const series = [[a, 1], [b, 1], [c, 1]].map((values, i) => ({ name: `S${i}`, values }));
-        const out = await layout('stream', { series, labels: ['W1', 'W2'], offset: 'percent', width: W, height: H });
+        const out = streamLayout({ series, labels: ['W1', 'W2'], offset: 'percent', width: W, height: H });
         assert.equal(out.yTicks.at(-1).label, '100%', `${a},${b},${c}`);
         assert.equal(out.yTicks.at(-1).pos, out.plot.top, `${a},${b},${c}`);
     }
@@ -322,9 +325,12 @@ test('candlestick: overlays on the price panel follow the candles, values line u
 test('candlestick: the price panel keeps at least 40% of the height, however many panels and however small', async () => {
     const candles = hourly(24, i => 50 + 10 * Math.sin(i / 3));
     const kinds = ['rsi', 'macd', 'rsi', 'macd', 'rsi', 'macd'];
+    // The reported case (aspect ratio 3: volume, RSI, MACD and a second RSI), through layout() for the replay fixture.
+    const reported = await layout('candlestick', { candles, width: W, height: 213, showVolume: true, indicators: [{ kind: 'rsi' }, { kind: 'macd', period: 3 }, { kind: 'rsi', period: 5 }] });
+    assert.ok(reported.plot.bottom - reported.plot.top >= (213 - 24 - 10) * 0.4 - 0.01);
     for (const height of [60, 100, 160, 213, 300, 360]) {
         for (let n = 1; n <= kinds.length; n++) {
-            const out = await layout('candlestick', {
+            const out = candlestickLayout({
                 candles, width: W, height, showVolume: true, indicators: kinds.slice(0, n).map(kind => ({ kind, period: 3 })),
             });
             const bottom = height - 24;
