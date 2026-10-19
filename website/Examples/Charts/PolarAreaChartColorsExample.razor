@@ -1,0 +1,18 @@
+<div class="max-w-lg">
+    <PolarAreaChart Title="Tickets by weekday" Items="_days" ShowValues="false" />
+</div>
+
+@code {
+    private static readonly string Info = ChartPalette.FromColor(Color.Info)!;
+
+    private readonly ChartDataPoint[] _days =
+    [
+        new("Mon", 182, ChartPalette.FromColor(Color.Warning)),
+        new("Tue", 131, Info),
+        new("Wed", 120, Info),
+        new("Thu", 118, Info),
+        new("Fri", 96, Info),
+        new("Sat", 22, Info),
+        new("Sun", 18, Info),
+    ];
+}

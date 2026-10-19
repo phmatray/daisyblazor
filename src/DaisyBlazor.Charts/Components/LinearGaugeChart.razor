@@ -1,0 +1,112 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<LinearGaugeLayout>
+
+@* Linear gauge: one value on a straight scale from Min to Max, with coloured bands on the track, a
+   pointer, an optional target marker and ticks. D3 scales place everything along the track. *@
+
+<D3ChartFrame TLayout="LinearGaugeLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { Track: { } track } geo)
+    {
+        <rect x="@N(track.X)" y="@N(track.Y)" width="@N(track.Width)" height="@N(track.Height)" rx="@N(Math.Min(track.Width, track.Height) / 4)"
+              fill="var(--color-base-content)" fill-opacity="0.1" />
+        @foreach (LinearGaugeBand band in geo.Bands)
+        {
+            <rect x="@N(band.X)" y="@N(band.Y)" width="@N(band.Width)" height="@N(band.Height)" fill="@_bandColor(band.Index)" fill-opacity="0.35">
+                <title>@_bandText(_band(band.Index) ?? new GaugeBand(band.From, band.To))</title>
+            </rect>
+        }
+        @if (geo.Fill is { } fill)
+        {
+            <rect x="@N(fill.X)" y="@N(fill.Y)" width="@N(fill.Width)" height="@N(fill.Height)" rx="@N(Math.Min(fill.Width, fill.Height) / 2)" fill="@_color">
+                <title>@($"{_format(Value)} of {_format(Min)} to {_format(Max)}")</title>
+            </rect>
+        }
+
+        @foreach (LinearGaugeTick tick in geo.Ticks)
+        {
+            <line x1="@N(tick.X1)" y1="@N(tick.Y1)" x2="@N(tick.X2)" y2="@N(tick.Y2)" stroke="var(--color-base-content)" stroke-opacity="0.35"
+                  vector-effect="non-scaling-stroke" />
+            <SvgText X="@tick.LabelX" Y="@tick.LabelY" Anchor="@tick.Anchor" FontSize="@Math.Round(geo.FontSize * 0.9, 1)" FillOpacity="0.6"
+                     Text="@_format(tick.Value)" />
+        }
+
+        @if (geo.Marker is { } marker)
+        {
+            <line x1="@N(marker.X1)" y1="@N(marker.Y1)" x2="@N(marker.X2)" y2="@N(marker.Y2)" stroke="var(--color-base-content)"
+                  stroke-width="@N(geo.FontSize / 5)" stroke-linecap="round">
+                <title>@($"Target {_format(marker.Value)}")</title>
+            </line>
+        }
+
+        @if (geo.Pointer is { } pointer)
+        {
+            <path d="@pointer.Path" fill="var(--color-base-content)" />
+            <SvgText X="@pointer.LabelX" Y="@pointer.LabelY" Anchor="@pointer.Anchor" FontSize="@Math.Round(geo.FontSize * 1.15, 1)" FontWeight="700"
+                     Text="@_format(Value)" />
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The value to show. The pointer is clamped to [Min, Max]; the printed value is not.</summary>
+    [Parameter] public double Value { get; set; }
+
+    /// <summary>Start of the scale.</summary>
+    [Parameter] public double Min { get; set; }
+
+    /// <summary>End of the scale; must be greater than Min, or nothing is drawn.</summary>
+    [Parameter] public double Max { get; set; } = 100;
+
+    /// <summary>Optional coloured ranges painted on the track.</summary>
+    [Parameter] public IReadOnlyList<GaugeBand>? Bands { get; set; }
+
+    /// <summary>Optional target value, drawn as a line across the track.</summary>
+    [Parameter] public double? Marker { get; set; }
+
+    /// <summary>Run the scale bottom to top. Give the chart an AspectRatio below 1 and a narrow Width: a vertical gauge sizes its text from its width.</summary>
+    [Parameter] public bool Vertical { get; set; }
+
+    /// <summary>Theme colour of the filled part of the track.</summary>
+    [Parameter] public Color Color { get; set; } = Color.Primary;
+
+    /// <summary>Format string for the value and ticks, e.g. "{0:N0} GB".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Creates a gauge with a wide default shape.</summary>
+    public LinearGaugeChart()
+    {
+        AspectRatio = 4;
+    }
+
+    /// <inheritdoc />
+    protected override string Kind => "linear-gauge";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Min,
+        Max,
+        Value,
+        Bands = (Bands ?? []).Select(b => new { b.From, b.To }).ToArray(),
+        Marker,
+        Vertical,
+        Width = ViewWidth,
+        Height = ViewHeight,
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _color => ChartPalette.FromColor(Color) ?? ChartPalette.At(0);
+
+    private GaugeBand? _band(int index) => Bands is { } bands && index < bands.Count ? bands[index] : null;
+
+    private string _bandColor(int index) => ChartPalette.At(index, _band(index)?.Color);
+
+    private string _bandText(GaugeBand band) => $"{band.Label ?? "Range"}: {_format(band.From)} to {_format(band.To)}";
+
+    // The accessible name carries the reading itself, so a screen reader gets it without the description.
+    private string _label =>
+        $"{Title ?? "Gauge"}: {_format(Value)}" + (Marker is { } m ? $", target {_format(m)}" : string.Empty) + $" (scale {_format(Min)} to {_format(Max)})";
+
+    private string? _description => Bands is { Count: > 0 } ? string.Join("; ", Bands.Select(_bandText)) : null;
+}

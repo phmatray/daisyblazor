@@ -1,0 +1,11 @@
+<FunnelChart Stages="_stages" Shape="FunnelShape.Pyramid" Color="@null" ValueFormat="{0:N0}" />
+
+@code {
+    private readonly ChartDataPoint[] _stages =
+    [
+        new("All workspaces", 5_200),
+        new("Weekly active", 2_900),
+        new("Daily active", 1_100),
+        new("Power users", 240),
+    ];
+}

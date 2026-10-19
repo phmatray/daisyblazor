@@ -1,0 +1,14 @@
+<ParetoChart Items="_causes" Threshold="0.9" BarColor="var(--color-error)" LineColor="var(--color-info)" ValueFormat="{0:N0}" />
+
+@code {
+    private readonly ChartDataPoint[] _causes =
+    [
+        new("Timeout", 412),
+        new("Auth expired", 268),
+        new("Rate limited", 155),
+        new("DNS", 64),
+        new("Bad payload", 41),
+        new("TLS", 22),
+        new("Other", 18),
+    ];
+}

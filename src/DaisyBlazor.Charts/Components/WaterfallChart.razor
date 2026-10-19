@@ -1,0 +1,102 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<WaterfallLayout>
+
+@* Waterfall: a starting total, the changes that move it, optional subtotals and the end total. D3
+   scales place the bars; increases and decreases float between the running totals they connect. *@
+
+<D3ChartFrame TLayout="WaterfallLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { Plot: { } plot } geo)
+    {
+        @foreach (WaterfallTick tick in geo.Ticks)
+        {
+            @if (Horizontal)
+            {
+                <line x1="@N(tick.Pos)" x2="@N(tick.Pos)" y1="@N(plot.Top)" y2="@N(plot.Bottom)"
+                      stroke="var(--color-base-content)" stroke-opacity="@(tick.Value == 0 ? "0.35" : "0.12")" vector-effect="non-scaling-stroke" />
+                <SvgText X="@tick.Pos" Y="@(plot.Bottom + 16)" Anchor="middle" FontSize="11" FillOpacity="0.6" Text="@_format(tick.Value)" />
+            }
+            else
+            {
+                <line x1="@N(plot.Left)" x2="@N(plot.Right)" y1="@N(tick.Pos)" y2="@N(tick.Pos)"
+                      stroke="var(--color-base-content)" stroke-opacity="@(tick.Value == 0 ? "0.35" : "0.12")" vector-effect="non-scaling-stroke" />
+                <SvgText X="@(plot.Left - 6)" Y="@tick.Pos" Dy="0.35em" Anchor="end" FontSize="11" FillOpacity="0.6" Text="@_format(tick.Value)" />
+            }
+        }
+
+        @foreach (WaterfallConnector c in geo.Connectors)
+        {
+            <line x1="@N(c.X1)" y1="@N(c.Y1)" x2="@N(c.X2)" y2="@N(c.Y2)" stroke="var(--color-base-content)" stroke-opacity="0.4"
+                  stroke-dasharray="3 2" vector-effect="non-scaling-stroke" />
+        }
+
+        @foreach (WaterfallBar bar in geo.Bars)
+        {
+            <rect x="@N(bar.X)" y="@N(bar.Y)" width="@N(bar.Width)" height="@N(bar.Height)" rx="2" fill="@_color(bar.Kind)">
+                <title>@_tooltip(bar)</title>
+            </rect>
+            @if (ShowValues)
+            {
+                <SvgText X="@bar.LabelX" Y="@bar.LabelY" Dy="@(Horizontal ? "0.35em" : null)" Anchor="@bar.Anchor" FontSize="11" FontWeight="600"
+                         Text="@_valueText(bar)" />
+            }
+            <SvgText X="@bar.CategoryX" Y="@bar.CategoryY" Dy="@(Horizontal ? "0.35em" : null)" Anchor="@(Horizontal ? "end" : "middle")"
+                     FontSize="11" FillOpacity="0.8" Text="@bar.Label" />
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The bars, in order: usually a Start, Delta changes, optional Subtotal steps and an End.</summary>
+    [Parameter] public IReadOnlyList<WaterfallStep> Steps { get; set; } = [];
+
+    /// <summary>Lay the bars out top to bottom, with the categories down the left side.</summary>
+    [Parameter] public bool Horizontal { get; set; }
+
+    /// <summary>Print each bar's value (signed for changes) next to it.</summary>
+    [Parameter] public bool ShowValues { get; set; } = true;
+
+    /// <summary>Format string for values in labels, ticks and tooltips, e.g. "{0:N0}".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>CSS colour of increases.</summary>
+    [Parameter] public string IncreaseColor { get; set; } = "var(--color-success)";
+
+    /// <summary>CSS colour of decreases.</summary>
+    [Parameter] public string DecreaseColor { get; set; } = "var(--color-error)";
+
+    /// <summary>CSS colour of the start, subtotal and end bars.</summary>
+    [Parameter] public string TotalColor { get; set; } = "var(--color-primary)";
+
+    /// <inheritdoc />
+    protected override string Kind => "waterfall";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Steps = Steps.Select(s => new { s.Label, s.Value, Kind = s.Kind.ToString().ToLowerInvariant() }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        Horizontal,
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _signed(double value) => (value < 0 ? "-" : "+") + _format(Math.Abs(value));
+
+    private string _valueText(WaterfallBar bar) => bar.Kind == "total" ? _format(bar.Value) : _signed(bar.Value);
+
+    private string _tooltip(WaterfallBar bar) =>
+        bar.Kind == "total" ? $"{bar.Label}: {_format(bar.Value)}" : $"{bar.Label}: {_signed(bar.Value)} (total {_format(bar.Total)})";
+
+    private string _color(string kind) => kind switch
+    {
+        "increase" => IncreaseColor,
+        "decrease" => DecreaseColor,
+        _ => TotalColor,
+    };
+
+    private string _label => Title ?? "Waterfall chart";
+
+    // The SVG (and so its description) only renders once a layout exists, which carries the running totals.
+    private string _description => string.Join("; ", (Layout?.Bars ?? []).Select(_tooltip));
+}

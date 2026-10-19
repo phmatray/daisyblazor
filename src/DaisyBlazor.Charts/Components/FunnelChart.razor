@@ -1,0 +1,69 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<FunnelLayout>
+
+@* Funnel: stages from first to last, each as wide as its value, with the conversion from the stage
+   before. The layout computes the outlines (or a pyramid's slices) and keeps the labels apart. *@
+
+<D3ChartFrame TLayout="FunnelLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { } geo)
+    {
+        @foreach (FunnelLayoutStage stage in geo.Stages)
+        {
+            <path d="@stage.Path" fill="@_color(stage)">
+                <title>@_tooltip(stage)</title>
+            </path>
+            <SvgText X="@stage.NameX" Y="@stage.LabelY" Dy="0.35em" Anchor="end" FontSize="12" FontWeight="600" Text="@stage.Label" />
+            <SvgText X="@stage.ValueX" Y="@stage.LabelY" Dy="@(stage.Conversion is null ? "0.35em" : "-0.15em")" FontSize="12" FontWeight="600"
+                     Text="@_format(stage.Value)" />
+            @if (stage.Conversion is { } conversion)
+            {
+                <SvgText X="@stage.ValueX" Y="@stage.LabelY" Dy="1.05em" FontSize="11" FillOpacity="0.65"
+                         Text="@($"{_percent(conversion)} of previous")" />
+            }
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The stages, first (widest) to last. Points without a finite, non-negative Value are skipped.</summary>
+    [Parameter] public IReadOnlyList<ChartDataPoint> Stages { get; set; } = [];
+
+    /// <summary>Funnel (equal-height stages narrowing top to bottom) or Pyramid (a triangle sliced by value, first stage at the base).</summary>
+    [Parameter] public FunnelShape Shape { get; set; } = FunnelShape.Funnel;
+
+    /// <summary>Gap between stages, in chart units.</summary>
+    [Parameter] public double Gap { get; set; } = 4;
+
+    /// <summary>Format string for stage values, e.g. "{0:N0} accounts".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Colour of every stage that has no Color of its own. When null, stages cycle through the theme palette.</summary>
+    [Parameter] public string? Color { get; set; } = "var(--color-primary)";
+
+    /// <inheritdoc />
+    protected override string Kind => "funnel";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Stages = Stages.Select(s => new { s.Label, s.Value }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        Shape = Shape.ToString().ToLowerInvariant(),
+        Gap,
+    };
+
+    private string _color(FunnelLayoutStage stage) =>
+        ChartPalette.At(stage.Index, (stage.Index < Stages.Count ? Stages[stage.Index].Color : null) ?? Color);
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private static string _percent(double share) => share.ToString("0.#%", CultureInfo.CurrentCulture);
+
+    private string _tooltip(FunnelLayoutStage s) =>
+        $"{s.Label}: {_format(s.Value)}" + (s.Conversion is { } c ? $", {_percent(c)} of previous, {_percent(s.Share)} of first" : string.Empty);
+
+    private string _label => Title ?? (Shape == FunnelShape.Pyramid ? "Pyramid chart" : "Funnel chart");
+
+    private string _description => string.Join("; ", (Layout?.Stages ?? []).Select(_tooltip));
+}

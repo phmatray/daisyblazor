@@ -1,0 +1,16 @@
+<div class="max-w-lg">
+    <PolarAreaChart Title="Support tickets by category" Items="_tickets" />
+</div>
+
+@code {
+    private readonly ChartDataPoint[] _tickets =
+    [
+        new("Login", 142),
+        new("Integrations", 96),
+        new("Performance", 64),
+        new("Data import", 58),
+        new("Permissions", 41),
+        new("Notifications", 27),
+        new("API", 88),
+    ];
+}

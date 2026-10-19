@@ -1,0 +1,11 @@
+<div class="flex justify-center">
+    <LinearGaugeChart Value="412" Max="500" Marker="450" Bands="_bands" Vertical="true" AspectRatio="0.6" Width="12rem" ValueFormat="{0:N0}" />
+</div>
+
+@code {
+    private readonly GaugeBand[] _bands =
+    [
+        new(400, 450, ChartPalette.FromColor(Color.Warning)),
+        new(450, 500, ChartPalette.FromColor(Color.Error)),
+    ];
+}

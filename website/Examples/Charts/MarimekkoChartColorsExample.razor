@@ -1,0 +1,19 @@
+<MarimekkoChart Cells="_customers" SegmentColors="_colors" ShowValues="false" AspectRatio="2" ValueFormat="{0:N0} customers" />
+
+@code {
+    private readonly MarimekkoCell[] _customers =
+    [
+        new("North America", "Free", 820), new("North America", "Starter", 410), new("North America", "Pro", 290), new("North America", "Enterprise", 85),
+        new("Europe", "Free", 640), new("Europe", "Starter", 300), new("Europe", "Pro", 180), new("Europe", "Enterprise", 40),
+        new("Asia Pacific", "Free", 520), new("Asia Pacific", "Starter", 150), new("Asia Pacific", "Pro", 70), new("Asia Pacific", "Enterprise", 12),
+        new("Latin America", "Free", 210), new("Latin America", "Starter", 60), new("Latin America", "Pro", 20), new("Latin America", "Enterprise", 4),
+    ];
+
+    private readonly Dictionary<string, string> _colors = new()
+    {
+        ["Free"] = "var(--color-accent)",
+        ["Starter"] = "var(--color-info)",
+        ["Pro"] = "var(--color-primary)",
+        ["Enterprise"] = "var(--color-secondary)",
+    };
+}

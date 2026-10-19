@@ -1,0 +1,11 @@
+<RadialBarChart Items="_quota" ShowValues="false" />
+
+@code {
+    private readonly ChartDataPoint[] _quota =
+    [
+        new("Compute", 72),
+        new("Storage", 82),
+        new("Bandwidth", 45),
+        new("Seats", 93),
+    ];
+}
