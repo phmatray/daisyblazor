@@ -404,4 +404,38 @@ public class ChartsTimeTests : BunitContext
         cut.Markup.ShouldContain("20 – 30");
         cut.Markup.ShouldNotContain("linear-gradient");
     }
+    [Fact]
+    public void HeatmapChart_level_legend_keeps_small_steps_apart()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        HeatmapLayout small = new(
+            [new(100, "A", null, "A")], [new(200, "c0", null, "c0"), new(400, "c1", null, "c1")],
+            [new("A", "c0", 0.001, 0, 100, 20, 190, 160), new("A", "c1", 0.005, 1, 300, 20, 190, 160)], 0.001, 0.005, _plot,
+            [0.002, 0.003, 0.004]);
+        module.Setup<HeatmapLayout>("layout", _ => true).SetResult(small);
+
+        IRenderedComponent<HeatmapChart> cut = Render<HeatmapChart>(ps => ps
+            .Add(p => p.Cells, [new HeatmapCell("A", "c0", 0.001), new HeatmapCell("A", "c1", 0.005)])
+            .Add(p => p.Levels, 4));
+
+        cut.WaitForAssertion(() => cut.FindAll(".rounded-sm").Count.ShouldBe(4));
+        cut.Markup.ShouldContain("0.001 – 0.002");
+        cut.Markup.ShouldContain("0.004 – 0.005");
+    }
+
+    [Fact]
+    public void HeatmapChart_level_legend_of_a_flat_domain_is_one_step_with_the_value()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        HeatmapLayout flat = new(
+            [new(100, "A", null, "A")], [new(200, "c0", null, "c0")], [new("A", "c0", 5, 1, 100, 20, 190, 160)], 5, 5, _plot, []);
+        module.Setup<HeatmapLayout>("layout", _ => true).SetResult(flat);
+
+        IRenderedComponent<HeatmapChart> cut = Render<HeatmapChart>(ps => ps
+            .Add(p => p.Cells, [new HeatmapCell("A", "c0", 5)])
+            .Add(p => p.Levels, 4));
+
+        cut.WaitForAssertion(() => cut.FindAll(".rounded-sm").Count.ShouldBe(1));
+        cut.Find(".rounded-sm + span").TextContent.ShouldBe("5");
+    }
 }

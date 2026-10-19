@@ -349,6 +349,17 @@ test('scatter: stacked series sit on the running total at the same x', async () 
     assert.equal((await layout('scatter', { points, ...size })).points[0].total, undefined);
 });
 
+test('scatter: a trend line is not drawn on stacked series, and fits each series on its own values', async () => {
+    const points = [
+        { x: 1, y: 1, series: 'A' }, { x: 2, y: 2, series: 'A' }, { x: 3, y: 3, series: 'A' },
+        { x: 1, y: 10, series: 'B' }, { x: 2, y: 10, series: 'B' }, { x: 3, y: 10, series: 'B' },
+    ];
+    const stacked = await layout('scatter', { points, ...size, stacked: true, trendline: 'linear' });
+    assert.equal(stacked.trends, undefined, 'Trendline is ignored when stacked');
+    const plain = await layout('scatter', { points, ...size, trendline: 'linear' });
+    assert.deepEqual(plain.trends.map(t => [t.series, Math.round(t.a * 1e9) / 1e9, Math.round(t.b * 1e9) / 1e9]), [[0, 0, 1], [1, 10, 0]]);
+});
+
 test('scatter: reference lines at xRef and yRef, taken into the scales', async () => {
     const out = await layout('scatter', { points: [{ x: 1, y: 1 }, { x: 5, y: 4 }], ...size, xRef: 3, yRef: 10 });
     const [x0, x1] = out.xTicks, [y0, y1] = out.yTicks;

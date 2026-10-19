@@ -9,8 +9,9 @@ const EMPTY = { rows: [], columns: [], cells: [], min: 0, max: 0, plot: { left: 
 // A repeated (row, column) pair is summed. Each cell gets t in [0, 1] on a sequential scale from
 // the smallest to the largest value; the component turns t into a theme colour.
 // levels (2 to 10) quantizes the values into that many equal steps between the smallest and the
-// largest value: t is then level / (levels - 1), and the result carries the `thresholds` between
-// the steps (levels - 1 of them).
+// largest value: t is then level / (levels - 1), and the result carries the exact `thresholds`
+// between the steps (levels - 1 of them, unrounded). When every value is the same there is a single
+// step: no thresholds, and t is 1.
 export default function heatmap({ cells, rows, columns, levels, width, height }) {
     const sums = new Map();
     for (const c of cells ?? []) {
@@ -37,8 +38,11 @@ export default function heatmap({ cells, rows, columns, levels, width, height })
     const y = scaleBand().domain(rowNames).range([plot.top, plot.bottom]).padding(0.06);
     const [min, max] = extent(entries, e => e.value);
     const steps = finite(levels) ? Math.max(2, Math.min(10, Math.round(levels))) : null;
-    const quantize = steps && scaleQuantize().domain([min, max > min ? max : min + 1]).range([...Array(steps).keys()]);
-    const t = steps ? v => quantize(v) / (steps - 1) : scaleSequential(v => v).domain([min, max > min ? max : min + 1]).clamp(true);
+    // A flat domain with levels is a single step at full colour (its legend shows the one value).
+    const flat = max === min;
+    const quantize = steps && !flat && scaleQuantize().domain([min, max]).range([...Array(steps).keys()]);
+    const t = !steps ? scaleSequential(v => v).domain([min, max > min ? max : min + 1]).clamp(true)
+        : flat ? () => 1 : v => quantize(v) / (steps - 1);
 
     // Column labels are thinned so neighbours never touch: a skipped column's label is empty.
     const every = stride(colNames, x.step(), 6, 10);
@@ -53,5 +57,5 @@ export default function heatmap({ cells, rows, columns, levels, width, height })
         min, max,
         plot,
     };
-    return steps ? { ...out, thresholds: quantize.thresholds().map(r2) } : out;
+    return steps ? { ...out, thresholds: flat ? [] : quantize.thresholds() } : out;
 }

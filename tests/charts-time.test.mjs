@@ -400,3 +400,18 @@ test('heatmap: levels quantize the values into equal steps, with the thresholds 
     const continuous = await layout('heatmap', { cells: [{ row: 'A', column: 'x', value: 1 }], width: W, height: H });
     assert.ok(!('thresholds' in continuous));
 });
+
+test('heatmap: level thresholds stay exact for small values; a flat domain is one step', async () => {
+    const small = await layout('heatmap', {
+        cells: [0.001, 0.005].map((value, i) => ({ row: 'A', column: `c${i}`, value })), levels: 4, width: W, height: H,
+    });
+    assert.equal(small.thresholds.length, 3);
+    [0.002, 0.003, 0.004].forEach((v, i) => assert.ok(Math.abs(small.thresholds[i] - v) < 1e-12, `threshold ${i}: ${small.thresholds[i]}`));
+    assert.deepEqual(small.cells.map(c => c.t), [0, 1]);
+    const flat = await layout('heatmap', {
+        cells: [5, 5, 5].map((value, i) => ({ row: 'A', column: `c${i}`, value })), levels: 4, width: W, height: H,
+    });
+    assert.deepEqual(flat.thresholds, [], 'one step, no thresholds');
+    assert.deepEqual([flat.min, flat.max], [5, 5]);
+    assert.deepEqual(flat.cells.map(c => c.t), [1, 1, 1], 'the single step takes the full colour, as its legend swatch');
+});

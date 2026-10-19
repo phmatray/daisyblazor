@@ -33,13 +33,14 @@
         {
             @* Discrete levels: one swatch per step, with the range of values it covers. *@
             <div class="flex flex-wrap gap-3 mt-2 text-xs">
+                @* A flat domain is one step, named by its value. *@
                 @for (int level = 0; level <= thresholds.Count; level++)
                 {
                     double low = level == 0 ? stepped.Min : thresholds[level - 1];
                     double high = level < thresholds.Count ? thresholds[level] : stepped.Max;
                     <span class="inline-flex items-center gap-1.5">
                         <span class="inline-block w-3 h-3 rounded-sm" style="@($"background:{_shade(thresholds.Count == 0 ? 1 : (double)level / thresholds.Count)};")"></span>
-                        <span class="text-base-content/80">@($"{_format(low)} – {_format(high)}")</span>
+                        <span class="text-base-content/80">@(thresholds.Count == 0 ? _step(low, stepped) : $"{_step(low, stepped)} – {_step(high, stepped)}")</span>
                     </span>
                 }
             </div>
@@ -83,8 +84,13 @@
     /// </summary>
     [Parameter] public int? Levels { get; set; }
 
-    /// <summary>Format string for values in cells, tooltips and the legend, e.g. "{0:N0} requests".</summary>
-    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+    /// <summary>
+    /// Format string for values in cells, tooltips and the legend, e.g. "{0:N0} requests". With the
+    /// default and <see cref="Levels"/>, the legend shows as many decimals as the step size needs.
+    /// </summary>
+    [Parameter] public string ValueFormat { get; set; } = DefaultFormat;
+
+    private const string DefaultFormat = "{0:#,0.##}";
 
     /// <inheritdoc />
     protected override string Kind => "heatmap";
@@ -107,6 +113,19 @@
         $"color-mix(in oklab, {_color} {Math.Round(8 + 92 * t).ToString(Ci)}%, var(--color-base-100))";
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    // A legend bound: the default format keeps two decimals, or one more than the step's first significant digit.
+    private string _step(double value, HeatmapLayout geo)
+    {
+        double step = (geo.Max - geo.Min) / ((geo.Thresholds?.Count ?? 0) + 1);
+        if (ValueFormat != DefaultFormat || step <= 0)
+        {
+            return _format(value);
+        }
+
+        int decimals = Math.Clamp((int)Math.Ceiling(-Math.Log10(step)) + 1, 2, 15);
+        return value.ToString("#,0." + new string('#', decimals), CultureInfo.CurrentCulture);
+    }
 
     private string _label => Title ?? "Heatmap";
 
