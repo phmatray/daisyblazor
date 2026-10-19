@@ -4,7 +4,7 @@
 
 @* Keyed by the GeoJSON feature id (ISO 3166-1 numeric codes in this file), the default IdProperty. *@
 <ChoroplethMap Features="_world" Values="_tickets" Projection="MapProjection.EqualEarth"
-               Color="var(--color-secondary)" NoDataColor="var(--color-base-200)" ValueFormat="{0:N0} tickets" />
+               Color="var(--color-secondary)" NoDataColor="color-mix(in oklab, var(--color-base-content) 12%, transparent)" ValueFormat="{0:N0} tickets" />
 
 @code {
     private JsonElement _world;

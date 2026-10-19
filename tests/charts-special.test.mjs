@@ -122,7 +122,7 @@ test('choropleth fits the projection to the box and maps values to colours', asy
     assert.equal(geo.features.length, 4);
     assert.deepEqual([geo.min, geo.max], [10, 100]);
     assert.deepEqual(geo.features.map(f => f.fill), [shade('var(--color-primary)', 0), shade('var(--color-primary)', 0.5), shade('var(--color-primary)', 1), 'gray']);
-    assert.equal(geo.features[0].fill, 'color-mix(in oklab, var(--color-primary) 15%, var(--color-base-100))');
+    assert.equal(geo.features[0].fill, 'color-mix(in oklab, var(--color-primary) 25%, var(--color-base-100))');
     assert.equal(geo.features[2].fill, 'color-mix(in oklab, var(--color-primary) 100%, var(--color-base-100))');
     assert.deepEqual(geo.features.map(f => [f.name, f.value]), [['Alpha', 10], ['Beta', 55], ['Gamma', 100], ['d', null]]);
     assert.equal(geo.sphere, '', 'a region is not a world map');

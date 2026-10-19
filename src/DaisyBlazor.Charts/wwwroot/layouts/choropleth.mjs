@@ -19,7 +19,7 @@ const PROJECTIONS = {
 const PAD = 4;
 
 /** The fill of a value at `t` (0 = lowest, 1 = highest) along the scale of `color`. */
-export const shade = (color, t) => `color-mix(in oklab, ${color} ${Math.round(15 + 85 * t)}%, var(--color-base-100))`;
+export const shade = (color, t) => `color-mix(in oklab, ${color} ${Math.round(25 + 75 * t)}%, var(--color-base-100))`;
 
 export default function choropleth({ features = [], values = {}, projection = 'natural-earth', color = 'var(--color-primary)', noDataColor = 'var(--color-base-300)', width, height }) {
     const shapes = (features ?? []).filter(f => f?.geometry).map(f => ({ type: 'Feature', id: f.id, name: f.name, geometry: f.geometry }));
