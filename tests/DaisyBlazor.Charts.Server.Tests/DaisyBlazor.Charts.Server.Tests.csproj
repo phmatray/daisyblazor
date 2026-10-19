@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="bunit" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Shouldly" />
     <PackageReference Include="xunit.v3" />
@@ -14,6 +15,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\DaisyBlazor.Charts.Server\DaisyBlazor.Charts.Server.csproj" />
+    <!-- The docs examples are the chart catalogue with real data: every one must render on the server. -->
+    <ProjectReference Include="..\..\website\DaisyBlazor.Docs.csproj" />
   </ItemGroup>
 
   <ItemGroup>

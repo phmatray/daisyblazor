@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using System.Globalization;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
@@ -29,17 +31,21 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
     /// <summary>Invariant culture for numbers written into SVG attributes.</summary>
     protected static readonly CultureInfo Ci = CultureInfo.InvariantCulture;
 
-    private static readonly JsonSerializerOptions _json = new(JsonSerializerDefaults.Web);
+    // JSON has no NaN or infinity: such values travel as null, which every layout treats as missing.
+    private static readonly JsonSerializerOptions _json = new(JsonSerializerDefaults.Web) { Converters = { new FiniteDoubleConverter() } };
 
     private IJSObjectReference? _module;
     private DotNetObjectReference<D3ChartBase<TLayout>>? _self;
     private ElementReference? _observed;
     private string? _specJson;
-    private object? _spec;
+    private JsonElement _spec;
+    private IChartLayoutEngine? _engine;
     private bool _pending;
     private int _version;
 
     [Inject] private IJSRuntime JS { get; set; } = null!;
+
+    [Inject] private IServiceProvider Services { get; set; } = null!;
 
     /// <summary>The layout file in <c>wwwroot/layouts/</c> (without extension).</summary>
     protected abstract string Kind { get; }
@@ -52,6 +58,13 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
     /// coordinate space. The element must be rendered (with a CSS size) in every state, placeholder included.
     /// </summary>
     protected virtual bool Measured => false;
+
+    /// <summary>
+    /// Size (in pixels) a measured chart is laid out at when it renders on the server, where its box
+    /// cannot be measured. The SVG scales to the real box; the browser lays it out again at the true
+    /// size once the chart is interactive.
+    /// </summary>
+    protected virtual (double Width, double Height) ServerSize => (800, 256);
 
     /// <summary>The measured box, captured with <c>@ref</c> by charts in measured mode.</summary>
     protected ElementReference MeasuredElement;
@@ -79,15 +92,58 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
     });
 
     /// <inheritdoc />
+    protected override void OnInitialized() =>
+        _engine = (IChartLayoutEngine?)Services.GetService(typeof(IChartLayoutEngine));
+
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         object spec = BuildSpec();
         string json = JsonSerializer.Serialize(spec, spec.GetType(), _json);
-        if (json != _specJson)
+        if (json == _specJson)
         {
-            _specJson = json;
-            _spec = spec;
-            _pending = true;
+            return;
+        }
+
+        _specJson = json;
+        _spec = JsonDocument.Parse(json).RootElement.Clone();
+        _pending = true;
+
+        // With server rendering registered, lay out right away so the first HTML (prerendered or
+        // static) already holds the chart. A measured chart is redone in the browser at its true size.
+        if (_engine is not null)
+        {
+            LayoutOnServer(_engine, json);
+            _pending = Measured && RendererInfo.IsInteractive;
+        }
+    }
+
+    private void LayoutOnServer(IChartLayoutEngine engine, string json)
+    {
+        try
+        {
+            if (!Measured)
+            {
+                Layout = JsonSerializer.Deserialize<TLayout>(engine.Layout(Kind, json), _json);
+            }
+            else
+            {
+                (double width, double height) = ServerSize;
+                JsonObject spec = JsonNode.Parse(json)!.AsObject();
+                spec["width"] = width;
+                spec["height"] = height;
+                JsonObject result = JsonNode.Parse(engine.Layout(Kind, spec.ToJsonString()))!.AsObject();
+                result["width"] = width;
+                result["height"] = height;
+                Layout = result.Deserialize<TLayout>(_json);
+            }
+
+            Error = null;
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            Layout = null;
+            Error = ex.Message.Split('\n')[0];
         }
     }
 
@@ -213,4 +269,23 @@ public abstract class D3Chart<TLayout> : D3ChartBase<TLayout>
     internal string WrapperStyle => (string.IsNullOrEmpty(Width) ? string.Empty : $"width:{Width};") + Style;
 
     internal string ViewBox => $"0 0 {ViewWidth.ToString(Ci)} {ViewHeight.ToString(Ci)}";
+}
+
+/// <summary>Writes NaN and infinities as null, since JSON cannot carry them.</summary>
+internal sealed class FiniteDoubleConverter : JsonConverter<double>
+{
+    public override double Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        reader.TokenType == JsonTokenType.Null ? double.NaN : reader.GetDouble();
+
+    public override void Write(Utf8JsonWriter writer, double value, JsonSerializerOptions options)
+    {
+        if (double.IsFinite(value))
+        {
+            writer.WriteNumberValue(value);
+        }
+        else
+        {
+            writer.WriteNullValue();
+        }
+    }
 }
