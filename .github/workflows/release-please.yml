@@ -59,13 +59,16 @@ jobs:
           global-json-file: global.json
 
       - name: Test
-        run: dotnet test --project tests/DaisyBlazor.Components.Tests/DaisyBlazor.Components.Tests.csproj -c Release
+        run: |
+          dotnet test --project tests/DaisyBlazor.Components.Tests/DaisyBlazor.Components.Tests.csproj -c Release
+          dotnet test --project tests/DaisyBlazor.Charts.Server.Tests/DaisyBlazor.Charts.Server.Tests.csproj -c Release
 
       - name: Pack
         run: |
           set -e
           dotnet pack src/DaisyBlazor.Components/DaisyBlazor.Components.csproj -c Release -o artifacts
           dotnet pack src/DaisyBlazor.Charts/DaisyBlazor.Charts.csproj         -c Release -o artifacts
+          dotnet pack src/DaisyBlazor.Charts.Server/DaisyBlazor.Charts.Server.csproj -c Release -o artifacts
           dotnet pack templates/DaisyBlazor.Templates/DaisyBlazor.Templates.csproj -c Release -o artifacts
           ls -1 artifacts/*.nupkg
 
