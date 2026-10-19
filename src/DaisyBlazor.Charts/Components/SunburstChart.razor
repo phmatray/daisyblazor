@@ -23,7 +23,7 @@
                 {
                     if (node.Depth == 0)
                     {
-                        @if (ChartInk.Fit(node.Name, node.Room, 13) is { } rootName)
+                        @if (ChartText.Fit(node.Name, node.Room, 13) is { } rootName)
                         {
                             <SvgText X="0" Y="0" Dy="@(ShowValues ? "-0.2em" : "0.35em")" Anchor="middle" FontSize="13" FontWeight="600" Text="@rootName" />
                             @if (ShowValues)
@@ -32,12 +32,12 @@
                             }
                         }
                     }
-                    else if (node.Thickness >= 13 && ChartInk.Fit(node.Name, node.Room, 11) is { } name)
+                    else if (node.Thickness >= 13 && ChartText.Fit(node.Name, node.Room, 11) is { } name)
                     {
                         string color = ChartInk.GroupColor(node.Group, layout.Groups, GroupColors);
                         <g transform="@($"rotate({N(node.LabelAngle)} {N(node.LabelX)} {N(node.LabelY)})")">
                             <SvgText X="@node.LabelX" Y="@node.LabelY" Dy="0.35em" Anchor="middle" FontSize="11" FontWeight="600"
-                                     Fill="@(node.Depth <= 2 ? ChartInk.ContentOn(color) : "var(--color-base-content)")" Text="@name" />
+                                     Fill="@(node.Depth <= 2 ? ChartPalette.ContentOf(color) : "var(--color-base-content)")" Text="@name" />
                         </g>
                     }
                 }

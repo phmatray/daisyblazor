@@ -8,7 +8,8 @@
 <D3ChartFrame TLayout="LollipopLayout" Chart="this" Label="@_label" Description="@_description">
     @if (Layout is { } layout)
     {
-        <CompareAxis Ticks="layout.Ticks" Labels="layout.Categories" />
+        <ChartAxes Plot="layout.Plot" XTicks="layout.XTicks" YTicks="layout.YTicks" XAxisAt="layout.XAxisAt" YAxisAt="layout.YAxisAt"
+                   XLabelAngle="layout.LabelAngle" XGrid="Horizontal" YGrid="!Horizontal" XCategories="!Horizontal" YCategories="Horizontal" />
 
         @foreach (LollipopLayoutItem item in layout.Items)
         {
@@ -52,7 +53,7 @@
     /// <inheritdoc />
     protected override object BuildSpec() => new
     {
-        Items = Data.Select(d => new { d.Label, Value = CompareSpec.Finite(d.Value), Text = _format(d.Value) }).ToArray(),
+        Items = Data.Select(d => new { d.Label, d.Value, Text = _format(d.Value) }).ToArray(),
         Width = ViewWidth,
         Height = ViewHeight,
         Vertical = !Horizontal,

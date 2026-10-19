@@ -6,7 +6,7 @@ import { layout } from '../src/DaisyBlazor.Charts/wwwroot/charts.mjs';
 const W = 640, H = 360;
 const inside = (x, y, w = W, h = H) => x >= 0 && x <= w && y >= 0 && y <= h;
 // Tick labels must not overlap: neighbours at least the half-widths apart (~0.6em glyphs, 11 units).
-const spaced = ticks => ticks.every((t, i) => i === 0 || t.position - ticks[i - 1].position >= (t.label.length + ticks[i - 1].label.length) * 3.3);
+const spaced = ticks => ticks.every((t, i) => i === 0 || t.pos - ticks[i - 1].pos >= (t.label.length + ticks[i - 1].label.length) * 3.3);
 
 test('calendar-heatmap: one cell per day, weeks as columns, Monday first', async () => {
     const { cells, months, weekdays, max } = await layout('calendar-heatmap', {
@@ -61,14 +61,14 @@ test('heatmap: rows and columns in first-appearance order, a sequential t from m
         ],
         width: W, height: H,
     });
-    assert.deepEqual(out.rows.map(r => r.name), ['Mon', 'Tue']);
-    assert.deepEqual(out.columns.map(c => c.name), ['09', '10']);
+    assert.deepEqual(out.rows.map(r => r.full), ['Mon', 'Tue']);
+    assert.deepEqual(out.columns.map(c => c.full), ['09', '10']);
     assert.equal(out.cells.length, 3);
     assert.deepEqual(out.cells.map(c => c.t), [0, 1, 0.5]);
     assert.equal(out.min, 10);
     assert.equal(out.max, 30);
     for (const c of out.cells) {
-        assert.ok(c.x >= out.plot.x0 && c.x + c.w <= W && c.y >= out.plot.y0 && c.y + c.h <= H);
+        assert.ok(c.x >= out.plot.left && c.x + c.w <= W && c.y >= out.plot.top && c.y + c.h <= H);
     }
 });
 
@@ -79,12 +79,12 @@ test('heatmap: given orders win, long row names are shortened, crowded column la
         rows: ['A very long row name that would never fit beside the grid'], columns: [...columns].reverse(),
         width: W, height: H,
     });
-    assert.equal(out.columns[0].name, 'Column 59');
+    assert.equal(out.columns[0].full, 'Column 59');
     assert.ok(out.rows[0].label.endsWith('…'));
-    assert.ok(out.rows[0].label.length * 6.6 <= out.plot.x0);
-    const shown = out.columns.filter(c => c.show);
+    assert.ok(out.rows[0].label.length * 6.6 <= out.plot.left);
+    const shown = out.columns.filter(c => c.label !== '');
     assert.ok(shown.length < columns.length);
-    assert.ok(shown.every((c, i) => i === 0 || c.position - shown[i - 1].position >= c.label.length * 6));
+    assert.ok(shown.every((c, i) => i === 0 || c.pos - shown[i - 1].pos >= c.label.length * 6));
     assert.deepEqual((await layout('heatmap', { cells: [], width: W, height: H })).cells, []);
 });
 
@@ -105,7 +105,7 @@ test('range-area: a band and a center line on a time axis, sorted by date, read 
     assert.ok(out.yTicks.some(t => t.label === '0')); // the value axis starts at zero
     assert.ok(out.xTicks.every(t => !/AM|PM|:/.test(t.label))); // daily data gets no hour ticks
     assert.ok(spaced(out.xTicks));
-    assert.ok(out.plot.x0 > 0 && out.plot.x1 < W && out.plot.y1 < H);
+    assert.ok(out.plot.left > 0 && out.plot.right < W && out.plot.bottom < H);
 });
 
 test('range-area: labels make a category axis; no valid point is empty', async () => {
@@ -130,15 +130,15 @@ test('stream: wiggle has no value axis, stacked and percent stack from zero', as
 
     const stacked = await layout('stream', { ...spec, offset: 'stacked' });
     assert.equal(stacked.yTicks[0].label, '0');
-    assert.equal(stacked.yTicks[0].position, stacked.plot.y1);
+    assert.equal(stacked.yTicks[0].pos, stacked.plot.bottom);
 
     const percent = await layout('stream', { ...spec, offset: 'percent' });
     assert.deepEqual([percent.yTicks[0].label, percent.yTicks.at(-1).label], ['0%', '100%']);
-    assert.equal(percent.yTicks.at(-1).position, percent.plot.y0);
+    assert.equal(percent.yTicks.at(-1).pos, percent.plot.top);
     for (const l of percent.layers) {
         assert.match(l.path, /^M/);
         if (l.showLabel) {
-            assert.ok(l.labelX >= percent.plot.x0 && l.labelX <= percent.plot.x1);
+            assert.ok(l.labelX >= percent.plot.left && l.labelX <= percent.plot.right);
         }
     }
 });
@@ -164,8 +164,8 @@ test('candlestick: periods sorted, bodies inside the plot, rising and falling', 
     const [up] = out.candles;
     assert.ok(up.yHigh < up.yClose && up.yClose < up.yOpen && up.yOpen < up.yLow);
     for (const c of out.candles) {
-        assert.ok(c.x - c.width / 2 >= out.plot.x0 && c.x + c.width / 2 <= out.plot.x1);
-        assert.ok(c.yHigh >= out.plot.y0 && c.yLow <= out.plot.y1);
+        assert.ok(c.x - c.width / 2 >= out.plot.left && c.x + c.width / 2 <= out.plot.right);
+        assert.ok(c.yHigh >= out.plot.top && c.yLow <= out.plot.bottom);
     }
     assert.deepEqual(out.xTicks.map(t => t.label), ['09:00', '10:00']);
     assert.deepEqual((await layout('candlestick', { candles: [], width: W, height: H })).candles, []);
@@ -192,14 +192,14 @@ test('gantt: ungrouped tasks first, then a header per group; milestones and prog
     assert.deepEqual(out.groups, ['Plan', 'Ship']);
     const [kickoff, , design, , build] = out.rows;
     assert.equal(kickoff.milestone, true);
-    assert.equal(kickoff.x0, out.plot.x0);
+    assert.equal(kickoff.x0, out.plot.left);
     assert.equal(design.progress, 1); // clamped
     assert.equal(build.progress, 0.25);
-    assert.equal(build.x1, out.plot.x1);
+    assert.equal(build.x1, out.plot.right);
     assert.ok(design.x0 < build.x0);
     assert.ok(out.rows.every((r, i) => i === 0 || r.y >= out.rows[i - 1].y + out.rows[i - 1].h));
     assert.equal(out.today.label, 'Oct 19, 2026');
-    assert.ok(out.today.position > build.x0 && out.today.position < build.x1);
+    assert.ok(out.today.pos > build.x0 && out.today.pos < build.x1);
     assert.ok(spaced(out.xTicks));
 });
 
@@ -225,11 +225,11 @@ test('bump: the highest value ranks first, names at both ends, gaps break the li
     assert.equal(out.ranks, 3);
     const pro = out.lines[1];
     assert.equal(pro.end, null);
-    assert.ok(pro.start.x === out.plot.x0);
+    assert.ok(pro.start.x === out.plot.left);
     const team = out.lines[2];
     assert.ok(team.end.y < team.start.y); // rank 1 is higher up
     assert.match(team.path, /C/); // smooth bump curve
-    assert.ok(out.plot.x0 >= 'Starter'.length * 7.2 && out.plot.x1 <= W - 'Starter'.length * 7.2);
+    assert.ok(out.plot.left >= 'Starter'.length * 7.2 && out.plot.right <= W - 'Starter'.length * 7.2);
     assert.deepEqual(out.xTicks.map(t => t.label), ['Q1', 'Q2', 'Q3']);
 });
 

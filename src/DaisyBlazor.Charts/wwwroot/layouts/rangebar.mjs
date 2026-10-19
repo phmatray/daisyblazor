@@ -1,7 +1,8 @@
 import { scaleBand } from '../d3.mjs';
-import { categoryFrame, finite, frameOut, maxWidth, r2, valueScale, valueText } from './_compare.mjs';
+import { finite, maxWidth, r2, valueScale } from './_shared.mjs';
+import { categoryFrame, frameOut, valueText } from './_compare.mjs';
 
-const EMPTY = { plot: { x: 0, y: 0, width: 0, height: 0 }, ticks: [], categories: [], groups: [], bars: [] };
+const EMPTY = { plot: { left: 0, top: 0, right: 0, bottom: 0 }, xTicks: [], yTicks: [], xAxisAt: 0, yAxisAt: 0, labelAngle: 0, groups: [], bars: [] };
 
 // spec: { items: [{ label, low, high, group, lowText, highText }], width, height, vertical, showValues }
 // A bar from low to high per item. Items sharing a label sit side by side in its band, one slot per
@@ -16,10 +17,10 @@ export default function rangebar({ items, width, height, vertical = false, showV
 
     const labels = [...new Set(rows.map(d => String(d.label ?? '')))];
     const groups = [...new Set(rows.map(d => String(d.group ?? '')))];
-    const space = list => !showValues ? 0 : vertical ? 16 : maxWidth(list, 11) + 10;
+    const space = list => !showValues ? 0 : vertical ? 16 : maxWidth(list) + 10;
     const f = categoryFrame({
         width, height, vertical, labels,
-        scale: valueScale(rows.flatMap(d => [d.low, d.high]), { zero: false }),
+        scale: valueScale(rows.flatMap(d => [d.low, d.high]), { count: 5 }),
         before: space(rows.map(d => d.lowText)),
         after: space(rows.map(d => d.highText)),
         padding: groups.length > 1 ? 0.2 : 0.3,

@@ -23,7 +23,7 @@
                         stroke="var(--color-base-100)" stroke-width="1.5">
                     <title>@($"{node.Name}{(node.Group is null ? "" : $" ({node.Group})")}: {node.Degree} link{(node.Degree == 1 ? "" : "s")}")</title>
                 </circle>
-                @if (ChartInk.Fit(node.Name, layout.LabelRoom - node.R - 10, 11) is { } name)
+                @if (ChartText.Fit(node.Name, layout.LabelRoom - node.R - 10, 11) is { } name)
                 {
                     double y = node.Y + node.R + 5;
                     <g transform="@($"rotate(90 {N(node.X)} {N(y)})")">

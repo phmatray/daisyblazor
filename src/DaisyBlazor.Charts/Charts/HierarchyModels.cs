@@ -48,30 +48,9 @@ public sealed record HierarchyLayoutNode(
     double X0, double Y0, double X1, double Y1, string? D,
     double LabelX, double LabelY, double LabelAngle, double Room, double Thickness);
 
-/// <summary>Colours and label fitting shared by the hierarchy and graph charts.</summary>
+/// <summary>Group colours and descriptions shared by the hierarchy and graph charts.</summary>
 internal static class ChartInk
 {
-    /// <summary>Rough width of a label at the given font size (average glyph ≈ 0.6 em).</summary>
-    public static double TextWidth(string text, double fontSize) => text.Length * fontSize * 0.6;
-
-    /// <summary>The text shortened with an ellipsis so it fits <paramref name="room"/>, or null when not even three letters fit.</summary>
-    public static string? Fit(string text, double room, double fontSize)
-    {
-        if (TextWidth(text, fontSize) <= room)
-        {
-            return text;
-        }
-
-        int keep = (int)(room / (fontSize * 0.6)) - 1;
-        return keep >= 3 ? text[..keep] + "…" : null;
-    }
-
-    /// <summary>A readable text colour on top of <paramref name="fill"/>: the matching <c>-content</c> token for a theme colour, base content otherwise.</summary>
-    public static string ContentOn(string fill) =>
-        fill.StartsWith("var(--color-", StringComparison.Ordinal) && !fill.StartsWith("var(--color-base", StringComparison.Ordinal)
-            ? fill[..^1] + "-content)"
-            : "var(--color-base-content)";
-
     /// <summary>Text description of a tree for screen readers: each top-level branch and its total.</summary>
     public static string? Describe(HierarchyNode? root, Func<double, string> format) =>
         root?.Children is { Count: > 0 } children

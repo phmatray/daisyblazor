@@ -84,7 +84,7 @@
             totals[l.Target] = totals.GetValueOrDefault(l.Target) + l.Value;
         }
 
-        return totals.Count == 0 ? 0 : totals.Max(t => ChartInk.TextWidth(ShowValues ? $"{t.Key} {_format(t.Value)}" : t.Key, 12));
+        return totals.Count == 0 ? 0 : totals.Max(t => ChartText.Width(ShowValues ? $"{t.Key} {_format(t.Value)}" : t.Key, 12));
     }
 
     private string _label => Title ?? "Chord diagram";

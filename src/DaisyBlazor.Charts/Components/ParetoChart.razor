@@ -8,16 +8,11 @@
 <D3ChartFrame TLayout="ParetoLayout" Chart="this" Label="@_label" Description="@_description">
     @if (Layout is { Plot: { } plot } geo)
     {
-        @foreach (ParetoTick tick in geo.Ticks)
-        {
-            <line x1="@N(plot.Left)" x2="@N(plot.Right)" y1="@N(tick.Pos)" y2="@N(tick.Pos)" stroke="var(--color-base-content)"
-                  stroke-opacity="@(tick.Value == 0 ? "0.35" : "0.12")" vector-effect="non-scaling-stroke" />
-            <SvgText X="@(plot.Left - 6)" Y="@tick.Pos" Dy="0.35em" Anchor="end" FontSize="11" FillOpacity="0.6" Text="@_format(tick.Value)" />
-        }
-        @foreach (ParetoTick tick in geo.ShareTicks.Where(t => Math.Abs(t.Pos - geo.ThresholdY) > 12))
-        {
-            <SvgText X="@(plot.Right + 6)" Y="@tick.Pos" Dy="0.35em" FontSize="11" FillOpacity="0.6" Text="@_percent(tick.Value)" />
-        }
+        @* Share ticks too close to the threshold's own label are left out. *@
+        <ChartAxes Plot="plot" YGrid="true" ZeroLine="true" XCategories="true"
+                   XTicks="@geo.Bars.Select(b => new AxisTick(b.Cx, b.Label)).ToList()"
+                   YTicks="@geo.Ticks.Select(t => t with { Label = _format(t.Value ?? 0) }).ToList()"
+                   Y2Ticks="@geo.ShareTicks.Where(t => Math.Abs(t.Pos - geo.ThresholdY) > 12).Select(t => t with { Label = _percent(t.Value ?? 0) }).ToList()" />
 
         @for (int i = 0; i < geo.Bars.Count; i++)
         {
@@ -26,7 +21,6 @@
                   fill-opacity="@(i < geo.VitalFew ? "1" : "0.4")">
                 <title>@($"{bar.Label}: {_format(bar.Value)} ({_percent(bar.Share)}, cumulative {_percent(bar.Cumulative)})")</title>
             </rect>
-            <SvgText X="@(bar.X + bar.Width / 2)" Y="@(plot.Bottom + 17)" Anchor="middle" FontSize="11" FillOpacity="0.8" Text="@bar.Label" />
         }
 
         <line x1="@N(plot.Left)" x2="@N(plot.Right)" y1="@N(geo.ThresholdY)" y2="@N(geo.ThresholdY)" stroke="@ThresholdColor"

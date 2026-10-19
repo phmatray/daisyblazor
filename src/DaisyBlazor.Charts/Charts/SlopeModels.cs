@@ -8,7 +8,7 @@ namespace DaisyBlazor.Charts;
 public sealed record SlopeItem(string Label, double Start, double End, string? Color = null);
 
 /// <summary>Geometry of a <see cref="SlopeChart"/>, computed by D3: column headers, column positions and lines.</summary>
-public sealed record SlopeLayout(IReadOnlyList<CompareText> Headers, double X1, double X2, double Y0, double Y1, IReadOnlyList<SlopeLayoutItem> Items);
+public sealed record SlopeLayout(IReadOnlyList<ChartLabel> Headers, double X1, double X2, double Y0, double Y1, IReadOnlyList<SlopeLayoutItem> Items);
 
 /// <summary>A placed line with its end labels, already moved apart from their neighbours.</summary>
-public sealed record SlopeLayoutItem(string Label, double Start, double End, double X1, double Y1, double X2, double Y2, CompareText Left, CompareText Right);
+public sealed record SlopeLayoutItem(string Label, double Start, double End, double X1, double Y1, double X2, double Y2, ChartLabel Left, ChartLabel Right);

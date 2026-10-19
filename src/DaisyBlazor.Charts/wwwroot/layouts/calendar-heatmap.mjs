@@ -1,5 +1,6 @@
 import { utcDay, utcFormat, scaleQuantize } from '../d3.mjs';
-import { parseDate, finite, r2 } from './_time.mjs';
+import { finite, r2 } from './_shared.mjs';
+import { parseDate } from './_time.mjs';
 
 const EMPTY = { cells: [], months: [], weekdays: [], thresholds: [], max: 0, cellSize: 0 };
 const DAY = 86400000;
@@ -55,7 +56,7 @@ export default function calendar({ days, from, to, weekStart = 1, levels = 5, wi
     const months = all.filter((d, i) => i === 0 || d.getUTCDate() === 1)
         .map(d => ({ label: monthLabel(d), x: left + column(d) * cell }))
         .filter((m, i, list) => i === list.length - 1 || list[i + 1].x - m.x >= 26)
-        .map(m => ({ label: m.label, x: r2(m.x) }));
+        .map(m => ({ pos: r2(m.x), label: m.label }));
 
     return {
         cells: all.map(d => {
@@ -69,7 +70,7 @@ export default function calendar({ days, from, to, weekStart = 1, levels = 5, wi
         // Monday, Wednesday and Friday are named, wherever the week starts.
         weekdays: [1, 3, 5].map(w => {
             const sample = new Date(Date.UTC(2024, 0, 7 + w)); // 2024-01-07 is a Sunday
-            return { label: weekdayLabel(sample), y: r2(top + offset(sample) * cell + (cell - gap) / 2) };
+            return { pos: r2(top + offset(sample) * cell + (cell - gap) / 2), label: weekdayLabel(sample) };
         }),
         thresholds: level.thresholds().map(r2),
         max,

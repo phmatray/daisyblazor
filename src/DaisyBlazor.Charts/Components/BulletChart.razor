@@ -27,7 +27,7 @@
                 </line>
             }
 
-            <CompareAxis Ticks="row.Ticks" Labels="[row.Name]" LineOpacity="0.4" />
+            <ChartAxes Plot="row.Plot" XTicks="row.XTicks" YTicks="row.YTicks" XTickMarks="Horizontal" YTickMarks="!Horizontal" XCategories="!Horizontal" YCategories="Horizontal" />
         }
     }
 </D3ChartFrame>
@@ -57,8 +57,8 @@
         Rows = Items.Select(i => new
         {
             i.Label,
-            Value = CompareSpec.Finite(i.Value),
-            Target = CompareSpec.Finite(i.Target),
+            i.Value,
+            i.Target,
             Ranges = (i.Ranges ?? []).Where(double.IsFinite).ToArray(),
         }).ToArray(),
         Width = ViewWidth,

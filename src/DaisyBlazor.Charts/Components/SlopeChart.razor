@@ -10,7 +10,10 @@
     {
         <line x1="@N(layout.X1)" y1="@N(layout.Y0)" x2="@N(layout.X1)" y2="@N(layout.Y1)" stroke="var(--color-base-content)" stroke-opacity="0.2" />
         <line x1="@N(layout.X2)" y1="@N(layout.Y0)" x2="@N(layout.X2)" y2="@N(layout.Y1)" stroke="var(--color-base-content)" stroke-opacity="0.2" />
-        <CompareAxis Labels="layout.Headers" LabelSize="12" />
+        @foreach (ChartLabel header in layout.Headers)
+        {
+            <SvgText X="@header.X" Y="@header.Y" Anchor="@header.Anchor" FontSize="12" FillOpacity="0.8" Text="@header.Text" />
+        }
 
         @for (int i = 0; i < layout.Items.Count; i++)
         {
@@ -63,8 +66,8 @@
         Items = Items.Select(i => new
         {
             i.Label,
-            Start = CompareSpec.Finite(i.Start),
-            End = CompareSpec.Finite(i.End),
+            i.Start,
+            i.End,
             StartText = _format(i.Start),
             EndText = _format(i.End),
         }).ToArray(),

@@ -9,7 +9,7 @@
     <ChildContent>
         @if (Layout is { } layout)
         {
-            <CompareAxis Ticks="layout.Ticks" Labels="layout.Categories" />
+            <ChartAxes Plot="layout.Plot" XTicks="layout.XTicks" YTicks="layout.YTicks" YAxisAt="layout.YAxisAt" XGrid="true" YCategories="true" />
 
             @foreach (DumbbellLayoutItem item in layout.Items)
             {
@@ -19,7 +19,7 @@
                     <circle cx="@N(item.X1)" cy="@N(item.Y)" r="6" fill="@StartColor" />
                     <circle cx="@N(item.X2)" cy="@N(item.Y)" r="6" fill="@_endColor" />
                 </g>
-                @foreach (CompareText? text in new[] { item.StartText, item.EndText })
+                @foreach (ChartLabel? text in new[] { item.StartText, item.EndText })
                 {
                     @if (text is not null)
                     {
@@ -72,8 +72,8 @@
         Items = Items.Select(i => new
         {
             i.Label,
-            Start = CompareSpec.Finite(i.Start),
-            End = CompareSpec.Finite(i.End),
+            i.Start,
+            i.End,
             StartText = _format(i.Start),
             EndText = _format(i.End),
         }).ToArray(),

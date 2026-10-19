@@ -8,9 +8,10 @@
 <D3ChartFrame TLayout="BoxPlotLayout" Chart="this" Label="@_label" Description="@_description">
     @if (Layout is { } view)
     {
-        <DistributionAxes Plot="view.Plot" XTicks="view.XTicks" YTicks="view.YTicks" Height="ViewHeight"
-                          XTitle="@(view.Horizontal ? ValueTitle : null)" YTitle="@(view.Horizontal ? null : ValueTitle)"
-                          XGrid="view.Horizontal" YGrid="!view.Horizontal" />
+        <ChartAxes Plot="view.Plot" Baseline="true" XTicks="view.XTicks" YTicks="view.YTicks" Height="ViewHeight"
+                   XTitle="@(view.Horizontal ? ValueTitle : null)" YTitle="@(view.Horizontal ? null : ValueTitle)"
+                   XGrid="view.Horizontal" YGrid="!view.Horizontal"
+                   XCategories="!view.Horizontal" YCategories="view.Horizontal" />
         @foreach (BoxPlotLayoutGroup g in view.Groups)
         {
             string color = _color(g);
@@ -32,7 +33,7 @@
                 @foreach (PositionedValue o in g.Outliers)
                 {
                     <circle cx="@N(view.Horizontal ? o.Pos : g.Center)" cy="@N(view.Horizontal ? g.Center : o.Pos)" r="3"
-                            fill="var(--color-base-100)" stroke="@color" stroke-width="1.5">
+                     fill="var(--color-base-100)" stroke="@color" stroke-width="1.5">
                         <title>@($"{g.Name} outlier: {_format(o.Value)}")</title>
                     </circle>
                 }

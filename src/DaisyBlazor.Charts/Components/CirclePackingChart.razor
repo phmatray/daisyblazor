@@ -35,12 +35,12 @@
 
             @foreach (HierarchyLayoutNode node in layout.Nodes.Where(n => n.Leaf && n.Thickness >= 10))
             {
-                string ink = ChartInk.ContentOn(ChartInk.GroupColor(node.Group, layout.Groups, GroupColors));
+                string ink = ChartPalette.ContentOf(ChartInk.GroupColor(node.Group, layout.Groups, GroupColors));
                 bool twoLines = ShowValues && node.Thickness >= 24;
-                @if (ChartInk.Fit(node.Name, node.Room, 11) is { } name)
+                @if (ChartText.Fit(node.Name, node.Room, 11) is { } name)
                 {
                     <SvgText X="@node.LabelX" Y="@node.LabelY" Dy="@(twoLines ? "-0.25em" : "0.35em")" Anchor="middle" FontSize="11" FontWeight="600" Fill="@ink" Text="@name" />
-                    @if (twoLines && ChartInk.Fit(_format(node.Value), node.Room, 10) is { } value)
+                    @if (twoLines && ChartText.Fit(_format(node.Value), node.Room, 10) is { } value)
                     {
                         <SvgText X="@node.LabelX" Y="@node.LabelY" Dy="1.1em" Anchor="middle" FontSize="10" Fill="@ink" FillOpacity="0.85" Text="@value" />
                     }

@@ -1,5 +1,5 @@
 import { line, scalePoint } from '../d3.mjs';
-import { finite, maxWidth, r2, textWidth, ticks, valueScale } from './_compare.mjs';
+import { finite, maxWidth, r2, textWidth, ticks, valueScale } from './_shared.mjs';
 
 const EMPTY = { axes: [], lines: [] };
 
@@ -13,9 +13,9 @@ export default function parallel({ dimensions, items, width, height }) {
         return EMPTY;
     }
 
-    const scales = names.map((_, i) => valueScale(rows.map(r => r.values[i]), { zero: false, count: 5 }));
+    const scales = names.map((_, i) => valueScale(rows.map(r => r.values[i]), { count: 5 }));
     const tickLists = scales.map(s => ticks(s, 5));
-    const tickW = maxWidth(tickLists[0].map(t => t.label), 11);
+    const tickW = maxWidth(tickLists[0].map(t => t.label));
     const x0 = Math.max(tickW + 10, textWidth(names[0], 12) / 2 + 4);
     const x1 = width - Math.max(textWidth(names[names.length - 1], 12) / 2 + 4, 6);
     const y0 = 30;
@@ -27,11 +27,8 @@ export default function parallel({ dimensions, items, width, height }) {
     return {
         axes: names.map((name, i) => ({
             name, x: r2(x(i)), y1: r2(y0), y2: r2(y1),
-            label: { text: name, x: r2(x(i)), y: 16, anchor: 'middle', rotate: 0 },
-            ticks: tickLists[i].map(t => {
-                const y = r2(scales[i](t.value));
-                return { label: t.label, x: r2(x(i) - 6), y: r2(y + 4), anchor: 'end', x1: r2(x(i) - 3), y1: y, x2: r2(x(i)), y2: y };
-            }),
+            label: { text: name, x: r2(x(i)), y: 16, anchor: 'middle' },
+            ticks: ticks(scales[i], 5),
         })),
         lines: rows.map((r, index) => ({
             label: r.label, index, values: r.values,

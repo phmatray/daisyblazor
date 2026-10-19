@@ -1,5 +1,5 @@
 import { forceSimulation, forceLink, forceManyBody, forceX, forceY, forceCollide, scaleSqrt, max } from '../d3.mjs';
-import { graph, textWidth } from './_graph.mjs';
+import { graph, nameWidth } from './_graph.mjs';
 
 const EMPTY = { nodes: [], links: [], groups: [], labelRoom: 0 };
 
@@ -26,7 +26,7 @@ export default function network({ links, nodes, width, height, iterations = 300,
     }
 
     // Stretch the result over the chart, leaving room for a name to the right of every node.
-    const labelRoom = labels ? Math.min(width * 0.25, max(sim, d => textWidth(d.name)) + 8) : 0;
+    const labelRoom = labels ? Math.min(width * 0.25, max(sim, d => nameWidth(d.name)) + 8) : 0;
     const rMax = max(sim, d => d.r);
     const fit = (v, lo, hi, a, b) => (hi - lo < 1e-6 ? (a + b) / 2 : a + ((v - lo) / (hi - lo)) * (b - a));
     const [x0, x1] = [Math.min(...sim.map(d => d.x)), Math.max(...sim.map(d => d.x))];

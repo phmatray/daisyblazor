@@ -7,8 +7,8 @@
 <D3ChartFrame TLayout="HistogramLayout" Chart="this" Label="@_label" Description="@_description">
     @if (Layout is { } view)
     {
-        <DistributionAxes Plot="view.Plot" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
-                          YGrid="true" Height="ViewHeight" />
+        <ChartAxes Plot="view.Plot" Baseline="true" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
+                   YGrid="true" Height="ViewHeight" />
         @foreach (HistogramBar b in view.Bars)
         {
             <rect x="@N(b.Left + 0.5)" y="@N(b.Top)" width="@N(Math.Max(0.5, b.Right - b.Left - 1))" height="@N(b.Bottom - b.Top)"

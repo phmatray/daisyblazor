@@ -7,8 +7,8 @@ namespace DaisyBlazor.Charts;
 /// <param name="Group">Optional group; each group gets its own slot in every band and its own colour.</param>
 public sealed record RangeBarItem(string Label, double Low, double High, string? Group = null);
 
-/// <summary>Geometry of a <see cref="RangeBarChart"/>, computed by D3.</summary>
-public sealed record RangeBarLayout(CompareRect Plot, IReadOnlyList<CompareTick> Ticks, IReadOnlyList<CompareText> Categories, IReadOnlyList<string> Groups, IReadOnlyList<RangeBarLayoutBar> Bars);
+/// <summary>Geometry of a <see cref="RangeBarChart"/>, computed by D3. The category axis sits at XAxisAt (vertical) or YAxisAt (horizontal), beyond any value text; LabelAngle turns crowded category labels.</summary>
+public sealed record RangeBarLayout(PlotArea Plot, IReadOnlyList<AxisTick> XTicks, IReadOnlyList<AxisTick> YTicks, double XAxisAt, double YAxisAt, double LabelAngle, IReadOnlyList<string> Groups, IReadOnlyList<RangeBarLayoutBar> Bars);
 
 /// <summary>A placed bar with its group, rectangle and end value texts (null when values are hidden).</summary>
-public sealed record RangeBarLayoutBar(string Label, string Group, int GroupIndex, double Low, double High, double X, double Y, double Width, double Height, CompareText? LowText, CompareText? HighText);
+public sealed record RangeBarLayoutBar(string Label, string Group, int GroupIndex, double Low, double High, double X, double Y, double Width, double Height, ChartLabel? LowText, ChartLabel? HighText);

@@ -19,9 +19,9 @@ public enum CandlestickStyle
 /// <summary>Geometry of a <see cref="CandlestickChart"/>, computed by D3.</summary>
 public sealed record CandlestickLayout(
     IReadOnlyList<CandlestickLayoutCandle> Candles,
-    IReadOnlyList<TimeAxisTick> XTicks,
-    IReadOnlyList<TimeAxisTick> YTicks,
-    TimePlotArea Plot);
+    IReadOnlyList<AxisTick> XTicks,
+    IReadOnlyList<AxisTick> YTicks,
+    PlotArea Plot);
 
 /// <summary>A placed period: its time label, values, whether it closed at or above its open, and its coordinates.</summary>
 public sealed record CandlestickLayoutCandle(

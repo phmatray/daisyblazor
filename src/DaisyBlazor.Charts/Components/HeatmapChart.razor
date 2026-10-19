@@ -9,23 +9,21 @@
     <ChildContent>
         @if (Layout is { } geo)
         {
-            @foreach (HeatmapLabel column in geo.Columns.Where(c => c.Show))
+            @* Column names over the plot, smaller so more of them fit. *@
+            @foreach (AxisTick column in geo.Columns.Where(c => c.Label.Length > 0))
             {
-                <SvgText X="@column.Position" Y="@(geo.Plot.Y0 - 6)" Anchor="middle" FontSize="10" FillOpacity="0.7" Text="@column.Label" />
+                <SvgText X="@column.Pos" Y="@(geo.Plot.Top - 6)" Anchor="middle" FontSize="10" FillOpacity="0.7" Text="@column.Label" />
             }
-            @foreach (HeatmapLabel row in geo.Rows)
-            {
-                <SvgText X="@(geo.Plot.X0 - 6)" Y="@row.Position" Dy="0.35em" Anchor="end" FontSize="11" FillOpacity="0.8" Text="@row.Label" />
-            }
+            <ChartAxes Plot="geo.Plot" YTicks="geo.Rows" YCategories="true" />
             @foreach (HeatmapLayoutCell cell in geo.Cells)
             {
                 <rect x="@N(cell.X)" y="@N(cell.Y)" width="@N(cell.W)" height="@N(cell.H)" rx="2" fill="@_shade(cell.T)">
                     <title>@($"{cell.Row}, {cell.Column}: {_format(cell.Value)}")</title>
                 </rect>
-                @if (ShowValues && cell.W >= _format(cell.Value).Length * 6 + 4 && cell.H >= 12)
+                @if (ShowValues && cell.W >= ChartText.Width(_format(cell.Value), 10) + 4 && cell.H >= 12)
                 {
                     <SvgText X="@(cell.X + cell.W / 2)" Y="@(cell.Y + cell.H / 2)" Dy="0.35em" Anchor="middle" FontSize="10"
-                             Fill="@(cell.T > 0.55 ? _contentColor : "var(--color-base-content)")" Text="@_format(cell.Value)" />
+                             Fill="@(cell.T > 0.55 ? ChartPalette.ContentOf(_color, "var(--color-base-100)") : "var(--color-base-content)")" Text="@_format(cell.Value)" />
                 }
             }
         }
@@ -72,7 +70,7 @@
     /// <inheritdoc />
     protected override object BuildSpec() => new
     {
-        Cells = Cells.Select(c => new { c.Row, c.Column, Value = SpecValue.Finite(c.Value) }).ToArray(),
+        Cells = Cells.Select(c => new { c.Row, c.Column, c.Value }).ToArray(),
         Rows,
         Columns,
         Width = ViewWidth,
@@ -84,11 +82,6 @@
     // The scale runs from a faint tint (smallest value) to the full colour (largest).
     private string _shade(double t) =>
         $"color-mix(in oklab, {_color} {Math.Round(8 + 92 * t).ToString(Ci)}%, var(--color-base-100))";
-
-    // Text on a theme colour uses that colour's -content token; on a custom colour, the page background.
-    private string _contentColor => _color.StartsWith("var(--color-", StringComparison.Ordinal) && _color.EndsWith(')')
-        ? _color[..^1] + "-content)"
-        : "var(--color-base-100)";
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
 

@@ -26,21 +26,15 @@ public sealed record WaterfallStep(string Label, double Value, WaterfallStepKind
 public sealed record WaterfallLayout(
     IReadOnlyList<WaterfallBar> Bars,
     IReadOnlyList<WaterfallConnector> Connectors,
-    IReadOnlyList<WaterfallTick> Ticks,
-    WaterfallPlot? Plot,
+    IReadOnlyList<AxisTick> Ticks,
+    PlotArea? Plot,
     double Zero);
 
 /// <summary>A placed bar. <paramref name="Kind"/> is "increase", "decrease" or "total"; <paramref name="Total"/> is the running total after it.</summary>
 public sealed record WaterfallBar(
     string Label, string Kind, double Value, double Total,
     double X, double Y, double Width, double Height,
-    double LabelX, double LabelY, string Anchor, double CategoryX, double CategoryY);
+    double LabelX, double LabelY, string Anchor);
 
 /// <summary>The rule carrying a running total from one bar to the next.</summary>
 public sealed record WaterfallConnector(double X1, double Y1, double X2, double Y2);
-
-/// <summary>A value-axis tick: its value and its position along the axis.</summary>
-public sealed record WaterfallTick(double Value, double Pos);
-
-/// <summary>The plotting area inside the gutters.</summary>
-public sealed record WaterfallPlot(double Left, double Top, double Right, double Bottom);
