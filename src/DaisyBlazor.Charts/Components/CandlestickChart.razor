@@ -210,13 +210,16 @@
         ChartIndicator i = Indicators[index];
         return i.Label ?? i.Kind switch
         {
-            IndicatorKind.Sma => $"SMA {i.Period ?? 20}",
-            IndicatorKind.Ema => $"EMA {i.Period ?? 20}",
-            IndicatorKind.Bollinger => $"Bollinger {i.Period ?? 20}, {i.StdDev.ToString("0.##", CultureInfo.CurrentCulture)}σ",
-            IndicatorKind.Rsi => $"RSI {i.Period ?? 14}",
-            _ => $"MACD {i.Period ?? 12}, {i.SlowPeriod}, {i.SignalPeriod}",
+            IndicatorKind.Sma => $"SMA {_period(i.Period, 20)}",
+            IndicatorKind.Ema => $"EMA {_period(i.Period, 20)}",
+            IndicatorKind.Bollinger => $"Bollinger {_period(i.Period, 20)}, {i.StdDev.ToString("0.##", CultureInfo.CurrentCulture)}σ",
+            IndicatorKind.Rsi => $"RSI {_period(i.Period, 14)}",
+            _ => $"MACD {_period(i.Period, 12)}, {_period(i.SlowPeriod, 26)}, {_period(i.SignalPeriod, 9)}",
         };
     }
+
+    // The period the layout uses (whole() in candlestick.mjs): the default when missing or under 1.
+    private static int _period(int? value, int fallback) => value is >= 1 ? value.Value : fallback;
 
     private string _panelName(CandlestickLayout geo, int panel) =>
         geo.Panels[panel].Kind == "volume"

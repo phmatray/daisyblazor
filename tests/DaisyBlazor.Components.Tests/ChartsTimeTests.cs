@@ -199,6 +199,35 @@ public class ChartsTimeTests : BunitContext
     }
 
     [Fact]
+    public void CandlestickChart_names_indicators_by_the_periods_the_layout_uses()
+    {
+        // The layout takes the default for a period under 1, so the legend must say so too.
+        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        CandlestickLayout layout = new(
+            [new("Oct 1, 2026 09:00", 40, 70, 30, 55, true, 300, 20, 200, 120, 40, 260)],
+            [new(300, "09:00")], [], _plot with { Bottom = 200 })
+        {
+            Indicators =
+            [
+                new(0, "sma", -1, "M290,150L310,140", "", "", "", "", [], [47.5]),
+                new(1, "macd", 0, "M290,230L310,220", "", "", "", "", [], [1.5]),
+            ],
+            Panels = [new("macd", 214, 260, [new(250, "0", 0)], [237], [])],
+        };
+        module.Setup<CandlestickLayout>("layout", _ => true).SetResult(layout);
+
+        IRenderedComponent<CandlestickChart> cut = Render<CandlestickChart>(ps => ps
+            .Add(p => p.Candles, [new Candle(new DateTime(2026, 10, 1, 9, 0, 0), 40, 70, 30, 55)])
+            .Add(p => p.Indicators, [new ChartIndicator(IndicatorKind.Sma, Period: 0), new ChartIndicator(IndicatorKind.Macd, Period: 0, SlowPeriod: 0, SignalPeriod: -3)]));
+
+        cut.WaitForAssertion(() => cut.Markup.ShouldContain("M290,150L310,140"));
+        string legend = cut.Find("svg + div").TextContent;
+        legend.ShouldContain("SMA 20");
+        legend.ShouldContain("MACD 12, 26, 9");
+        legend.ShouldNotContain("SMA 0");
+    }
+
+    [Fact]
     public void GanttChart_draws_bars_progress_milestones_and_today()
     {
         BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
