@@ -8,7 +8,7 @@ public static partial class DocRegistry
     private static partial IEnumerable<ComponentDoc> ChartsTime() =>
     [
         new("CalendarHeatmap", Category.Charts,
-            "A square for every day, weeks as columns and weekdays as rows, shaded by how much happened that day: deployments, builds, sign-ins. D3 builds the calendar and splits the values into levels; dates are calendar dates, so the time zone never moves a day. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "A square for every day, weeks as columns and weekdays as rows, shaded by how much happened that day: deployments, builds, sign-ins. D3 builds the calendar and splits the values into levels; dates are calendar dates, so the time zone never moves a day.",
             [typeof(CalendarHeatmap)],
             [
                 new("Basic", "Each CalendarDay gives a DateOnly and a Value; the calendar runs from the first to the last day, with month and weekday names and a Less–More key.", typeof(CalendarHeatmapBasicExample)),
@@ -18,7 +18,7 @@ public static partial class DocRegistry
             Portrait = typeof(CalendarHeatmapCoverExample),
         },
         new("HeatmapChart", Category.Charts,
-            "A grid of rows and columns where each cell is shaded by its value: requests by weekday and hour, response time by region and endpoint. D3 lays out the grid and the sequential scale from the smallest to the largest value; the shades are mixed from a theme colour. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "A grid of rows and columns where each cell is shaded by its value: requests by weekday and hour, response time by region and endpoint. D3 lays out the grid and the sequential scale from the smallest to the largest value; the shades are mixed from a theme colour.",
             [typeof(HeatmapChart)],
             [
                 new("Basic", "Each HeatmapCell puts a Value at a Row and Column; rows and columns follow the order the data first names them, and crowded column labels are thinned.", typeof(HeatmapChartBasicExample)),
@@ -28,7 +28,7 @@ public static partial class DocRegistry
             Portrait = typeof(HeatmapChartCoverExample),
         },
         new("RangeAreaChart", Category.Charts,
-            "A band from a low to a high value at each point, with an optional line through it: response time between its fast and slow percentiles around the median, sessions between the quietest and busiest moment. D3 computes the scales, ticks and smooth curves on a time or category axis. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "A band from a low to a high value at each point, with an optional line through it: response time between its fast and slow percentiles around the median, sessions between the quietest and busiest moment. D3 computes the scales, ticks and smooth curves on a time or category axis.",
             [typeof(RangeAreaChart)],
             [
                 new("Basic", "Points built with a date sit on a time axis; Low and High bound the band and Center draws the line. BandLabel and CenterLabel name them in the legend and tooltips.", typeof(RangeAreaChartBasicExample)),
@@ -38,7 +38,7 @@ public static partial class DocRegistry
             Portrait = typeof(RangeAreaChartCoverExample),
         },
         new("StreamChart", Category.Charts,
-            "Series stacked as flowing layers over time, so both the total and each part's change read at a glance: weekly active users by product area, requests by client. D3 stacks the layers as a streamgraph, a stacked area or shares of 100%, and draws the smooth areas. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "Series stacked as flowing layers over time, so both the total and each part's change read at a glance: weekly active users by product area, requests by client. D3 stacks the layers as a streamgraph, a stacked area or shares of 100%, and draws the smooth areas.",
             [typeof(StreamChart)],
             [
                 new("Basic", "Each ChartSeries is a layer; Dates put its values on a time axis. The default Wiggle offset centres the stream, and each layer is named where it is thick enough.", typeof(StreamChartBasicExample)),
@@ -48,7 +48,7 @@ public static partial class DocRegistry
             Portrait = typeof(StreamChartCoverExample),
         },
         new("CandlestickChart", Category.Charts,
-            "The first, highest, lowest and last value of each period on a time axis: CPU utilisation per hour, queue depth per ten minutes. D3 computes the time scale, ticks and the width each period gets; rising periods take the success colour and falling ones the error colour. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "The first, highest, lowest and last value of each period on a time axis: CPU utilisation per hour, queue depth per ten minutes. D3 computes the time scale, ticks and the width each period gets; rising periods take the success colour and falling ones the error colour.",
             [typeof(CandlestickChart)],
             [
                 new("Basic", "Each Candle gives a Time and its Open, High, Low and Close values; a candle's body runs from open to close and its wick from low to high.", typeof(CandlestickChartBasicExample)),
@@ -58,7 +58,7 @@ public static partial class DocRegistry
             Portrait = typeof(CandlestickChartCoverExample),
         },
         new("GanttChart", Category.Charts,
-            "Tasks as bars from their start to their end date, with progress, milestones, groups and a marker for today: a release plan, a sprint. D3 computes the time scale, rows and ticks; each group takes a theme colour. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "Tasks as bars from their start to their end date, with progress, milestones, groups and a marker for today: a release plan, a sprint. D3 computes the time scale, rows and ticks; each group takes a theme colour.",
             [typeof(GanttChart)],
             [
                 new("Basic", "Each GanttTask has a Name, Start and End; tasks with the same Group are listed under its name, Progress fills the done part and a task without an End is a milestone.", typeof(GanttChartBasicExample)),
@@ -68,7 +68,7 @@ public static partial class DocRegistry
             Portrait = typeof(GanttChartCoverExample),
         },
         new("BumpChart", Category.Charts,
-            "The rank of each series in each period, joined by smooth lines, so overtakes stand out: plans ranked by sign-ups, features ranked by use. D3 ranks the values and draws the curves; each series is named at both ends. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "The rank of each series in each period, joined by smooth lines, so overtakes stand out: plans ranked by sign-ups, features ranked by use. D3 ranks the values and draws the curves; each series is named at both ends.",
             [typeof(BumpChart)],
             [
                 new("Basic", "Each ChartSeries holds one value per period in Labels; the highest value in a period ranks first, and tooltips show the rank and the value.", typeof(BumpChartBasicExample)),

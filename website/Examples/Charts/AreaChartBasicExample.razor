@@ -1,10 +1,10 @@
-<AreaChart Title="Revenue, 2025–2026 (k€)" Labels="_quarters" Series="_revenue" Smooth="true" />
+<AreaChart Title="API requests, 2025–2026 (millions)" Labels="_quarters" Series="_requests" Smooth="true" />
 
 @code {
     private readonly string[] _quarters = ["Q1", "Q2", "Q3", "Q4", "Q1", "Q2", "Q3"];
 
-    private readonly ChartSeries[] _revenue =
+    private readonly ChartSeries[] _requests =
     [
-        new("Revenue", [118, 132, 127, 204, 141, 163, 176]),
+        new("Requests", [118, 132, 127, 204, 141, 163, 176]),
     ];
 }

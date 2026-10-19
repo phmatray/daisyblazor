@@ -8,7 +8,7 @@ public static partial class DocRegistry
     private static partial IEnumerable<ComponentDoc> ChartsCompare() =>
     [
         new("RadarChart", Category.Charts,
-            "Several series over the same named axes, each a closed shape around the centre: plans scored on seats, storage and support, teams on a health check. D3 sizes the radius so every axis name fits and places the rings on round values; the chart draws them in theme colours. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "Several series over the same named axes, each a closed shape around the centre: plans scored on seats, storage and support, teams on a health check. D3 sizes the radius so every axis name fits and places the rings on round values; the chart draws them in theme colours.",
             [typeof(RadarChart)],
             [
                 new("Basic", "Labels names the axes clockwise from the top; value i of each ChartSeries lines up with axis i, and each series gets the next palette colour.", typeof(RadarChartBasicExample)),
@@ -19,7 +19,7 @@ public static partial class DocRegistry
         },
 
         new("BulletChart", Category.Charts,
-            "A measure against its target over shaded bands for behind, on track and ahead: active seats against the quarterly goal, deployments against plan. Each row has its own scale, so measures in different units sit together. D3 computes the scales and ticks; the chart draws them in theme colours. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "A measure against its target over shaded bands for behind, on track and ahead: active seats against the quarterly goal, deployments against plan. Each row has its own scale, so measures in different units sit together. D3 computes the scales and ticks; the chart draws them in theme colours.",
             [typeof(BulletChart)],
             [
                 new("Basic", "Each BulletItem has a Value, an optional Target (the short line) and ascending Ranges for the bands behind the bar.", typeof(BulletChartBasicExample)),
@@ -30,7 +30,7 @@ public static partial class DocRegistry
         },
 
         new("DumbbellChart", Category.Charts,
-            "Two values per category joined by a line, so the size and direction of each change reads at a glance: response time before and after a release, per region. D3 computes the shared scale and ticks; the chart draws the dots in theme colours. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "Two values per category joined by a line, so the size and direction of each change reads at a glance: response time before and after a release, per region. D3 computes the shared scale and ticks; the chart draws the dots in theme colours.",
             [typeof(DumbbellChart)],
             [
                 new("Basic", "Each DumbbellItem has a Start and an End; StartLabel and EndLabel name them in the legend, and the values sit outside each pair.", typeof(DumbbellChartBasicExample)),
@@ -41,7 +41,7 @@ public static partial class DocRegistry
         },
 
         new("SlopeChart", Category.Charts,
-            "Each item as a line between two time points on one scale, named at both ends: NPS by team from the first quarter to the last. D3 computes the scale and moves end labels apart so close values never overlap; the chart draws the lines in theme colours. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "Each item as a line between two time points on one scale, named at both ends: NPS by team from the first quarter to the last. D3 computes the scale and moves end labels apart so close values never overlap; the chart draws the lines in theme colours.",
             [typeof(SlopeChart)],
             [
                 new("Basic", "Each SlopeItem goes from Start to End; StartLabel and EndLabel head the two columns.", typeof(SlopeChartBasicExample)),
@@ -52,7 +52,7 @@ public static partial class DocRegistry
         },
 
         new("LollipopChart", Category.Charts,
-            "Categories ranked by value, each a thin stem from zero with a dot at the end: a lighter bar chart for NPS by team or deployments by day. D3 computes the scale, ticks and bands; the chart draws them in theme colours. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "Categories ranked by value, each a thin stem from zero with a dot at the end: a lighter bar chart for NPS by team or deployments by day. D3 computes the scale, ticks and bands; the chart draws them in theme colours.",
             [typeof(LollipopChart)],
             [
                 new("Basic", "Data takes ChartDataPoint values; they are sorted largest first, and negative values hang on the other side of zero.", typeof(LollipopChartBasicExample)),
@@ -63,7 +63,7 @@ public static partial class DocRegistry
         },
 
         new("ParallelCoordinatesChart", Category.Charts,
-            "Items compared on several measures at once: one vertical axis per measure, each with its own scale and ticks, and one line per item through its values, such as plans across seats, storage, API calls and support hours. D3 computes the scales and lines; the chart draws them in theme colours. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "Items compared on several measures at once: one vertical axis per measure, each with its own scale and ticks, and one line per item through its values, such as plans across seats, storage, API calls and support hours. D3 computes the scales and lines; the chart draws them in theme colours.",
             [typeof(ParallelCoordinatesChart)],
             [
                 new("Basic", "Dimensions names the axes left to right; value i of each ParallelItem lines up with dimension i.", typeof(ParallelCoordinatesChartBasicExample)),
@@ -74,7 +74,7 @@ public static partial class DocRegistry
         },
 
         new("RangeBarChart", Category.Charts,
-            "A bar from a low to a high value per category: seats allowed per plan, response time from median to worst case, optionally with groups side by side. D3 computes the scale, ticks and bands; the chart draws the bars in theme colours. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "A bar from a low to a high value per category: seats allowed per plan, response time from median to worst case, optionally with groups side by side. D3 computes the scale, ticks and bands; the chart draws the bars in theme colours.",
             [typeof(RangeBarChart)],
             [
                 new("Basic", "Each RangeBarItem spans from Low to High; ShowValues writes both ends beside the bar.", typeof(RangeBarChartBasicExample)),

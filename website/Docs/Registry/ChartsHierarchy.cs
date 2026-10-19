@@ -8,7 +8,7 @@ public static partial class DocRegistry
     private static partial IEnumerable<ComponentDoc> ChartsHierarchy() =>
     [
         new("TreemapChart", Category.Charts,
-            "A tree as nested rectangles, each leaf's area proportional to its value: storage by team and project, requests by region and service. D3 tiles the rectangles; the chart draws them in theme colours, one colour per top-level branch, with each parent's name in a header. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "A tree as nested rectangles, each leaf's area proportional to its value: storage by team and project, requests by region and service. D3 tiles the rectangles; the chart draws them in theme colours, one colour per top-level branch, with each parent's name in a header.",
             [typeof(TreemapChart)],
             [
                 new("Basic", "Root is a HierarchyNode: leaves carry a Value, parents add up their Children. Tiles show their name and value when they fit; hover any tile for its full path.", typeof(TreemapChartBasicExample)),
@@ -19,7 +19,7 @@ public static partial class DocRegistry
         },
 
         new("SunburstChart", Category.Charts,
-            "A tree as rings around a centre disc, each arc's angle proportional to its value: support tickets by product area and topic, customers by plan and region. D3 places the arcs; the chart draws them in theme colours, one colour per top-level branch. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "A tree as rings around a centre disc, each arc's angle proportional to its value: support tickets by product area and topic, customers by plan and region. D3 places the arcs; the chart draws them in theme colours, one colour per top-level branch.",
             [typeof(SunburstChart)],
             [
                 new("Basic", "Root is a HierarchyNode; the centre disc shows its name and total, and each ring is one level deeper. Arcs too thin for a name keep it in their tooltip.", typeof(SunburstChartBasicExample)),
@@ -30,7 +30,7 @@ public static partial class DocRegistry
         },
 
         new("CirclePackingChart", Category.Charts,
-            "A tree as nested circles, each leaf's area proportional to its value: deployments by team and service, projects by plan and region. D3 packs the circles; the chart draws them in theme colours, one colour per top-level branch, and names the leaves that are large enough. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "A tree as nested circles, each leaf's area proportional to its value: deployments by team and service, projects by plan and region. D3 packs the circles; the chart draws them in theme colours, one colour per top-level branch, and names the leaves that are large enough.",
             [typeof(CirclePackingChart)],
             [
                 new("Basic", "Root is a HierarchyNode; each parent circle encloses its children, and the legend names the top-level branches.", typeof(CirclePackingChartBasicExample)),
@@ -41,7 +41,7 @@ public static partial class DocRegistry
         },
 
         new("IcicleChart", Category.Charts,
-            "A tree as stacked bands, one band per level, each node as long as its value: storage by team and project, requests by region and service. D3 places the bands; the chart draws them in theme colours, one colour per top-level branch. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "A tree as stacked bands, one band per level, each node as long as its value: storage by team and project, requests by region and service. D3 places the bands; the chart draws them in theme colours, one colour per top-level branch.",
             [typeof(IcicleChart)],
             [
                 new("Basic", "Root is a HierarchyNode; the root fills the first column and each level splits it further. Bands show their name and value when they fit.", typeof(IcicleChartBasicExample)),
@@ -52,7 +52,7 @@ public static partial class DocRegistry
         },
 
         new("ChordChart", Category.Charts,
-            "Relations between named nodes around a circle: each node is an arc as long as its total, each relation a ribbon between two arcs, such as calls between services or customers moving between plans. D3 places the arcs and ribbons; the chart draws them in theme colours. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "Relations between named nodes around a circle: each node is an arc as long as its total, each relation a ribbon between two arcs, such as calls between services or customers moving between plans. D3 places the arcs and ribbons; the chart draws them in theme colours.",
             [typeof(ChordChart)],
             [
                 new("Basic", "Each GraphLink joins Source and Target with a Value; node names come from the links, and a link counts once on each of its nodes.", typeof(ChordChartBasicExample)),
@@ -63,7 +63,7 @@ public static partial class DocRegistry
         },
 
         new("NetworkChart", Category.Charts,
-            "A force-directed graph: linked nodes pull together and all nodes push apart, which shows clusters and hubs, such as dependencies between services. D3 runs the simulation to rest before drawing, so the same data always gives the same picture; the chart draws it in theme colours. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "A force-directed graph: linked nodes pull together and all nodes push apart, which shows clusters and hubs, such as dependencies between services. D3 runs the simulation to rest before drawing, so the same data always gives the same picture; the chart draws it in theme colours.",
             [typeof(NetworkChart)],
             [
                 new("Basic", "Each GraphLink joins two node names; nodes grow with their number of links, and their names sit to the right.", typeof(NetworkChartBasicExample)),
@@ -74,7 +74,7 @@ public static partial class DocRegistry
         },
 
         new("ArcDiagramChart", Category.Charts,
-            "Nodes in a row on one baseline, each link an arc above it as thick as its value: shared tickets between teams, calls between services. D3 places the nodes and arcs; the chart draws them in theme colours with the names below. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "Nodes in a row on one baseline, each link an arc above it as thick as its value: shared tickets between teams, calls between services. D3 places the nodes and arcs; the chart draws them in theme colours with the names below.",
             [typeof(ArcDiagramChart)],
             [
                 new("Basic", "Each GraphLink joins two node names with a Value; nodes appear in order of first mention and grow with their number of links.", typeof(ArcDiagramChartBasicExample)),

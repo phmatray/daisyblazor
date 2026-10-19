@@ -8,7 +8,7 @@ public static partial class DocRegistry
     private static partial IEnumerable<ComponentDoc> Charts() =>
     [
         new("LineChart", Category.Charts,
-            "One or more ChartSeries drawn as lines over a gridded, labelled axis, as inline SVG laid out by the bundled D3 module at the chart's real size. Series colours cycle through the theme palette, so the chart re-skins with every theme. It needs JavaScript; under static server rendering it shows a placeholder of the same size.",
+            "One or more ChartSeries drawn as lines over a gridded, labelled axis, as inline SVG laid out by the bundled D3 module at the chart's real size. Series colours cycle through the theme palette, so the chart re-skins with every theme.",
             [typeof(LineChart)],
             [
                 new("Basic", "Labels name the x positions; each series' Data lines up with them by index. Points are shown by default.", typeof(LineChartBasicExample)),
@@ -20,7 +20,7 @@ public static partial class DocRegistry
         },
 
         new("AreaChart", Category.Charts,
-            "A line chart with the area under each series filled, for showing volume over time. It wraps LineChart with Area on and takes the same Series and Labels; unlike LineChart, ShowPoints is off by default. Like LineChart it is laid out by the bundled D3 module and needs JavaScript.",
+            "A line chart with the area under each series filled, for showing volume over time. It wraps LineChart with Area on and takes the same Series and Labels; unlike LineChart, ShowPoints is off by default. Like LineChart it is laid out by the bundled D3 module.",
             [typeof(AreaChart), typeof(LineChart)],
             [
                 new("Basic", "One smoothed series with the area filled; points stay off by default for a clean silhouette.", typeof(AreaChartBasicExample)),
@@ -32,7 +32,7 @@ public static partial class DocRegistry
         },
 
         new("BarChart", Category.Charts,
-            "Vertical or horizontal bars, either flat from Data or grouped from Series (Series wins when both are set). Bars take theme colours unless a point or series sets its own. D3 lays out the bands and the value axis; it needs JavaScript, so under static server rendering it shows a placeholder of the same size.",
+            "Vertical or horizontal bars, either flat from Data or grouped from Series (Series wins when both are set). Bars take theme colours unless a point or series sets its own. D3 lays out the bands and the value axis.",
             [typeof(BarChart)],
             [
                 new("Flat data", "A list of ChartDataPoint, one bar per label.", typeof(BarChartBasicExample)),
@@ -45,7 +45,7 @@ public static partial class DocRegistry
         },
 
         new("PieChart", Category.Charts,
-            "Slices proportional to each point's value, with a legend that shows percentages. Only positive values count towards the total. D3 computes the arcs; it needs JavaScript, so under static server rendering it shows a placeholder of the same size.",
+            "Slices proportional to each point's value, with a legend that shows percentages. Only positive values count towards the total. D3 computes the arcs.",
             [typeof(PieChart)],
             [
                 new("Basic", "Slices start at 12 o'clock and run clockwise, coloured from the theme palette.", typeof(PieChartBasicExample)),
@@ -56,7 +56,7 @@ public static partial class DocRegistry
         },
 
         new("DonutChart", Category.Charts,
-            "A pie with a hole, and room for a CenterLabel in the middle. Good for a total and its breakdown at a glance. It wraps PieChart, so it is laid out by the same D3 module and needs JavaScript.",
+            "A pie with a hole, and room for a CenterLabel in the middle. Good for a total and its breakdown at a glance. It wraps PieChart, so it is laid out by the same D3 module.",
             [typeof(DonutChart)],
             [
                 new("With a center label", "CenterLabel prints a headline figure inside the ring.", typeof(DonutChartBasicExample)),
@@ -67,7 +67,7 @@ public static partial class DocRegistry
         },
 
         new("Sparkline", Category.Charts,
-            "A tiny trend line with no axes, sized to sit inline in text, table cells or KPI tiles. Takes a plain list of numbers. D3 draws the line at the box's real size; under static server rendering it shows a placeholder of the same size.",
+            "A tiny trend line with no axes, sized to sit inline in text, table cells or KPI tiles. Takes a plain list of numbers. D3 draws the line at the box's real size.",
             [typeof(Sparkline)],
             [
                 new("Basic", "Area fills under the line, ShowEndDot marks the latest value, StrokeWidth sets the weight.", typeof(SparklineBasicExample)),
@@ -78,7 +78,7 @@ public static partial class DocRegistry
         },
 
         new("SankeyChart", Category.Charts,
-            "Flows between named stages, each band as wide as its value: signups from source to plan to status, budgets from team to project. D3 places the nodes and bands; the chart draws them in theme colours. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            "Flows between named stages, each band as wide as its value: signups from source to plan to status, budgets from team to project. D3 places the nodes and bands; the chart draws them in theme colours.",
             [typeof(SankeyChart)],
             [
                 new("Basic", "Each SankeyLink moves a Value from Source to Target; node names come from the links, and each node shows its total.", typeof(SankeyChartBasicExample)),
