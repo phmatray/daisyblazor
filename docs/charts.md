@@ -1,10 +1,23 @@
 # Charts
 
-`DaisyBlazor.Charts` is a small, **dependency-free** charting package: there's no ApexCharts, Chart.js
-or JS interop. Every chart is rendered as **inline `<svg>`** whose geometry is computed in C#, and every
-color is emitted as a daisyUI theme token (`var(--color-primary)`, …) — so charts **follow the active
-`data-theme` automatically**, with no recompilation. The only dependency is `DaisyBlazor.Components`
-(for the `Color` enum and the `CssClass` merge helper).
+`DaisyBlazor.Charts` ships **45 chart types**. Every chart is rendered as **inline `<svg>`** by its
+Razor component, and every color is emitted as a daisyUI theme token (`var(--color-primary)`, …), so
+charts **follow the active `data-theme` automatically**. The geometry (scales, ticks, layouts, paths)
+is computed by D3 modules bundled in the package (`_content/DaisyBlazor.Charts/d3.mjs` plus one small
+layout file per chart), loaded on first use: there is nothing to install from npm, and the only NuGet
+dependency is `DaisyBlazor.Components`.
+
+In the browser the layouts need JavaScript; until they answer, a chart shows a placeholder of the same
+size. To render the finished SVG during prerendering and static server rendering, add the optional
+server package, which runs the same layouts in-process with Jint (no Node):
+
+```bash
+dotnet add package DaisyBlazor.Charts.Server
+```
+
+```csharp
+builder.Services.AddDaisyBlazorChartsServerRendering();
+```
 
 ```bash
 dotnet add package DaisyBlazor.Charts
@@ -63,7 +76,7 @@ primary → secondary → accent → info → success → warning → error
 
 Charts index into this palette (wrapping with modulo) so each series/slice gets a distinct,
 theme-driven color. Because the values are `var(--color-*)`, switching the daisyUI theme re-skins every
-chart instantly — no rebuild, no JS.
+chart instantly, with no rebuild and no new layout.
 
 Override the color of an individual series or point by setting its `Color` to **any CSS color**:
 

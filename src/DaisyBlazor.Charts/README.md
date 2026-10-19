@@ -22,7 +22,14 @@ enum and the `CssClass` class-merge helper).
 | `PieChart` | Pie slices with legend + percentages | `Data`, `ShowLegend`, `InnerRadiusRatio`, `CenterLabel` |
 | `DonutChart` | Donut (pie with a hole) + optional center label | `Data`, `ShowLegend`, `InnerRadiusRatio`, `CenterLabel` |
 | `Sparkline` | Tiny axis-less inline trend line | `Data`, `Area`, `ShowEndDot`, `StrokeWidth`, `Color` |
-| `SankeyChart` (D3) | Flows between named stages, bands as wide as their value | `Links`, `NodeColors`, `NodeWidth`, `NodePadding`, `Align`, `ShowValues`, `ValueFormat` |
+
+The other 39 types, by family (each has a docs page with live examples and its parameters):
+
+- **Hierarchy and flow:** `TreemapChart`, `SunburstChart`, `CirclePackingChart`, `IcicleChart`, `SankeyChart`, `ChordChart`, `NetworkChart`, `ArcDiagramChart`
+- **Distribution:** `ScatterChart` (and bubbles), `ContourChart`, `HexbinChart`, `BoxPlotChart`, `ViolinChart`, `HistogramChart`, `BeeswarmChart`, `RidgelineChart`
+- **Over time:** `CalendarHeatmap`, `HeatmapChart`, `RangeAreaChart`, `StreamChart`, `CandlestickChart` (candle, OHLC, high-low), `GanttChart`, `BumpChart`
+- **Compare:** `RadarChart`, `BulletChart`, `DumbbellChart`, `SlopeChart`, `LollipopChart`, `ParallelCoordinatesChart`, `RangeBarChart`
+- **Composition and progress:** `WaterfallChart`, `FunnelChart` (and pyramid), `GaugeChart`, `LinearGaugeChart`, `RadialBarChart`, `PolarAreaChart`, `ParetoChart`, `MarimekkoChart`, `WaffleChart`
 
 The core charts (line, area, bar, pie, donut, sparkline) take a CSS `Width` (default `"100%"`;
 Sparkline `"5rem"`) and `Height` (default `"16rem"`; Sparkline `"1.5rem"`). Line, area, bar and
@@ -30,6 +37,12 @@ sparkline are laid out at the real pixel size of that box and again when it is r
 text and strokes are drawn at true size; pie and donut scale a square to their `Height`. The other
 charts (Sankey and more) take `AspectRatio` (width / height, default 16:9) instead of `Height`. All
 charts also accept `Title` and the standard `Class` / `Style` / unmatched-attribute splat.
+
+## Server rendering
+
+Add `DaisyBlazor.Charts.Server` and call `builder.Services.AddDaisyBlazorChartsServerRendering()` to
+lay out every chart on the server (with Jint, no Node): prerendered and statically rendered pages then
+contain the finished SVG instead of a placeholder.
 
 ## Models
 
