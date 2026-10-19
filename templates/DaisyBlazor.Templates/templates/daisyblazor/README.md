@@ -2,7 +2,7 @@
 
 A Blazor Web App (Interactive Server) pre-wired with
 [DaisyBlazor](https://github.com/phmatray/daisyblazor) — Tailwind CSS v4 + daisyUI v5 components,
-theme switching, and dependency-free SVG charts.
+theme switching, and theme-aware SVG charts that render on the server (DaisyBlazor.Charts.Server).
 
 ## Run it
 
