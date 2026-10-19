@@ -1,0 +1,41 @@
+@using System.Net.Http.Json
+@using System.Text.Json
+@inject NavigationManager Nav
+
+<ChoroplethMap Features="_world" Values="_regions" IdProperty="name" ShowLegend="false" AspectRatio="1.6" />
+
+@code {
+    private JsonElement _world;
+
+    // Workspaces per country.
+    private readonly Dictionary<string, double> _regions = new()
+    {
+        ["United States of America"] = 96,
+        ["Canada"] = 38,
+        ["Brazil"] = 44,
+        ["United Kingdom"] = 61,
+        ["France"] = 55,
+        ["Germany"] = 72,
+        ["India"] = 58,
+        ["Japan"] = 40,
+        ["Australia"] = 33,
+        ["South Africa"] = 18,
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!RendererInfo.IsInteractive)
+        {
+            return;
+        }
+
+        try
+        {
+            using HttpClient http = new() { BaseAddress = new Uri(Nav.BaseUri) };
+            _world = await http.GetFromJsonAsync<JsonElement>("data/world-countries-110m.json");
+        }
+        catch (Exception ex) when (ex is HttpRequestException or JsonException)
+        {
+        }
+    }
+}

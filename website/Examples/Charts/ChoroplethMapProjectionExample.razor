@@ -1,0 +1,43 @@
+@using System.Net.Http.Json
+@using System.Text.Json
+@inject NavigationManager Nav
+
+@* Keyed by the GeoJSON feature id (ISO 3166-1 numeric codes in this file), the default IdProperty. *@
+<ChoroplethMap Features="_world" Values="_tickets" Projection="MapProjection.EqualEarth"
+               Color="var(--color-secondary)" NoDataColor="color-mix(in oklab, var(--color-base-content) 12%, transparent)" ValueFormat="{0:N0} tickets" />
+
+@code {
+    private JsonElement _world;
+
+    // Support tickets opened this month.
+    private readonly Dictionary<string, double> _tickets = new()
+    {
+        ["840"] = 312, // United States
+        ["124"] = 64,  // Canada
+        ["076"] = 88,  // Brazil
+        ["826"] = 141, // United Kingdom
+        ["250"] = 97,  // France
+        ["276"] = 156, // Germany
+        ["724"] = 41,  // Spain
+        ["356"] = 120, // India
+        ["392"] = 58,  // Japan
+        ["036"] = 49,  // Australia
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!RendererInfo.IsInteractive)
+        {
+            return;
+        }
+
+        try
+        {
+            using HttpClient http = new() { BaseAddress = new Uri(Nav.BaseUri) };
+            _world = await http.GetFromJsonAsync<JsonElement>("data/world-countries-110m.json");
+        }
+        catch (Exception ex) when (ex is HttpRequestException or JsonException)
+        {
+        }
+    }
+}

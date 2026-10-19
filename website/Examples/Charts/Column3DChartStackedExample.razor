@@ -1,0 +1,13 @@
+<Column3DChart Labels="_regions" Series="_series" Stacked="true" Horizontal="true" Depth="0.3" AspectRatio="1.4" />
+
+@code {
+    // Each bar is a region's active customers, split by plan.
+    private readonly string[] _regions = ["Europe", "North America", "Asia Pacific", "Latin America", "Africa"];
+
+    private readonly ChartSeries[] _series =
+    [
+        new("Free", [1_840, 2_210, 1_130, 620, 240]),
+        new("Pro", [760, 940, 410, 190, 70]),
+        new("Enterprise", [120, 160, 64, 22, 8]),
+    ];
+}

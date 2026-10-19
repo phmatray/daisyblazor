@@ -1,0 +1,107 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<SmithLayout>
+
+@* Smith chart: normalized impedances placed at their reflection coefficient inside the unit circle,
+   over a grid of constant-resistance circles and constant-reactance arcs (mirrored for admittance).
+   The layout computes the grid and the points; the grid is drawn in faint base-content. *@
+
+<D3ChartFrame TLayout="SmithLayout" Chart="this" Label="@_label" Description="@_description">
+    <ChildContent>
+        @if (Layout is { } geo)
+        {
+            <circle cx="@N(geo.Cx)" cy="@N(geo.Cy)" r="@N(geo.Radius)" fill="var(--color-base-content)" fill-opacity="0.03"
+                    stroke="var(--color-base-content)" stroke-opacity="0.45" />
+            <g fill="none" stroke="var(--color-base-content)" stroke-opacity="0.18">
+                @foreach (SmithCircle c in geo.Circles)
+                {
+                    <circle cx="@N(c.Cx)" cy="@N(c.Cy)" r="@N(c.R)" />
+                }
+                @foreach (SmithArc a in geo.Arcs)
+                {
+                    <path d="@a.Path" />
+                }
+            </g>
+            <line x1="@N(geo.Cx - geo.Radius)" y1="@N(geo.Cy)" x2="@N(geo.Cx + geo.Radius)" y2="@N(geo.Cy)" stroke="var(--color-base-content)" stroke-opacity="0.35" />
+            @if (ShowGridLabels)
+            {
+                @foreach (ChartLabel l in geo.Labels)
+                {
+                    <SvgText X="@l.X" Y="@l.Y" Anchor="@l.Anchor" FontSize="10" FillOpacity="0.6" Text="@l.Text" />
+                }
+            }
+
+            @for (int s = 0; s < geo.Series.Count && s < Series.Count; s++)
+            {
+                SmithLayoutSeries placed = geo.Series[s];
+                SmithSeries series = Series[s];
+                string color = ChartPalette.At(s, series.Color);
+                @if (ShowLine && placed.Path.Length > 0)
+                {
+                    <path d="@placed.Path" fill="none" stroke="@color" stroke-width="2" stroke-linejoin="round" />
+                }
+                @foreach (SmithLayoutPoint p in placed.Points.Where(p => p.I < series.Points.Count))
+                {
+                    <circle cx="@N(p.X)" cy="@N(p.Y)" r="4.5" fill="@color" stroke="var(--color-base-100)" stroke-width="1.5">
+                        <title>@_tooltip(series, p)</title>
+                    </circle>
+                }
+            }
+        }
+    </ChildContent>
+    <Legend>
+        @if (Series.Count > 1)
+        {
+            <ChartLegend Items="@Series.Select((s, i) => (s.Name, ChartPalette.At(i, s.Color))).ToList()" />
+        }
+    </Legend>
+</D3ChartFrame>
+
+@code {
+    /// <summary>The series of normalized impedances to plot.</summary>
+    [Parameter] public IReadOnlyList<SmithSeries> Series { get; set; } = [];
+
+    /// <summary>Draw the impedance grid (default) or the admittance grid, mirrored left to right.</summary>
+    [Parameter] public SmithChartMode Mode { get; set; } = SmithChartMode.Impedance;
+
+    /// <summary>Join each series' points with a line, in order.</summary>
+    [Parameter] public bool ShowLine { get; set; } = true;
+
+    /// <summary>Print the resistance and reactance values of the grid.</summary>
+    [Parameter] public bool ShowGridLabels { get; set; } = true;
+
+    /// <summary>Creates a Smith chart with a square default shape.</summary>
+    public SmithChart()
+    {
+        AspectRatio = 1;
+    }
+
+    /// <inheritdoc />
+    protected override string Kind => "smith";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Series = Series.Select(s => new { Points = (s.Points ?? []).Select(p => new { R = p.Resistance, X = p.Reactance }).ToArray() }).ToArray(),
+        Admittance = Mode == SmithChartMode.Admittance,
+        Width = ViewWidth,
+        Height = ViewHeight,
+    };
+
+    private static string _num(double value) => value.ToString("0.##", CultureInfo.CurrentCulture);
+
+    private static string _impedance(SmithPoint p) =>
+        $"{_num(p.Resistance)} {(p.Reactance < 0 ? "−" : "+")} j{_num(Math.Abs(p.Reactance))}";
+
+    private string _tooltip(SmithSeries series, SmithLayoutPoint placed)
+    {
+        SmithPoint p = series.Points[placed.I];
+        string name = string.Join(" · ", new[] { Series.Count > 1 ? series.Name : null, p.Label }.Where(n => !string.IsNullOrEmpty(n)));
+        string gamma = $"|Γ| = {placed.Magnitude.ToString("0.###", CultureInfo.CurrentCulture)} ∠ {placed.Angle.ToString("0.0", CultureInfo.CurrentCulture)}°";
+        return $"{(name.Length > 0 ? name + ": " : string.Empty)}z = {_impedance(p)}, {gamma}";
+    }
+
+    private string _label => Title ?? (Mode == SmithChartMode.Admittance ? "Smith chart (admittance)" : "Smith chart");
+
+    private string _description => string.Join("; ", Series.Select(s =>
+        $"{s.Name}: {string.Join(", ", (s.Points ?? []).Select(p => (p.Label is null ? string.Empty : p.Label + " ") + _impedance(p)))}"));
+}
