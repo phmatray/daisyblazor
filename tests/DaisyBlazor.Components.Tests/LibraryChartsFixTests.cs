@@ -454,4 +454,46 @@ public class LibraryChartsFixTests : BunitContext
         spec.ShouldContain("\"bands\":[{\"from\":10,\"to\":20,\"label\":null}]");
         cut.FindAll("text").Select(t => t.TextContent).ShouldContain("Target");
     }
+
+    [Fact]
+    public void LineChart_sends_markers_as_label_indices_and_draws_them_from_the_layout()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupCharts(line: ChartFakes.Line with
+        {
+            Markers = [new(0, 483, 8, 483, 231, 483, 4, "middle", "Pricing change")],
+            MarkerSpans = [new(2, 30, 8, 302, 223, 166, 4, "middle")],
+        });
+        IRenderedComponent<LineChart> cut = Render<LineChart>(ps => ps
+            .Add(p => p.Series, One(10, 20))
+            .Add(p => p.Labels, ["Jan", "Feb"])
+            .Add(p => p.Markers, [new ChartMarker("Feb", "Pricing change", "var(--color-primary)"), new ChartMarker("Dec", "Unknown"), new ChartMarker("Jan", To: "Jan")]));
+
+        module.Spec().ShouldContain("\"markers\":[{\"at\":1,\"to\":null,\"label\":\"Pricing change\"},{\"at\":null,\"to\":null,\"label\":\"Unknown\"},{\"at\":0,\"to\":0,\"label\":null}]");
+
+        IElement pricing = cut.FindAll("line").Single(l => l.QuerySelector("title")?.TextContent == "Pricing change: Feb");
+        pricing.GetAttribute("stroke").ShouldBe("var(--color-primary)");
+        pricing.GetAttribute("x1").ShouldBe("483");
+        IElement span = cut.FindAll("rect").Single(r => r.QuerySelector("title")?.TextContent == "Span: Jan to Jan");
+        span.GetAttribute("fill-opacity").ShouldBe("0.12");
+        cut.FindAll("text").Single(t => t.TextContent == "Pricing change").GetAttribute("fill").ShouldBe("var(--color-primary)");
+    }
+
+    [Fact]
+    public void Markers_are_left_out_of_the_spec_when_there_are_none_and_forwarded_by_area_and_bar()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupCharts();
+        Render<LineChart>(ps => ps.Add(p => p.Series, One(1, 2)).Add(p => p.Markers, []));
+        module.Spec().ShouldNotContain("markers");
+
+        Render<AreaChart>(ps => ps.Add(p => p.Series, One(1, 2)).Add(p => p.Labels, ["Q1", "Q2"]).Add(p => p.Markers, [new ChartMarker("Q2")]));
+        module.Spec().ShouldContain("\"markers\":[{\"at\":1,\"to\":null,\"label\":null}]");
+
+        Render<BarChart>(ps => ps
+            .Add(p => p.Data, new List<ChartDataPoint> { new("Free", 1), new("Pro", 2), new("Team", 3) })
+            .Add(p => p.Horizontal, true)
+            .Add(p => p.Markers, [new ChartMarker("Team", "Launch", To: "Pro"), new ChartMarker("Pro", To: "Enterprise")]));
+        string bar = module.Spec();
+        bar.ShouldContain("\"horizontal\":true");
+        bar.ShouldContain("\"markers\":[{\"at\":2,\"to\":1,\"label\":\"Launch\"},{\"at\":null,\"to\":null,\"label\":null}]");
+    }
 }

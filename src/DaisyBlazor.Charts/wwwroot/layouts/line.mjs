@@ -1,6 +1,6 @@
 import { scalePoint } from '../d3/d3-scale.mjs';
 import { line as d3Line, area as d3Area, stack, stackOffsetExpand, curveMonotoneX, curveMonotoneY, curveLinear, curveStepAfter, curveStepBefore } from '../d3/d3-shape.mjs';
-import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, stride, compact, valueScale, ticks, referenceRoom, referenceMarks, referenceValues, categoryTrends } from './_shared.mjs';
+import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, stride, compact, valueScale, ticks, referenceRoom, referenceMarks, referenceValues, categoryTrends, categoryMarks, markerRoom } from './_shared.mjs';
 
 // Line and area charts. spec: { series: [[number|null]], labels: [string], stacked, smooth,
 // showGrid, width, height } (px). Points sit in the middle of equal slots, one per label or value.
@@ -16,8 +16,10 @@ import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, stride, compact, value
 // referenceMarks); the result then carries `references` and `bands`. trendline ('linear',
 // 'exponential', 'logarithmic', 'power', 'polynomial' of trendlineOrder, 'movingaverage' of
 // trendlinePeriod points) adds `trends`, one per series fitted over the label index on its own
-// values (see categoryTrends); it is ignored when stacked or percent.
-export default function line({ trendline = 'none', trendlineOrder = 2, trendlinePeriod = 3, series = [], labels = [], stacked = false, percent = false, smooth = false, step = false, showGrid = true, horizontal = false, references, bands: ranges, width, height }) {
+// values (see categoryTrends); it is ignored when stacked or percent. markers ([{ at, to, label }],
+// label indices) add lines at a label or shaded spans over labels (see categoryMarks); the result then
+// carries `markers` and `markerSpans`.
+export default function line({ markers = [],  trendline = 'none', trendlineOrder = 2, trendlinePeriod = 3, series = [], labels = [], stacked = false, percent = false, smooth = false, step = false, showGrid = true, horizontal = false, references, bands: ranges, width, height }) {
     stacked ||= percent;
     const dataCount = Math.max(0, ...series.map(s => s.length));
     const count = Math.max(dataCount, labels.length);
@@ -36,7 +38,8 @@ export default function line({ trendline = 'none', trendlineOrder = 2, trendline
     const values = [...bands.flatMap(b => b.map(([, top]) => top)).filter(finite), ...referenceValues(references)];
     const tickText = percent ? v => `${compact(v)}%` : compact;
     const marginal = referenceRoom(width, horizontal, references, ranges);
-    const top = 8 + marginal.top;
+    const marked = markerRoom(width, !horizontal, markers);
+    const top = 8 + Math.max(marginal.top, marked.top);
     let plot;
     let xTicks;
     let yTicks;
@@ -48,7 +51,7 @@ export default function line({ trendline = 'none', trendlineOrder = 2, trendline
         const bottom = height - (showGrid ? LABEL_ROW : 4);
         value = valueScale(values, { zero: true, count: 5 });
         const lastTick = showGrid ? ticks(value, 5, tickText).at(-1)?.label ?? '' : '';
-        const right = width - Math.max(6, textWidth(lastTick) / 2 + 2);
+        const right = width - Math.max(6, textWidth(lastTick) / 2 + 2, marked.right);
         value.range([left, right]);
         place = scalePoint().domain([...Array(count).keys()]).range([top, bottom]).padding(0.5);
         const slot = count > 0 ? (bottom - top) / count : 0;
@@ -64,7 +67,7 @@ export default function line({ trendline = 'none', trendlineOrder = 2, trendline
         value = valueScale(values, { zero: true, count: 5 }).range([bottom, top]);
         yTicks = showGrid ? ticks(value, 5, tickText) : [];
         const left = yTicks.length > 0 ? Math.max(...yTicks.map(t => textWidth(t.label))) + 6 : 0;
-        const right = width - Math.max(6, marginal.right);
+        const right = width - Math.max(6, marginal.right, marked.right);
 
         place = scalePoint().domain([...Array(count).keys()]).range([left, right]).padding(0.5);
         const slot = count > 0 ? (right - left) / count : 0;
@@ -107,6 +110,9 @@ export default function line({ trendline = 'none', trendlineOrder = 2, trendline
     };
     if (trendline && trendline !== 'none' && !stacked) {
         out.trends = categoryTrends(series, place, value, horizontal, plot, { kind: trendline, order: trendlineOrder, period: trendlinePeriod });
+    }
+    if (markers.length) {
+        Object.assign(out, categoryMarks(markers, place, place.step(), !horizontal, plot, width - plot.right));
     }
     return references?.length || ranges?.length ? { ...out, ...referenceMarks(value, horizontal, plot, references, ranges, marginal.right) } : out;
 }

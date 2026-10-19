@@ -169,6 +169,28 @@ export function referenceMarks(scale, across, plot, references = [], bands = [],
     return { references: lines, bands: shaded };
 }
 
+/**
+ * Markers on a category axis: a line at a category, or with `to` a shaded span over the categories
+ * from `at` to `to` (indices; either order). markers: [{ at, to, label }]; a marker whose `at` is
+ * null (an unknown category) is dropped, keeping the indices. `centre(i)` is category i's position
+ * and `step` the distance between neighbours; a span covers its categories' whole slots. `across`
+ * is true when the categories run along x (the marks are then vertical, labelled in the row above
+ * the plot), else they sit in the right margin, cut to `room` (see referenceMarks).
+ * Returns { markers: [reference line layout], markerSpans: [reference band layout] }.
+ */
+export function categoryMarks(markers, centre, step, across, plot, room = Infinity) {
+    const ok = m => finite(m?.at);
+    const lines = markers.map(m => (ok(m) && !finite(m.to) ? { value: centre(m.at), label: m.label } : null));
+    const spans = markers.map(m => (ok(m) && finite(m.to)
+        ? { from: centre(Math.min(m.at, m.to)) - step / 2, to: centre(Math.max(m.at, m.to)) + step / 2, label: m.label }
+        : null));
+    const { references, bands } = referenceMarks(v => v, across, plot, lines, spans, room);
+    return { markers: references, markerSpans: bands };
+}
+
+/** Room for the labels of category markers (see referenceRoom); markers with no category take none. */
+export const markerRoom = (width, across, markers) => referenceRoom(width, across, (markers ?? []).filter(m => finite(m?.at)));
+
 /** The finite reference values, to take into a value axis's domain so every reference line shows. */
 export const referenceValues = references => (references ?? []).map(r => r?.value).filter(finite);
 

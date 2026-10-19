@@ -13,6 +13,7 @@
            Horizontal="Horizontal"
            References="References"
            Bands="Bands"
+           Markers="Markers"
            Trendline="Trendline"
            TrendlineOrder="TrendlineOrder"
            TrendlinePeriod="TrendlinePeriod"
@@ -66,6 +67,9 @@
 
     /// <summary>Shaded value ranges (plot bands) drawn behind the areas, each with an optional label.</summary>
     [Parameter] public IReadOnlyList<ChartBand>? Bands { get; set; }
+
+    /// <summary>Markers on the category axis: a line at a category, or a shaded span over categories, each with an optional label (see <see cref="LineChart.Markers"/>).</summary>
+    [Parameter] public IReadOnlyList<ChartMarker>? Markers { get; set; }
 
     /// <summary>
     /// Fit and draw a dashed trend line per series, over the category index (0, 1, …) on the series'

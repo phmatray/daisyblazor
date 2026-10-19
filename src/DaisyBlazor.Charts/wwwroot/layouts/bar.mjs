@@ -1,5 +1,5 @@
 import { scaleBand } from '../d3/d3-scale.mjs';
-import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, compact, valueScale, ticks, referenceRoom, referenceMarks, referenceValues, categoryTrends } from './_shared.mjs';
+import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, compact, valueScale, ticks, referenceRoom, referenceMarks, referenceValues, categoryTrends, categoryMarks, markerRoom } from './_shared.mjs';
 
 // Bar chart, flat or grouped. spec: { categories: [string], series: [[number|null]], horizontal,
 // showGrid, width, height } (px); a flat chart is one series. Bars run from the zero line to their
@@ -14,8 +14,9 @@ import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, compact, valueScale, t
 // trendline ('linear', 'exponential', 'logarithmic', 'power', 'polynomial' of trendlineOrder,
 // 'movingaverage' of trendlinePeriod points) adds `trends`, one per series fitted over the category
 // index on its own values and drawn through the centres of that series' own bars (see categoryTrends); it is
-// ignored when stacked or percent.
-export default function bar({ trendline = 'none', trendlineOrder = 2, trendlinePeriod = 3, categories = [], series = [], horizontal = false, showGrid = true, stacked = false, percent = false, stacks = [], references, bands, width, height }) {
+// ignored when stacked or percent. markers ([{ at, to, label }], category indices) add lines at a
+// category or shaded spans over categories (see categoryMarks); the result then carries `markers` and `markerSpans`.
+export default function bar({ markers = [],  trendline = 'none', trendlineOrder = 2, trendlinePeriod = 3, categories = [], series = [], horizontal = false, showGrid = true, stacked = false, percent = false, stacks = [], references, bands, width, height }) {
     stacked ||= percent;
     const stackOf = s => (stacked ? stacks[s] ?? 0 : s);
     // [from, to] per series and category, null for no bar; unstacked bars start at zero.
@@ -41,7 +42,8 @@ export default function bar({ trendline = 'none', trendlineOrder = 2, trendlineP
     const values = [...(stacked ? spans.flat().filter(Boolean).flat() : series.flat().filter(finite)), ...referenceValues(references)];
     const tickText = percent ? v => `${compact(v)}%` : compact;
     const marginal = referenceRoom(width, horizontal, references, bands);
-    const top = 8 + marginal.top;
+    const marked = markerRoom(width, !horizontal, markers);
+    const top = 8 + Math.max(marginal.top, marked.top);
     let left;
     let right;
     let bottom;
@@ -53,14 +55,14 @@ export default function bar({ trendline = 'none', trendlineOrder = 2, trendlineP
         bottom = height - (showGrid ? LABEL_ROW : 4);
         value = valueScale(values, { zero: true, count: 5 });
         const lastTick = showGrid ? ticks(value, 5, tickText).at(-1)?.label ?? '' : '';
-        right = width - Math.max(6, textWidth(lastTick) / 2 + 2);
+        right = width - Math.max(6, textWidth(lastTick) / 2 + 2, marked.right);
         value.range([left, right]);
     } else {
         bottom = height - (categories.length > 0 ? LABEL_ROW : 4);
         value = valueScale(values, { zero: true, count: 5 }).range([bottom, top]);
         const tickLabels = showGrid ? ticks(value, 5, tickText) : [];
         left = tickLabels.length > 0 ? Math.max(...tickLabels.map(t => textWidth(t.label))) + 6 : 0;
-        right = width - Math.max(6, marginal.right);
+        right = width - Math.max(6, marginal.right, marked.right);
     }
 
     const band = scaleBand()
@@ -102,6 +104,9 @@ export default function bar({ trendline = 'none', trendlineOrder = 2, trendlineP
     if (trendline && trendline !== 'none' && !stacked) {
         // Grouped bars: each series' trend runs through its own bars, not the category centre.
         out.trends = categoryTrends(series, (c, s) => band(c) + inner(stackOf(s)) + inner.bandwidth() / 2, value, horizontal, plot, { kind: trendline, order: trendlineOrder, period: trendlinePeriod });
+    }
+    if (markers.length) {
+        Object.assign(out, categoryMarks(markers, c => band(c) + band.bandwidth() / 2, band.step(), !horizontal, plot, width - plot.right));
     }
     return references?.length || bands?.length ? { ...out, ...referenceMarks(value, horizontal, plot, references, bands, marginal.right) } : out;
 }
