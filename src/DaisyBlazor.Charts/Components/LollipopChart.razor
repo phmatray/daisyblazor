@@ -30,8 +30,8 @@
     /// <summary>The categories and their values. Points whose Value is not a finite number are skipped; a point's Color overrides the chart colour.</summary>
     [Parameter] public IReadOnlyList<ChartDataPoint> Data { get; set; } = [];
 
-    /// <summary>Stand the stems up as columns instead of rows.</summary>
-    [Parameter] public bool Vertical { get; set; }
+    /// <summary>Lay the stems out as rows (the default); false stands them up as columns.</summary>
+    [Parameter] public bool Horizontal { get; set; } = true;
 
     /// <summary>Order of the categories.</summary>
     [Parameter] public LollipopSort Sort { get; set; } = LollipopSort.Descending;
@@ -55,7 +55,7 @@
         Items = Data.Select(d => new { d.Label, Value = CompareSpec.Finite(d.Value), Text = _format(d.Value) }).ToArray(),
         Width = ViewWidth,
         Height = ViewHeight,
-        Vertical,
+        Vertical = !Horizontal,
         Sort = Sort.ToString().ToLowerInvariant(),
         ShowValues,
     };

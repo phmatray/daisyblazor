@@ -85,7 +85,7 @@ public class ChartsHierarchyTests : BunitContext
 
     [Fact]
     public void Icicle_draws_every_node_including_the_root() =>
-        _hierarchyChart("icicle", () => Render<IcicleChart>(ps => ps.Add(p => p.Root, _root).Add(p => p.Orientation, IcicleOrientation.Vertical)), "\"orientation\":\"vertical\"", cut =>
+        _hierarchyChart("icicle", () => Render<IcicleChart>(ps => ps.Add(p => p.Root, _root).Add(p => p.Horizontal, false)), "\"orientation\":\"vertical\"", cut =>
         {
             cut.FindAll("svg rect").Count.ShouldBe(5);
             cut.Markup.ShouldContain("var(--color-neutral)");

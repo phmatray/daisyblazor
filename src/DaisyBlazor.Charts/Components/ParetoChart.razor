@@ -47,7 +47,7 @@
 
 @code {
     /// <summary>The categories. They are sorted by value, largest first; only positive values count.</summary>
-    [Parameter] public IReadOnlyList<ChartDataPoint> Items { get; set; } = [];
+    [Parameter] public IReadOnlyList<ChartDataPoint> Data { get; set; } = [];
 
     /// <summary>The cumulative share (0 to 1) marked by the reference line; bars up to the one that reaches it stay solid.</summary>
     [Parameter] public double Threshold { get; set; } = 0.8;
@@ -70,7 +70,7 @@
     /// <inheritdoc />
     protected override object BuildSpec() => new
     {
-        Items = Items.Select(i => new { i.Label, i.Value }).ToArray(),
+        Items = Data.Select(i => new { i.Label, i.Value }).ToArray(),
         Threshold,
         Width = ViewWidth,
         Height = ViewHeight,

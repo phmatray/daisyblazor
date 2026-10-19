@@ -36,8 +36,8 @@
     /// <summary>The measures, one bullet each. Rows whose Value is not a finite number are skipped.</summary>
     [Parameter] public IReadOnlyList<BulletItem> Items { get; set; } = [];
 
-    /// <summary>Stand the bullets up as columns instead of rows.</summary>
-    [Parameter] public bool Vertical { get; set; }
+    /// <summary>Lay the bullets out as rows (the default); false stands them up as columns.</summary>
+    [Parameter] public bool Horizontal { get; set; } = true;
 
     /// <summary>Colour of the value bar (any CSS colour). Defaults to the theme's primary colour.</summary>
     [Parameter] public string? BarColor { get; set; }
@@ -63,7 +63,7 @@
         }).ToArray(),
         Width = ViewWidth,
         Height = ViewHeight,
-        Vertical,
+        Vertical = !Horizontal,
     };
 
     private string _barColor => ChartPalette.At(0, BarColor);

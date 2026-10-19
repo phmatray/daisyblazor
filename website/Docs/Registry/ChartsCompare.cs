@@ -23,7 +23,7 @@ public static partial class DocRegistry
             [typeof(BulletChart)],
             [
                 new("Basic", "Each BulletItem has a Value, an optional Target (the short line) and ascending Ranges for the bands behind the bar.", typeof(BulletChartBasicExample)),
-                new("Vertical", "Vertical=\"true\" stands the bullets up as columns; BarColor takes any CSS colour and ValueFormat shapes the tooltips.", typeof(BulletChartVerticalExample)),
+                new("Vertical", "Horizontal=\"false\" stands the bullets up as columns; BarColor takes any CSS colour and ValueFormat shapes the tooltips.", typeof(BulletChartVerticalExample)),
             ])
         {
             Portrait = typeof(BulletChartCoverExample),
@@ -56,7 +56,7 @@ public static partial class DocRegistry
             [typeof(LollipopChart)],
             [
                 new("Basic", "Data takes ChartDataPoint values; they are sorted largest first, and negative values hang on the other side of zero.", typeof(LollipopChartBasicExample)),
-                new("Vertical, in order", "Vertical=\"true\" stands the stems up, Sort=\"LollipopSort.None\" keeps the data's order, and a point's Color overrides the chart's.", typeof(LollipopChartVerticalExample)),
+                new("Vertical, in order", "Horizontal=\"false\" stands the stems up, Sort=\"LollipopSort.None\" keeps the data's order, and a point's Color overrides the chart's.", typeof(LollipopChartVerticalExample)),
             ])
         {
             Portrait = typeof(LollipopChartCoverExample),

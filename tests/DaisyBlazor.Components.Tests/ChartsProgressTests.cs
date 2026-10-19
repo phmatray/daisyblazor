@@ -67,7 +67,7 @@ public class ChartsProgressTests : BunitContext
         (BunitJSModuleInterop module, JSRuntimeInvocationHandler<FunnelLayout> call) = Setup<FunnelLayout>();
         ChartDataPoint[] stages = [new("Trial", 1000), new("Paid", 250)];
 
-        IRenderedComponent<FunnelChart> cut = Render<FunnelChart>(ps => ps.Add(p => p.Stages, stages).Add(p => p.Shape, FunnelShape.Pyramid));
+        IRenderedComponent<FunnelChart> cut = Render<FunnelChart>(ps => ps.Add(p => p.Data, stages).Add(p => p.Shape, FunnelShape.Pyramid));
 
         (string kind, string spec) = Sent(module);
         kind.ShouldBe("funnel");
@@ -92,7 +92,7 @@ public class ChartsProgressTests : BunitContext
 
         IRenderedComponent<GaugeChart> cut = Render<GaugeChart>(ps => ps
             .Add(p => p.Title, "Uptime").Add(p => p.Value, 99.95).Add(p => p.Min, 99).Add(p => p.Max, 100)
-            .Add(p => p.Marker, 99.9).Add(p => p.Bands, bands).Add(p => p.Color, Color.Success));
+            .Add(p => p.Marker, 99.9).Add(p => p.Bands, bands).Add(p => p.Color, "var(--color-success)"));
 
         (string kind, string spec) = Sent(module);
         kind.ShouldBe("gauge");
@@ -129,7 +129,7 @@ public class ChartsProgressTests : BunitContext
         (BunitJSModuleInterop module, JSRuntimeInvocationHandler<LinearGaugeLayout> call) = Setup<LinearGaugeLayout>();
 
         IRenderedComponent<LinearGaugeChart> cut = Render<LinearGaugeChart>(ps => ps
-            .Add(p => p.Value, 412).Add(p => p.Max, 500).Add(p => p.Vertical, true).Add(p => p.AspectRatio, 0.5).Add(p => p.ValueFormat, "{0} GB"));
+            .Add(p => p.Value, 412).Add(p => p.Max, 500).Add(p => p.Horizontal, false).Add(p => p.AspectRatio, 0.5).Add(p => p.ValueFormat, "{0} GB"));
 
         (string kind, string spec) = Sent(module);
         kind.ShouldBe("linear-gauge");
@@ -150,7 +150,7 @@ public class ChartsProgressTests : BunitContext
         (BunitJSModuleInterop module, JSRuntimeInvocationHandler<RadialBarLayout> call) = Setup<RadialBarLayout>();
         ChartDataPoint[] items = [new("Compute", 72), new("Seats", 93, "var(--color-warning)")];
 
-        IRenderedComponent<RadialBarChart> cut = Render<RadialBarChart>(ps => ps.Add(p => p.Items, items).Add(p => p.ValueFormat, "{0}%"));
+        IRenderedComponent<RadialBarChart> cut = Render<RadialBarChart>(ps => ps.Add(p => p.Data, items).Add(p => p.ValueFormat, "{0}%"));
 
         (string kind, string spec) = Sent(module);
         kind.ShouldBe("radial-bar");
@@ -174,7 +174,7 @@ public class ChartsProgressTests : BunitContext
         (BunitJSModuleInterop module, JSRuntimeInvocationHandler<PolarAreaLayout> call) = Setup<PolarAreaLayout>();
         ChartDataPoint[] items = [new("Login", 142), new("API", 88)];
 
-        IRenderedComponent<PolarAreaChart> cut = Render<PolarAreaChart>(ps => ps.Add(p => p.Items, items));
+        IRenderedComponent<PolarAreaChart> cut = Render<PolarAreaChart>(ps => ps.Add(p => p.Data, items));
 
         (string kind, string spec) = Sent(module);
         kind.ShouldBe("polar-area");
@@ -195,7 +195,7 @@ public class ChartsProgressTests : BunitContext
         (BunitJSModuleInterop module, JSRuntimeInvocationHandler<ParetoLayout> call) = Setup<ParetoLayout>();
         ChartDataPoint[] items = [new("DNS", 30), new("Timeout", 50), new("Other", 20)];
 
-        IRenderedComponent<ParetoChart> cut = Render<ParetoChart>(ps => ps.Add(p => p.Items, items));
+        IRenderedComponent<ParetoChart> cut = Render<ParetoChart>(ps => ps.Add(p => p.Data, items));
 
         (string kind, string spec) = Sent(module);
         kind.ShouldBe("pareto");
@@ -251,7 +251,7 @@ public class ChartsProgressTests : BunitContext
         (BunitJSModuleInterop module, JSRuntimeInvocationHandler<WaffleLayout> call) = Setup<WaffleLayout>();
         ChartDataPoint[] items = [new("Active", 412), new("Gone", 0), new("Invited", 96)];
 
-        IRenderedComponent<WaffleChart> cut = Render<WaffleChart>(ps => ps.Add(p => p.Items, items).Add(p => p.Total, 600));
+        IRenderedComponent<WaffleChart> cut = Render<WaffleChart>(ps => ps.Add(p => p.Data, items).Add(p => p.Total, 600));
 
         (string kind, string spec) = Sent(module);
         kind.ShouldBe("waffle");

@@ -26,7 +26,7 @@
 
 @code {
     /// <summary>The stages, first (widest) to last. Points without a finite, non-negative Value are skipped.</summary>
-    [Parameter] public IReadOnlyList<ChartDataPoint> Stages { get; set; } = [];
+    [Parameter] public IReadOnlyList<ChartDataPoint> Data { get; set; } = [];
 
     /// <summary>Funnel (equal-height stages narrowing top to bottom) or Pyramid (a triangle sliced by value, first stage at the base).</summary>
     [Parameter] public FunnelShape Shape { get; set; } = FunnelShape.Funnel;
@@ -46,7 +46,7 @@
     /// <inheritdoc />
     protected override object BuildSpec() => new
     {
-        Stages = Stages.Select(s => new { s.Label, s.Value }).ToArray(),
+        Stages = Data.Select(s => new { s.Label, s.Value }).ToArray(),
         Width = ViewWidth,
         Height = ViewHeight,
         Shape = Shape.ToString().ToLowerInvariant(),
@@ -54,7 +54,7 @@
     };
 
     private string _color(FunnelLayoutStage stage) =>
-        ChartPalette.At(stage.Index, (stage.Index < Stages.Count ? Stages[stage.Index].Color : null) ?? Color);
+        ChartPalette.At(stage.Index, (stage.Index < Data.Count ? Data[stage.Index].Color : null) ?? Color);
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
 

@@ -65,8 +65,8 @@
     /// <summary>Thickness of the arc as a fraction of its radius (0.02 to 0.9).</summary>
     [Parameter] public double Thickness { get; set; } = 0.2;
 
-    /// <summary>Theme colour of the filled arc.</summary>
-    [Parameter] public Color Color { get; set; } = Color.Primary;
+    /// <summary>Any CSS colour for the filled arc, such as <c>var(--color-success)</c>; <see cref="ChartPalette.FromColor"/> maps a <c>Color</c> value to its theme token. Defaults to the theme's primary colour.</summary>
+    [Parameter] public string? Color { get; set; }
 
     /// <summary>Format string for the value and ticks, e.g. "{0:0.00}%".</summary>
     [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
@@ -97,7 +97,7 @@
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
 
-    private string _color => ChartPalette.FromColor(Color) ?? ChartPalette.At(0);
+    private string _color => Color ?? ChartPalette.At(0);
 
     private GaugeBand? _band(int index) => Bands is { } bands && index < bands.Count ? bands[index] : null;
 

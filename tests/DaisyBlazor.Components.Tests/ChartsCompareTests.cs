@@ -68,7 +68,7 @@ public class ChartsCompareTests : BunitContext
         (BunitJSModuleInterop module, JSRuntimeInvocationHandler<BulletLayout> call) = Setup<BulletLayout>();
         IRenderedComponent<BulletChart> cut = Render<BulletChart>(ps => ps
             .Add(p => p.Items, [new BulletItem("Active seats", 820, 900, [500, 750, 1000]), new BulletItem("Broken", double.NaN)])
-            .Add(p => p.Vertical, true));
+            .Add(p => p.Horizontal, false));
 
         (string kind, string spec) = Sent(module);
         kind.ShouldBe("bullet");
@@ -240,7 +240,7 @@ public class ChartsCompareTests : BunitContext
         cut.Render(ps => ps.Add(p => p.Title, "NPS"));
         module.Invocations["layout"].Count.ShouldBe(1);
 
-        cut.Render(ps => ps.Add(p => p.Vertical, true));
+        cut.Render(ps => ps.Add(p => p.Horizontal, false));
         module.Invocations["layout"].Count.ShouldBe(2);
     }
 }

@@ -29,7 +29,7 @@
 
 @code {
     /// <summary>One ring per point, outermost first. A point's Color overrides the theme palette.</summary>
-    [Parameter] public IReadOnlyList<ChartDataPoint> Items { get; set; } = [];
+    [Parameter] public IReadOnlyList<ChartDataPoint> Data { get; set; } = [];
 
     /// <summary>The value of a full ring; values are clamped to [0, Max]. Zero or less uses the largest value.</summary>
     [Parameter] public double Max { get; set; } = 100;
@@ -52,7 +52,7 @@
     /// <inheritdoc />
     protected override object BuildSpec() => new
     {
-        Items = Items.Select(i => new { i.Label, i.Value }).ToArray(),
+        Items = Data.Select(i => new { i.Label, i.Value }).ToArray(),
         Max,
         Width = ViewWidth,
         Height = ViewHeight,
@@ -60,12 +60,12 @@
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
 
-    private string _color(int index) => ChartPalette.At(index, index < Items.Count ? Items[index].Color : null);
+    private string _color(int index) => ChartPalette.At(index, index < Data.Count ? Data[index].Color : null);
 
     private string _text(RadialBarRing ring) => $"{ring.Label} {_format(ring.Value)}";
 
     private string _label => Title ?? "Radial bar chart";
 
     private string _description =>
-        string.Join("; ", Items.Select(i => $"{i.Label}: {_format(i.Value)}")) + (Max > 0 ? $" (full ring {_format(Max)})" : string.Empty);
+        string.Join("; ", Data.Select(i => $"{i.Label}: {_format(i.Value)}")) + (Max > 0 ? $" (full ring {_format(Max)})" : string.Empty);
 }

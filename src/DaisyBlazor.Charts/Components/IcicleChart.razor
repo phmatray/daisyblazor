@@ -33,8 +33,8 @@
     /// <summary>The tree to draw. Leaves are sized by Value; a parent is the sum of its children. The root is the first band.</summary>
     [Parameter] public HierarchyNode? Root { get; set; }
 
-    /// <summary>Horizontal puts the root on the left with one column per level; Vertical puts it on top with one row per level.</summary>
-    [Parameter] public IcicleOrientation Orientation { get; set; } = IcicleOrientation.Horizontal;
+    /// <summary>Put the root on the left with one column per level (the default); false puts it on top with one row per level.</summary>
+    [Parameter] public bool Horizontal { get; set; } = true;
 
     /// <summary>Print each node's value under its name when the band is tall enough.</summary>
     [Parameter] public bool ShowValues { get; set; } = true;
@@ -54,7 +54,7 @@
         Root,
         Width = ViewWidth,
         Height = ViewHeight,
-        Orientation = Orientation.ToString().ToLowerInvariant(),
+        Orientation = Horizontal ? "horizontal" : "vertical",
     };
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);

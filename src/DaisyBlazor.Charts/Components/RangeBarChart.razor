@@ -38,8 +38,8 @@
     /// <summary>The bars. Items with the same Label share a category; Group splits it into side-by-side slots. Items whose Low or High is not a finite number are skipped.</summary>
     [Parameter] public IReadOnlyList<RangeBarItem> Items { get; set; } = [];
 
-    /// <summary>Stand the bars up as columns instead of rows.</summary>
-    [Parameter] public bool Vertical { get; set; }
+    /// <summary>Lay the bars out as rows (the default); false stands them up as columns.</summary>
+    [Parameter] public bool Horizontal { get; set; } = true;
 
     /// <summary>Write the low and high values at the ends of each bar.</summary>
     [Parameter] public bool ShowValues { get; set; }
@@ -71,7 +71,7 @@
         }).ToArray(),
         Width = ViewWidth,
         Height = ViewHeight,
-        Vertical,
+        Vertical = !Horizontal,
         ShowValues,
     };
 

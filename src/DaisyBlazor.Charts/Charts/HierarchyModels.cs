@@ -29,15 +29,6 @@ public enum TreemapTile
     SliceDice,
 }
 
-/// <summary>Which way an <see cref="IcicleChart"/> grows from its root.</summary>
-public enum IcicleOrientation
-{
-    /// <summary>Root on the left, one column per level.</summary>
-    Horizontal,
-
-    /// <summary>Root on top, one row per level.</summary>
-    Vertical,
-}
 
 /// <summary>Geometry of a hierarchy chart, computed by d3-hierarchy.</summary>
 /// <param name="Nodes">The placed nodes, parents before their children.</param>
