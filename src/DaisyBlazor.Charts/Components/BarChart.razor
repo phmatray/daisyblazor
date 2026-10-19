@@ -1,106 +1,77 @@
 @namespace DaisyBlazor.Charts
+@inherits D3ChartBase<BarLayout>
 
-@* Dependency-free bar chart. Renders vertical (default) or horizontal bars from either a flat
-   ChartDataPoint list or grouped ChartSeries. Values map to a gridded axis; colors follow the
-   active daisyUI theme via the cycling ChartPalette. *@
+@* Bar chart. Renders vertical (default) or horizontal bars from either a flat ChartDataPoint list or
+   grouped ChartSeries. D3 computes the bands, the nice value axis and the bars (from the zero line,
+   in either direction) at the box's real pixel size (measured mode), so text is drawn 1:1. Colors
+   follow the active daisyUI theme via the cycling ChartPalette. *@
 
-<div class="@_cls" style="@_style" @attributes="UserAttributes">
+<div class="@CssClass.Merge("w-full", Class)" style="@(string.IsNullOrEmpty(Width) ? Style : $"width:{Width};{Style}")" @attributes="UserAttributes">
     @if (!string.IsNullOrEmpty(Title))
     {
         <div class="text-sm font-medium mb-2 text-base-content/80">@Title</div>
     }
 
-    @* Layout: a CSS grid with a left gutter (sized by its widest label, capped at 40%), the plot,
-       and a bottom label row. Bars and gridlines live in the stretched SVG; all text is HTML, so it
-       keeps a fixed CSS size at any aspect ratio and long labels are never clipped mid-word. *@
-    <div style="@_gridStyle">
-        <div style="@(_leftLabels.Count > 0 ? "position:relative;padding-right:6px;" : "position:relative;")" aria-hidden="true">
-            @foreach ((double pos, string label) in _leftLabels)
-            {
-                <div style="height:0;overflow:hidden;visibility:hidden;white-space:nowrap;">@label</div>
-            }
-            @foreach ((double pos, string label) in _leftLabels)
-            {
-                <span class="text-base-content/60" title="@label" style="@($"position:absolute;left:0;right:6px;top:{_pct(pos)}%;transform:translateY(-50%);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")">@label</span>
-            }
-        </div>
-
-        <div style="position:relative;min-width:0;">
-            <svg viewBox="0 0 100 100"
-                 preserveAspectRatio="none"
-                 role="img"
-                 aria-label="@_ariaLabel"
-                 aria-describedby="@_descId"
-                 style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;">
+    <div @ref="MeasuredElement" style="@($"position:relative;height:{ChartText.Size(Height, "16rem")};")">
+        @if (Error is { } error)
+        {
+            <div role="alert" class="flex items-center justify-center rounded-box border border-dashed border-error/50 text-error text-sm p-4 text-center" style="height:100%;">
+                The chart could not be drawn: @error
+            </div>
+        }
+        else if (Layout is not { } geo)
+        {
+            <div aria-busy="true" aria-label="@($"{_ariaLabel} (loading)")" class="rounded-box bg-base-200 animate-pulse motion-reduce:animate-none" style="height:100%;"></div>
+        }
+        else
+        {
+            <svg viewBox="@($"0 0 {N(geo.Width)} {N(geo.Height)}")" role="img" aria-label="@_ariaLabel" aria-describedby="@_descId"
+                 style="position:absolute;inset:0;display:block;width:100%;height:100%;overflow:visible;font-family:inherit;">
                 <title>@_ariaLabel</title>
                 <desc id="@_descId">@_description</desc>
 
-                @if (ShowGrid)
+                @foreach (AxisLabel tick in geo.ValueTicks)
                 {
-                    @foreach ((double pos, string label) in _valueGrid)
+                    @if (Horizontal)
                     {
-                        @if (Horizontal)
-                        {
-                            <line x1="@pos.ToString(_ci)" y1="0" x2="@pos.ToString(_ci)" y2="100"
-                                  stroke="var(--color-base-content)" stroke-opacity="0.12" stroke-width="1"
-                                  vector-effect="non-scaling-stroke" />
-                        }
-                        else
-                        {
-                            <line x1="0" y1="@pos.ToString(_ci)" x2="100" y2="@pos.ToString(_ci)"
-                                  stroke="var(--color-base-content)" stroke-opacity="0.12" stroke-width="1"
-                                  vector-effect="non-scaling-stroke" />
-                        }
+                        <line x1="@N(tick.Pos)" y1="@N(geo.Plot.Top)" x2="@N(tick.Pos)" y2="@N(geo.Plot.Bottom)"
+                              stroke="var(--color-base-content)" stroke-opacity="0.12" stroke-width="1" />
+                        <SvgText X="@tick.Pos" Y="@geo.ValueLabelAt" Anchor="middle" FillOpacity="0.6" Text="@tick.Label" />
+                    }
+                    else
+                    {
+                        <line x1="@N(geo.Plot.Left)" y1="@N(tick.Pos)" x2="@N(geo.Plot.Right)" y2="@N(tick.Pos)"
+                              stroke="var(--color-base-content)" stroke-opacity="0.12" stroke-width="1" />
+                        <SvgText X="@geo.ValueLabelAt" Y="@tick.Pos" Dy="0.35em" Anchor="end" FillOpacity="0.6" Text="@tick.Label" />
                     }
                 }
 
-                @for (int c = 0; c < _categories.Count; c++)
+                @* A layout still being replaced may name bars the new data no longer has. *@
+                @foreach (BarLayoutBar bar in geo.Bars.Where(b => b.C < _categories.Count && b.S < _seriesCount))
                 {
-                    @for (int s = 0; s < _seriesCount; s++)
-                    {
-                        double v = _value(c, s);
-                        if (!_finite(v))
-                        {
-                            continue;
-                        }
+                    <rect x="@N(bar.X)" y="@N(bar.Y)" width="@N(bar.Width)" height="@N(bar.Height)"
+                          fill="@_color(bar.C, bar.S)"><title>@_tooltip(bar.C, bar.S)</title></rect>
+                }
 
-                        // Bars run from the zero line to the value, in either direction.
-                        double a = _valuePos(0);
-                        double b = _valuePos(v);
-                        double lo = System.Math.Min(a, b);
-                        double len = System.Math.Abs(b - a);
-                        double start = _barStart(c, s);
+                @foreach (AxisLabel label in geo.CategoryLabels)
+                {
+                    <g>
+                        @if (label.Full != label.Label)
+                        {
+                            <title>@label.Full</title>
+                        }
                         @if (Horizontal)
                         {
-                            <rect x="@lo.ToString(_ci)" y="@start.ToString(_ci)"
-                                  width="@len.ToString(_ci)" height="@_barThickness.ToString(_ci)"
-                                  fill="@_color(c, s)"><title>@_tooltip(c, s, v)</title></rect>
+                            <SvgText X="@geo.LabelAt" Y="@label.Pos" Dy="0.35em" Anchor="end" FillOpacity="0.6" Text="@label.Label" />
                         }
                         else
                         {
-                            <rect x="@start.ToString(_ci)" y="@lo.ToString(_ci)"
-                                  width="@_barThickness.ToString(_ci)" height="@len.ToString(_ci)"
-                                  fill="@_color(c, s)"><title>@_tooltip(c, s, v)</title></rect>
+                            <SvgText X="@label.Pos" Y="@geo.LabelAt" Anchor="middle" FillOpacity="0.6" Text="@label.Label" />
                         }
-                    }
+                    </g>
                 }
             </svg>
-        </div>
-
-        <div></div>
-        <div style="@(_bottomLabels.Count > 0 ? "position:relative;height:calc(1.2em + 6px);" : "position:relative;")" aria-hidden="true">
-            @foreach ((double pos, string label) in _bottomLabels)
-            {
-                @if (Horizontal)
-                {
-                    <span class="text-base-content/60" style="@($"position:absolute;top:6px;left:{_pct(pos)}%;transform:translateX(-50%);white-space:nowrap;")">@label</span>
-                }
-                else
-                {
-                    <span class="text-base-content/60" title="@label" style="@($"position:absolute;top:6px;left:{_pct(pos)}%;width:{_pct(_slot)}%;transform:translateX(-50%);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;")">@label</span>
-                }
-            }
-        </div>
+        }
     </div>
 
     @if (ShowLegend && _seriesCount > 1)
@@ -151,19 +122,18 @@
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
-    private const double _groupGap = 0.25; // fraction of slot reserved as gap between groups
+    /// <inheritdoc />
+    protected override string Kind => "bar";
 
-    private static readonly CultureInfo _ci = CultureInfo.InvariantCulture;
+    /// <inheritdoc />
+    protected override bool Measured => true;
+
+    private IReadOnlyList<ChartSeries>? _series;
+    private IReadOnlyList<ChartDataPoint> _points = [];
+    private List<string> _categories = new();
 
     // Per-instance id for the SVG <desc> that exposes the plotted values to screen readers.
     private readonly string _descId = "bar-desc-" + Guid.NewGuid().ToString("N")[..8];
-
-    private IReadOnlyList<ChartSeries>? _series;
-    private IReadOnlyList<ChartDataPoint>? _points;
-    private List<string> _categories = new();
-    private double _max;
-    private double _min;
-    private List<(double Pos, string Label)> _valueGrid = new();
 
     private bool _grouped => _series is { Count: > 0 };
     private int _seriesCount => _grouped ? _series!.Count : 1;
@@ -173,69 +143,32 @@
             ? (Horizontal ? "Horizontal bar chart" : "Bar chart")
             : Title!;
 
-    protected override void OnParametersSet()
+    /// <inheritdoc />
+    protected override object BuildSpec()
     {
         _series = Series is { Count: > 0 } ? Series : null;
-        _points = Data;
-
-        // Build category list + value range.
-        List<double> allValues = new();
-        _categories = new List<string>();
-
+        _points = Data ?? [];
         if (_grouped)
         {
-            int catCount = Math.Max(_series!.Max(s => s.Data?.Count ?? 0), Labels?.Count ?? 0);
-            for (int i = 0; i < catCount; i++)
-            {
-                _categories.Add(Labels is { Count: > 0 } && i < Labels.Count
-                    ? Labels[i]
-                    : (i + 1).ToString(_ci));
-            }
-
-            foreach (ChartSeries s in _series!)
-            {
-                if (s.Data is not null)
-                {
-                    allValues.AddRange(s.Data.Where(_finite));
-                }
-            }
+            int count = Math.Max(_series!.Max(s => s.Data?.Count ?? 0), Labels?.Count ?? 0);
+            _categories = Enumerable.Range(0, count)
+                .Select(i => Labels is not null && i < Labels.Count ? Labels[i] : (i + 1).ToString(Ci))
+                .ToList();
         }
-        else if (_points is { Count: > 0 })
+        else
         {
-            foreach (ChartDataPoint p in _points)
-            {
-                _categories.Add(p.Label);
-                if (_finite(p.Value))
-                {
-                    allValues.Add(p.Value);
-                }
-            }
+            _categories = _points.Select(p => p.Label).ToList();
         }
 
-        // Bars grow from zero, so the axis always includes it; round out to nice bounds.
-        double min = Math.Min(allValues.Count > 0 ? allValues.Min() : 0, 0);
-        double max = Math.Max(allValues.Count > 0 ? allValues.Max() : 1, 0);
-        (double niceMin, double niceMax, double step) = SvgGeometry.NiceScale(min, max);
-        _min = niceMin;
-        _max = niceMax;
-
-        _valueGrid.Clear();
-        foreach (double value in SvgGeometry.Ticks(_min, _max, step))
+        return new
         {
-            _valueGrid.Add((_valuePos(value), SvgGeometry.FormatTick(value, _ci)));
-        }
-    }
-
-    private static bool _finite(double v) => !double.IsNaN(v) && !double.IsInfinity(v);
-
-    private static string _pct(double v) => v.ToString("0.###", _ci);
-
-    // Position of a value along the value axis in the 0..100 plot space (y for vertical bars,
-    // x for horizontal bars).
-    private double _valuePos(double value)
-    {
-        double frac = (value - _min) / (_max - _min);
-        return Horizontal ? 100 * frac : 100 - 100 * frac;
+            Categories = _categories,
+            Series = _grouped
+                ? _series!.Select(s => ChartText.Spec(s.Data)).ToArray()
+                : [ChartText.Spec(_points.Select(p => p.Value).ToList())],
+            Horizontal,
+            ShowGrid,
+        };
     }
 
     private double _value(int category, int series)
@@ -246,27 +179,20 @@
             return d is not null && category < d.Count ? d[category] : double.NaN;
         }
 
-        return _points is not null && category < _points.Count ? _points[category].Value : double.NaN;
+        return category < _points.Count ? _points[category].Value : double.NaN;
     }
 
-    private string _color(int category, int series)
-    {
-        if (_grouped)
-        {
-            return ChartPalette.At(series, _series![series].Color);
-        }
+    // Grouped: one colour per series. Flat: each point cycles the palette unless it overrides.
+    private string _color(int category, int series) => _grouped
+        ? ChartPalette.At(series, _series![series].Color)
+        : ChartPalette.At(category, category < _points.Count ? _points[category].Color : null);
 
-        // Flat mode: each point cycles the palette unless it overrides.
-        string? ovr = _points is not null && category < _points.Count ? _points[category].Color : null;
-        return ChartPalette.At(category, ovr);
-    }
-
-    private string _tooltip(int category, int series, double value)
+    private string _tooltip(int category, int series)
     {
         string prefix = _grouped && _seriesCount > 1 && !string.IsNullOrEmpty(_series![series].Name)
             ? $"{_series![series].Name} · "
             : string.Empty;
-        return $"{prefix}{_categories[category]}: {SvgGeometry.FormatValue(value, _ci)}";
+        return $"{prefix}{_categories[category]}: {ChartText.Value(_value(category, series))}";
     }
 
     private string _description
@@ -276,7 +202,7 @@
             IEnumerable<string> Values(int s) => _categories.Select((label, c) =>
             {
                 double v = _value(c, s);
-                return $"{label} {(_finite(v) ? SvgGeometry.FormatValue(v, _ci) : "no data")}";
+                return $"{label} {(double.IsFinite(v) ? ChartText.Value(v) : "no data")}";
             });
 
             if (!_grouped)
@@ -286,48 +212,6 @@
 
             return string.Join("; ", Enumerable.Range(0, _seriesCount).Select(s =>
                 string.IsNullOrEmpty(_series![s].Name) ? string.Join(", ", Values(s)) : $"{_series![s].Name}: {string.Join(", ", Values(s))}"));
-        }
-    }
-
-    // Geometry along the category axis (x for vertical bars, y for horizontal bars), 0..100.
-    private double _slot => _categories.Count == 0 ? 0 : 100.0 / _categories.Count;
-    private double _innerSlot => _slot * (1 - _groupGap);
-    private double _barThickness => _seriesCount == 0 ? 0 : _innerSlot / _seriesCount;
-
-    private double _groupCenter(int category) => _slot * category + _slot / 2;
-
-    private double _barStart(int category, int series)
-    {
-        double groupLeft = _slot * category + (_slot - _innerSlot) / 2;
-        return groupLeft + _barThickness * series;
-    }
-
-    private List<(double Pos, string Label)> _categoryLabels =>
-        _categories.Select((label, c) => (_groupCenter(c), label)).ToList();
-
-    private List<(double Pos, string Label)> _valueLabels => ShowGrid ? _valueGrid : new();
-
-    private List<(double Pos, string Label)> _leftLabels => Horizontal ? _categoryLabels : _valueLabels;
-
-    private List<(double Pos, string Label)> _bottomLabels => Horizontal ? _valueLabels : _categoryLabels;
-
-    private string _gridStyle =>
-        "display:grid;grid-template-columns:fit-content(40%) minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;" +
-        $"box-sizing:border-box;height:{Height};padding:0.75em {(Horizontal && ShowGrid ? "1.25em" : "0.5em")} 0 0;font-size:0.6875rem;line-height:1.2;";
-
-    private string _cls => CssClass.Merge("w-full", Class);
-
-    private string _style
-    {
-        get
-        {
-            string dim = string.Empty;
-            if (!string.IsNullOrEmpty(Width))
-            {
-                dim += $"width:{Width};";
-            }
-
-            return $"{dim}{Style}";
         }
     }
 }

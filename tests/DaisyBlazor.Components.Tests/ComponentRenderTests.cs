@@ -170,9 +170,11 @@ public class ComponentRenderTests : BunitContext
     }
 }
 
-/// <summary>Tests for the dependency-free SVG charts.</summary>
+/// <summary>Tests for the core SVG charts, with their D3 layouts answered by <see cref="ChartFakes"/>.</summary>
 public class ChartRenderTests : BunitContext
 {
+    public ChartRenderTests() => JSInterop.SetupCharts();
+
     [Fact]
     public void Sparkline_renders_svg_path()
     {

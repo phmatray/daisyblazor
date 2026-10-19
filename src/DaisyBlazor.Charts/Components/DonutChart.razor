@@ -1,62 +1,18 @@
 @namespace DaisyBlazor.Charts
 
-@* Dependency-free donut chart. Same arc math as the pie chart but with an inner radius (the hole)
-   and an optional centered label. Colors follow the active daisyUI theme. *@
+@* Donut chart. A thin, discoverable wrapper over PieChart with a hole (InnerRadiusRatio, default
+   0.6) and an optional centered label. Same data API; colors follow the active daisyUI theme. *@
 
-<div class="@_cls" style="@_style" @attributes="UserAttributes">
-    @if (!string.IsNullOrEmpty(Title))
-    {
-        <div class="text-sm font-medium mb-2 text-base-content/80">@Title</div>
-    }
-
-    <div class="flex flex-wrap items-center gap-4">
-        <div class="relative" style="@($"height:{Height};")">
-            <svg viewBox="0 0 @_size.ToString(_ci) @_size.ToString(_ci)"
-                 role="img"
-                 style="@($"height:{Height};max-width:100%;")"
-                 aria-label="@_ariaLabel"
-                 aria-describedby="@_descId">
-                <title>@_ariaLabel</title>
-                @* Screen-reader data description: the slice breakdown the legend conveys visually. *@
-                <desc id="@_descId">@_dataDescription</desc>
-
-                @if (_total <= 0)
-                {
-                    <circle cx="@_cx.ToString(_ci)" cy="@_cy.ToString(_ci)" r="@(((_radius + _innerRadius) / 2).ToString(_ci))"
-                            fill="none" stroke="var(--color-base-content)" stroke-opacity="0.15"
-                            stroke-width="@((_radius - _innerRadius).ToString(_ci))" />
-                }
-                else
-                {
-                    @foreach (Slice slice in _slices)
-                    {
-                        <path d="@slice.Path" fill="@slice.Color"
-                              stroke="var(--color-base-100)" stroke-width="1"><title>@_sliceTitle(slice)</title></path>
-                    }
-                }
-
-                @if (!string.IsNullOrEmpty(CenterLabel))
-                {
-                    <SvgText X="@_cx" Y="@(_cy + _centerFontSize(CenterLabel) * 0.35)" Anchor="middle" FontSize="@_centerFontSize(CenterLabel)" FontWeight="600" Text="@CenterLabel" />
-                }
-            </svg>
-        </div>
-
-        @if (ShowLegend && _slices.Count > 0)
-        {
-            <ul class="flex flex-wrap gap-3 text-xs">
-                @foreach (Slice slice in _slices)
-                {
-                    <li class="flex items-center gap-1.5">
-                        <span class="inline-block w-3 h-3 rounded-sm" style="@($"background:{slice.Color};")"></span>
-                        <span class="text-base-content/80">@slice.Label</span>
-                        <span class="text-base-content/50">@slice.Percent.ToString("0.#", _ci)%</span>
-                    </li>
-                }
-            </ul>
-        }
-    </div>
-</div>
+<PieChart Data="Data"
+          ShowLegend="ShowLegend"
+          Width="@Width"
+          Height="@Height"
+          Title="@Title"
+          InnerRadiusRatio="InnerRadiusRatio"
+          CenterLabel="@CenterLabel"
+          Class="@Class"
+          Style="@Style"
+          @attributes="UserAttributes" />
 
 @code {
     /// <summary>Slice data; each point's value contributes to the whole.</summary>
@@ -85,107 +41,4 @@
     /// <summary>Inline styles appended to the chart wrapper, after the width from <see cref="Width"/>.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
-
-    private const double _size = 200;
-    private const double _cx = 100;
-    private const double _cy = 100;
-    private double _radius => _size / 2 - 6;
-    private double _innerRadius => _radius * Math.Clamp(InnerRadiusRatio, 0, 0.95);
-
-    private static readonly CultureInfo _ci = CultureInfo.InvariantCulture;
-
-    private double _total;
-    private List<Slice> _slices = new();
-
-    private string _ariaLabel => string.IsNullOrEmpty(Title) ? "Donut chart" : Title!;
-
-    // Per-instance id for the SVG <desc> so role="img" exposes the slice data to screen readers
-    // (the visual legend conveys this to sighted users only).
-    private readonly string _descId = "donut-desc-" + Guid.NewGuid().ToString("N")[..8];
-
-
-    // Centre label font: at most 22 units, shrunk so the text fits inside the hole for thin rings
-    // and long labels (about 0.6 em per character at weight 600).
-    private double _centerFontSize(string label) =>
-        Math.Max(4, Math.Min(22, Math.Min(_innerRadius * 0.6, 2 * _innerRadius * 0.85 / (0.6 * Math.Max(1, label.Length)))));
-
-    private string _sliceTitle(Slice slice) =>
-        $"{slice.Label}: {SvgGeometry.FormatValue(slice.Value, _ci)} ({slice.Percent.ToString("0.#", _ci)}%)";
-
-    private string _dataDescription => _total <= 0
-        ? "No data."
-        : string.Join("; ", _slices.Select(_sliceTitle));
-
-    protected override void OnParametersSet()
-    {
-        _slices = new List<Slice>();
-        IReadOnlyList<ChartDataPoint> data = Data ?? new List<ChartDataPoint>();
-
-        double total = 0;
-        foreach (ChartDataPoint p in data)
-        {
-            double v = p.Value;
-            if (double.IsNaN(v) || double.IsInfinity(v) || v <= 0)
-            {
-                continue;
-            }
-
-            total += v;
-        }
-
-        _total = total;
-        if (total <= 0)
-        {
-            return;
-        }
-
-        double cursor = 0;
-        int index = 0;
-        for (int i = 0; i < data.Count; i++)
-        {
-            double v = data[i].Value;
-            if (double.IsNaN(v) || double.IsInfinity(v) || v <= 0)
-            {
-                continue;
-            }
-
-            double fraction = v / total;
-            double start = cursor;
-            double end = cursor + fraction * 2 * Math.PI;
-
-            if (data.Count == 1 || fraction >= 0.999999)
-            {
-                end = start + 2 * Math.PI - 0.0001;
-            }
-
-            string path = SvgGeometry.ArcPath(_cx, _cy, _radius, _innerRadius, start, end, _ci);
-            _slices.Add(new Slice(
-                data[i].Label,
-                ChartPalette.At(index, data[i].Color),
-                path,
-                fraction * 100,
-                v));
-
-            cursor = end;
-            index++;
-        }
-    }
-
-    private string _cls => CssClass.Merge("w-full", Class);
-
-    private string _style
-    {
-        get
-        {
-            string dim = string.Empty;
-            if (!string.IsNullOrEmpty(Width))
-            {
-                dim += $"width:{Width};";
-            }
-
-            return $"{dim}{Style}";
-        }
-    }
-
-    private sealed record Slice(string Label, string Color, string Path, double Percent, double Value);
 }

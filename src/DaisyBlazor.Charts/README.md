@@ -2,11 +2,11 @@
 
 Theme-aware SVG charts for Blazor, with no NuGet or npm dependency.
 
-Every chart is rendered as inline `<svg>` by its Razor component. The core charts (line, area, bar,
-pie, donut, sparkline) compute their geometry in C# and need no JavaScript, so they also render
-under static server rendering. The advanced charts (Sankey, and more to come) compute their layout
-with a D3 module bundled in the package (`_content/DaisyBlazor.Charts/charts.mjs`, loaded on first
-use); until it answers, and under static rendering, they show a placeholder of the same size. Colors are
+Every chart is rendered as inline `<svg>` by its Razor component, and every chart computes its
+geometry (scales, nice ticks, paths, arcs, stacking, bands) with a D3 module bundled in the package
+(`_content/DaisyBlazor.Charts/charts.mjs`, loaded on first use). The charts therefore need
+JavaScript: until the module answers, and under static server rendering, each chart shows a
+placeholder of the same size. Colors are
 emitted as daisyUI v5 CSS custom properties (`var(--color-primary)`, `var(--color-secondary)`,
 `var(--color-accent)`, …), so charts **automatically follow the active `data-theme`** with no
 recompilation. The only project reference is `DaisyBlazor.Components` (for the public `Color`
@@ -24,9 +24,12 @@ enum and the `CssClass` class-merge helper).
 | `Sparkline` | Tiny axis-less inline trend line | `Data`, `Area`, `ShowEndDot`, `StrokeWidth`, `Color` |
 | `SankeyChart` (D3) | Flows between named stages, bands as wide as their value | `Links`, `NodeColors`, `NodeWidth`, `NodePadding`, `Align`, `ShowValues`, `ValueFormat` |
 
-D3-backed charts take `AspectRatio` (width / height, default 16:9) instead of `Height`.
-All chart components also accept `Width` (default `"100%"`), `Height` (default `"16rem"`;
-Sparkline `"1.5rem"`), `Title`, and the standard `Class` / `Style` / unmatched-attribute splat.
+The core charts (line, area, bar, pie, donut, sparkline) take a CSS `Width` (default `"100%"`;
+Sparkline `"5rem"`) and `Height` (default `"16rem"`; Sparkline `"1.5rem"`). Line, area, bar and
+sparkline are laid out at the real pixel size of that box and again when it is resized, so their
+text and strokes are drawn at true size; pie and donut scale a square to their `Height`. The other
+charts (Sankey and more) take `AspectRatio` (width / height, default 16:9) instead of `Height`. All
+charts also accept `Title` and the standard `Class` / `Style` / unmatched-attribute splat.
 
 ## Models
 
@@ -86,10 +89,10 @@ overrides take precedence; pass any CSS color (`"var(--color-info)"`, `"#0af"`, 
 
 ## Notes & geometry
 
-- Charts use a fixed user-space viewBox scaled responsively (`preserveAspectRatio`), so they
-  stay crisp at any size.
-- Value axes include a zero baseline; flat or empty data is handled without divide-by-zero.
-- Pie/donut arcs are built from cumulative angles (0 = 12 o'clock, clockwise) using SVG `A`
-  arc commands; a single full-circle slice is nudged to avoid a degenerate zero-length arc.
-- `Smooth` line mode uses Catmull-Rom-to-Bézier conversion.
+- The layouts live in `wwwroot/layouts/` (`line`, `bar`, `pie`, `spark`, `sankey`, …) and return
+  plain data; the Razor components draw it with theme colors.
+- Value axes include a zero baseline and round out to nice ticks with compact labels (`50k`);
+  flat or empty data is handled without divide-by-zero, and NaN/infinite values leave a gap.
+- Pie/donut slices come from `d3.pie`/`d3.arc` in data order, from 12 o'clock, clockwise.
+- `Smooth` line mode uses monotone cubic curves (`d3.curveMonotoneX`), which never overshoot.
 - Every chart sets `role="img"` and an accessible `<title>` (from `Title` when provided).

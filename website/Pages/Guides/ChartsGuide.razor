@@ -2,16 +2,20 @@
 
 <DocShell Title="Charts" Tracks="G.Tracks" Trail="G.Trail" Portrait="Portrait" PortraitCaption="Plan mix">
     <Lede>
-        <code>DaisyBlazor.Charts</code> draws line, area, bar, pie, donut and sparkline charts as inline SVG computed in C#.
-        No ApexCharts, no Chart.js, no JS interop, and every colour is a daisyUI theme token.
+        <code>DaisyBlazor.Charts</code> draws line, area, bar, pie, donut and sparkline charts as inline SVG laid out by a D3 module
+        bundled in the package. No ApexCharts, no Chart.js, nothing to install from npm, and every colour is a daisyUI theme token.
     </Lede>
     <ChildContent>
         <div class="prose-doc">
             <p>
-                Every chart is rendered as <strong>inline <code>&lt;svg&gt;</code></strong> whose geometry is computed in C#, and every colour is
+                Every chart is rendered as <strong>inline <code>&lt;svg&gt;</code></strong> whose geometry (scales, ticks, paths, arcs) is computed by the D3 module bundled in the package, and every colour is
                 emitted as a daisyUI theme token (<code>var(--color-primary)</code>, …), so charts <strong>follow the active
                 <code>data-theme</code> automatically</strong>, with no recompilation. The only dependency is <code>DaisyBlazor.Components</code>
                 (for the <code>Color</code> enum and the <code>CssClass</code> merge helper).
+            </p>
+            <p>
+                The charts need <strong>JavaScript</strong>: the module (<code>_content/DaisyBlazor.Charts/charts.mjs</code>) loads on first use.
+                Until it answers, and under static server rendering, each chart shows a placeholder of the same size, so nothing jumps.
             </p>
 
             @H(0)
@@ -60,7 +64,7 @@
         </ol>
         <div class="prose-doc mt-5">
             <p>
-                Because the values are <code>var(--color-*)</code>, switching the daisyUI theme re-skins every chart instantly: no rebuild, no JS.
+                Because the values are <code>var(--color-*)</code>, switching the daisyUI theme re-skins every chart instantly, with no rebuild and no new layout.
                 Override the colour of an individual series or point by setting its <code>Color</code> to <strong>any CSS colour</strong>:
             </p>
             <CodeBlock Language="csharp" Code="@Overrides" />
@@ -86,14 +90,17 @@
 
             @H(5)
             <ul>
-                <li>Charts use a fixed user-space <code>viewBox</code> scaled responsively (<code>preserveAspectRatio</code>), so they stay crisp at any rendered size.</li>
-                <li>Value axes include a <strong>zero baseline</strong>; flat or empty data is handled without divide-by-zero.</li>
+                <li>
+                    Line, area, bar charts and sparklines are laid out at the real pixel size of their box (<code>Width</code> by <code>Height</code>)
+                    and again when it is resized, so text and strokes are drawn at true size. Pie and donut charts scale a square to their <code>Height</code>.
+                </li>
+                <li>Value axes include a <strong>zero baseline</strong> and round out to nice ticks (large values read <code>50k</code>); flat or empty data is handled without divide-by-zero, and a missing value leaves a gap.</li>
                 <li><code>BarChart</code> takes <code>Series</code> (grouped) over <code>Data</code> (flat) when both are supplied; <code>Horizontal</code> flips the axis.</li>
                 <li>
-                    Pie and donut arcs are built from cumulative angles (0 = 12 o'clock, clockwise) with SVG <code>A</code> arc commands; a single
-                    full-circle slice is nudged to avoid a degenerate zero-length arc. Only positive values contribute to the total.
+                    Pie and donut slices come from <code>d3.pie</code> and <code>d3.arc</code>, in data order from 12 o'clock, clockwise.
+                    Only positive values contribute to the total.
                 </li>
-                <li><code>Smooth</code> line mode uses a Catmull-Rom-to-Bézier conversion.</li>
+                <li><code>Smooth</code> line mode uses monotone cubic curves (<code>d3.curveMonotoneX</code>), which never overshoot the data.</li>
                 <li>Every chart sets <code>role="img"</code> and an accessible <code>&lt;title&gt;</code> (from <code>Title</code> when provided).</li>
             </ul>
         </div>
