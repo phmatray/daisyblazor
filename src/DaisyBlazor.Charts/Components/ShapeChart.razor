@@ -1,0 +1,89 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<ShapeLayout>
+
+@* Shape chart: filled polygons and open polylines given in data coordinates, on shared linear X and
+   Y axes, such as a floor plan or a site map. D3 builds the scales (optionally with equal units
+   across and up); each shape is one path coloured by its group, with its name as a tooltip. *@
+
+<D3ChartFrame TLayout="ShapeLayout" Chart="this" Label="@_label" Description="@_description" Legend="@_legend">
+    @if (Layout is { } view)
+    {
+        <style>.dbc-shape:hover{fill-opacity:.65}.dbc-line:hover{stroke-width:4}</style>
+        <ChartAxes Plot="view.Plot" Baseline="true" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
+                   XGrid="ShowGrid" YGrid="ShowGrid" Height="ViewHeight" />
+        @for (int i = 0; i < view.Paths.Count && i < Shapes.Count; i++)
+        {
+            ChartShape shape = Shapes[i];
+            string color = _color(shape);
+            @if (view.Paths[i].Length == 0)
+            {
+                continue;
+            }
+            @if (shape.Closed)
+            {
+                <path class="dbc-shape" d="@view.Paths[i]" fill="@color" fill-opacity="0.4" fill-rule="evenodd" stroke="@color" stroke-width="1.5" stroke-linejoin="round">
+                    <title>@_tooltip(shape)</title>
+                </path>
+            }
+            else
+            {
+                <path class="dbc-line" d="@view.Paths[i]" fill="none" stroke="@color" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+                    <title>@_tooltip(shape)</title>
+                </path>
+            }
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The polygons and polylines to draw, back to front.</summary>
+    [Parameter] public IReadOnlyList<ChartShape> Shapes { get; set; } = [];
+
+    /// <summary>Keep one unit as long across as up (widening one axis), so shapes are not stretched.</summary>
+    [Parameter] public bool KeepAspect { get; set; }
+
+    /// <summary>Title of the horizontal axis.</summary>
+    [Parameter] public string? XTitle { get; set; }
+
+    /// <summary>Title of the vertical axis.</summary>
+    [Parameter] public string? YTitle { get; set; }
+
+    /// <summary>Draw grid lines across the plot at the ticks.</summary>
+    [Parameter] public bool ShowGrid { get; set; } = true;
+
+    /// <summary>Show a legend when there is more than one group (or ungrouped shape).</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <inheritdoc />
+    protected override string Kind => "shape";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Shapes = Shapes.Select(s => new { Rings = (s.Rings ?? []).Select(r => (r ?? []).ToArray()).ToArray(), s.Closed }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        KeepAspect,
+        XTitle,
+        YTitle,
+    };
+
+    private static string _key(ChartShape shape) => shape.Group ?? shape.Name;
+
+    private List<string> _keys => [.. Shapes.Select(_key).Distinct()];
+
+    private string _color(ChartShape shape) => ChartPalette.At(_keys.IndexOf(_key(shape)), shape.Color);
+
+    private static string _tooltip(ChartShape shape) =>
+        shape.Group is { Length: > 0 } group && group != shape.Name ? $"{shape.Name} ({group})" : shape.Name;
+
+    private RenderFragment? _legend => ShowLegend && _keys.Count > 1
+        ? @<ChartLegend Items="@(_keys.Select(k => (k, _color(Shapes.First(s => _key(s) == k)))).ToList())" />
+        : null;
+
+    private string _label => Title ?? "Shape chart";
+
+    private string _description => Shapes.Count == 0
+        ? "No shapes."
+        : string.Join("; ", Shapes.GroupBy(_key).Select(g => $"{g.Key}: {string.Join(", ", g.Select(s => s.Name))}"));
+}

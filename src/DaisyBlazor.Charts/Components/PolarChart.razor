@@ -1,0 +1,159 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<PolarLayout>
+
+@* Polar chart: points at a numeric angle and radius, drawn as lines, filled areas or markers over
+   circular radius gridlines and angle spokes. The angle axis is any full turn (360 degrees, 24 hours);
+   D3 places everything and sizes the circle so the angle labels fit. *@
+
+<D3ChartFrame TLayout="PolarLayout" Chart="this" Label="@_label" Description="@_description">
+    <ChildContent>
+        @if (Layout is { } geo)
+        {
+            <g fill="none" stroke="var(--color-base-content)" stroke-opacity="0.15">
+                @foreach (PolarRing ring in geo.Rings)
+                {
+                    <circle cx="@N(geo.Cx)" cy="@N(geo.Cy)" r="@N(ring.R)" />
+                }
+                @foreach (PolarSpoke spoke in geo.Spokes)
+                {
+                    <line x1="@N(geo.Cx)" y1="@N(geo.Cy)" x2="@N(spoke.X)" y2="@N(spoke.Y)" />
+                }
+            </g>
+
+            @for (int s = 0; s < geo.Series.Count && s < Series.Count; s++)
+            {
+                PolarLayoutSeries placed = geo.Series[s];
+                PolarSeries series = Series[s];
+                string color = _color(s);
+                @if (placed.Path.Length > 0)
+                {
+                    <path d="@placed.Path" fill="@(Mode == PolarChartMode.Area ? color : "none")" fill-opacity="0.2" stroke="@color" stroke-width="2" stroke-linejoin="round">
+                        <title>@series.Name</title>
+                    </path>
+                }
+                @if (ShowPoints || Mode == PolarChartMode.Marker)
+                {
+                    @foreach (PolarLayoutPoint p in placed.Points.Where(p => p.I < series.Points.Count))
+                    {
+                        <circle cx="@N(p.X)" cy="@N(p.Y)" r="@(Mode == PolarChartMode.Marker ? "4.5" : "3")" fill="@color" stroke="var(--color-base-100)" stroke-width="1">
+                            <title>@_tooltip(series, series.Points[p.I])</title>
+                        </circle>
+                    }
+                }
+            }
+
+            @* Radius labels along the start spoke, haloed in the background colour to stay readable over the series. *@
+            <g style="paint-order:stroke;stroke:var(--color-base-100);stroke-width:3px;stroke-linejoin:round;">
+                @foreach (PolarRing ring in geo.Rings)
+                {
+                    <SvgText X="@ring.X" Y="@ring.Y" FontSize="10" FillOpacity="0.6" Text="@ring.Label" />
+                }
+            </g>
+
+            @foreach (PolarSpoke spoke in geo.Spokes)
+            {
+                <SvgText X="@spoke.LabelX" Y="@spoke.LabelY" Anchor="@spoke.Anchor" FontSize="11" FillOpacity="0.7" Text="@spoke.Label" />
+            }
+        }
+    </ChildContent>
+    <Legend>
+        @if (ShowLegend && Series.Count > 1)
+        {
+            <ChartLegend Items="@Series.Select((s, i) => (s.Name, _color(i))).ToList()" />
+        }
+    </Legend>
+</D3ChartFrame>
+
+@code {
+    /// <summary>The series of points to plot.</summary>
+    [Parameter] public IReadOnlyList<PolarSeries> Series { get; set; } = [];
+
+    /// <summary>Draw lines (default), filled areas or markers only.</summary>
+    [Parameter] public PolarChartMode Mode { get; set; } = PolarChartMode.Line;
+
+    /// <summary>Draw lines and areas as smooth splines through the points.</summary>
+    [Parameter] public bool Smooth { get; set; }
+
+    /// <summary>Join each line's last point back to its first (areas are always closed).</summary>
+    [Parameter] public bool Closed { get; set; }
+
+    /// <summary>The angle of a full turn: 360 for degrees (default), 24 for the hours of a day, 12 for months.</summary>
+    [Parameter] public double AngleMax { get; set; } = 360;
+
+    /// <summary>Where angle 0 sits, in degrees clockwise from 12 o'clock.</summary>
+    [Parameter] public double StartAngle { get; set; }
+
+    /// <summary>Angles grow clockwise (default); false turns them anticlockwise, as in mathematics.</summary>
+    [Parameter] public bool Clockwise { get; set; } = true;
+
+    /// <summary>Angle between the spokes and their labels, in angle units; null draws twelve (every 30° of 360, every 2 of 24).</summary>
+    [Parameter] public double? AngleStep { get; set; }
+
+    /// <summary>About how many radius rings to draw; the exact count follows nice tick values.</summary>
+    [Parameter] public int Levels { get; set; } = 4;
+
+    /// <summary>Draw a dot at each point in Line and Area mode (Marker mode always does).</summary>
+    [Parameter] public bool ShowPoints { get; set; } = true;
+
+    /// <summary>Show a legend when there is more than one series.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>Format string for angles on the spokes and in tooltips, e.g. "{0}°" or "{0:00}:00".</summary>
+    [Parameter] public string AngleFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Format string for radii in tooltips and the description, e.g. "{0:N0} ms".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Creates a polar chart with a square default shape.</summary>
+    public PolarChart()
+    {
+        AspectRatio = 1;
+    }
+
+    /// <inheritdoc />
+    protected override string Kind => "polar";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Series = Series.Select(s => new { Points = (s.Points ?? []).Select(p => new { A = p.Angle, R = p.Radius }).ToArray() }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        AngleMax = _turn,
+        StartAngle,
+        Clockwise,
+        AngleTicks = _angleTicks().Select(v => new { Value = v, Label = _format(AngleFormat, v) }).ToArray(),
+        Mode = Mode.ToString().ToLowerInvariant(),
+        Smooth,
+        Closed,
+        Levels,
+    };
+
+    private double _turn => double.IsFinite(AngleMax) && AngleMax > 0 ? AngleMax : 360;
+
+    // At most 72 spokes, so a tiny step cannot flood the chart.
+    private IEnumerable<double> _angleTicks()
+    {
+        double step = AngleStep is { } s && double.IsFinite(s) && s > 0 ? Math.Max(s, _turn / 72) : _turn / 12;
+        for (int i = 0; i * step < _turn - step * 1e-9; i++)
+        {
+            yield return Math.Round(i * step, 9);
+        }
+    }
+
+    private static string _format(string format, double value) => string.Format(CultureInfo.CurrentCulture, format, value);
+
+    private string _color(int s) => ChartPalette.At(s, s < Series.Count ? Series[s].Color : null);
+
+    private string _tooltip(PolarSeries series, PolarPoint p)
+    {
+        string name = string.Join(" · ", new[] { series.Name, p.Label }.Where(n => !string.IsNullOrEmpty(n)));
+        string body = $"{_format(AngleFormat, p.Angle)}: {_format(ValueFormat, p.Radius)}";
+        return name.Length > 0 ? $"{name}, {body}" : body;
+    }
+
+    private string _label => Title ?? "Polar chart";
+
+    private string _description => string.Join("; ", Series.Select(s =>
+        $"{s.Name}: {string.Join(", ", (s.Points ?? []).Select(p => $"{_format(AngleFormat, p.Angle)} {_format(ValueFormat, p.Radius)}"))}"));
+}

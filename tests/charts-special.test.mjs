@@ -143,3 +143,75 @@ test('choropleth without features or values draws the globe and no scale', async
     assert.equal(one.features[0].name, 'a');
     assert.equal(one.low, shade('var(--color-primary)', 0));
 });
+
+const hours = [0, 3, 6, 9, 12, 15, 18, 21].map(v => ({ value: v, label: `${v}:00` }));
+
+test('polar places angle 0 at 12 o\'clock and turns clockwise over angleMax', async () => {
+    const points = [{ a: 0, r: 40 }, { a: 6, r: 40 }, { a: 12, r: 40 }, { a: 18, r: 40 }, { a: null, r: 3 }, { a: 3, r: null }];
+    const geo = await layout('polar', { series: [{ points }], width: 640, height: 640, angleMax: 24, angleTicks: hours, levels: 4 });
+    const [top, right, bottom, left] = geo.series[0].points;
+    assert.equal(geo.series[0].points.length, 4, 'points without a finite angle and radius are skipped');
+    near(top.x, geo.cx, 0.01);
+    assert.ok(top.y < geo.cy);
+    assert.ok(right.x > geo.cx);
+    near(right.y, geo.cy, 0.01);
+    assert.ok(bottom.y > geo.cy);
+    assert.ok(left.x < geo.cx);
+    // The radius scale is nice from zero: the outer ring is at the top tick, which is 40 here.
+    assert.equal(geo.rings.at(-1).r, geo.radius);
+    near(geo.cy - top.y, geo.radius * 40 / geo.rings.at(-1).value, 0.02);
+    assert.equal(geo.spokes.length, 8);
+    assert.deepEqual(geo.spokes.map(s => s.anchor).slice(0, 3), ['middle', 'start', 'start']);
+    for (const s of geo.spokes) {
+        inside(s.labelX, s.labelY, 640, 640);
+    }
+    assert.match(geo.series[0].path, /^M[^Z]*$/, 'a line stays open');
+});
+
+test('polar start angle, direction, closed lines, areas, splines and markers', async () => {
+    const points = [{ a: 0, r: 1 }, { a: 90, r: 2 }, { a: 180, r: 1 }, { a: 270, r: 2 }];
+    const base = { series: [{ points }], width: W, height: H };
+    const ccw = await layout('polar', { ...base, clockwise: false, startAngle: 90 });
+    // Angle 0 at 3 o'clock, angle 90 at 12 o'clock when turning anticlockwise.
+    near(ccw.series[0].points[0].y, ccw.cy, 0.01);
+    assert.ok(ccw.series[0].points[0].x > ccw.cx);
+    near(ccw.series[0].points[1].x, ccw.cx, 0.01);
+    assert.ok(ccw.series[0].points[1].y < ccw.cy);
+
+    assert.match((await layout('polar', { ...base, closed: true })).series[0].path, /Z$/);
+    assert.match((await layout('polar', { ...base, mode: 'area' })).series[0].path, /Z$/);
+    assert.match((await layout('polar', { ...base, mode: 'area', smooth: true })).series[0].path, /C/);
+    assert.match((await layout('polar', { ...base, smooth: true })).series[0].path, /^M[^Z]*C[^Z]*$/);
+    const markers = await layout('polar', { ...base, mode: 'marker' });
+    assert.equal(markers.series[0].path, '');
+    assert.equal(markers.series[0].points.length, 4);
+    assert.deepEqual(await layout('polar', { series: [], width: 0, height: 0 }), { cx: 0, cy: 0, radius: 0, rings: [], spokes: [], series: [] });
+});
+
+test('shape draws closed polygons with holes and open polylines on shared axes', async () => {
+    const square = [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }];
+    const hole = [{ x: 4, y: 4 }, { x: 6, y: 4 }, { x: 6, y: 6 }, { x: null, y: 1 }];
+    const shapes = [{ rings: [square, hole], closed: true }, { rings: [[{ x: 0, y: 12 }, { x: 10, y: 12 }]], closed: false }, { rings: [[]] }];
+    const geo = await layout('shape', { shapes, width: W, height: H, xTitle: 'Metres', yTitle: 'Metres' });
+    assert.equal(geo.paths.length, 3);
+    assert.equal((geo.paths[0].match(/M/g) ?? []).length, 2, 'one subpath per ring');
+    assert.equal((geo.paths[0].match(/Z/g) ?? []).length, 2);
+    assert.equal((geo.paths[0].match(/L/g) ?? []).length, 3 + 2, 'the point without x is skipped');
+    assert.doesNotMatch(geo.paths[1], /Z/);
+    assert.equal(geo.paths[2], '');
+    assert.ok(geo.xTicks.length > 1 && geo.yTicks.length > 1);
+    const [x0, y0] = geo.paths[0].slice(1).split('L')[0].split(',').map(Number);
+    near(x0, geo.plot.left, 0.01);
+    near(y0, geo.plot.bottom, 0.01);
+});
+
+test('shape keepAspect gives one unit the same length across and up', async () => {
+    const wide = [{ rings: [[{ x: 0, y: 0 }, { x: 40, y: 0 }, { x: 40, y: 10 }, { x: 0, y: 10 }]] }];
+    const geo = await layout('shape', { shapes: wide, width: W, height: H, keepAspect: true });
+    const xs = geo.xTicks, ys = geo.yTicks;
+    const perX = (xs[1].pos - xs[0].pos) / (xs[1].value - xs[0].value);
+    const perY = (ys[0].pos - ys[1].pos) / (ys[1].value - ys[0].value);
+    near(perX, perY, 0.05);
+    const free = await layout('shape', { shapes: wide, width: W, height: H });
+    assert.notDeepEqual(free.yTicks, geo.yTicks);
+});
