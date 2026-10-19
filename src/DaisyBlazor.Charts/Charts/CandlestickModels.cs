@@ -18,6 +18,29 @@ public enum CandlestickStyle
 
     /// <summary>A bar from low to high only.</summary>
     HighLow,
+
+    /// <summary>A line through the closes; the price axis fits the closes. Each period's tooltip still gives its four values.</summary>
+    Line,
+
+    /// <summary>The closes as a line over a filled area down to the bottom of the plot; the price axis fits the closes.</summary>
+    Area,
+
+    /// <summary>
+    /// Heikin-Ashi candles computed from the periods: close = (O + H + L + C) / 4; open = (previous HA open +
+    /// previous HA close) / 2, the first one (O + C) / 2; high and low = the highest and lowest of the period's
+    /// high or low and the HA open and close. Indicators still use the real values.
+    /// </summary>
+    HeikinAshi,
+
+    /// <summary>
+    /// A box from low to high whose width is proportional to the period's <see cref="Candle.Volume"/>
+    /// (the largest takes 90% of the space between periods), centred on its time so the time axis reads as
+    /// usual. When any period has no positive volume, every box gets the same width.
+    /// </summary>
+    EquiVolume,
+
+    /// <summary>A candle whose width is proportional to the period's <see cref="Candle.Volume"/>, as for <see cref="EquiVolume"/>; equal widths when any period has no positive volume.</summary>
+    CandleVolume,
 }
 
 /// <summary>A technical indicator a <see cref="CandlestickChart"/> computes over the closes.</summary>
@@ -37,6 +60,9 @@ public enum IndicatorKind
 
     /// <summary>MACD: EMA(Period, default 12) − EMA(SlowPeriod, 26), its signal line EMA(SignalPeriod, 9) of the MACD and their difference as a histogram, in its own panel.</summary>
     Macd,
+
+    /// <summary>Price channel: the highest high and lowest low of the last Period periods (default 20, the current one included) as a band, with their midpoint as the line, drawn over the candles.</summary>
+    PriceChannel,
 }
 
 /// <summary>
@@ -61,6 +87,12 @@ public sealed record CandlestickLayout(
     IReadOnlyList<AxisTick> YTicks,
     PlotArea Plot)
 {
+    /// <summary>SVG path of the closes, for <see cref="CandlestickStyle.Line"/> and <see cref="CandlestickStyle.Area"/>; null otherwise.</summary>
+    public string? PriceLine { get; init; }
+
+    /// <summary>SVG path of the area under the closes, for <see cref="CandlestickStyle.Area"/>; null or empty otherwise.</summary>
+    public string? PriceArea { get; init; }
+
     /// <summary>The indicators that could be computed, in the order they were asked for.</summary>
     public IReadOnlyList<CandlestickLayoutIndicator> Indicators { get; init; } = [];
 

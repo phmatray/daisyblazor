@@ -1,0 +1,23 @@
+<div class="space-y-6">
+    <CandlestickChart Title="Job queue depth per hour, box width = jobs processed (EquiVolume)" Candles="_hours" CandleStyle="CandlestickStyle.EquiVolume"
+                      UpLabel="Growing" DownLabel="Draining" ValueFormat="{0:N0} jobs" AspectRatio="2.4" />
+    <CandlestickChart Title="Same hours as candles, width = jobs processed (CandleVolume)" Candles="_hours" CandleStyle="CandlestickStyle.CandleVolume"
+                      UpLabel="Growing" DownLabel="Draining" ValueFormat="{0:N0} jobs" AspectRatio="2.4" />
+</div>
+
+@code {
+    // Volume is the number of jobs processed in the hour: the busiest hour gets the widest mark. Every
+    // candle needs a positive Volume; if one is missing, all of them fall back to the same width.
+    private static readonly Candle[] _hours = Enumerable.Range(0, 18)
+        .Select(h =>
+        {
+            double open = Depth(h), close = Depth(h + 1);
+            return new Candle(new DateTime(2026, 10, 19, 6, 0, 0).AddHours(h), open, Math.Max(open, close) + 20 + h % 4 * 9, Math.Max(0, Math.Min(open, close) - 15), close)
+            {
+                Volume = Math.Round(300 + 900 * Math.Abs(Math.Sin(h / 4.0))),
+            };
+        })
+        .ToArray();
+
+    private static double Depth(int h) => Math.Round(220 + 140 * Math.Sin(h / 4.0) + 30 * Math.Cos(h * 1.3));
+}

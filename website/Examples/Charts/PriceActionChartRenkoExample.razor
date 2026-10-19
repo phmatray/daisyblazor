@@ -1,0 +1,19 @@
+<div class="space-y-6">
+    <PriceActionChart Title="CPU utilisation, api-01 (%): 5-point bricks" Prices="_readings" ChartKind="PriceActionKind.Renko" BoxSize="5" ValueFormat="{0:0.#} %" AspectRatio="2.4" />
+    <PriceActionChart Title="Same readings, brick = average true range (14)" Prices="_readings" ChartKind="PriceActionKind.Renko" ValueFormat="{0:0.#} %" AspectRatio="2.4" />
+</div>
+
+@code {
+    // 96 quarter-hour CPU readings. A brick is drawn each time the reading moves a whole box past the
+    // last brick; noise inside a box draws nothing, so the x axis counts bricks, not time.
+    private static readonly Candle[] _readings = Enumerable.Range(0, 96)
+        .Select(i =>
+        {
+            double open = Level(i), close = Level(i + 1);
+            return new Candle(new DateTime(2026, 10, 19, 0, 0, 0).AddMinutes(15 * i), open, Math.Max(open, close) + 2, Math.Min(open, close) - 2, close);
+        })
+        .ToArray();
+
+    private static double Level(int i) =>
+        Math.Round(40 + 16 * Math.Sin((i - 24) / 96.0 * 2 * Math.PI) + (i is >= 44 and <= 54 ? 20 * Math.Sin((i - 44) / 10.0 * Math.PI) : 0) + 3 * Math.Sin(i * 1.7), 1);
+}
