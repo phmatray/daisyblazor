@@ -213,3 +213,13 @@ test('a wind rose stacks the series outward in equal wedges, area by the total',
     }
     assert.deepEqual((await layout('polar-area', { labels: ['N'], series: [[0]], width: 640, height: 640 })).segments, []);
 });
+
+test('a one-series wind rose has the same wedges as the plain polar area chart', async () => {
+    const values = [4, 1, 7, 2.5];
+    const labels = ['N', 'E', 'S', 'W'];
+    const plain = await layout('polar-area', { items: values.map((value, i) => ({ label: labels[i], value })), width: 500, height: 420 });
+    const rose = await layout('polar-area', { labels, series: [values], width: 500, height: 420 });
+    const { segments, ...shape } = rose;
+    assert.deepEqual(shape, plain);
+    assert.deepEqual(segments.map(g => g.path), plain.wedges.map(w => w.path), 'a lone layer is the whole wedge');
+});
