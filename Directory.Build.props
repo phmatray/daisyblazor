@@ -29,7 +29,7 @@
     <EnablePackageValidation>true</EnablePackageValidation>
     <PackageTags>blazor;tailwind;daisyui;ui;components;razor</PackageTags>
     <!-- Owned by release-please (release-please-config.json -> extra-files). -->
-    <Version>0.7.0</Version> <!-- x-release-please-version -->
+    <Version>0.8.0</Version> <!-- x-release-please-version -->
   </PropertyGroup>
 
   <ItemGroup>
