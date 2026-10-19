@@ -24,7 +24,7 @@
 <p align="center">
   <strong>A Tailwind CSS v4 + daisyUI v5 component library for Blazor.</strong><br/>
   60+ daisyUI-native components, a MudBlazor-compatible API, theming, dialogs, snackbars,
-  45 theme-aware chart types, a shippable CSS preset, and a <code>dotnet new</code> template.
+  46 theme-aware chart types, a shippable CSS preset, and a <code>dotnet new</code> template.
 </p>
 
 <p align="center">
@@ -52,7 +52,7 @@
 - **60+ daisyUI-native components** — organized under daisyUI's own taxonomy: Actions, Data display, Navigation, Feedback, Data input, Layout, and Mockup.
 - **MudBlazor-compatible API** — `Button`, `Card`, `Table`, `IDialogService`, `ISnackbar`, `Icons.Material.*` let existing MudBlazor apps migrate incrementally, one `MudX` → `X` rename at a time.
 - **`ThemeProvider` theming** — a cascading, MudThemeProvider-style component with 35 built-in daisyUI themes, dark-mode resolution via `prefers-color-scheme`, and SSR-safe persistence to localStorage/cookies.
-- **45 SVG chart types** — line, area, bar, pie and donut through Sankey, treemap, sunburst, chord, network, scatter, box plot, violin, heatmaps, calendar, candlestick, Gantt, radar, gauges, waterfall, funnel, Pareto and more. D3 computes the layout (bundled in the package, no npm), Blazor draws the SVG in the active daisyUI theme's colours, and `DaisyBlazor.Charts.Server` renders them on the server for prerendering and static pages.
+- **46 SVG chart types** — line, area, bar, pie and donut through Sankey, treemap, sunburst, chord, network, scatter, box plot, violin, heatmaps, calendar, candlestick, Gantt, radar, gauges, waterfall, funnel, Pareto and more. D3 computes the layout (bundled in the package, no npm), Blazor draws the SVG in the active daisyUI theme's colours, and `DaisyBlazor.Charts.Server` renders them on the server for prerendering and static pages.
 - **Shippable CSS preset** — one `@import` wires up daisyUI, the theme set, and the class safelist for Tailwind v4 — shipped in the NuGet package, which also runs the Tailwind standalone CLI for you: no Node or npm needed.
 - **`dotnet new daisyblazor` template** — scaffolds a fully wired app (Tailwind, daisyUI, DI) in seconds.
 - **Live documentation** — [the docs site](https://phmatray.github.io/daisyblazor/) is a Blazor WebAssembly app built with DaisyBlazor: every component live, with its source, a parameter playground, API tables and all 37 themes.
@@ -75,7 +75,7 @@ and both have real costs:
 | Migrating off MudBlazor is all-or-nothing | A **MudBlazor-compatible API** (`Button`, `Card`, `Table`, `IDialogService`, `ISnackbar`, `Icons.Material.*`) — migrate incrementally by renaming `MudX` → `X`. |
 | Wiring Tailwind + daisyUI + a class safelist is fiddly | A **shippable CSS preset** — one `@import` enables daisyUI, the themes, and the dynamic-class safelist. |
 | Theming/dark-mode is manual | A parameter-driven **`ThemeProvider`** with **35 built-in themes** + your own, dark mode, and SSR-safe persistence. |
-| Charts mean a heavy JS dependency or a short list | **45 chart types** drawn as SVG in the active daisyUI theme, with D3 layouts bundled in the package (no npm) and optional server rendering. |
+| Charts mean a heavy JS dependency or a short list | **46 chart types** drawn as SVG in the active daisyUI theme, with D3 layouts bundled in the package (no npm) and optional server rendering. |
 | Starting a new app is boilerplate | `dotnet new daisyblazor` scaffolds a wired app in seconds. |
 
 ## Quick start
@@ -170,7 +170,7 @@ dotnet run --project website
 | Package | Version | Description |
 |---|---|---|
 | **DaisyBlazor.Components** | [![nuget](https://img.shields.io/nuget/v/DaisyBlazor.Components?label=)](https://www.nuget.org/packages/DaisyBlazor.Components) | The component kit: daisyUI-native components + MudBlazor-compatible surface, `ThemeProvider`, dialog/snackbar services, and the CSS preset. |
-| **DaisyBlazor.Charts** | [![nuget](https://img.shields.io/nuget/v/DaisyBlazor.Charts?label=)](https://www.nuget.org/packages/DaisyBlazor.Charts) | 45 SVG chart types (line, bar, pie through Sankey, treemap, heatmaps, gauges…) themed by daisyUI. |
+| **DaisyBlazor.Charts** | [![nuget](https://img.shields.io/nuget/v/DaisyBlazor.Charts?label=)](https://www.nuget.org/packages/DaisyBlazor.Charts) | 46 SVG chart types (line, bar, pie through Sankey, treemap, heatmaps, gauges…) themed by daisyUI. |
 | **DaisyBlazor.Charts.Server** | [![nuget](https://img.shields.io/nuget/v/DaisyBlazor.Charts.Server?label=)](https://www.nuget.org/packages/DaisyBlazor.Charts.Server) | Optional: renders the charts on the server (prerendering, static SSR) with Jint, no Node. |
 | **DaisyBlazor.Templates** | [![nuget](https://img.shields.io/nuget/v/DaisyBlazor.Templates?label=)](https://www.nuget.org/packages/DaisyBlazor.Templates) | `dotnet new daisyblazor` starter template. |
 
@@ -179,7 +179,7 @@ dotnet run --project website
 <table>
   <tr>
     <td width="50%"><img src="assets/screenshots/data-display.png" alt="Data display components"><br/><sub><b>Data display</b> — cards, table, stats, timeline, chat, carousel…</sub></td>
-    <td width="50%"><img src="assets/screenshots/charts.png" alt="Charts"><br/><sub><b>Charts</b> — 45 SVG chart types, theme-aware</sub></td>
+    <td width="50%"><img src="assets/screenshots/charts.png" alt="Charts"><br/><sub><b>Charts</b> — 46 SVG chart types, theme-aware</sub></td>
   </tr>
   <tr>
     <td width="50%"><img src="assets/screenshots/data-input.png" alt="Data input components"><br/><sub><b>Data input</b> — inputs, select, range, rating, validation…</sub></td>
@@ -208,7 +208,7 @@ scripts/    update-deps, gen-styles, pack, test-template
 - [Theming](https://phmatray.github.io/daisyblazor/theming/) — `ThemeProvider`, built-in & custom themes.
 - [CSS preset](https://phmatray.github.io/daisyblazor/css-preset/) — what `preset.css` ships and how to install it.
 - [Component reference](https://phmatray.github.io/daisyblazor/components/) — every component by daisyUI category.
-- [Charts](https://phmatray.github.io/daisyblazor/charts/) — the 45 SVG chart types and server rendering.
+- [Charts](https://phmatray.github.io/daisyblazor/charts/) — the 46 SVG chart types and server rendering.
 - [Migrating from MudBlazor](https://phmatray.github.io/daisyblazor/migration/) — the `MudX` → `X` map.
 
 <!-- portfolio-techstack:start -->

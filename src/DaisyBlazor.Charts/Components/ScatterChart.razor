@@ -11,6 +11,10 @@
         <style>.dbc-cell{fill:transparent;cursor:crosshair}.dbc-cell:hover+circle{fill-opacity:1;stroke:var(--color-base-content);stroke-width:2}</style>
         <ChartAxes Plot="view.Plot" Baseline="true" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
                    XGrid="true" YGrid="true" Height="ViewHeight" />
+        @foreach (ScatterLine line in view.Lines ?? [])
+        {
+            <path d="@line.Path" fill="none" stroke="@_color(line.Series, view)" stroke-width="1.5" stroke-opacity="0.7" stroke-linejoin="round" pointer-events="none" />
+        }
         @foreach (ScatterLayoutPoint p in view.Points)
         {
             string color = _color(p.Series, view);
@@ -20,6 +24,15 @@
                 </path>
                 <circle cx="@N(p.Cx)" cy="@N(p.Cy)" r="@N(p.R)" fill="@color" fill-opacity="@(p.Size is null ? "0.85" : "0.55")"
                         stroke="@color" stroke-width="1" pointer-events="none" />
+            </g>
+        }
+        @foreach (ScatterTrend trend in view.Trends ?? [])
+        {
+            string color = _color(trend.Series, view);
+            <g>
+                <title>@_trendTooltip(trend, view)</title>
+                <path d="@trend.Path" fill="none" stroke="transparent" stroke-width="10" />
+                <path d="@trend.Path" fill="none" stroke="@color" stroke-width="2" stroke-dasharray="6 4" pointer-events="none" />
             </g>
         }
     }
@@ -62,6 +75,12 @@
     /// <summary>Format string for Size in tooltips, e.g. "{0:N0} seats".</summary>
     [Parameter] public string SizeFormat { get; set; } = "{0:#,0.##}";
 
+    /// <summary>Join each series' points with a line, in X order.</summary>
+    [Parameter] public bool ShowLine { get; set; }
+
+    /// <summary>Fit and draw a dashed trend line per series; its tooltip gives the equation and R².</summary>
+    [Parameter] public ChartTrendline Trendline { get; set; } = ChartTrendline.None;
+
     /// <inheritdoc />
     protected override string Kind => "scatter";
 
@@ -81,6 +100,8 @@
         Radius = PointRadius,
         MinRadius = MinBubbleRadius,
         MaxRadius = MaxBubbleRadius,
+        ShowLine,
+        Trendline = Trendline.ToString().ToLowerInvariant(),
     };
 
     private string _format(string format, double value) => string.Format(CultureInfo.CurrentCulture, format, value);
@@ -100,6 +121,25 @@
         return head.Length > 0 ? $"{head}: {body}" : body;
     }
 
+    private static string _coef(double value) => value.ToString("G4", CultureInfo.CurrentCulture);
+
+    private static string _plus(double value) => (value < 0 ? " − " : " + ") + _coef(Math.Abs(value));
+
+    private static string _equation(ScatterTrend t) => t.Kind switch
+    {
+        "exponential" => $"y = {_coef(t.A)}·e^({_coef(t.B)}x)",
+        "logarithmic" => $"y = {_coef(t.B)}·ln(x){_plus(t.A)}",
+        "power" => $"y = {_coef(t.A)}·x^{_coef(t.B)}",
+        _ => $"y = {_coef(t.B)}x{_plus(t.A)}",
+    };
+
+    private string _trendTooltip(ScatterTrend t, ScatterLayout view)
+    {
+        string series = t.Series < view.Series.Count ? view.Series[t.Series] : string.Empty;
+        string body = $"{t.Kind} trend: {_equation(t)}, R² = {t.R2.ToString("0.###", CultureInfo.CurrentCulture)}";
+        return series.Length > 0 ? $"{series} {body}" : char.ToUpperInvariant(body[0]) + body[1..];
+    }
+
     private RenderFragment? _legend => ShowLegend && Layout is { Series.Count: > 1 } view
         ? @<ChartLegend Items="@(view.Series.Select((s, i) => (s, _color(i, view))).ToList())" />
         : null;
@@ -109,5 +149,6 @@
     private string _description => $"{Points.Count} points"
         + (Points.Any(p => p.Series is not null) ? $" in {Points.Select(p => p.Series).Distinct().Count()} series" : string.Empty)
         + (Points.Any(p => p.Size is not null) ? ", sized by value" : string.Empty)
-        + (XScale == AxisScale.Log || YScale == AxisScale.Log ? ", on a logarithmic scale" : string.Empty) + ".";
+        + (XScale == AxisScale.Log || YScale == AxisScale.Log ? ", on a logarithmic scale" : string.Empty)
+        + (Trendline != ChartTrendline.None ? $", with a {Trendline.ToString().ToLowerInvariant()} trend line per series" : string.Empty) + ".";
 }

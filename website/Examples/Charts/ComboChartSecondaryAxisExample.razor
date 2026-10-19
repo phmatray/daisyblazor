@@ -1,0 +1,18 @@
+<ComboChart Title="Deployments per week and change failure rate" Labels="_weeks" Bars="_bars" Lines="_lines"
+            StackBars="true" SecondaryAxis="true" Smooth="true" SecondaryValueFormat="{0:0.#}%" />
+
+@code {
+    // Stacked bars count deployments per environment; the failure rate gets its own scale on the right.
+    private readonly string[] _weeks = ["W14", "W15", "W16", "W17", "W18", "W19", "W20", "W21"];
+
+    private readonly ChartSeries[] _bars =
+    [
+        new("Production", [18, 22, 15, 24, 27, 20, 29, 31]),
+        new("Staging", [24, 29, 23, 33, 36, 28, 37, 40]),
+    ];
+
+    private readonly ChartSeries[] _lines =
+    [
+        new("Change failure rate", [7.1, 9.1, 5.3, 10.5, 6.3, 6.3, 7.6, 2.8]) { Color = "var(--color-error)" },
+    ];
+}

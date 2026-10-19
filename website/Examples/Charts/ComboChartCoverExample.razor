@@ -1,0 +1,9 @@
+<ComboChart Labels="_weeks" Bars="_bars" Lines="_lines" SecondaryAxis="true" Smooth="true" ShowLegend="false" AspectRatio="1.1" />
+
+@code {
+    private readonly string[] _weeks = ["W1", "W2", "W3", "W4", "W5", "W6"];
+
+    private readonly ChartSeries[] _bars = [new("Deployments", [42, 51, 38, 57, 63, 66])];
+
+    private readonly ChartSeries[] _lines = [new("Failure rate", [7.1, 9.1, 5.3, 6.5, 4.3, 2.8])];
+}

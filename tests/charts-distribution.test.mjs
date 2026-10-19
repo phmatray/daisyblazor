@@ -5,6 +5,7 @@ import { layout } from '../src/DaisyBlazor.Charts/wwwroot/charts.mjs';
 import { boxStats, kde } from '../src/DaisyBlazor.Charts/wwwroot/layouts/_distribution.mjs';
 import { binOf } from '../src/DaisyBlazor.Charts/wwwroot/layouts/hexbin.mjs';
 import { dodge } from '../src/DaisyBlazor.Charts/wwwroot/layouts/beeswarm.mjs';
+import { fitTrend } from '../src/DaisyBlazor.Charts/wwwroot/layouts/scatter.mjs';
 
 const size = { width: 640, height: 360 };
 
@@ -207,4 +208,57 @@ test('every layout copes with missing input', async () => {
         assert.ok(out.plot, kind);
         assert.ok(Array.isArray(out.xTicks) && Array.isArray(out.yTicks), kind);
     }
+});
+
+test('scatter trend fits: least-squares coefficients and R² against known values', () => {
+    // y = 1/3 + 1.5x, R² = 81/84 (worked by hand).
+    const lin = fitTrend('linear', [1, 3, 2], [2, 5, 3]);
+    assert.ok(Math.abs(lin.a - 1 / 3) < 1e-12 && Math.abs(lin.b - 1.5) < 1e-12);
+    assert.ok(Math.abs(lin.r2 - 81 / 84) < 1e-12);
+    // Exact curves are recovered with R² = 1.
+    const exp = fitTrend('exponential', [0, 1, 2, 3], [2, 2 * Math.E, 2 * Math.E ** 2, 2 * Math.E ** 3]);
+    assert.ok(Math.abs(exp.a - 2) < 1e-9 && Math.abs(exp.b - 1) < 1e-9 && Math.abs(exp.r2 - 1) < 1e-12);
+    const log = fitTrend('logarithmic', [1, Math.E, Math.E ** 2], [5, 7, 9]);
+    assert.ok(Math.abs(log.a - 5) < 1e-9 && Math.abs(log.b - 2) < 1e-9);
+    const pow = fitTrend('power', [1, 2, 4, 8, -1], [3, 12, 48, 192, 3]);
+    assert.ok(Math.abs(pow.a - 3) < 1e-9 && Math.abs(pow.b - 2) < 1e-9, 'x ≤ 0 is left out');
+    assert.equal(fitTrend('linear', [2, 2], [1, 5]), null, 'all x equal');
+    assert.equal(fitTrend('exponential', [1, 2], [0, -1]), null, 'nothing above zero');
+    assert.equal(fitTrend('none', [1, 2], [1, 2]), null);
+});
+
+test('scatter: showLine joins each series in x order, trendline draws through the scales', async () => {
+    const points = [{ x: 3, y: 5, series: 'EU' }, { x: 1, y: 2, series: 'EU' }, { x: 2, y: 3, series: 'EU' }, { x: 1, y: 9, series: 'US' }, { x: 4, y: 1, series: 'US' }];
+    const plain = await layout('scatter', { points, ...size });
+    assert.equal(plain.lines, undefined);
+    assert.equal(plain.trends, undefined);
+
+    const out = await layout('scatter', { points, ...size, showLine: true, trendline: 'linear' });
+    const eu = out.points.filter(p => p.series === 0).sort((a, b) => a.x - b.x);
+    assert.equal(out.lines[0].path, `M${eu.map(p => `${p.cx},${p.cy}`).join('L')}`);
+    assert.equal(out.lines.length, 2);
+    assert.equal(out.trends.length, 2);
+    const t = out.trends[0];
+    assert.equal(t.kind, 'linear');
+    assert.ok(Math.abs(t.b - 1.5) < 1e-12 && Math.abs(t.r2 - 81 / 84) < 1e-12);
+    // The straight line starts at x = 1 on the fitted value and stays in the plot.
+    const [x0, y0] = t.path.slice(1).split('L')[0].split(',').map(Number);
+    assert.equal(x0, eu[0].cx);
+    const ys = [...t.path.matchAll(/,(-?[\d.]+)/g)].map(m => Number(m[1]));
+    assert.ok(ys.every(v => v >= out.plot.top - 1e-6 && v <= out.plot.bottom + 1e-6));
+    const [ta, tb] = out.yTicks;
+    const yAt = v => ta.pos + (v - ta.value) * (tb.pos - ta.pos) / (tb.value - ta.value);
+    assert.ok(Math.abs(y0 - yAt(1 / 3 + 1.5)) < 0.02);
+
+    // On log axes, a power law y = 2x is straight in pixels: the fit is in data space.
+    const logOut = await layout('scatter', { points: [1, 10, 100, 1000].map(x => ({ x, y: 2 * x })), ...size, xLog: true, yLog: true, trendline: 'power' });
+    const tr = logOut.trends[0];
+    assert.ok(Math.abs(tr.a - 2) < 1e-9 && Math.abs(tr.b - 1) < 1e-9);
+    const pts = tr.path.slice(1).split('L').map(s => s.split(',').map(Number));
+    const slope = (pts.at(-1)[1] - pts[0][1]) / (pts.at(-1)[0] - pts[0][0]);
+    assert.ok(pts.every(([px, py]) => Math.abs(py - (pts[0][1] + slope * (px - pts[0][0]))) < 0.05), 'straight on log-log axes');
+    // A linear fit on a log x axis bends in pixels.
+    const bent = (await layout('scatter', { points: [1, 10, 100, 1000].map(x => ({ x, y: x })), ...size, xLog: true, trendline: 'linear' })).trends[0];
+    assert.ok(bent.path.split('L').length > 10);
+    assert.deepEqual((await layout('scatter', { ...size, showLine: true, trendline: 'exponential' })).trends, []);
 });
