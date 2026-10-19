@@ -158,9 +158,9 @@
     .tok-attr { color: color-mix(in oklab, var(--color-secondary) 50%, var(--color-neutral-content)); }
     .tok-str { color: color-mix(in oklab, var(--color-accent) 75%, var(--color-neutral-content)); }
     .tok-razor { color: color-mix(in oklab, var(--color-warning) 75%, var(--color-neutral-content)); font-weight: 600; }
-    .tok-kw { color: color-mix(in oklab, var(--color-info) 75%, var(--color-neutral-content)); font-weight: 600; }
+    .tok-kw { color: color-mix(in oklab, var(--color-info) 50%, var(--color-neutral-content)); font-weight: 600; }
     .tok-com { color: color-mix(in oklab, var(--color-neutral-content) 65%, var(--color-neutral)); font-style: italic; }
-    .tok-num { color: color-mix(in oklab, var(--color-success) 75%, var(--color-neutral-content)); }
+    .tok-num { color: color-mix(in oklab, var(--color-success) 50%, var(--color-neutral-content)); }
 }
 
 /* ── Signature: switching theme ──────────────────────────────────────────────────── */

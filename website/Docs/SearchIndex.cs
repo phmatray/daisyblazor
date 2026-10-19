@@ -12,18 +12,32 @@ public sealed class SearchIndex(XmlDocs docs)
     public IReadOnlyList<SearchHit> Query(string query, int max = 12)
     {
         query = query.Trim();
+        // "pie chart", "date-picker": names are written as one word (PieChart, DatePicker).
+        string compact = query.Replace(" ", "").Replace("-", "");
         if (query.Length == 0)
         {
             return [.. _items.Value.Where(i => i.Kind == HitKind.Guide).Take(max)];
         }
 
         return [.. _items.Value
-            .Select(i => (item: i, score: Score(i, query)))
+            .Select(i => (item: i, score: Score(i, query, compact)))
             .Where(x => x.score > 0)
             .OrderByDescending(x => x.score)
             .ThenBy(x => x.item.Title.Length)
             .Take(max)
             .Select(x => x.item)];
+    }
+
+    private static int Score(SearchHit item, string q, string compact)
+    {
+        int score = Score(item, q);
+        if (score == 0 && compact != q) score = Score(item, compact);
+        // Several words match a description when each of them appears in it.
+        if (score == 0 && q.Contains(' ') && q.Split(' ', StringSplitOptions.RemoveEmptyEntries).All(w => item.Context.Contains(w, StringComparison.OrdinalIgnoreCase)))
+        {
+            score = 60;
+        }
+        return score;
     }
 
     private static int Score(SearchHit item, string q)

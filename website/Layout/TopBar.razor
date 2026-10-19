@@ -69,7 +69,8 @@
         if (path == "components") return "components";
         if (path.StartsWith("components/", StringComparison.Ordinal))
         {
-            return DocRegistry.Find(path["components/".Length..])?.Category == Category.Charts ? "charts" : "components";
+            // An unknown page lights no tab.
+            return DocRegistry.Find(path["components/".Length..]) is { } doc ? doc.Category == Category.Charts ? "charts" : "components" : null;
         }
         return Guides.All.Any(g => g.Url == path) ? "guides" : null;
     }

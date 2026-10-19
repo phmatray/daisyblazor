@@ -142,6 +142,7 @@ if (errors.length > 0) {
 
 fs.writeFileSync(path.join(root, '404.html'), shell
     .replace('<base href="/" />', `<base href="${basePath}" />`)
+    .replace(/<title>[^<]*<\/title>/, '<title>Not found · DaisyBlazor</title>')
     .replace('<meta charset="utf-8" />', '<meta charset="utf-8" />\n    <meta name="robots" content="noindex" data-prerendered />'));
 const urls = pages.map(r => siteUrl + (r === '/' ? '' : r.slice(1)));
 fs.writeFileSync(path.join(root, 'sitemap.xml'),
