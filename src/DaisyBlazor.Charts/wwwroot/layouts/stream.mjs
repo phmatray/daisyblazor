@@ -24,6 +24,10 @@ export default function stream({ series, dates, labels, offset = 'wiggle', width
         .keys(named.map((_, k) => k))
         .order(offset === 'wiggle' ? stackOrderInsideOut : stackOrderNone)
         .offset(OFFSET[offset] ?? stackOffsetWiggle)(rows);
+    if (offset === 'percent') {
+        // Shares can sum to 1.0000000000000002, which would stretch the nice axis to 120%.
+        layers.forEach(layer => layer.forEach(d => { d[0] = Math.min(1, d[0]); d[1] = Math.min(1, d[1]); }));
+    }
 
     const lo = Math.min(...layers.flatMap(l => l.map(d => d[0])));
     const hi = Math.max(...layers.flatMap(l => l.map(d => d[1])));

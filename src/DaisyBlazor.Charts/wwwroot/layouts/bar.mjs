@@ -24,6 +24,10 @@ export default function bar({ categories = [], series = [], horizontal = false, 
                 for (const span of members.filter(m => m[c])) {
                     const v = total ? span[c][1] / total * (percent ? 100 : 1) : 0;
                     span[c] = v < 0 ? [down, down += v] : [up, up += v];
+                    if (percent) {
+                        // Shares can sum to 100.00000000000001, which would stretch the nice axis to 120%.
+                        span[c] = span[c].map(end => Math.max(-100, Math.min(100, end)));
+                    }
                 }
             });
         }

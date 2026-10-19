@@ -165,6 +165,27 @@ test('line: percent stacks every index to 100%, negatives count as 0; step draws
     assert.match(step.series[0].line, new RegExp(`^M${p0.x},${p0.y}L${p1.x},${p0.y}L${p1.x},${p1.y}`));
 });
 
+// Every triple of small integers: floating-point drift in the shares must never push the axis past 100%.
+const triples = [];
+for (let a = 1; a <= 25; a++) for (let b = 1; b <= 25; b += 2) for (let c = 1; c <= 9; c += 2) triples.push([a, b, c]);
+
+test('bar: 100% stacks keep the axis at exactly 100%, whatever the rounding (vertical, horizontal, negatives)', async () => {
+    for (const [a, b, c] of triples) {
+        for (const [horizontal, sign] of [[false, 1], [true, 1], [false, -1]]) {
+            const { xTicks, yTicks } = await layout('bar', { categories: ['A'], series: [[a * sign], [b * sign], [c * sign]], percent: true, horizontal, ...size });
+            const values = (horizontal ? xTicks : yTicks).map(t => t.value);
+            assert.equal(sign > 0 ? Math.max(...values) : Math.min(...values), 100 * sign, `${a},${b},${c}`);
+        }
+    }
+});
+
+test('line: 100% stacks keep the axis at exactly 100%, whatever the rounding', async () => {
+    for (const [a, b, c] of triples) {
+        const { yTicks } = await layout('line', { series: [[a, 1], [b, 1], [c, 1]], percent: true, ...size });
+        assert.equal(yTicks.at(-1).value, 100, `${a},${b},${c}`);
+    }
+});
+
 test('pie: slices clockwise from 12 o\'clock in input order, with percentages', async () => {
     const { slices } = await layout('pie', { values: [30, null, -5, 10], size: 200 });
     assert.deepEqual(slices.map(s => s.index), [0, 3]);

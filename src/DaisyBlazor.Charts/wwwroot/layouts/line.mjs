@@ -16,10 +16,11 @@ export default function line({ series = [], labels = [], stacked = false, percen
     const count = Math.max(dataCount, labels.length);
     const indices = [...Array(dataCount).keys()];
 
-    // [base, top] per series and index; unstacked bands start at zero.
+    // [base, top] per series and index; unstacked bands start at zero. Percent ends are capped at
+    // 100: d3 can sum the shares to 1.0000000000000002, which would stretch the nice axis to 120%.
     const bands = percent
         ? stack().keys([...series.keys()]).value((i, s) => (finite(series[s][i]) && series[s][i] > 0 ? series[s][i] : 0)).offset(stackOffsetExpand)(indices)
-              .map(layer => layer.map(([base, top]) => [base * 100, top * 100]))
+              .map(layer => layer.map(([base, top]) => [base, top].map(end => Math.min(100, end * 100))))
         : stacked
         ? stack().keys([...series.keys()]).value((i, s) => (finite(series[s][i]) ? series[s][i] : 0))(indices)
               .map(layer => layer.map(([base, top]) => [base, top]))

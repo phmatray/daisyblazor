@@ -154,6 +154,15 @@ test('stream: wiggle has no value axis, stacked and percent stack from zero', as
     }
 });
 
+test('stream: percent keeps the axis at exactly 100%, whatever the rounding', async () => {
+    for (let a = 1; a <= 25; a++) for (let b = 1; b <= 25; b += 2) for (let c = 1; c <= 9; c += 2) {
+        const series = [[a, 1], [b, 1], [c, 1]].map((values, i) => ({ name: `S${i}`, values }));
+        const out = await layout('stream', { series, labels: ['W1', 'W2'], offset: 'percent', width: W, height: H });
+        assert.equal(out.yTicks.at(-1).label, '100%', `${a},${b},${c}`);
+        assert.equal(out.yTicks.at(-1).pos, out.plot.top, `${a},${b},${c}`);
+    }
+});
+
 test('stream: dates make a time axis; no series is empty', async () => {
     const dates = Array.from({ length: 12 }, (_, i) => new Date(Date.UTC(2026, 0, 5 + 7 * i)).toISOString().slice(0, 19));
     const out = await layout('stream', { series: [{ name: 'A', values: dates.map((_, i) => i + 1) }], dates, width: W, height: H });
