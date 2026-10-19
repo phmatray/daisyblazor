@@ -1,5 +1,5 @@
 import { extent } from '../d3/d3-array.mjs';
-import { scaleBand, scaleSequential } from '../d3/d3-scale.mjs';
+import { scaleBand, scaleSequential, scaleQuantize } from '../d3/d3-scale.mjs';
 import { finite, maxWidth, fit, r2, stride } from './_shared.mjs';
 
 const EMPTY = { rows: [], columns: [], cells: [], min: 0, max: 0, plot: { left: 0, top: 0, right: 0, bottom: 0 } };
@@ -8,7 +8,10 @@ const EMPTY = { rows: [], columns: [], cells: [], min: 0, max: 0, plot: { left: 
 // Rows and columns are the given orders, or else the distinct names in order of first appearance.
 // A repeated (row, column) pair is summed. Each cell gets t in [0, 1] on a sequential scale from
 // the smallest to the largest value; the component turns t into a theme colour.
-export default function heatmap({ cells, rows, columns, width, height }) {
+// levels (2 to 10) quantizes the values into that many equal steps between the smallest and the
+// largest value: t is then level / (levels - 1), and the result carries the `thresholds` between
+// the steps (levels - 1 of them).
+export default function heatmap({ cells, rows, columns, levels, width, height }) {
     const sums = new Map();
     for (const c of cells ?? []) {
         if (c && c.row != null && c.column != null && finite(c.value)) {
@@ -33,12 +36,14 @@ export default function heatmap({ cells, rows, columns, width, height }) {
     const x = scaleBand().domain(colNames).range([plot.left, plot.right]).padding(0.06);
     const y = scaleBand().domain(rowNames).range([plot.top, plot.bottom]).padding(0.06);
     const [min, max] = extent(entries, e => e.value);
-    const t = scaleSequential(v => v).domain([min, max > min ? max : min + 1]).clamp(true);
+    const steps = finite(levels) ? Math.max(2, Math.min(10, Math.round(levels))) : null;
+    const quantize = steps && scaleQuantize().domain([min, max > min ? max : min + 1]).range([...Array(steps).keys()]);
+    const t = steps ? v => quantize(v) / (steps - 1) : scaleSequential(v => v).domain([min, max > min ? max : min + 1]).clamp(true);
 
     // Column labels are thinned so neighbours never touch: a skipped column's label is empty.
     const every = stride(colNames, x.step(), 6, 10);
 
-    return {
+    const out = {
         rows: rowNames.map(name => ({ pos: r2(y(name) + y.bandwidth() / 2), label: fit(name, left - 8), full: name })),
         columns: colNames.map((name, i) => ({ pos: r2(x(name) + x.bandwidth() / 2), label: i % every === 0 ? name : '', full: name })),
         cells: entries.filter(e => x(e.column) !== undefined && y(e.row) !== undefined).map(e => ({
@@ -48,4 +53,5 @@ export default function heatmap({ cells, rows, columns, width, height }) {
         min, max,
         plot,
     };
+    return steps ? { ...out, thresholds: quantize.thresholds().map(r2) } : out;
 }

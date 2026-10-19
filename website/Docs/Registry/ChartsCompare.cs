@@ -13,6 +13,8 @@ public static partial class DocRegistry
             [
                 new("Basic", "Labels names the axes clockwise from the top; value i of each ChartSeries lines up with axis i, and each series gets the next palette colour.", typeof(RadarChartBasicExample)),
                 new("Round grid, outlines", "Grid=\"RadarGrid.Circle\" draws round rings, Filled=\"false\" keeps only the outlines, and Max fixes the outer ring instead of rounding up the largest value.", typeof(RadarChartGridExample)),
+                new("Stacked", "Stacked puts each series on the running total of the ones before it, on every spoke, so each fills its own band; tooltips keep each series' own value.", typeof(RadarChartStackedExample)),
+                new("100% stacked", "Percent stacks every spoke to 100%, so the bands show each series' share; the rings read in percent and tooltips show the value and the share.", typeof(RadarChartPercentExample)),
             ])
         {
             Portrait = typeof(RadarChartCoverExample),

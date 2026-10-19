@@ -24,6 +24,7 @@ public static partial class DocRegistry
             [
                 new("Basic", "Data holds the stages as ChartDataPoint values, first to last; the right side shows each value and the share kept from the stage before.", typeof(FunnelChartBasicExample)),
                 new("Pyramid", "Shape=\"FunnelShape.Pyramid\" cuts a triangle into slices whose heights follow the values, first stage at the base. Color=\"@null\" gives each stage its own palette colour.", typeof(FunnelChartPyramidExample)),
+                new("Rectangle", "Shape=\"FunnelShape.Rectangle\" draws each stage as a centred rectangle as wide as its value, with no slanted sides.", typeof(FunnelChartRectangleExample)),
             ])
         {
             Portrait = typeof(FunnelChartCoverExample),
@@ -68,6 +69,7 @@ public static partial class DocRegistry
             [
                 new("Basic", "Wedges run clockwise from 12 o'clock in the order given; grid circles mark the scale.", typeof(PolarAreaChartBasicExample)),
                 new("Colours, names only", "Give a point its own Color to make it stand out; ShowValues=\"false\" keeps only the names (values stay in the tooltips).", typeof(PolarAreaChartColorsExample)),
+                new("Wind rose", "Labels and Series instead of Data stack the series outward in every wedge, each wedge's area following its total; the legend names the series.", typeof(PolarAreaChartWindRoseExample)),
             ])
         {
             Portrait = typeof(PolarAreaChartCoverExample),

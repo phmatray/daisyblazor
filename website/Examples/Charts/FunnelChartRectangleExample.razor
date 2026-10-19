@@ -1,0 +1,13 @@
+<FunnelChart Title="Workspace onboarding" Data="_stages" Shape="FunnelShape.Rectangle" ValueFormat="{0:N0}" />
+
+@code {
+    // Rectangle: each stage is a centred bar as wide as its value, with no slanted sides.
+    private readonly ChartDataPoint[] _stages =
+    [
+        new("Signed up", 5_200),
+        new("Created a project", 3_900),
+        new("Connected a repo", 2_450),
+        new("First deploy", 1_700),
+        new("Invited a teammate", 980),
+    ];
+}

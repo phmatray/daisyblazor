@@ -250,3 +250,15 @@ test('arc-diagram: nodes on one baseline, arcs above it and inside the chart', a
     assert.ok(dx.Auth < dx.Gateway && dx.Gateway < dx.X);
     assert.deepEqual(await layout('arc-diagram', { links: null, width: W, height: H }), { nodes: [], links: [], groups: [], labelRoom: 0 });
 });
+
+test('treemap: strip tiling fills rows in order while they get closer to square', async () => {
+    const values = [6, 6, 4, 3, 2, 2, 1];
+    const flat = { name: 'r', children: values.map((value, i) => ({ name: 'abcdefg'[i], value })) };
+    const { nodes } = await layout('treemap', { root: flat, width: 600, height: 400, tile: 'strip', padding: 0 });
+    const rect = n => [n.x0, n.y0, n.x1, n.y1].map(v => Math.round(v * 100) / 100);
+    // 24 units on 240 000 px²: a, b, c fill the first strip (adding d would worsen it), d to g the second.
+    assert.deepEqual(nodes.map(rect), [
+        [0, 0, 225, 266.67], [225, 0, 450, 266.67], [450, 0, 600, 266.67],
+        [0, 266.67, 225, 400], [225, 266.67, 375, 400], [375, 266.67, 525, 400], [525, 266.67, 600, 400],
+    ]);
+});

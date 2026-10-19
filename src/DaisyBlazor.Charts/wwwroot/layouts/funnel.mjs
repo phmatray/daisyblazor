@@ -1,9 +1,10 @@
 import { scaleLinear } from '../d3/d3-scale.mjs';
 import { dodge, r2 } from './_shared.mjs';
 
-// spec: { stages: [{ label, value }], width, height, shape: 'funnel' | 'pyramid', gap }
+// spec: { stages: [{ label, value }], width, height, shape: 'funnel' | 'pyramid' | 'rectangle', gap }
 // funnel: equal-height stages, each as wide as its value and narrowing to the next one.
 // pyramid: a triangle cut into stages whose heights follow their values, the first stage at the base.
+// rectangle: equal-height stages, each a centred rectangle as wide as its value (no slanted sides).
 export default function funnel({ stages, width, height, shape = 'funnel', gap = 4 }) {
     const valid = (stages ?? []).map((s, index) => ({ ...s, index })).filter(s => Number.isFinite(s.value) && s.value >= 0);
     const max = Math.max(0, ...valid.map(s => s.value));
@@ -35,7 +36,7 @@ export default function funnel({ stages, width, height, shape = 'funnel', gap = 
         const h = (bottom - top - gap * (n - 1)) / n;
         out = valid.map((s, i) => {
             const y0 = top + i * (h + gap), y1 = y0 + h;
-            const a = Math.max(2, w(s.value)) / 2, b = Math.max(2, w((valid[i + 1] ?? s).value)) / 2;
+            const a = Math.max(2, w(s.value)) / 2, b = shape === 'rectangle' ? a : Math.max(2, w((valid[i + 1] ?? s).value)) / 2;
             return { index: s.index, label: s.label, value: s.value, conversion: conversion(i), share: share(s), y0, y1,
                 path: poly([[mid - a, y0], [mid + a, y0], [mid + b, y1], [mid - b, y1]]) };
         });

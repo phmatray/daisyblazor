@@ -187,3 +187,29 @@ test('waffle allocates exactly the rounded share of cells, never more than the g
     assert.equal(grid.cells.length, 100);
     assert.deepEqual((await layout('waffle', { items: [], width: 640, height: 640 })).cells, []);
 });
+
+test('a rectangle funnel draws centred rectangles as wide as their value', async () => {
+    const stages = [{ label: 'Trial', value: 1000 }, { label: 'Active', value: 600 }, { label: 'Paid', value: 150 }];
+    const { stages: out } = await layout('funnel', { stages, width: W, height: H, shape: 'rectangle' });
+    const xs = s => s.path.match(/[\d.]+(?=,)/g).map(Number);
+    const widths = out.map(s => { const [a, b, c, d] = xs(s); near(b, c, 1e-9); near(a, d, 1e-9); return b - a; });
+    near(widths[1] / widths[0], 0.6, 1e-3);
+    near(widths[2] / widths[0], 0.15, 1e-3);
+    near(widths[0], W - 300, 0.01);
+    out.forEach(s => near((xs(s)[0] + xs(s)[1]) / 2, W / 2, 0.01));
+    assert.deepEqual(out.map(s => s.conversion), [null, 0.6, 0.25]);
+});
+
+test('a wind rose stacks the series outward in equal wedges, area by the total', async () => {
+    const p = await layout('polar-area', { labels: ['N', 'E', 'S', 'W'], series: [[4, 1, 0, null], [5, 3, -2, 0]], width: 640, height: 640 });
+    assert.deepEqual(p.wedges.map(w => [w.label, w.value]), [['N', 9], ['E', 4], ['S', 0], ['W', 0]]);
+    assert.deepEqual(p.segments.map(g => [g.index, g.series, g.value]), [[0, 0, 4], [0, 1, 5], [1, 0, 1], [1, 1, 3]]);
+    const outer = g => Math.max(...g.path.match(/-?[\d.]+/g).map(Number).map(Math.abs));
+    // Radius by the square root of the running total: N's first series reaches √4, the stack √9.
+    near(outer(p.segments[0]) / outer(p.segments[1]), 2 / 3, 0.02);
+    near(outer(p.segments[3]) / outer(p.segments[1]), 2 / 3, 0.02);
+    for (const w of p.wedges) {
+        inside(w.labelX, w.labelY, 640, 640);
+    }
+    assert.deepEqual((await layout('polar-area', { labels: ['N'], series: [[0]], width: 640, height: 640 })).segments, []);
+});

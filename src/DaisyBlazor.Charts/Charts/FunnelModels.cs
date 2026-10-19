@@ -8,6 +8,9 @@ public enum FunnelShape
 
     /// <summary>A triangle cut into stages whose heights follow their values, the first stage at the base.</summary>
     Pyramid,
+
+    /// <summary>Equal-height stages, top to bottom, each a centred rectangle as wide as its value, with no slanted sides.</summary>
+    Rectangle,
 }
 
 /// <summary>Geometry of a <see cref="FunnelChart"/>.</summary>

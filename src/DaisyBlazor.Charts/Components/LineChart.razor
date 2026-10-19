@@ -30,7 +30,18 @@
                 <title>@_ariaLabel</title>
                 <desc id="@_descId">@_description</desc>
 
-                <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="geo.YTicks" YGrid="true" ViewWidth="geo.Width" />
+                @if (Horizontal)
+                {
+                    <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="geo.YTicks" XGrid="true" YCategories="true" ViewWidth="geo.Width" />
+                }
+                else
+                {
+                    <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="geo.YTicks" YGrid="true" ViewWidth="geo.Width" />
+                }
+                @if (geo.Bands is { Count: > 0 } placedBands)
+                {
+                    <ChartReferences Behind="true" Ranges="_bands" Bands="placedBands" />
+                }
 
                 @for (int s = 0; s < Math.Min(_series.Count, geo.Series.Count); s++)
                 {
@@ -58,6 +69,11 @@
                             </circle>
                         }
                     }
+                }
+
+                @if (geo.References is { Count: > 0 } || geo.Bands is { Count: > 0 })
+                {
+                    <ChartReferences References="_references" Ranges="_bands" Lines="@(geo.References ?? [])" Bands="@(geo.Bands ?? [])" />
                 }
             </svg>
         }
@@ -110,7 +126,23 @@
     /// </summary>
     [Parameter] public bool Step { get; set; }
 
-    /// <summary>Draw horizontal gridlines and value labels.</summary>
+    /// <summary>
+    /// Rotate the chart: the labels run down the vertical axis and the values along the horizontal
+    /// one, each line reading top to bottom. Works with every other option (Smooth, Step, Stacked,
+    /// Percent, Area); a step then holds its value down to the next label.
+    /// </summary>
+    [Parameter] public bool Horizontal { get; set; }
+
+    /// <summary>
+    /// Reference lines across the plot at a value (a target, a limit, a break-even point), drawn over
+    /// the data with their label inside the plot. The value axis grows to show every line.
+    /// </summary>
+    [Parameter] public IReadOnlyList<ChartReference>? References { get; set; }
+
+    /// <summary>Shaded value ranges (plot bands) drawn behind the data, cut to the plot, each with an optional label in its corner.</summary>
+    [Parameter] public IReadOnlyList<ChartBand>? Bands { get; set; }
+
+    /// <summary>Draw value gridlines and value labels.</summary>
     [Parameter] public bool ShowGrid { get; set; } = true;
 
     /// <summary>Draw a marker at each data point.</summary>
@@ -146,8 +178,18 @@
         IReadOnlyList<double>[] series = _series.Select(s => s.Data ?? []).ToArray();
         IReadOnlyList<string> labels = Labels ?? [];
 
-        // Percent and Step only when set, so the spec (and the layout cache key) of an existing
+        // The newer options only when set, so the spec (and the layout cache key) of an existing
         // chart stays as it was.
+        if (Horizontal || _references.Count > 0 || _bands.Count > 0)
+        {
+            return new
+            {
+                Series = series, Labels = labels, Stacked, Percent, Smooth, Step, ShowGrid, Horizontal,
+                References = _references.Select(r => new { r.Value, r.Label }).ToArray(),
+                Bands = _bands.Select(b => new { b.From, b.To, b.Label }).ToArray(),
+            };
+        }
+
         return Percent || Step
             ? (object)new { Series = series, Labels = labels, Stacked, Percent, Smooth, Step, ShowGrid }
             : new { Series = series, Labels = labels, Stacked, Smooth, ShowGrid };
@@ -157,6 +199,10 @@
     private readonly string _descId = "line-desc-" + Guid.NewGuid().ToString("N")[..8];
 
     private IReadOnlyList<ChartSeries> _series => Series ?? new List<ChartSeries>();
+
+    private IReadOnlyList<ChartReference> _references => References ?? [];
+
+    private IReadOnlyList<ChartBand> _bands => Bands ?? [];
 
     private string _ariaLabel =>
         string.IsNullOrEmpty(Title) ? $"Line chart with {_series.Count} series" : Title!;

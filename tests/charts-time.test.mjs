@@ -389,3 +389,14 @@ test('candlestick: RSI, MACD and volume panels stack under the price panel on on
 });
 
 const r = v => Math.round(v * 10) / 10;
+
+test('heatmap: levels quantize the values into equal steps, with the thresholds between them', async () => {
+    const out = await layout('heatmap', {
+        cells: [0, 2, 5, 7, 10].map((value, i) => ({ row: 'API', column: `h${i}`, value })),
+        levels: 4, width: W, height: H,
+    });
+    assert.deepEqual(out.thresholds, [2.5, 5, 7.5]);
+    assert.deepEqual(out.cells.map(c => c.t), [0, 0, 0.67, 0.67, 1]);
+    const continuous = await layout('heatmap', { cells: [{ row: 'A', column: 'x', value: 1 }], width: W, height: H });
+    assert.ok(!('thresholds' in continuous));
+});

@@ -307,4 +307,25 @@ public class ChartsTimeTests : BunitContext
 
         Spec(module, "range-area").ShouldContain("\"smooth\":true,\"step\":true");
     }
+
+    [Fact]
+    public void HeatmapChart_levels_send_the_step_count_and_show_a_stepped_legend()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        HeatmapLayout layout = new(
+            [new(100, "Mon", null, "Mon")], [new(200, "09", null, "09"), new(400, "10", null, "10")],
+            [new("Mon", "09", 10, 0, 100, 20, 190, 160), new("Mon", "10", 30, 1, 300, 20, 190, 160)], 10, 30, _plot, [20]);
+        module.Setup<HeatmapLayout>("layout", _ => true).SetResult(layout);
+
+        IRenderedComponent<HeatmapChart> cut = Render<HeatmapChart>(ps => ps
+            .Add(p => p.Cells, [new HeatmapCell("Mon", "09", 10), new HeatmapCell("Mon", "10", 30)])
+            .Add(p => p.Levels, 2));
+
+        cut.WaitForAssertion(() => cut.FindAll("svg rect").Count.ShouldBe(2));
+        Spec(module, "heatmap").ShouldContain("\"levels\":2");
+        cut.FindAll(".rounded-sm").Count.ShouldBe(2);
+        cut.Markup.ShouldContain("10 – 20");
+        cut.Markup.ShouldContain("20 – 30");
+        cut.Markup.ShouldNotContain("linear-gradient");
+    }
 }

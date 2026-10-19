@@ -23,6 +23,7 @@ public static partial class DocRegistry
             [
                 new("Basic", "Each HeatmapCell puts a Value at a Row and Column; rows and columns follow the order the data first names them, and crowded column labels are thinned.", typeof(HeatmapChartBasicExample)),
                 new("Values, order and colour", "ShowValues writes each value in its cell, Rows and Columns fix the order, and Color picks the theme colour of the largest value.", typeof(HeatmapChartValuesExample)),
+                new("Discrete levels", "Levels splits the values into that many equal ranges, one shade each, and the legend shows a swatch per range instead of a gradient.", typeof(HeatmapChartLevelsExample)),
             ])
         {
             Portrait = typeof(HeatmapChartCoverExample),

@@ -303,3 +303,64 @@ test('measured: arrow keys on a slider inside the chart do not scroll the page; 
     unobserve(el);
     assert.equal(listeners.keydown, undefined);
 });
+
+test('line: horizontal rotates the chart, labels down the side, values along x; step and smooth follow y', async () => {
+    const out = await layout('line', { series: [[1, 3, 2]], labels: ['Mon', 'Tue', 'Wed'], horizontal: true, ...size });
+    assert.deepEqual(out.yTicks.map(t => t.label), ['Mon', 'Tue', 'Wed']);
+    assert.ok(out.plot.left >= 'Mon'.length * 6.6);
+    assert.equal(out.xTicks[0].label, '0');
+    const x = v => out.xTicks.find(t => t.label === String(v)).pos;
+    const [p0, p1, p2] = out.series[0].points;
+    assert.deepEqual([p0.x, p1.x, p2.x], [x(1), x(3), x(2)]);
+    assert.deepEqual([p0.y, p1.y, p2.y], out.yTicks.map(t => t.pos));
+    assert.ok(p0.y < p1.y && p1.y < p2.y, 'categories run top to bottom');
+    // The area fills from the zero line on the left.
+    assert.match(out.series[0].area, new RegExp(`L${x(0)},${p0.y}Z$`));
+
+    const step = await layout('line', { series: [[1, 3, 2]], labels: ['Mon', 'Tue', 'Wed'], horizontal: true, step: true, ...size });
+    const [s0, s1] = step.series[0].points;
+    // A step holds its value down to the next label, then moves across.
+    assert.match(step.series[0].line, new RegExp(`^M${s0.x},${s0.y}L${s0.x},${s1.y}L${s1.x},${s1.y}`));
+
+    const smooth = await layout('line', { series: [[1, 3, 2], [2, 1, 2]], horizontal: true, smooth: true, stacked: true, area: true, ...size });
+    assert.match(smooth.series[0].line, /C/);
+    assert.equal(smooth.series[1].points[0].x, smooth.xTicks.find(t => t.label === '3').pos); // stacked on the running total
+});
+
+test('line: horizontal percent stacks reach exactly 100% on the x axis', async () => {
+    const { xTicks, series, plot } = await layout('line', { series: [[1, 3], [3, 1]], percent: true, horizontal: true, showGrid: true, ...size });
+    assert.equal(xTicks.at(-1).label, '100%');
+    assert.ok(series[1].points.every(p => p.x === plot.right));
+});
+
+test('line and bar: references and bands sit at their values, labels inside the plot', async () => {
+    const out = await layout('line', {
+        series: [[20, 35, 30]], labels: ['A', 'B', 'C'],
+        references: [{ value: 60, label: 'Quota' }, { value: 25, label: 'Target' }], bands: [{ from: 10, to: 30, label: 'Normal' }, { from: 500, to: 900 }],
+        ...size,
+    });
+    const y = v => out.yTicks.find(t => t.label === String(v))?.pos;
+    assert.equal(out.yTicks.at(-1).label, '60', 'the axis grows to show the reference');
+    const [quota, target] = out.references;
+    assert.deepEqual([quota.y1, quota.y2, quota.x1, quota.x2], [y(60), y(60), out.plot.left, out.plot.right]);
+    assert.ok(quota.labelY > quota.y1 && quota.labelY - 11 >= out.plot.top, 'a line at the top is labelled below it');
+    assert.ok(target.labelY < target.y1 && target.anchor === 'end' && target.labelX < out.plot.right);
+    assert.equal(out.bands.length, 1, 'a band outside the axis is dropped');
+    const [normal] = out.bands;
+    assert.deepEqual([normal.y, normal.y + normal.height].map(Math.round), [y(30), y(10)].map(Math.round));
+    assert.ok(normal.labelX > out.plot.left && normal.labelY > normal.y);
+
+    const bar = await layout('bar', { categories: ['A', 'B'], series: [[10, 40]], horizontal: true, references: [{ value: 50, label: 'Limit' }], bands: [{ from: 30, to: 0 }], ...size });
+    const x = v => bar.xTicks.find(t => t.label === String(v))?.pos;
+    const [limit] = bar.references;
+    assert.deepEqual([limit.x1, limit.x2, limit.y1, limit.y2], [x(50), x(50), bar.plot.top, bar.plot.bottom]);
+    assert.equal(limit.anchor, 'end', 'a label that would leave the plot turns back');
+    assert.ok(limit.labelX - 'Limit'.length * 6.6 >= bar.plot.left);
+    assert.deepEqual([bar.bands[0].x, Math.round(bar.bands[0].x + bar.bands[0].width)], [x(0), Math.round(x(30))]);
+
+    const vertical = await layout('bar', { categories: ['A'], series: [[10]], references: [{ value: 4 }], ...size });
+    assert.equal(vertical.references[0].y1, vertical.yTicks.find(t => t.label === '4').pos);
+    assert.deepEqual(vertical.bands, []);
+    // Without references or bands, the result has neither key.
+    assert.ok(!('references' in await layout('bar', { categories: ['A'], series: [[10]], ...size })));
+});
