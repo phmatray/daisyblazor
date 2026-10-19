@@ -5,7 +5,8 @@ import { layout } from '../src/DaisyBlazor.Charts/wwwroot/charts.mjs';
 import { boxStats, kde } from '../src/DaisyBlazor.Charts/wwwroot/layouts/_distribution.mjs';
 import { binOf } from '../src/DaisyBlazor.Charts/wwwroot/layouts/hexbin.mjs';
 import { dodge } from '../src/DaisyBlazor.Charts/wwwroot/layouts/beeswarm.mjs';
-import scatter, { fitTrend } from '../src/DaisyBlazor.Charts/wwwroot/layouts/scatter.mjs';
+import scatter from '../src/DaisyBlazor.Charts/wwwroot/layouts/scatter.mjs';
+import { fitTrend } from '../src/DaisyBlazor.Charts/wwwroot/layouts/_shared.mjs';
 import { idw, surface } from '../src/DaisyBlazor.Charts/wwwroot/layouts/contour.mjs';
 
 const size = { width: 640, height: 360 };

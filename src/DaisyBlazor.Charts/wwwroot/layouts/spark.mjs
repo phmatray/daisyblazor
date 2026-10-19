@@ -1,6 +1,6 @@
 import { scaleLinear } from '../d3/d3-scale.mjs';
 import { line as d3Line, area as d3Area } from '../d3/d3-shape.mjs';
-import { finite, r2 } from './_shared.mjs';
+import { finite, r2, fitTrend } from './_shared.mjs';
 
 // Sparkline: a tiny trend line with no axes. spec: { data: [number|null], pad, width, height, kind,
 // trend, normal } (px). The values span the box from their own low to high (flat data runs through
@@ -36,8 +36,9 @@ export default function spark({ data = [], pad = 2, width, height, kind = 'line'
         extra.band = { y: r2(top), height: r2(y(band[0]) - top) };
     }
     if (trend && !winloss) {
-        const fit = leastSquares(data);
-        extra.trend = fit && { x1: r2(x(0)), y1: r2(y(fit.a)), x2: r2(x(data.length - 1)), y2: r2(y(fit.a + fit.b * (data.length - 1))) };    }
+        const fit = fitTrend('linear', [...data.keys()], data);
+        extra.trend = fit && { x1: r2(x(0)), y1: r2(y(fit.f(0))), x2: r2(x(data.length - 1)), y2: r2(y(fit.f(data.length - 1))) };
+    }
 
     if (column || winloss) {
         return { line: '', area: '', end: null, bars: bars(data, pad, width, height, winloss, y), ...extra };
@@ -55,20 +56,6 @@ export default function spark({ data = [], pad = 2, width, height, kind = 'line'
         end: { x: r2(x(last)), y: r2(y(data[last])) },
         ...extra,
     };
-}
-
-/** Least-squares line value = a + b·index over the finite values; null with fewer than two. */
-export function leastSquares(data) {
-    const pts = [...data.keys()].filter(i => finite(data[i]));
-    const n = pts.length;
-    if (n < 2) {
-        return null;
-    }
-    const mx = pts.reduce((s, i) => s + i, 0) / n;
-    const my = pts.reduce((s, i) => s + data[i], 0) / n;
-    const sxx = pts.reduce((s, i) => s + (i - mx) ** 2, 0);
-    const b = pts.reduce((s, i) => s + (i - mx) * (data[i] - my), 0) / sxx;
-    return { a: my - b * mx, b };
 }
 
 // One bar per value, [{ i, x, y, width, height, value }]. column: bars grow from zero (negatives

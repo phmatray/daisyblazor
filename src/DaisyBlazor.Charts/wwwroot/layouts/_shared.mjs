@@ -134,3 +134,51 @@ export function referenceMarks(scale, across, plot, references = [], bands = [])
 
 /** The finite reference values, to take into a value axis's domain so every reference line shows. */
 export const referenceValues = references => (references ?? []).map(r => r?.value).filter(finite);
+
+// How each trend maps (x, y) to a straight-line fit Y = c0 + c1·X, and back: linear y = a + b·x,
+// exponential y = a·e^(b·x), logarithmic y = a + b·ln x, power y = a·x^b.
+const TRENDS = {
+    linear: { x: v => v, y: v => v, a: c => c, f: (a, b, v) => a + b * v },
+    exponential: { x: v => v, y: Math.log, a: Math.exp, f: (a, b, v) => a * Math.exp(b * v) },
+    logarithmic: { x: Math.log, y: v => v, a: c => c, f: (a, b, v) => a + b * Math.log(v) },
+    power: { x: Math.log, y: Math.log, a: Math.exp, f: (a, b, v) => a * Math.pow(v, b) },
+};
+
+/**
+ * Least-squares fit of `kind` to the points, done in data space. Points the transform cannot take
+ * (y ≤ 0 for exponential and power, x ≤ 0 for logarithmic and power) are left out. R² is that of the
+ * straight-line fit in the transformed space, as spreadsheets report it. Null with fewer than two
+ * usable points or all x equal.
+ */
+export function fitTrend(kind, xs, ys) {
+    const t = TRENDS[kind];
+    if (!t) {
+        return null;
+    }
+    const X = [], Y = [];
+    xs.forEach((xv, i) => {
+        const u = t.x(xv), v = t.y(ys[i]);
+        if (finite(u) && finite(v)) {
+            X.push(u);
+            Y.push(v);
+        }
+    });
+    const n = X.length;
+    if (n < 2) {
+        return null;
+    }
+    const mx = X.reduce((s, v) => s + v, 0) / n, my = Y.reduce((s, v) => s + v, 0) / n;
+    let sxx = 0, sxy = 0, syy = 0;
+    for (let i = 0; i < n; i++) {
+        sxx += (X[i] - mx) ** 2;
+        sxy += (X[i] - mx) * (Y[i] - my);
+        syy += (Y[i] - my) ** 2;
+    }
+    if (sxx === 0) {
+        return null;
+    }
+    const b = sxy / sxx, c0 = my - b * mx;
+    const r2 = syy === 0 ? 1 : (sxy * sxy) / (sxx * syy);
+    const a = t.a(c0);
+    return { a, b, r2, f: v => t.f(a, b, v) };
+}

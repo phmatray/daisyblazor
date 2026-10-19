@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { layout, observe, update, unobserve } from '../src/DaisyBlazor.Charts/wwwroot/charts.mjs';
-import { compact } from '../src/DaisyBlazor.Charts/wwwroot/layouts/_shared.mjs';
+import { compact, fitTrend } from '../src/DaisyBlazor.Charts/wwwroot/layouts/_shared.mjs';
 // Sweeps call the layouts directly, so the replay fixture does not record thousands of specs.
 import barLayout from '../src/DaisyBlazor.Charts/wwwroot/layouts/bar.mjs';
 import lineLayout from '../src/DaisyBlazor.Charts/wwwroot/layouts/line.mjs';
@@ -293,6 +293,15 @@ test('spark trend line and normal range on lines and columns', async () => {
     assert.equal(column.trend.x2, 70);
     assert.ok(column.trend.y2 < column.trend.y1, 'a rising trend');
     assert.equal((await layout('spark', { data: [4, null], pad: 2, width: 80, height: 24, trend: true })).trend, null, 'one value has no trend');
+});
+
+test('spark trend is the shared linear fit over the indices, skipping gaps', async () => {
+    const data = [1, null, 5, 4, 9];
+    const geo = await layout('spark', { data, pad: 2, width: 82, height: 24, trend: true });
+    const fit = fitTrend('linear', [0, 2, 3, 4], [1, 5, 4, 9]);
+    // Values 1..9 span y 22..2, indices 0..4 span x 2..80.
+    const y = v => 22 - (v - 1) * 20 / 8;
+    assert.deepEqual(geo.trend, { x1: 2, y1: Math.round(y(fit.f(0)) * 100) / 100, x2: 80, y2: Math.round(y(fit.f(4)) * 100) / 100 });
 });
 
 // Measured mode, against a stubbed ResizeObserver and element.
