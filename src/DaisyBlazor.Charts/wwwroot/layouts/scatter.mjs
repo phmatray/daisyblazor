@@ -2,11 +2,12 @@ import { extent } from '../d3/d3-array.mjs';
 import { Delaunay } from '../d3/d3-delaunay.mjs';
 import { scaleSqrt } from '../d3/d3-scale.mjs';
 import { line, curveMonotoneX } from '../d3/d3-shape.mjs';
-import { finite, valueScale, r2, fitTrend } from './_shared.mjs';
+import { finite, valueScale, r2, fitTrend, referenceMarks, referenceValues } from './_shared.mjs';
 import { cartesian } from './_distribution.mjs';
 
 // spec: { points: [{ x, y, size, series, label, xError, yError }], width, height, xLog, yLog, xTitle, yTitle,
-//         radius, minRadius, maxRadius, showLine, trendline, smooth, highDensity, cellSize, stacked, xRef, yRef }
+//         radius, minRadius, maxRadius, showLine, trendline, smooth, highDensity, cellSize, stacked,
+//         references, bands, xReferences, xBands }
 // Points with a size become bubbles (area proportional to size). Each point also gets its Voronoi
 // cell, so the chart can highlight the nearest point wherever the pointer is. showLine adds `lines`
 // (each series joined in x order, as a monotone spline with smooth); trendline ('linear',
@@ -16,10 +17,13 @@ import { cartesian } from './_distribution.mjs';
 // Optional extras, each returned only when used: xError / yError (symmetric ±) give a point
 // `xWhisker` / `yWhisker` ({ error, from, to } in chart units, clamped to the plot); stacked draws
 // each series on the running total of the previous ones at the same x (the point keeps its own y and
-// gains `total`); xRef / yRef give the positions of reference lines (`xRef`, `yRef`). highDensity
+// gains `total`). references and bands ([{ value, label }], [{ from, to, label }]) add horizontal
+// reference lines and bands at y values, xReferences and xBands vertical ones at x values (see
+// referenceMarks; reference values are taken into their axis, a value a log axis cannot show is
+// dropped); the result then carries `references` and `bands`, or `xReferences` and `xBands`. highDensity
 // returns no points: it counts them on a grid of cellSize-unit squares instead, `density` holding
 // per series a flat list [column, row, count, …] of the occupied cells (row 0 at the plot's top).
-export default function scatter({ points, width, height, xLog = false, yLog = false, xTitle, yTitle, radius = 4, minRadius = 3, maxRadius = 18, showLine = false, trendline = 'none', smooth = false, highDensity = false, cellSize = 3, stacked = false, xRef = null, yRef = null }) {
+export default function scatter({ points, width, height, xLog = false, yLog = false, xTitle, yTitle, radius = 4, minRadius = 3, maxRadius = 18, showLine = false, trendline = 'none', smooth = false, highDensity = false, cellSize = 3, stacked = false, references, bands, xReferences, xBands }) {
     const ok = p => finite(p.x) && finite(p.y) && (!xLog || p.x > 0) && (!yLog || p.y > 0);
     const raw = (points ?? []).filter(ok);
     const series = [...new Set(raw.map(p => p.series ?? ''))];
@@ -38,12 +42,12 @@ export default function scatter({ points, width, height, xLog = false, yLog = fa
             ys.push(p.y - p.yError, p.y + p.yError);
         }
     }
-    if (finite(xRef)) {
-        xs.push(xRef);
-    }
-    if (finite(yRef)) {
-        ys.push(yRef);
-    }
+    // On a log axis, a reference or band at or below zero has no place: it is blanked, keeping the indices.
+    const onAxis = (list, log, ok) => (list ?? []).map(r => (r && (!log || ok(r)) ? r : null));
+    const yRefs = onAxis(references, yLog, r => r.value > 0), xRefs = onAxis(xReferences, xLog, r => r.value > 0);
+    const yRanges = onAxis(bands, yLog, b => b.from > 0 && b.to > 0), xRanges = onAxis(xBands, xLog, b => b.from > 0 && b.to > 0);
+    xs.push(...referenceValues(xRefs));
+    ys.push(...referenceValues(yRefs));
     const x = valueScale(xs, { log: xLog });
     const y = valueScale(ys, { log: yLog, zero: stacked });
     const { plot, xTicks, yTicks } = cartesian({ width, height, x, y, xTitle, yTitle, inset });
@@ -59,12 +63,13 @@ export default function scatter({ points, width, height, xLog = false, yLog = fa
         extra.cellSize = finite(cellSize) && cellSize >= 1 ? cellSize : 3;
         extra.density = [];
     }
-    const refAt = (scale, v, log) => finite(v) && (!log || v > 0) ? r2(scale(v)) : undefined;
-    if (refAt(x, xRef, xLog) !== undefined) {
-        extra.xRef = refAt(x, xRef, xLog);
+    if (yRefs.length || yRanges.length) {
+        Object.assign(extra, referenceMarks(y, false, plot, yRefs, yRanges));
     }
-    if (refAt(y, yRef, yLog) !== undefined) {
-        extra.yRef = refAt(y, yRef, yLog);
+    if (xRefs.length || xRanges.length) {
+        const marks = referenceMarks(x, true, plot, xRefs, xRanges);
+        extra.xReferences = marks.references;
+        extra.xBands = marks.bands;
     }
     if (valid.length === 0) {
         return { plot, xTicks, yTicks, series: [], points: [], ...extra };

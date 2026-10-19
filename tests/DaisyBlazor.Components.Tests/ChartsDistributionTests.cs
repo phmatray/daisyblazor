@@ -299,32 +299,47 @@ public class ChartsDistributionTests : BunitContext
         cut.Markup.ShouldContain("26–36 requests per cell");
         cut.FindAll(".rounded-sm").Count.ShouldBe(6, "one legend key per count level");
         cut.Find("svg").QuerySelector("desc")!.TextContent.ShouldContain("small cell");
+
+        // The level paths are kept per layout; a colour change keeps the layout but redraws them.
+        cut.Render(ps => ps.Add(p => p.SeriesColors, new Dictionary<string, string> { [""] = "red" }));
+        cut.FindAll("svg path[fill^='color-mix(in oklab, red']").Count.ShouldBe(2);
+        _module.Invocations["layout"].Count.ShouldBe(1, "same spec, same layout");
     }
 
     [Fact]
-    public void Scatter_stacked_quadrants_draw_reference_lines_labels_and_totals()
+    public void Scatter_stacked_quadrants_draw_reference_lines_bands_labels_and_totals()
     {
         JSRuntimeInvocationHandler<ScatterLayout> call = Setup<ScatterLayout>();
         IRenderedComponent<ScatterChart> cut = Render<ScatterChart>(ps => ps
             .Add(p => p.Points, [new ScatterPoint(1, 2, Series: "Compute"), new ScatterPoint(1, 3, Series: "Storage")])
-            .Add(p => p.Stacked, true).Add(p => p.XReference, 50).Add(p => p.YReference, 25)
+            .Add(p => p.Stacked, true).Add(p => p.Trendline, ChartTrendline.Linear)
+            .Add(p => p.XReferences, [new ChartReference(50, "Median usage")]).Add(p => p.References, [new ChartReference(25, Color: "red")])
+            .Add(p => p.XBands, [new ChartBand(0, 10, "Pilot")])
             .Add(p => p.QuadrantLabels, ["Grow", "Fix", "Retire", "Keep"]));
 
         string spec = Spec("scatter");
         spec.ShouldContain("\"stacked\":true");
-        spec.ShouldContain("\"xRef\":50,\"yRef\":25");
+        spec.ShouldContain("\"references\":[{\"value\":25,\"label\":null}],\"bands\":[],\"xReferences\":[{\"value\":50,\"label\":\"Median usage\"}],\"xBands\":[{\"from\":0,\"to\":10,\"label\":\"Pilot\"}]");
 
         call.SetResult(new ScatterLayout(_plot, _xTicks, _yTicks, ["Compute", "Storage"],
             [new(1, 2, null, null, 0, 100, 200, 4, "M0,0Z", Total: 2), new(1, 3, null, null, 1, 100, 150, 4, "M1,1Z", Total: 5)],
-            XRef: 332, YRef: 172));
-        cut.WaitForAssertion(() => cut.FindAll("svg line[stroke-dasharray]").Count.ShouldBe(2));
-        cut.Find("svg line[stroke-dasharray][x1='332']").GetAttribute("y2").ShouldBe("318");
-        cut.Find("svg line[stroke-dasharray][y1='172']").GetAttribute("x2").ShouldBe("624");
+            References: [new(0, 40, 172, 624, 172, 620, 168, "end")],
+            XReferences: [new(0, 332, 26, 332, 318, 336, 37, "start")],
+            XBands: [new(0, 40, 26, 60, 292, 44, 312, "start")]));
+        cut.WaitForAssertion(() => cut.FindAll("svg line").Count(l => l.GetAttribute("stroke-dasharray") == "5 4").ShouldBe(2));
+        cut.Find("svg line[x1='332']").GetAttribute("y2").ShouldBe("318");
+        cut.Find("svg line[y1='172']").GetAttribute("stroke").ShouldBe("red");
+        cut.Find("svg rect[fill-opacity='0.12']").GetAttribute("width").ShouldBe("60");
         string[] labels = cut.FindAll("svg text").Select(t => t.TextContent).ToArray();
         labels.ShouldContain("Grow");
         labels.ShouldContain("Retire");
+        labels.ShouldContain("Median usage");
+        labels.ShouldContain("Pilot");
         cut.Markup.ShouldContain("Storage: x 1, y 3 (total 5)");
-        cut.Find("svg").QuerySelector("desc")!.TextContent.ShouldContain("series stacked");
+        string desc = cut.Find("svg").QuerySelector("desc")!.TextContent;
+        desc.ShouldContain("series stacked");
+        desc.ShouldContain("with reference lines, with shaded ranges");
+        desc.ShouldNotContain("trend", customMessage: "Trendline is ignored while stacked");
     }
 
     [Fact]
@@ -335,7 +350,7 @@ public class ChartsDistributionTests : BunitContext
 
         string spec = Spec("scatter");
         spec.ShouldContain("\"smooth\":false,\"highDensity\":false");
-        spec.ShouldContain("\"stacked\":false,\"xRef\":null,\"yRef\":null");
+        spec.ShouldContain("\"stacked\":false,\"references\":[],\"bands\":[],\"xReferences\":[],\"xBands\":[]");
         spec.ShouldContain("\"xError\":null,\"yError\":null");
     }
 

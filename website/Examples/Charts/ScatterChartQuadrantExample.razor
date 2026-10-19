@@ -1,8 +1,11 @@
-<ScatterChart Title="Services by usage and error rate" Points="_services" XReference="50" YReference="1"
+<ScatterChart Title="Services by usage and error rate" Points="_services" XReferences="_usage" References="_errors"
               QuadrantLabels="_quadrants" XTitle="Weekly active projects (%)" YTitle="Error rate (%)" />
 
 @code {
-    // XReference and YReference split the plot into quadrants; QuadrantLabels go top right, top left, bottom left, bottom right.
+    // A vertical (XReferences) and a horizontal (References) line split the plot into quadrants;
+    // QuadrantLabels go top right, top left, bottom left, bottom right.
+    private readonly ChartReference[] _usage = [new(50)];
+    private readonly ChartReference[] _errors = [new(1, "Error budget")];
     private readonly string[] _quadrants = ["Fix first", "Review", "Leave as is", "Healthy core"];
 
     private readonly ScatterPoint[] _services =

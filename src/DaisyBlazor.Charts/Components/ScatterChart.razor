@@ -13,13 +13,13 @@
         <style>.dbc-cell{fill:transparent;cursor:crosshair}.dbc-cell:hover+circle{fill-opacity:1;stroke:var(--color-base-content);stroke-width:2}</style>
         <ChartAxes Plot="view.Plot" Baseline="true" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
                    XGrid="true" YGrid="true" Height="ViewHeight" />
-        @if (view.XRef is { } xRef)
+        @if (view.Bands is { Count: > 0 } yBands)
         {
-            <line x1="@N(xRef)" x2="@N(xRef)" y1="@N(view.Plot.Top)" y2="@N(view.Plot.Bottom)" stroke="var(--color-base-content)" stroke-opacity="0.5" stroke-dasharray="4 3" />
+            <ChartReferences Behind="true" Ranges="_bands" Bands="yBands" />
         }
-        @if (view.YRef is { } yRef)
+        @if (view.XBands is { Count: > 0 } xBands)
         {
-            <line x1="@N(view.Plot.Left)" x2="@N(view.Plot.Right)" y1="@N(yRef)" y2="@N(yRef)" stroke="var(--color-base-content)" stroke-opacity="0.5" stroke-dasharray="4 3" />
+            <ChartReferences Behind="true" Ranges="_xBands" Bands="xBands" />
         }
         @if (QuadrantLabels is { Count: 4 } q)
         {
@@ -28,7 +28,7 @@
             <SvgText X="view.Plot.Left + 6" Y="view.Plot.Bottom - 6" FillOpacity="0.6" FontWeight="600" Text="@q[2]" />
             <SvgText X="view.Plot.Right - 6" Y="view.Plot.Bottom - 6" Anchor="end" FillOpacity="0.6" FontWeight="600" Text="@q[3]" />
         }
-        @foreach (DensityLevel level in _levels(view))
+        @foreach (DensityLevel level in _density(view).Levels)
         {
             <path d="@level.Path" fill="@level.Color">
                 <title>@level.Tooltip</title>
@@ -67,6 +67,14 @@
                 <path d="@trend.Path" fill="none" stroke="transparent" stroke-width="10" />
                 <path d="@trend.Path" fill="none" stroke="@color" stroke-width="2" stroke-dasharray="6 4" pointer-events="none" />
             </g>
+        }
+        @if (view.References is { Count: > 0 } || view.Bands is { Count: > 0 })
+        {
+            <ChartReferences References="_references" Ranges="_bands" Lines="@(view.References ?? [])" Bands="@(view.Bands ?? [])" />
+        }
+        @if (view.XReferences is { Count: > 0 } || view.XBands is { Count: > 0 })
+        {
+            <ChartReferences References="_xReferences" Ranges="_xBands" Lines="@(view.XReferences ?? [])" Bands="@(view.XBands ?? [])" />
         }
     }
 </D3ChartFrame>
@@ -144,13 +152,29 @@
     /// </summary>
     [Parameter] public bool Stacked { get; set; }
 
-    /// <summary>X of a vertical reference line across the plot; with <see cref="YReference"/>, the plot splits into quadrants.</summary>
-    [Parameter] public double? XReference { get; set; }
+    /// <summary>
+    /// Horizontal reference lines across the plot at Y values (a target, a limit), drawn over the
+    /// points with an optional label; the Y axis grows to show each one. On a log axis, values at or below zero are left out.
+    /// </summary>
+    [Parameter] public IReadOnlyList<ChartReference>? References { get; set; }
 
-    /// <summary>Y of a horizontal reference line across the plot; with <see cref="XReference"/>, the plot splits into quadrants.</summary>
-    [Parameter] public double? YReference { get; set; }
+    /// <summary>
+    /// Vertical reference lines across the plot at X values, drawn over the points with an optional
+    /// label; the X axis grows to show each one. On a log axis, values at or below zero are left out.
+    /// </summary>
+    [Parameter] public IReadOnlyList<ChartReference>? XReferences { get; set; }
 
-    /// <summary>Four labels printed in the plot's corners, in this order: top right, top left, bottom left, bottom right. Other counts are ignored.</summary>
+    /// <summary>Shaded ranges of Y values drawn behind the points, cut to the plot, each with an optional label in its corner.</summary>
+    [Parameter] public IReadOnlyList<ChartBand>? Bands { get; set; }
+
+    /// <summary>Shaded ranges of X values drawn behind the points, cut to the plot, each with an optional label in its corner.</summary>
+    [Parameter] public IReadOnlyList<ChartBand>? XBands { get; set; }
+
+    /// <summary>
+    /// Four labels printed in the plot's corners, in this order: top right, top left, bottom left,
+    /// bottom right; other counts are ignored. Pair them with one <see cref="XReferences"/> and one
+    /// <see cref="References"/> line: the first of each splits the plot into the four quadrants they name.
+    /// </summary>
     [Parameter] public IReadOnlyList<string>? QuadrantLabels { get; set; }
 
     // Half the width of an error bar's cap, in chart units.
@@ -187,9 +211,19 @@
         HighDensity,
         CellSize,
         Stacked,
-        XRef = _finite(XReference),
-        YRef = _finite(YReference),
+        References = _references.Select(r => new { r.Value, r.Label }).ToArray(),
+        Bands = _bands.Select(b => new { b.From, b.To, b.Label }).ToArray(),
+        XReferences = _xReferences.Select(r => new { r.Value, r.Label }).ToArray(),
+        XBands = _xBands.Select(b => new { b.From, b.To, b.Label }).ToArray(),
     };
+
+    private IReadOnlyList<ChartReference> _references => References ?? [];
+
+    private IReadOnlyList<ChartReference> _xReferences => XReferences ?? [];
+
+    private IReadOnlyList<ChartBand> _bands => Bands ?? [];
+
+    private IReadOnlyList<ChartBand> _xBands => XBands ?? [];
 
     private static double? _finite(double? value) => value is { } v && double.IsFinite(v) ? v : null;
 
@@ -222,11 +256,34 @@
         ? _format(CountFormat, to)
         : $"{from.ToString("N0", CultureInfo.CurrentCulture)}–{_format(CountFormat, to)}";
 
+    // The density paths and the largest count, built once per layout; new parameters (colours,
+    // formats) clear them, since they can change the drawing without changing the layout.
+    private ScatterLayout? _densityOf;
+    private (List<DensityLevel> Levels, int Max) _densityCache = ([], 0);
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        _densityOf = null;
+        base.OnParametersSet();
+    }
+
+    private (List<DensityLevel> Levels, int Max) _density(ScatterLayout view)
+    {
+        if (!ReferenceEquals(view, _densityOf))
+        {
+            int max = _maxCount(view);
+            _densityCache = (_levels(view, max), max);
+            _densityOf = view;
+        }
+
+        return _densityCache;
+    }
+
     // One path per series and count level, so tens of thousands of cells stay a handful of elements.
-    private List<DensityLevel> _levels(ScatterLayout view)
+    private List<DensityLevel> _levels(ScatterLayout view, int max)
     {
         List<DensityLevel> levels = [];
-        int max = _maxCount(view);
         if (view.Density is null || max == 0)
         {
             return levels;
@@ -307,7 +364,7 @@
     // Series names (when several), then the count levels shaded in the first series' colour.
     private RenderFragment? _densityLegend(ScatterLayout view)
     {
-        int max = _maxCount(view);
+        int max = _density(view).Max;
         if (max == 0)
         {
             return null;
@@ -335,7 +392,8 @@
         + (HighDensity ? ", shaded by how many points fall in each small cell" : string.Empty)
         + (Stacked ? ", series stacked" : string.Empty)
         + (!HighDensity && Points.Any(p => p.XError > 0 || p.YError > 0) ? ", with error bars" : string.Empty)
-        + (XReference is not null || YReference is not null ? ", with reference lines" : string.Empty)
+        + (_references.Count + _xReferences.Count > 0 ? ", with reference lines" : string.Empty)
+        + (_bands.Count + _xBands.Count > 0 ? ", with shaded ranges" : string.Empty)
         + (XScale == AxisScale.Log || YScale == AxisScale.Log ? ", on a logarithmic scale" : string.Empty)
         + (Trendline != ChartTrendline.None && !Stacked ? $", with a {Trendline.ToString().ToLowerInvariant()} trend line per series" : string.Empty) + ".";
 }

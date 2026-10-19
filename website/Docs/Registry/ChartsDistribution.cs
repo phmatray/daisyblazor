@@ -9,7 +9,7 @@ public static partial class DocRegistry
     [
         new("ScatterChart", Category.Charts,
             "One dot per observation on two value axes, to show how two measures move together: seats against API calls, payload against response time. Points can carry a Size (bubbles) and a Series (colour and legend), and either axis can be logarithmic. D3 builds the scales and a Voronoi diagram, so hovering anywhere highlights the nearest point. Splines, error bars, quadrants, stacking and a high-density mode for tens of thousands of points are options of the same chart.",
-            [typeof(ScatterChart), typeof(ScatterPoint), typeof(AxisScale), typeof(ChartTrendline)],
+            [typeof(ScatterChart), typeof(ScatterPoint), typeof(AxisScale), typeof(ChartTrendline), typeof(ChartReference), typeof(ChartBand)],
             [
                 new("Basic", "Each ScatterPoint has an X and a Y; Series groups points by colour and adds a legend. XTitle and YTitle name the axes and the tooltips.", typeof(ScatterChartBasicExample)),
                 new("Bubbles on log axes", "Give points a Size to draw bubbles whose area follows it, and a Label for the tooltip. XScale and YScale set to AxisScale.Log spread values over several orders of magnitude.", typeof(ScatterChartBubbleExample)),
@@ -17,8 +17,8 @@ public static partial class DocRegistry
                 new("Trend lines", "Trendline fits a least-squares curve to each series (Linear, Exponential, Logarithmic or Power) in data space, so it also works on log axes. Hover the dashed line for its equation and R².", typeof(ScatterChartTrendlineExample)),
                 new("Spline", "Smooth=\"true\" with ShowLine draws each series as a monotone spline: it passes through every point without overshooting between them.", typeof(ScatterChartSplineExample)),
                 new("Error bars", "Give a point an XError or YError (± that much) to draw a whisker with caps; the tooltip shows the error and the axes make room for the bars.", typeof(ScatterChartErrorBarsExample)),
-                new("Quadrants", "XReference and YReference draw dashed lines across the plot that split it into quadrants; QuadrantLabels names them (top right, top left, bottom left, bottom right).", typeof(ScatterChartQuadrantExample)),
-                new("Stacked", "Stacked=\"true\" draws each series on the running total of the ones before it at the same X, like a stacked area; tooltips give each point's own value and the total.", typeof(ScatterChartStackedExample)),
+                new("Quadrants", "References draws horizontal reference lines at Y values and XReferences vertical ones at X values (Bands and XBands shade ranges); one of each splits the plot into quadrants, which QuadrantLabels names (top right, top left, bottom left, bottom right).", typeof(ScatterChartQuadrantExample)),
+                new("Stacked", "Stacked=\"true\" draws each series on the running total of the ones before it at the same X, like a stacked area; tooltips give each point's own value and the total. Trendline is ignored while stacked.", typeof(ScatterChartStackedExample)),
                 new("High density", "HighDensity=\"true\" counts tens of thousands of points on a fine grid (CellSize) and shades each cell from light to full by count, with a legend of counts. The chart stays a handful of SVG paths however many points there are; every point still travels to the layout, so beyond a few hundred thousand, aggregate first.", typeof(ScatterChartHighDensityExample)),
             ])
         {

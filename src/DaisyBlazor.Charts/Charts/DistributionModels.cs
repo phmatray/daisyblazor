@@ -60,12 +60,15 @@ public sealed record BoxPositions(double Low, double Q1, double Median, double Q
 /// <summary>
 /// Geometry of a <see cref="ScatterChart"/>. Lines and Trends are only present when the chart asks for them.
 /// In high-density mode Points is empty and Density holds the counted grid cells, CellSize units square.
-/// XRef and YRef are the positions of the reference lines, when the chart has them.
+/// References and Bands are the placed horizontal reference lines and bands (at Y values), XReferences
+/// and XBands the vertical ones (at X values); each pair is present only when the chart has some.
 /// </summary>
 public sealed record ScatterLayout(
     PlotArea Plot, IReadOnlyList<AxisTick> XTicks, IReadOnlyList<AxisTick> YTicks, IReadOnlyList<string> Series, IReadOnlyList<ScatterLayoutPoint> Points,
     IReadOnlyList<ScatterLine>? Lines = null, IReadOnlyList<ScatterTrend>? Trends = null,
-    IReadOnlyList<ScatterDensity>? Density = null, double CellSize = 0, double? XRef = null, double? YRef = null);
+    IReadOnlyList<ScatterDensity>? Density = null, double CellSize = 0,
+    IReadOnlyList<ReferenceLineLayout>? References = null, IReadOnlyList<ReferenceBandLayout>? Bands = null,
+    IReadOnlyList<ReferenceLineLayout>? XReferences = null, IReadOnlyList<ReferenceBandLayout>? XBands = null);
 
 /// <summary>
 /// A series' occupied grid cells in high-density mode, as a flat list of (column, row, count) triples;

@@ -361,15 +361,28 @@ test('scatter: a trend line is not drawn on stacked series, and fits each series
     assert.deepEqual(plain.trends.map(t => [t.series, Math.round(t.a * 1e9) / 1e9, Math.round(t.b * 1e9) / 1e9]), [[0, 0, 1], [1, 10, 0]]);
 });
 
-test('scatter: reference lines at xRef and yRef, taken into the scales', async () => {
-    const out = await layout('scatter', { points: [{ x: 1, y: 1 }, { x: 5, y: 4 }], ...size, xRef: 3, yRef: 10 });
+test('scatter: horizontal and vertical references and bands, reference values taken into the scales', async () => {
+    const out = await layout('scatter', {
+        points: [{ x: 1, y: 1 }, { x: 5, y: 4 }], ...size,
+        references: [{ value: 10, label: 'Limit' }], bands: [{ from: 2, to: 3, label: 'Normal' }],
+        xReferences: [{ value: 3, label: 'Split' }], xBands: [{ from: 4, to: 2 }],
+    });
     const [x0, x1] = out.xTicks, [y0, y1] = out.yTicks;
-    assert.ok(Math.abs(out.xRef - (x0.pos + (3 - x0.value) * (x1.pos - x0.pos) / (x1.value - x0.value))) < 0.02);
-    assert.ok(Math.abs(out.yRef - (y0.pos + (10 - y0.value) * (y1.pos - y0.pos) / (y1.value - y0.value))) < 0.02);
-    assert.ok(inside(out.plot, out.xRef, out.yRef));
+    const xAt = v => x0.pos + (v - x0.value) * (x1.pos - x0.pos) / (x1.value - x0.value);
+    const yAt = v => y0.pos + (v - y0.value) * (y1.pos - y0.pos) / (y1.value - y0.value);
+    const [h] = out.references, [v] = out.xReferences;
+    assert.ok(Math.abs(h.y1 - yAt(10)) < 0.02 && h.y1 === h.y2 && h.x1 === out.plot.left && h.x2 === out.plot.right, 'horizontal at y = 10, across the plot');
+    assert.ok(Math.abs(v.x1 - xAt(3)) < 0.02 && v.x1 === v.x2 && v.y1 === out.plot.top && v.y2 === out.plot.bottom, 'vertical at x = 3');
+    assert.ok(out.yTicks.some(t => t.value >= 10), 'the y axis grows to show the reference');
+    assert.ok(Math.abs(out.bands[0].y - yAt(3)) < 0.02 && Math.abs(out.bands[0].height - (yAt(2) - yAt(3))) < 0.02);
+    assert.ok(Math.abs(out.xBands[0].x - xAt(2)) < 0.02 && Math.abs(out.xBands[0].width - (xAt(4) - xAt(2))) < 0.02);
+    // A log axis drops what it cannot show, keeping each mark's input index.
+    const log = await layout('scatter', { points: [{ x: 1, y: 1 }, { x: 10, y: 100 }], ...size, yLog: true, references: [{ value: -1 }, { value: 10 }] });
+    assert.deepEqual(log.references.map(r => r.index), [1]);
     const plain = await layout('scatter', { points: [{ x: 1, y: 1 }], ...size });
-    assert.equal(plain.xRef, undefined);
-    assert.equal(plain.yRef, undefined);
+    for (const key of ['references', 'bands', 'xReferences', 'xBands']) {
+        assert.equal(plain[key], undefined, key);
+    }
 });
 
 test('contour value mode: interpolation is exact at the points and bounded between them', () => {
