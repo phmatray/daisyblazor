@@ -1,0 +1,86 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<HierarchyLayout>
+
+@* Treemap: a tree as nested rectangles, each leaf's area proportional to its value. D3
+   (d3-hierarchy) tiles the rectangles; this component draws them in theme colours, one colour per
+   top-level branch, with each parent's name in a header strip. *@
+
+<D3ChartFrame TLayout="HierarchyLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { } layout)
+    {
+        @foreach (HierarchyLayoutNode node in layout.Nodes)
+        {
+            string color = ChartInk.GroupColor(node.Group, layout.Groups, GroupColors);
+            double w = node.X1 - node.X0;
+            double h = node.Y1 - node.Y0;
+            @if (!node.Leaf)
+            {
+                <rect x="@N(node.X0)" y="@N(node.Y0)" width="@N(w)" height="@N(h)" rx="3"
+                      fill="@color" fill-opacity="0.12" stroke="@color" stroke-opacity="0.45">
+                    <title>@($"{node.Path}: {_format(node.Value)}")</title>
+                </rect>
+                @if (node.Thickness >= 14 && ChartInk.Fit(_text(node), node.Room, 11) is { } header)
+                {
+                    <SvgText X="@node.LabelX" Y="@node.LabelY" Dy="0.35em" FontSize="11" FontWeight="600" Text="@header" />
+                }
+            }
+            else
+            {
+                <rect x="@N(node.X0)" y="@N(node.Y0)" width="@N(w)" height="@N(h)" rx="2" fill="@color" fill-opacity="0.9">
+                    <title>@($"{node.Path}: {_format(node.Value)}")</title>
+                </rect>
+                @if (node.Thickness >= 20 && ChartInk.Fit(node.Name, node.Room, 12) is { } name)
+                {
+                    <SvgText X="@node.LabelX" Y="@node.LabelY" Dy="0.1em" FontSize="12" FontWeight="600"
+                             Fill="@ChartInk.ContentOn(color)" Text="@name" />
+                    @if (ShowValues && node.Thickness >= 36 && ChartInk.Fit(_format(node.Value), node.Room, 11) is { } value)
+                    {
+                        <SvgText X="@node.LabelX" Y="@(node.LabelY + 15)" Dy="0.1em" FontSize="11"
+                                 Fill="@ChartInk.ContentOn(color)" FillOpacity="0.85" Text="@value" />
+                    }
+                }
+            }
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The tree to draw. Leaves are sized by Value; a parent is the sum of its children. The root itself is not drawn.</summary>
+    [Parameter] public HierarchyNode? Root { get; set; }
+
+    /// <summary>How each parent is cut into tiles.</summary>
+    [Parameter] public TreemapTile Tile { get; set; } = TreemapTile.Squarify;
+
+    /// <summary>Gap between sibling tiles and inside each parent frame, in chart units.</summary>
+    [Parameter] public double Padding { get; set; } = 2;
+
+    /// <summary>Print each tile's value under its name, and each parent's total in its header, when they fit.</summary>
+    [Parameter] public bool ShowValues { get; set; } = true;
+
+    /// <summary>Format string for values in labels and tooltips, e.g. "{0:N0} GB".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Optional colour per top-level branch name (any CSS colour); other branches cycle through the theme palette.</summary>
+    [Parameter] public IReadOnlyDictionary<string, string>? GroupColors { get; set; }
+
+    /// <inheritdoc />
+    protected override string Kind => "treemap";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Root,
+        Width = ViewWidth,
+        Height = ViewHeight,
+        Tile = Tile.ToString().ToLowerInvariant(),
+        Padding,
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _text(HierarchyLayoutNode node) => ShowValues ? $"{node.Name} {_format(node.Value)}" : node.Name;
+
+    private string _label => Title ?? Root?.Name ?? "Treemap";
+
+    private string? _description => ChartInk.Describe(Root, _format);
+}

@@ -1,0 +1,11 @@
+<SunburstChart Title="Support tickets by product area and topic" Root="_tickets" AspectRatio="1.4" />
+
+@code {
+    private readonly HierarchyNode _tickets = new("Tickets", Children:
+    [
+        new("Billing", Children: [new("Invoices", 140), new("Plan change", 95), new("Refunds", 40)]),
+        new("Deployments", Children: [new("Failed build", 180), new("Rollback", 70), new("Domains", 55)]),
+        new("Storage", Children: [new("Quota", 120), new("Backups", 60)]),
+        new("Access", Children: [new("SSO", 110), new("Invites", 75), new("API keys", 50)]),
+    ]);
+}

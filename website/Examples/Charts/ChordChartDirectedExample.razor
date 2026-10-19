@@ -1,0 +1,23 @@
+<ChordChart Title="Plan changes last quarter (customers)" Links="_changes" Directed="true" ShowValues="true" NodeColors="_colors" AspectRatio="1.4" />
+
+@code {
+    // Source = plan the customer left, Target = plan they moved to.
+    private readonly GraphLink[] _changes =
+    [
+        new("Free", "Starter", 420),
+        new("Free", "Pro", 90),
+        new("Starter", "Pro", 260),
+        new("Starter", "Free", 110),
+        new("Pro", "Enterprise", 45),
+        new("Pro", "Starter", 70),
+        new("Enterprise", "Pro", 8),
+    ];
+
+    private readonly Dictionary<string, string> _colors = new()
+    {
+        ["Free"] = "var(--color-info)",
+        ["Starter"] = "var(--color-secondary)",
+        ["Pro"] = "var(--color-primary)",
+        ["Enterprise"] = "var(--color-accent)",
+    };
+}

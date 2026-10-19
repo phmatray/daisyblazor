@@ -1,0 +1,219 @@
+using System.Text.Json;
+using DaisyBlazor.Charts;
+using Microsoft.AspNetCore.Components;
+
+namespace DaisyBlazor.Components.Tests;
+
+/// <summary>
+/// The "Hierarchy &amp; flow" D3 charts: each sends its spec to its own layout, shows a placeholder
+/// until the layout arrives, then draws what comes back in theme colours, and copes with an empty layout.
+/// </summary>
+public class ChartsHierarchyTests : BunitContext
+{
+    private const string ModulePath = "./_content/DaisyBlazor.Charts/charts.mjs";
+
+    private static readonly JsonSerializerOptions _web = new(JsonSerializerDefaults.Web);
+
+    private static readonly HierarchyNode _root = new("Storage", Children:
+    [
+        new("Platform", Children: [new("Logs", 40), new("Backups", 20)]),
+        new("Data", 30),
+    ]);
+
+    private static readonly GraphLink[] _links = [new("Gateway", "Auth", 4), new("Gateway", "Projects", 2)];
+
+    private static HierarchyLayoutNode _rect(string name, string path, int depth, int group, bool leaf, double value, double x0, double y0, double x1, double y1, string? d = null) =>
+        new(name, path, depth, group, leaf, value, x0, y0, x1, y1, d, x0 + 5, y0 + 14, 0, x1 - x0 - 10, y1 - y0);
+
+    private static readonly HierarchyLayout _hierarchy = new(
+        [
+            _rect("Storage", "Storage", 0, -1, false, 90, 0, 0, 640, 360, "M0,-60A60,60,0,1,1,0,60A60,60,0,1,1,0,-60Z"),
+            _rect("Platform", "Platform", 1, 0, false, 60, 0, 0, 400, 360, "M0,-120A120,120,0,1,1,0,120L0,60A60,60,0,1,0,0,-60Z"),
+            _rect("Logs", "Platform / Logs", 2, 0, true, 40, 0, 18, 400, 240, "M0,-180L0,-120Z"),
+            _rect("Backups", "Platform / Backups", 2, 0, true, 20, 0, 240, 400, 360, "M0,-180L0,-120Z"),
+            _rect("Data", "Data", 1, 1, true, 30, 400, 0, 640, 360, "M0,120L0,60Z"),
+        ],
+        ["Platform", "Data"], 320, 180);
+
+    private static readonly HierarchyLayout _emptyHierarchy = new([], [], 0, 0);
+
+    private (BunitJSModuleInterop Module, JSRuntimeInvocationHandler<T> Call) _setup<T>()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        return (module, module.Setup<T>("layout", _ => true));
+    }
+
+    private static string _spec(BunitJSModuleInterop module, string kind)
+    {
+        JSRuntimeInvocation invocation = module.Invocations["layout"].Single();
+        invocation.Arguments[0].ShouldBe(kind);
+        return JsonSerializer.Serialize(invocation.Arguments[1], _web);
+    }
+
+    private void _hierarchyChart<TChart>(string kind, Func<IRenderedComponent<TChart>> render, string specFragment, Action<IRenderedComponent<TChart>> drawn)
+        where TChart : IComponent
+    {
+        (BunitJSModuleInterop module, JSRuntimeInvocationHandler<HierarchyLayout> call) = _setup<HierarchyLayout>();
+
+        IRenderedComponent<TChart> cut = render();
+
+        cut.Find("[aria-busy=true]").ShouldNotBeNull();
+        string spec = _spec(module, kind);
+        spec.ShouldContain("\"name\":\"Logs\",\"value\":40");
+        spec.ShouldContain("\"width\":640");
+        spec.ShouldContain(specFragment);
+
+        call.SetResult(_hierarchy);
+        cut.WaitForAssertion(() => cut.FindAll("svg").Count.ShouldBe(1));
+        cut.Find("svg").GetAttribute("aria-label").ShouldBe("Storage");
+        cut.Find("svg desc").TextContent.ShouldBe("Platform: 60; Data: 30");
+        cut.Markup.ShouldContain("Platform / Logs: 40");
+        cut.Markup.ShouldContain("var(--color-primary)");
+        cut.Markup.ShouldContain("var(--color-secondary)");
+        cut.Markup.ShouldNotContain("#");
+        drawn(cut);
+    }
+
+    [Fact]
+    public void Treemap_draws_frames_for_parents_and_tiles_for_leaves() =>
+        _hierarchyChart("treemap", () => Render<TreemapChart>(ps => ps.Add(p => p.Root, _root).Add(p => p.Tile, TreemapTile.Binary)), "\"tile\":\"binary\"", cut =>
+        {
+            cut.FindAll("svg rect").Count.ShouldBe(5);
+            cut.Markup.ShouldContain("Platform 60");
+            cut.Markup.ShouldContain("var(--color-primary-content)");
+        });
+
+    [Fact]
+    public void Icicle_draws_every_node_including_the_root() =>
+        _hierarchyChart("icicle", () => Render<IcicleChart>(ps => ps.Add(p => p.Root, _root).Add(p => p.Orientation, IcicleOrientation.Vertical)), "\"orientation\":\"vertical\"", cut =>
+        {
+            cut.FindAll("svg rect").Count.ShouldBe(5);
+            cut.Markup.ShouldContain("var(--color-neutral)");
+        });
+
+    [Fact]
+    public void Circle_packing_draws_circles_and_a_legend() =>
+        _hierarchyChart("circle-packing", () => Render<CirclePackingChart>(ps => ps.Add(p => p.Root, _root).Add(p => p.Padding, 6)), "\"padding\":6", cut =>
+        {
+            cut.FindAll("svg circle").Count.ShouldBe(5);
+            cut.FindAll(".rounded-sm").Count.ShouldBe(2, "one legend key per top-level branch");
+        });
+
+    [Fact]
+    public void Sunburst_draws_arcs_around_its_centre() =>
+        _hierarchyChart("sunburst", () => Render<SunburstChart>(ps => ps.Add(p => p.Root, _root)), "\"height\":360", cut =>
+        {
+            cut.FindAll("svg path").Count.ShouldBe(5);
+            cut.Find("svg g").GetAttribute("transform").ShouldBe("translate(320,180)");
+            cut.Markup.ShouldContain("rotate(");
+        });
+
+    [Fact]
+    public void Hierarchy_charts_with_no_data_draw_an_empty_chart()
+    {
+        (BunitJSModuleInterop module, JSRuntimeInvocationHandler<HierarchyLayout> call) = _setup<HierarchyLayout>();
+        call.SetResult(_emptyHierarchy);
+
+        IRenderedComponent<TreemapChart> treemap = Render<TreemapChart>();
+        IRenderedComponent<SunburstChart> sunburst = Render<SunburstChart>(ps => ps.Add(p => p.Root, new HierarchyNode("Nothing", -1)));
+
+        treemap.WaitForAssertion(() => treemap.FindAll("svg").Count.ShouldBe(1));
+        treemap.FindAll("svg rect").Count.ShouldBe(0);
+        treemap.Find("svg").GetAttribute("aria-label").ShouldBe("Treemap");
+        sunburst.WaitForAssertion(() => sunburst.FindAll("svg").Count.ShouldBe(1));
+        sunburst.FindAll("svg path").Count.ShouldBe(0);
+        sunburst.FindAll(".rounded-sm").Count.ShouldBe(0);
+        module.Invocations["layout"].Count.ShouldBe(2);
+    }
+
+    [Fact]
+    public void Chord_draws_arcs_ribbons_and_labels()
+    {
+        (BunitJSModuleInterop module, JSRuntimeInvocationHandler<ChordLayout> call) = _setup<ChordLayout>();
+        ChordLayout layout = new(
+            [new("Gateway", 6, "M0,-100Z", 110, 0, "start"), new("Auth", 4, "M0,100Z", -110, 0, "end"), new("Projects", 2, "M100,0Z", 0, 110, "middle")],
+            [new(0, 1, 4, 4, "M1,1Z"), new(0, 2, 2, 2, "M2,2Z")],
+            320, 180);
+
+        IRenderedComponent<ChordChart> cut = Render<ChordChart>(ps => ps.Add(p => p.Links, _links).Add(p => p.Directed, true).Add(p => p.ShowValues, true));
+
+        cut.Find("[aria-busy=true]").ShouldNotBeNull();
+        string spec = _spec(module, "chord");
+        spec.ShouldContain("\"directed\":true");
+        spec.ShouldContain("\"source\":\"Gateway\"");
+        spec.ShouldContain("\"labelWidth\":");
+
+        call.SetResult(layout);
+        cut.WaitForAssertion(() => cut.FindAll("svg path").Count.ShouldBe(5));
+        cut.Markup.ShouldContain("Gateway → Auth: 4");
+        cut.Markup.ShouldContain("Gateway 6");
+        cut.Find("svg desc").TextContent.ShouldBe("Gateway to Auth: 4; Gateway to Projects: 2");
+    }
+
+    [Fact]
+    public void Network_draws_links_nodes_labels_and_group_legend()
+    {
+        (BunitJSModuleInterop module, JSRuntimeInvocationHandler<GraphLayout> call) = _setup<GraphLayout>();
+        GraphLayout layout = new(
+            [new("Gateway", "Edge", 0, 2, 100, 100, 8), new("Auth", "Core", 1, 1, 300, 200, 7), new("Projects", null, -1, 1, 500, 100, 7)],
+            [new(0, 1, 4, 5, "M100,100L300,200"), new(0, 2, 2, 3, "M100,100L500,100")],
+            ["Edge", "Core"], 70);
+
+        IRenderedComponent<NetworkChart> cut = Render<NetworkChart>(ps => ps
+            .Add(p => p.Links, _links)
+            .Add(p => p.Nodes, [new GraphNode("Gateway", "Edge"), new GraphNode("Auth", "Core")])
+            .Add(p => p.Iterations, 50));
+
+        string spec = _spec(module, "network");
+        spec.ShouldContain("\"iterations\":50");
+        spec.ShouldContain("\"group\":\"Edge\"");
+        spec.ShouldContain("\"labels\":true");
+
+        call.SetResult(layout);
+        cut.WaitForAssertion(() => cut.FindAll("svg circle").Count.ShouldBe(3));
+        cut.FindAll("svg path").Count.ShouldBe(2);
+        cut.FindAll("svg text").Count.ShouldBe(3);
+        cut.Markup.ShouldContain("Gateway (Edge): 2 links");
+        cut.Markup.ShouldContain("Gateway – Auth: 4");
+        cut.FindAll(".rounded-sm").Count.ShouldBe(2);
+    }
+
+    [Fact]
+    public void Arc_diagram_draws_arcs_and_rotated_names()
+    {
+        (BunitJSModuleInterop module, JSRuntimeInvocationHandler<GraphLayout> call) = _setup<GraphLayout>();
+        GraphLayout layout = new(
+            [new("Gateway", null, -1, 2, 100, 280, 5), new("Auth", null, -1, 1, 300, 280, 4), new("Projects", null, -1, 1, 500, 280, 4)],
+            [new(0, 1, 4, 6, "M100,280A100,100 0 0,1 300,280"), new(0, 2, 2, 3, "M100,280A200,200 0 0,1 500,280")],
+            [], 80);
+
+        IRenderedComponent<ArcDiagramChart> cut = Render<ArcDiagramChart>(ps => ps.Add(p => p.Links, _links).Add(p => p.Sort, ArcDiagramSort.Degree));
+
+        _spec(module, "arc-diagram").ShouldContain("\"sort\":\"degree\"");
+
+        call.SetResult(layout);
+        cut.WaitForAssertion(() => cut.FindAll("svg path").Count.ShouldBe(2));
+        cut.FindAll("svg circle").Count.ShouldBe(3);
+        cut.FindAll("svg g[transform^=rotate]").Count.ShouldBe(3);
+        cut.Markup.ShouldContain("var(--color-primary)");
+        cut.FindAll(".rounded-sm").Count.ShouldBe(0, "no groups, no legend");
+    }
+
+    [Fact]
+    public void Graph_charts_with_no_links_draw_an_empty_chart()
+    {
+        (BunitJSModuleInterop module, JSRuntimeInvocationHandler<GraphLayout> call) = _setup<GraphLayout>();
+        call.SetResult(new GraphLayout([], [], [], 0));
+        module.Setup<ChordLayout>("layout", inv => (string?)inv.Arguments[0] == "chord").SetResult(new ChordLayout([], [], 0, 0));
+
+        IRenderedComponent<NetworkChart> network = Render<NetworkChart>();
+        IRenderedComponent<ChordChart> chord = Render<ChordChart>(ps => ps.Add(p => p.Links, [new GraphLink("A", "A", 3)]));
+
+        network.WaitForAssertion(() => network.FindAll("svg").Count.ShouldBe(1));
+        network.FindAll("svg circle").Count.ShouldBe(0);
+        chord.WaitForAssertion(() => chord.FindAll("svg").Count.ShouldBe(1));
+        chord.FindAll("svg path").Count.ShouldBe(0);
+        chord.FindAll("svg desc").Count.ShouldBe(1);
+        chord.Find("svg desc").TextContent.ShouldBeEmpty();
+    }
+}

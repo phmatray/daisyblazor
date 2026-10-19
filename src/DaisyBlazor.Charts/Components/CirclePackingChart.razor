@@ -1,0 +1,89 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<HierarchyLayout>
+
+@* Circle packing: a tree as nested circles, each leaf's area proportional to its value. D3
+   (d3-hierarchy pack) places the circles; this component draws them in theme colours, one colour
+   per top-level branch, and names the leaves that are large enough. *@
+
+<D3ChartFrame TLayout="HierarchyLayout" Chart="this" Label="@_label" Description="@_description">
+    <ChildContent>
+        @if (Layout is { } layout)
+        {
+            @foreach (HierarchyLayoutNode node in layout.Nodes)
+            {
+                double r = (node.X1 - node.X0) / 2;
+                string color = ChartInk.GroupColor(node.Group, layout.Groups, GroupColors);
+                @if (node.Depth == 0 && !node.Leaf)
+                {
+                    <circle cx="@N(node.LabelX)" cy="@N(node.LabelY)" r="@N(r)" fill="var(--color-base-200)">
+                        <title>@($"{node.Name}: {_format(node.Value)}")</title>
+                    </circle>
+                }
+                else if (!node.Leaf)
+                {
+                    <circle cx="@N(node.LabelX)" cy="@N(node.LabelY)" r="@N(r)" fill="@color" fill-opacity="0.14" stroke="@color" stroke-opacity="0.5">
+                        <title>@($"{node.Path}: {_format(node.Value)}")</title>
+                    </circle>
+                }
+                else
+                {
+                    <circle cx="@N(node.LabelX)" cy="@N(node.LabelY)" r="@N(r)" fill="@color" fill-opacity="0.9">
+                        <title>@($"{node.Path}: {_format(node.Value)}")</title>
+                    </circle>
+                }
+            }
+
+            @foreach (HierarchyLayoutNode node in layout.Nodes.Where(n => n.Leaf && n.Thickness >= 10))
+            {
+                string ink = ChartInk.ContentOn(ChartInk.GroupColor(node.Group, layout.Groups, GroupColors));
+                bool twoLines = ShowValues && node.Thickness >= 24;
+                @if (ChartInk.Fit(node.Name, node.Room, 11) is { } name)
+                {
+                    <SvgText X="@node.LabelX" Y="@node.LabelY" Dy="@(twoLines ? "-0.25em" : "0.35em")" Anchor="middle" FontSize="11" FontWeight="600" Fill="@ink" Text="@name" />
+                    @if (twoLines && ChartInk.Fit(_format(node.Value), node.Room, 10) is { } value)
+                    {
+                        <SvgText X="@node.LabelX" Y="@node.LabelY" Dy="1.1em" Anchor="middle" FontSize="10" Fill="@ink" FillOpacity="0.85" Text="@value" />
+                    }
+                }
+            }
+        }
+    </ChildContent>
+    <Legend>
+        @if (ShowLegend && Layout is { Groups: { Count: > 1 } groups })
+        {
+            <ChartLegend Items="@ChartInk.Legend(groups, GroupColors)" />
+        }
+    </Legend>
+</D3ChartFrame>
+
+@code {
+    /// <summary>The tree to draw. Leaves are sized by Value; a parent is the sum of its children and encloses them.</summary>
+    [Parameter] public HierarchyNode? Root { get; set; }
+
+    /// <summary>Gap between sibling circles and between a parent and its children, in chart units.</summary>
+    [Parameter] public double Padding { get; set; } = 3;
+
+    /// <summary>Print each leaf's value under its name when the circle is large enough.</summary>
+    [Parameter] public bool ShowValues { get; set; } = true;
+
+    /// <summary>Show a colour key for the top-level branches under the chart.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>Format string for values in labels and tooltips, e.g. "{0:N0} projects".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Optional colour per top-level branch name (any CSS colour); other branches cycle through the theme palette.</summary>
+    [Parameter] public IReadOnlyDictionary<string, string>? GroupColors { get; set; }
+
+    /// <inheritdoc />
+    protected override string Kind => "circle-packing";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new { Root, Width = ViewWidth, Height = ViewHeight, Padding };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _label => Title ?? Root?.Name ?? "Circle packing chart";
+
+    private string? _description => ChartInk.Describe(Root, _format);
+}

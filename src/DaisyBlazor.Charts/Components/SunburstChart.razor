@@ -1,0 +1,82 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<HierarchyLayout>
+
+@* Sunburst: a tree as rings around a centre disc, each arc's angle proportional to its value. D3
+   (d3-hierarchy partition) places the arcs; this component draws them in theme colours, one colour
+   per top-level branch, fading with depth. *@
+
+<D3ChartFrame TLayout="HierarchyLayout" Chart="this" Label="@_label" Description="@_description">
+    <ChildContent>
+        @if (Layout is { } layout)
+        {
+            <g transform="@($"translate({N(layout.Cx)},{N(layout.Cy)})")">
+                @foreach (HierarchyLayoutNode node in layout.Nodes)
+                {
+                    string color = node.Depth == 0 ? "var(--color-base-200)" : ChartInk.GroupColor(node.Group, layout.Groups, GroupColors);
+                    double opacity = node.Depth <= 1 ? 1 : Math.Max(0.5, 1 - 0.18 * (node.Depth - 1));
+                    <path d="@node.D" fill="@color" fill-opacity="@N(opacity)">
+                        <title>@($"{node.Path}: {_format(node.Value)}")</title>
+                    </path>
+                }
+
+                @foreach (HierarchyLayoutNode node in layout.Nodes)
+                {
+                    if (node.Depth == 0)
+                    {
+                        @if (ChartInk.Fit(node.Name, node.Room, 13) is { } rootName)
+                        {
+                            <SvgText X="0" Y="0" Dy="@(ShowValues ? "-0.2em" : "0.35em")" Anchor="middle" FontSize="13" FontWeight="600" Text="@rootName" />
+                            @if (ShowValues)
+                            {
+                                <SvgText X="0" Y="0" Dy="1.1em" Anchor="middle" FontSize="12" FillOpacity="0.7" Text="@_format(node.Value)" />
+                            }
+                        }
+                    }
+                    else if (node.Thickness >= 13 && ChartInk.Fit(node.Name, node.Room, 11) is { } name)
+                    {
+                        string color = ChartInk.GroupColor(node.Group, layout.Groups, GroupColors);
+                        <g transform="@($"rotate({N(node.LabelAngle)} {N(node.LabelX)} {N(node.LabelY)})")">
+                            <SvgText X="@node.LabelX" Y="@node.LabelY" Dy="0.35em" Anchor="middle" FontSize="11" FontWeight="600"
+                                     Fill="@(node.Depth <= 2 ? ChartInk.ContentOn(color) : "var(--color-base-content)")" Text="@name" />
+                        </g>
+                    }
+                }
+            </g>
+        }
+    </ChildContent>
+    <Legend>
+        @if (ShowLegend && Layout is { Groups: { Count: > 1 } groups })
+        {
+            <ChartLegend Items="@ChartInk.Legend(groups, GroupColors)" />
+        }
+    </Legend>
+</D3ChartFrame>
+
+@code {
+    /// <summary>The tree to draw. Leaves are sized by Value; a parent is the sum of its children. The root is the centre disc.</summary>
+    [Parameter] public HierarchyNode? Root { get; set; }
+
+    /// <summary>Print the root's total in the centre disc.</summary>
+    [Parameter] public bool ShowValues { get; set; } = true;
+
+    /// <summary>Show a colour key for the top-level branches under the chart.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>Format string for values in the centre and in tooltips, e.g. "{0:N0} requests".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Optional colour per top-level branch name (any CSS colour); other branches cycle through the theme palette.</summary>
+    [Parameter] public IReadOnlyDictionary<string, string>? GroupColors { get; set; }
+
+    /// <inheritdoc />
+    protected override string Kind => "sunburst";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new { Root, Width = ViewWidth, Height = ViewHeight };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _label => Title ?? Root?.Name ?? "Sunburst chart";
+
+    private string? _description => ChartInk.Describe(Root, _format);
+}

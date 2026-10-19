@@ -1,0 +1,65 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<HierarchyLayout>
+
+@* Icicle: a tree as stacked bands, one band per level, each node as long as its value. D3
+   (d3-hierarchy partition) places the bands; this component draws them in theme colours, one colour
+   per top-level branch, fading with depth. *@
+
+<D3ChartFrame TLayout="HierarchyLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { } layout)
+    {
+        @foreach (HierarchyLayoutNode node in layout.Nodes)
+        {
+            string color = ChartInk.GroupColor(node.Group, layout.Groups, GroupColors);
+            double opacity = node.Depth <= 1 ? 1 : Math.Max(0.5, 1 - 0.18 * (node.Depth - 1));
+            string ink = node.Depth <= 2 ? ChartInk.ContentOn(color) : "var(--color-base-content)";
+            <rect x="@N(node.X0 + 0.5)" y="@N(node.Y0 + 0.5)" width="@N(Math.Max(0, node.X1 - node.X0 - 1))" height="@N(Math.Max(0, node.Y1 - node.Y0 - 1))"
+                  rx="2" fill="@color" fill-opacity="@N(opacity)">
+                <title>@($"{node.Path}: {_format(node.Value)}")</title>
+            </rect>
+            @if (node.Thickness >= 20 && ChartInk.Fit(node.Name, node.Room, 12) is { } name)
+            {
+                <SvgText X="@node.LabelX" Y="@node.LabelY" Dy="0.1em" FontSize="12" FontWeight="600" Fill="@ink" Text="@name" />
+                @if (ShowValues && node.Thickness >= 36 && ChartInk.Fit(_format(node.Value), node.Room, 11) is { } value)
+                {
+                    <SvgText X="@node.LabelX" Y="@(node.LabelY + 15)" Dy="0.1em" FontSize="11" Fill="@ink" FillOpacity="0.85" Text="@value" />
+                }
+            }
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The tree to draw. Leaves are sized by Value; a parent is the sum of its children. The root is the first band.</summary>
+    [Parameter] public HierarchyNode? Root { get; set; }
+
+    /// <summary>Horizontal puts the root on the left with one column per level; Vertical puts it on top with one row per level.</summary>
+    [Parameter] public IcicleOrientation Orientation { get; set; } = IcicleOrientation.Horizontal;
+
+    /// <summary>Print each node's value under its name when the band is tall enough.</summary>
+    [Parameter] public bool ShowValues { get; set; } = true;
+
+    /// <summary>Format string for values in labels and tooltips, e.g. "{0:N0} GB".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Optional colour per top-level branch name (any CSS colour); other branches cycle through the theme palette.</summary>
+    [Parameter] public IReadOnlyDictionary<string, string>? GroupColors { get; set; }
+
+    /// <inheritdoc />
+    protected override string Kind => "icicle";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Root,
+        Width = ViewWidth,
+        Height = ViewHeight,
+        Orientation = Orientation.ToString().ToLowerInvariant(),
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _label => Title ?? Root?.Name ?? "Icicle chart";
+
+    private string? _description => ChartInk.Describe(Root, _format);
+}

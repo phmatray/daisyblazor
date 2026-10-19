@@ -1,0 +1,11 @@
+<CirclePackingChart Root="_projects" Padding="8" ShowValues="false" ValueFormat="{0:N0} projects" AspectRatio="1.4" />
+
+@code {
+    // Projects per plan, then per region.
+    private readonly HierarchyNode _projects = new("Projects", Children:
+    [
+        new("Starter", Children: [new("Europe", 820), new("Americas", 760), new("Asia", 300)]),
+        new("Pro", Children: [new("Europe", 410), new("Americas", 390), new("Asia", 120)]),
+        new("Enterprise", Children: [new("Europe", 140), new("Americas", 160)]),
+    ]);
+}

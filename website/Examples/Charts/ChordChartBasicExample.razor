@@ -1,0 +1,17 @@
+<ChordChart Title="Calls between services (millions per day)" Links="_calls" AspectRatio="1.4" />
+
+@code {
+    private readonly GraphLink[] _calls =
+    [
+        new("Gateway", "Auth", 42),
+        new("Gateway", "Projects", 35),
+        new("Gateway", "Search", 18),
+        new("Projects", "Storage", 27),
+        new("Projects", "Auth", 12),
+        new("Search", "Storage", 9),
+        new("Deployments", "Storage", 14),
+        new("Deployments", "Projects", 11),
+        new("Notifications", "Auth", 6),
+        new("Deployments", "Notifications", 8),
+    ];
+}
