@@ -36,6 +36,10 @@
                 {
                     <ChartReferences Behind="true" Ranges="_bands" Bands="placedBands" />
                 }
+                @if (geo.MarkerSpans is { Count: > 0 } placedSpans)
+                {
+                    <ChartReferences Behind="true" Markers="_markers" Bands="placedSpans" />
+                }
 
                 @* A layout still being replaced may name bars the new data no longer has. *@
                 @foreach (BarLayoutBar bar in geo.Bars.Where(b => b.C < _categories.Count && b.S < _seriesCount))
@@ -57,6 +61,10 @@
                 @if (geo.References is { Count: > 0 } || geo.Bands is { Count: > 0 })
                 {
                     <ChartReferences References="_references" Ranges="_bands" Lines="@(geo.References ?? [])" Bands="@(geo.Bands ?? [])" />
+                }
+                @if (geo.Markers is { Count: > 0 } || geo.MarkerSpans is { Count: > 0 })
+                {
+                    <ChartReferences Markers="_markers" Lines="@(geo.Markers ?? [])" Bands="@(geo.MarkerSpans ?? [])" />
                 }
             </svg>
         }
@@ -114,6 +122,14 @@
     [Parameter] public IReadOnlyList<ChartBand>? Bands { get; set; }
 
     /// <summary>
+    /// Markers on the category axis: a line at a category (the month a pricing change shipped), or
+    /// with <see cref="ChartMarker.To"/> a shaded span over a run of categories, each with an optional
+    /// label outside the plot. They run across the chart when it is <see cref="Horizontal"/>. A marker
+    /// naming a category the chart does not have is ignored.
+    /// </summary>
+    [Parameter] public IReadOnlyList<ChartMarker>? Markers { get; set; }
+
+    /// <summary>
     /// Fit and draw a dashed trend line per series, over the category index (0, 1, …) on the series'
     /// own values, through the category positions (also when <see cref="Horizontal"/>); a flat <see cref="Data"/> list is one series; its tooltip
     /// gives the equation and R², or the period of a moving average. Ignored when <see cref="Stacked"/>
@@ -166,6 +182,8 @@
 
     private IReadOnlyList<ChartBand> _bands => Bands ?? [];
 
+    private IReadOnlyList<ChartMarker> _markers => Markers ?? [];
+
     private bool _grouped => _series is { Count: > 0 };
     private int _seriesCount => _grouped ? _series!.Count : 1;
 
@@ -175,7 +193,7 @@
             : Title!;
 
     /// <inheritdoc />
-    protected override object BuildSpec() => WithTrendline(_spec(), Stacked || Percent ? ChartTrendline.None : Trendline, TrendlineOrder, TrendlinePeriod);
+    protected override object BuildSpec() => WithMarkers(WithTrendline(_spec(), Stacked || Percent ? ChartTrendline.None : Trendline, TrendlineOrder, TrendlinePeriod), Markers, _categories);
 
     private object _spec()
     {

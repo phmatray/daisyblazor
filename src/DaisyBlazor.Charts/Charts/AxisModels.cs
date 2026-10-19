@@ -48,6 +48,18 @@ public sealed record ChartReference(double Value, string? Label = null, string? 
 /// <param name="Color">Optional CSS colour of the shading; defaults to the base content colour.</param>
 public sealed record ChartBand(double From, double To, string? Label = null, string? Color = null);
 
+/// <summary>
+/// A marker on a chart's category axis: a line at <paramref name="Category"/> (the month a pricing
+/// change shipped, a release), or with <paramref name="To"/> a shaded span over the categories from
+/// <paramref name="Category"/> to <paramref name="To"/> in either order. A marker naming a category
+/// the chart does not have is ignored.
+/// </summary>
+/// <param name="Category">The category (label) the line sits at, or where the span starts.</param>
+/// <param name="Label">Optional text written at the end of the line or beside the span, outside the plot.</param>
+/// <param name="Color">Optional CSS colour of the mark and its label; defaults to the base content colour.</param>
+/// <param name="To">The category where a span ends; null draws a line.</param>
+public sealed record ChartMarker(string Category, string? Label = null, string? Color = null, string? To = null);
+
 /// <summary>A placed <see cref="ChartReference"/> (<paramref name="Index"/> is its position in the input): the line, its label's anchor point and its label as it fits beside the plot.</summary>
 public sealed record ReferenceLineLayout(int Index, double X1, double Y1, double X2, double Y2, double LabelX, double LabelY, string Anchor, string? Label = null);
 

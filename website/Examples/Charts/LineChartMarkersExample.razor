@@ -1,0 +1,14 @@
+<LineChart Title="New sign-ups per month" Labels="_months" Series="_signups" Markers="_markers" />
+
+@code {
+    private readonly string[] _months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"];
+
+    private readonly ChartSeries[] _signups = [new("Sign-ups", [420, 445, 430, 610, 680, 720, 655, 700, 760])];
+
+    // A line at the month the new pricing shipped, and the summer campaign shaded from Jun to Aug.
+    private readonly ChartMarker[] _markers =
+    [
+        new("Apr", "New pricing", "var(--color-primary)"),
+        new("Jun", "Summer campaign", "var(--color-secondary)", To: "Aug"),
+    ];
+}

@@ -56,6 +56,18 @@ public sealed class ServerRenderedChartsTests : BunitContext, IClassFixture<Serv
         svgs.ShouldAllBe(svg => svg.QuerySelectorAll("path, rect, circle, line, polygon").Length > 0);
     }
 
+    [Fact]
+    public void Category_markers_render_on_the_server()
+    {
+        IRenderedComponent<DaisyBlazor.Docs.Examples.Charts.LineChartMarkersExample> cut = Render<DaisyBlazor.Docs.Examples.Charts.LineChartMarkersExample>();
+
+        cut.FindAll("line").Single(l => l.QuerySelector("title")?.TextContent == "New pricing: Apr").GetAttribute("stroke").ShouldBe("var(--color-primary)");
+        cut.FindAll("rect").Single(r => r.QuerySelector("title")?.TextContent == "Summer campaign: Jun to Aug").GetAttribute("fill-opacity").ShouldBe("0.12");
+        string[] labels = cut.FindAll("text").Select(t => t.TextContent).ToArray();
+        labels.ShouldContain("New pricing");
+        labels.ShouldContain("Summer campaign");
+    }
+
     public sealed class EngineFixture : IDisposable
     {
         public JintChartLayoutEngine Engine { get; } = new();

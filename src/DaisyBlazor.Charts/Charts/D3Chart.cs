@@ -84,6 +84,26 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
         return node;
     }
 
+    // The spec with the category markers as indices ({ at, to, label }; at is null when a category is
+    // unknown, so the layout drops the marker and keeps the indices); the spec itself when there are none.
+    private protected static object WithMarkers(object spec, IReadOnlyList<ChartMarker>? markers, IReadOnlyList<string> categories)
+    {
+        if (markers is not { Count: > 0 })
+        {
+            return spec;
+        }
+
+        int Find(string? category) => category is null ? -1 : categories.ToList().IndexOf(category);
+        JsonObject node = spec as JsonObject ?? JsonSerializer.SerializeToNode(spec, spec.GetType(), _json)!.AsObject();
+        node["markers"] = JsonSerializer.SerializeToNode(markers.Select(m =>
+        {
+            int at = Find(m.Category), to = Find(m.To);
+            bool known = at >= 0 && (m.To is null || to >= 0);
+            return new { At = known ? at : (int?)null, To = known && to >= 0 ? to : (int?)null, m.Label };
+        }).ToArray(), _json);
+        return node;
+    }
+
     /// <summary>
     /// A cheap change check run before <see cref="BuildSpec"/> on every parameter set: return true
     /// when none of the spec's inputs changed (compared by reference or value) since the last call,

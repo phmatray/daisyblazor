@@ -510,6 +510,36 @@ test('line and bar: references and bands sit at their values, labels beside the 
     assert.ok(!('references' in await layout('bar', { categories: ['A'], series: [[10]], ...size })));
 });
 
+test('line and bar: category markers sit at their category, spans cover whole slots, labels outside the plot', async () => {
+    const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+    const out = await layout('line', {
+        series: [[10, 12, 11, 18, 20, 22]], labels,
+        markers: [{ at: 3, label: 'Pricing change' }, { at: null, label: 'Unknown' }, { at: 4, to: 1, label: 'Promo' }], ...size,
+    });
+    const x = i => out.xTicks.find(t => t.label === labels[i]).pos;
+    assert.ok(out.plot.top > 8, 'a row above the plot is kept for the labels');
+    assert.equal(out.markers.length, 1, 'an unknown category is dropped');
+    const [pricing] = out.markers;
+    assert.deepEqual([pricing.index, pricing.x1, pricing.x2, pricing.y1, pricing.y2], [0, x(3), x(3), out.plot.top, out.plot.bottom]);
+    assert.ok(pricing.labelY < out.plot.top && pricing.anchor === 'middle', 'labelled above the plot');
+    const [promo] = out.markerSpans;
+    const half = (x(1) - x(0)) / 2;
+    assert.equal(promo.index, 2);
+    assert.ok(Math.abs(promo.x - (x(1) - half)) < 0.02 && Math.abs(promo.x + promo.width - (x(4) + half)) < 0.02, 'covers Feb to May, either order');
+
+    // Horizontal bars: the markers run across, labelled in the right margin.
+    const bar = await layout('bar', { categories: ['A', 'B', 'C'], series: [[1, 2, 3]], horizontal: true, markers: [{ at: 1, label: 'Launch' }, { at: 0, to: 0 }], ...size });
+    const y = bar.yTicks[1].pos;
+    const [launch] = bar.markers;
+    assert.deepEqual([launch.y1, launch.y2, launch.x1, launch.x2], [y, y, bar.plot.left, bar.plot.right]);
+    assert.ok(launch.labelX > bar.plot.right && launch.anchor === 'start' && bar.plot.right < size.width - 30);
+    const [first] = bar.markerSpans;
+    assert.ok(first.y <= bar.yTicks[0].pos && first.y + first.height >= bar.yTicks[0].pos && first.y + first.height < y, 'one slot');
+
+    // No markers, no keys.
+    assert.ok(!('markers' in await layout('bar', { categories: ['A'], series: [[10]], ...size })));
+});
+
 test('references: labels sit outside the plot, clear of the bars (right margin, or a row above)', async () => {
     // The docs example: the band's label used to sit on the tall first bar.
     const out = await layout('bar', {
