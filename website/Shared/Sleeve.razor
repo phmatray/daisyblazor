@@ -37,7 +37,7 @@
             }
 
             <h1 id="page-title" tabindex="-1"
-                class="font-display font-bold leading-[0.92] tracking-[-0.03em] outline-none @(Large ? "text-[clamp(3rem,7.5vw,6rem)]" : "text-[clamp(2.75rem,6.5vw,5.5rem)]")">
+                class="font-display font-bold leading-[0.92] tracking-[-0.03em] outline-none max-sm:pr-14 @(Large ? "text-[clamp(3rem,7.5vw,6rem)]" : "text-[clamp(2.75rem,6.5vw,5.5rem)]")">
                 @Title
             </h1>
 
@@ -68,7 +68,7 @@
 
             @if (Tracks is { Count: > 0 })
             {
-                <nav aria-label="On this page" class="mt-10 lg:mt-auto lg:pt-12">
+                <nav aria-label="On this page" class="mt-10 lg:mt-auto lg:pt-12 @(TracksBesideContent ? "xl:hidden" : "")">
                     <span class="mb-2 block text-sm font-bold">On this page</span>
                     <ul class="flex max-w-2xl flex-wrap gap-2">
                         @foreach (Track t in Tracks)
@@ -82,7 +82,8 @@
 
         @if (Portrait is not null)
         {
-            <figure class="relative z-10 w-full max-w-[24rem] self-center justify-self-start xl:w-[22rem] xl:justify-self-end">
+            @* On a phone a docs page goes straight from its masthead to its examples, which show the same thing live. *@
+            <figure class="relative z-10 w-full max-w-[24rem] self-center justify-self-start xl:w-[22rem] xl:justify-self-end @(TracksBesideContent ? "max-sm:hidden" : "")">
                 <figcaption class="sr-only">@(PortraitCaption ?? "Cover")</figcaption>
                 <div class="grid place-items-center overflow-hidden rounded-md bg-base-100 p-6 text-base-content sm:aspect-square">
                     <div class="w-full">@Portrait</div>
@@ -104,6 +105,8 @@
     [Parameter] public IReadOnlyList<Track>? Tracks { get; set; }
     [Parameter] public IReadOnlyList<(string Label, string? Href)>? Trail { get; set; }
     [Parameter] public bool Large { get; set; }
+    /// <summary>The page lists its sections beside the content from xl, so the masthead pills give way there.</summary>
+    [Parameter] public bool TracksBesideContent { get; set; }
     /// <summary>Show the row of theme swatches under the lede.</summary>
     [Parameter] public bool Releases { get; set; }
 

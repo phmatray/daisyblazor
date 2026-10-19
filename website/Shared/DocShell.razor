@@ -5,7 +5,7 @@
 <PageTitle>@(PageTitle ?? Title) · DaisyBlazor</PageTitle>
 <SeoHead Title="@($"{PageTitle ?? Title} · DaisyBlazor")" Description="@Description" Path="@Canonical" />
 
-<Sleeve Title="@Title" Lede="Lede" Chips="Chips" Portrait="Portrait" PortraitCaption="@PortraitCaption" Tracks="Tracks" Trail="Trail" />
+<Sleeve Title="@Title" Lede="Lede" Chips="Chips" Portrait="Portrait" PortraitCaption="@PortraitCaption" Tracks="Tracks" Trail="Trail" TracksBesideContent="@(Tracks is { Count: > 1 })" />
 
 <div class="mx-auto grid max-w-[1500px] gap-10 px-4 pb-24 pt-10 sm:px-8 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-14 lg:px-14 lg:pt-14 xl:grid-cols-[15rem_minmax(0,1fr)_12rem]">
     <aside class="hidden lg:block" aria-label="Documentation">

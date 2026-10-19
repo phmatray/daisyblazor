@@ -189,10 +189,8 @@
         foreach ((string name, object? v) in _values)
         {
             if (v is null || _defaults.ContainsKey(name)) continue;
-            // Data (a chart's Series, Labels, Links…) stays a field reference: Data="@_data".
-            attrs.Add(v is System.Collections.IEnumerable and not string
-                ? $"{name}=\"@_{char.ToLowerInvariant(name[0])}{name[1..]}\""
-                : $"{name}=\"{Razor(v)}\"");
+            // Data (a chart's Series, Labels, Links…) stays a reference to the field it came from.
+            attrs.Add(Spec.Fields.TryGetValue(name, out string? field) ? $"{name}=\"@{field}\"" : $"{name}=\"{Razor(v)}\"");
         }
 
         bool child = !string.IsNullOrEmpty(_childText);
@@ -203,7 +201,7 @@
         {
             sb.Append(wrap ? "\n" + new string(' ', tag.Length + 2) : " ").Append(a);
         }
-        if (!child) return sb.Append(" />").ToString();
+        if (!child) return sb.Append(" />").Append(Spec.Code is null ? "" : "\n\n" + Spec.Code).ToString();
         sb.Append('>');
         if (wrap) sb.Append("\n    ").Append(_childText).Append('\n');
         else sb.Append(_childText);
@@ -221,6 +219,7 @@
     private static string? Format(object? v) => v switch
     {
         null => null,
+        double d => d.ToString("0.###", CultureInfo.InvariantCulture),
         IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
         _ => v.ToString(),
     };

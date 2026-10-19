@@ -69,8 +69,23 @@ while (queue.length > 0) {
     await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]'), null, { timeout: 15000 }).catch(() => {});
     await page.waitForTimeout(150);
 
-    const { html, links } = await page.evaluate(() => {
+    const { html, links } = await page.evaluate(site => {
         const doc = document.documentElement.cloneNode(true);
+        // The visible breadcrumb, as structured data for search results.
+        const crumbs = [...document.querySelectorAll('nav[aria-label="Breadcrumb"] a, nav[aria-label="Breadcrumb"] [aria-current="page"]')];
+        if (crumbs.length > 0) {
+            const canonical = document.querySelector('link[rel="canonical"]')?.getAttribute('href');
+            const ld = doc.ownerDocument.createElement('script');
+            ld.type = 'application/ld+json';
+            ld.textContent = JSON.stringify({
+                '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+                itemListElement: crumbs.map((el, i) => ({
+                    '@type': 'ListItem', position: i + 1, name: el.textContent.trim(),
+                    item: el.href ? site + new URL(el.href).pathname.slice(1) + new URL(el.href).hash : canonical,
+                })),
+            });
+            doc.querySelector('head').append(ld);
+        }
         // Head tags from <HeadContent> are re-added by Blazor when it starts: mark them so the shell drops the baked copies first.
         doc.querySelectorAll('head meta[name="description"], head link[rel="canonical"], head meta[property^="og:"], head meta[name^="twitter:"], head meta[name="robots"]')
             .forEach(el => el.setAttribute('data-prerendered', ''));
@@ -86,7 +101,7 @@ while (queue.length > 0) {
             .filter(u => u.origin === location.origin && !/\.[a-z0-9]+$/i.test(u.pathname))
             .map(u => u.pathname);
         return { html: '<!DOCTYPE html>\n' + doc.outerHTML, links };
-    });
+    }, siteUrl);
 
     const file = route === '/' ? 'index.html' : route.slice(1).replace(/\/$/, '') + '.html';
     fs.mkdirSync(path.dirname(path.join(root, file)), { recursive: true });

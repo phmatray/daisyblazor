@@ -1,6 +1,6 @@
 namespace DaisyBlazor.Docs.Docs;
 
-public enum HitKind { Guide, Component, Parameter, Section }
+public enum HitKind { Guide, Component, Chart, Parameter, Section }
 
 public sealed record SearchHit(HitKind Kind, string Title, string Context, string Url);
 
@@ -28,7 +28,7 @@ public sealed class SearchIndex(XmlDocs docs)
 
     private static int Score(SearchHit item, string q)
     {
-        int kindBonus = item.Kind switch { HitKind.Component => 40, HitKind.Guide => 30, HitKind.Section => 10, _ => 0 };
+        int kindBonus = item.Kind switch { HitKind.Component or HitKind.Chart => 40, HitKind.Guide => 30, HitKind.Section => 10, _ => 0 };
         string t = item.Title;
         if (t.Equals(q, StringComparison.OrdinalIgnoreCase)) return 1000 + kindBonus;
         if (t.StartsWith(q, StringComparison.OrdinalIgnoreCase)) return 600 + kindBonus;
@@ -63,7 +63,9 @@ public sealed class SearchIndex(XmlDocs docs)
 
         foreach (ComponentDoc d in DocRegistry.All)
         {
-            list.Add(new(HitKind.Component, d.Name, $"{d.Category.Title()} · {d.Summary}", d.Url));
+            list.Add(DocRegistry.FamilyOf(d) is { } family
+                ? new(HitKind.Chart, d.Name, $"Charts · {family.Title} · {d.Summary}", d.Url)
+                : new(HitKind.Component, d.Name, $"{d.Category.Title()} · {d.Summary}", d.Url));
             if (d.MudEquivalent is not null)
             {
                 list.Add(new(HitKind.Component, d.MudEquivalent, $"MudBlazor → {d.Name}", d.Url + "#migration"));

@@ -6,10 +6,10 @@
 }
 else
 {
-    <DocShell Title="@_doc.Name" PageTitle="@($"{_doc.Name}: Blazor {Words(_doc.Name)} component")" Description="@_doc.Summary" Canonical="@_doc.Url" Tracks="_tracks" Trail="_trail" Portrait="_portrait" PortraitCaption="@($"Cover · <{ApiReflector.TagName(_doc.Types[0])}>")">
+    <DocShell Title="@_doc.Name" PageTitle="@($"{_doc.Name}: Blazor {Words(_doc.Name)} component")" Description="@($"Blazor {Words(_doc.Name)} component. {_doc.Summary}")" Canonical="@_doc.Url" Tracks="_tracks" Trail="_trail" Portrait="_portrait" PortraitCaption="@($"Cover · <{ApiReflector.TagName(_doc.Types[0])}>")">
         <Lede>@_doc.Summary</Lede>
         <Chips>
-            <span class="rounded-full bg-primary-content px-3 py-1 text-sm font-bold text-primary">@_doc.Category.Title()</span>
+            <span class="rounded-full bg-primary-content px-3 py-1 text-sm font-bold text-primary">@(DocRegistry.FamilyOf(_doc)?.Title ?? _doc.Category.Title())</span>
             @if (_doc.DaisyClass is not null)
             {
                 <span class="rounded-full border-2 border-primary-content px-3 py-0.5 font-mono text-sm font-semibold">@(string.Concat(_doc.DaisyClass.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(c => "." + c)))</span>

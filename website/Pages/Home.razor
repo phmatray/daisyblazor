@@ -5,7 +5,7 @@
 <PageTitle>DaisyBlazor: daisyUI components and charts for Blazor</PageTitle>
 <SeoHead Title="DaisyBlazor: daisyUI components and charts for Blazor" />
 
-<Sleeve Title="daisyUI components and charts for Blazor." Large="true" Releases="true" Tracks="_tracks" Portrait="Cover" PortraitCaption="A few DaisyBlazor components composing a dashboard card">
+<Sleeve Title="daisyUI components and charts for Blazor." Large="true" Releases="true" Tracks="_tracks" Portrait="Cover" PortraitCaption="DaisyBlazor components and a chart composing a dashboard card">
     <Lede>
         <p>
             @DocRegistry.ComponentCount typed Blazor components and @DocRegistry.ChartCount chart types on Tailwind CSS v4 and daisyUI v5.
@@ -16,15 +16,21 @@
             <a href="getting-started" class="btn btn-lg rounded-full border-0 bg-primary-content px-7 text-primary hover:bg-primary-content/90">Get started</a>
             <a href="components" class="btn btn-lg rounded-full border-2 border-primary-content bg-transparent px-7 text-primary-content hover:bg-primary-content hover:text-primary">See the @DocRegistry.ChartCount charts</a>
         </div>
-        <button type="button" @onclick="CopyInstall"
-                class="mt-5 inline-flex max-w-full items-center gap-3 rounded-full border-2 border-primary-content/40 py-1.5 pl-4 pr-1.5 font-mono text-sm transition hover:border-primary-content"
-                aria-label="Copy the install command">
-            <span class="sleeve-muted select-none">$</span>
-            <span class="truncate">dotnet add package DaisyBlazor.Components</span>
-            <span class="grid size-7 shrink-0 place-items-center rounded-full bg-primary-content text-primary">
-                <Icon Name="@(_copied ? Icons.Material.Filled.Check : Icons.Material.Filled.ContentCopy)" Size="Size.Small" Class="!text-base" />
-            </span>
-        </button>
+        <div class="mt-5 flex flex-wrap gap-2">
+            @foreach (string package in Packages)
+            {
+                string name = package;
+                <button type="button" @onclick="() => CopyInstall(name)"
+                        class="inline-flex max-w-full items-center gap-3 rounded-full border-2 border-primary-content/40 py-1.5 pl-4 pr-1.5 font-mono text-sm transition hover:border-primary-content"
+                        aria-label="@($"Copy the install command for {name}")">
+                    <span class="sleeve-muted select-none">$</span>
+                    <span class="truncate">dotnet add package @name</span>
+                    <span class="grid size-7 shrink-0 place-items-center rounded-full bg-primary-content text-primary">
+                        <Icon Name="@(_copied == name ? Icons.Material.Filled.Check : Icons.Material.Filled.ContentCopy)" Size="Size.Small" Class="!text-base" />
+                    </span>
+                </button>
+            }
+        </div>
     </Lede>
 </Sleeve>
 
@@ -230,7 +236,8 @@
     private bool _repeat;
     private int _stars = 4;
     private double _volume = 64;
-    private bool _copied;
+    private string? _copied;
+    private static readonly string[] Packages = ["DaisyBlazor.Components", "DaisyBlazor.Charts"];
     private PlaygroundSpec? _buttonPlayground;
 
     private static readonly ComponentDoc[] _showcase =
@@ -282,25 +289,7 @@
                 <span class="font-display text-lg font-semibold leading-tight">Acme Cloud</span>
                 <Chip Color="Color.Success" Size="Size.Small" Text="Production" />
             </div>
-            <div>
-                <span class="block text-xs font-semibold text-base-content/70">Active users</span>
-                <div class="flex items-end justify-between gap-3">
-                    <span class="font-display text-3xl font-bold tabular-nums">48.2k</span>
-                    <Sparkline Data="_wave" Area="true" Width="7rem" Height="2.25rem" Title="Active users trend" />
-                </div>
-            </div>
-            <div>
-                <div class="mb-1 flex justify-between text-xs font-semibold"><span>Sprint 14</span><span class="tabular-nums">68%</span></div>
-                <ProgressLinear Value="68" Color="Color.Primary" Rounded="true" />
-            </div>
-            <div class="flex items-center gap-3 border-t border-base-300 pt-3">
-                <Avatar Color="Color.Secondary" Size="Size.Small">AS</Avatar>
-                <div class="min-w-0 text-sm">
-                    <span class="block truncate font-bold">Ana Silva</span>
-                    <span class="block text-xs text-base-content/70">Admin · online</span>
-                </div>
-                <Status Color="Color.Success" Animated="true" AriaLabel="Online" Class="ml-auto" />
-            </div>
+            <BarChart Labels="_coverQuarters" Series="_coverSignups" Height="9.5rem" Title="Signups by plan" />
             <div class="grid grid-cols-2 gap-2">
                 <Button Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" StartIcon="@Icons.Material.Filled.RocketLaunch" Class="w-full px-2">Deploy</Button>
                 <Button Color="Color.Default" Variant="Variant.Outlined" Size="Size.Small" Class="w-full px-2">Logs</Button>
@@ -308,7 +297,8 @@
         </div>
     };
 
-    private readonly List<double> _wave = [3, 5, 4, 8, 6, 9, 7, 11, 9, 13, 10, 12, 8, 10, 7, 9, 6, 8];
+    private readonly string[] _coverQuarters = ["Q1", "Q2", "Q3", "Q4"];
+    private readonly ChartSeries[] _coverSignups = [new("Pro", [182, 240, 265, 342]), new("Team", [96, 120, 151, 188])];
 
     protected override void OnInitialized()
     {
@@ -324,13 +314,13 @@
         await ThemeDeck.PutOnAsync(Provider, Js, theme, e.ClientX, e.ClientY);
     }
 
-    private async Task CopyInstall()
+    private async Task CopyInstall(string package)
     {
-        _copied = await Js.Copy("dotnet add package DaisyBlazor.Components");
-        if (!_copied) return;
+        if (!await Js.Copy($"dotnet add package {package}")) return;
+        _copied = package;
         StateHasChanged();
         await Task.Delay(1600);
-        _copied = false;
+        if (_copied == package) _copied = null;
     }
 
     public void Dispose()

@@ -13,8 +13,8 @@
         </div>
     </div>
     <div class="mt-auto border-t-2 border-base-content bg-base-200/60 px-4 py-3 transition group-hover:bg-primary group-hover:text-primary-content">
-        <span class="flex items-baseline justify-between gap-2">
-            <span class="min-w-0 font-display font-semibold [overflow-wrap:anywhere] @(Compact ? "text-base sm:text-lg" : "text-xl")">@Doc.Name</span>
+        <span class="flex flex-wrap items-baseline justify-between gap-x-2">
+            <span class="min-w-0 font-display font-semibold [overflow-wrap:break-word] @(Compact ? "text-base sm:text-lg" : "text-xl")">@Doc.Name</span>
             @if (Doc.MudEquivalent is not null)
             {
                 <span class="text-xs font-bold opacity-80">@Doc.MudEquivalent</span>
