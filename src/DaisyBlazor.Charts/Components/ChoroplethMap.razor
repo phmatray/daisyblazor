@@ -87,6 +87,21 @@
 
     private (JsonElement Source, string Id, string Name)? _leanKey;
     private object[] _lean = [];
+    private (JsonElement Features, IReadOnlyDictionary<string, double> Values, string Id, string Name, MapProjection Projection, string? Color, string NoData, double Height)? _inputs;
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// The spec holds every feature's geometry, so a parent re-rendering with the same Features and
+    /// Values (by reference) and the same settings skips building and serializing it.
+    /// </remarks>
+    protected override bool InputsUnchanged()
+    {
+        (JsonElement, IReadOnlyDictionary<string, double>, string, string, MapProjection, string?, string, double) now =
+            (Features, Values, IdProperty, NameProperty, Projection, Color, NoDataColor, ViewHeight);
+        bool same = _inputs is { } last && last.Equals(now);
+        _inputs = now;
+        return same;
+    }
 
     /// <inheritdoc />
     protected override object BuildSpec()

@@ -179,6 +179,43 @@ public class ChartsSpecialTests : BunitContext
         JsonSerializer.Serialize(module.Invocations["layout"][1].Arguments[1], _json).ShouldContain("\"values\":{\"250\":3}");
     }
 
+    // Counts the specs built: the map's spec holds all the geometry, so it is only rebuilt for new inputs.
+    private sealed class CountingMap : ChoroplethMap
+    {
+        public int Specs { get; private set; }
+
+        protected override object BuildSpec()
+        {
+            Specs++;
+            return base.BuildSpec();
+        }
+    }
+
+    [Fact]
+    public void Choropleth_builds_no_spec_when_its_inputs_are_the_same_references()
+    {
+        (BunitJSModuleInterop module, JSRuntimeInvocationHandler<ChoroplethLayout> call) = Setup<ChoroplethLayout>();
+        using JsonDocument doc = JsonDocument.Parse(Geo);
+        Dictionary<string, double> values = new() { ["250"] = 3 };
+
+        IRenderedComponent<CountingMap> cut = Render<CountingMap>(ps => ps.Add(p => p.Features, doc.RootElement).Add(p => p.Values, values));
+        call.SetResult(new ChoroplethLayout("", null, null, "low", "high", []));
+        cut.WaitForAssertion(() => cut.FindAll("svg").Count.ShouldBe(1));
+        cut.Instance.Specs.ShouldBe(1);
+
+        // The parent renders again with the same Features and Values: nothing to build or serialize.
+        cut.Render(ps => ps.Add(p => p.Features, doc.RootElement).Add(p => p.Values, values).Add(p => p.ValueFormat, "{0:N0} customers"));
+        cut.Instance.Specs.ShouldBe(1);
+        module.Invocations["layout"].Count.ShouldBe(1);
+
+        // New Values (or any input of the spec): built and laid out again.
+        cut.Render(ps => ps.Add(p => p.Values, new Dictionary<string, double> { ["250"] = 4 }));
+        cut.Instance.Specs.ShouldBe(2);
+        cut.WaitForAssertion(() => module.Invocations["layout"].Count.ShouldBe(2));
+        cut.Render(ps => ps.Add(p => p.Projection, MapProjection.Mercator));
+        cut.Instance.Specs.ShouldBe(3);
+    }
+
     [Fact]
     public void Choropleth_without_features_draws_the_globe_and_no_legend()
     {

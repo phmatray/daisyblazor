@@ -62,6 +62,14 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
     protected abstract object BuildSpec();
 
     /// <summary>
+    /// A cheap change check run before <see cref="BuildSpec"/> on every parameter set: return true
+    /// when none of the spec's inputs changed (compared by reference or value) since the last call,
+    /// and once a spec exists it is neither built nor serialized again. For charts whose spec is
+    /// costly to serialize (a map's geometry); the default, false, always builds the spec and compares its JSON.
+    /// </summary>
+    protected virtual bool InputsUnchanged() => false;
+
+    /// <summary>
     /// True to lay out at the pixel size of <see cref="MeasuredElement"/> instead of a fixed
     /// coordinate space. The element must be rendered (with a CSS size) in every state, placeholder included.
     /// </summary>
@@ -143,6 +151,12 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
+        // Always asked, so the chart records its inputs from the first spec on.
+        if (InputsUnchanged() && _specJson is not null)
+        {
+            return;
+        }
+
         object spec = BuildSpec();
         string json = JsonSerializer.Serialize(spec, spec.GetType(), _json);
         if (json == _specJson)
