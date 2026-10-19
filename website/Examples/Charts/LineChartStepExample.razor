@@ -1,0 +1,11 @@
+<LineChart Title="Seats on the Team plan" Labels="_weeks" Series="_seats" Step="true" />
+
+@code {
+    private readonly string[] _weeks = ["W1", "W2", "W3", "W4", "W5", "W6", "W7", "W8"];
+
+    // Seat counts change only when a workspace upgrades, so each value holds until the next one.
+    private readonly ChartSeries[] _seats =
+    [
+        new("Seats", [25, 25, 40, 40, 40, 60, 60, 75]),
+    ];
+}

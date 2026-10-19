@@ -41,6 +41,12 @@
     /// <summary>Draw the band and the center line as smooth curves (monotone, so they never overshoot the data).</summary>
     [Parameter] public bool Smooth { get; set; } = true;
 
+    /// <summary>
+    /// Draw the band and the center line as steps (step-after: each value holds until the next
+    /// point). Step wins over <see cref="Smooth"/>, which is on by default.
+    /// </summary>
+    [Parameter] public bool Step { get; set; }
+
     /// <summary>CSS colour of the band and line. Defaults to the theme's primary colour.</summary>
     [Parameter] public string? Color { get; set; }
 
@@ -61,20 +67,22 @@
 
     // Dates cross to the layout as ISO strings; non-finite values as null.
     /// <inheritdoc />
-    protected override object BuildSpec() => new
+    protected override object BuildSpec()
     {
-        Points = Points.Select(p => new
+        object[] points = Points.Select(p => (object)new
         {
             p.Date,
             p.Label,
             p.Low,
             p.High,
             p.Center,
-        }).ToArray(),
-        Width = ViewWidth,
-        Height = ViewHeight,
-        Smooth,
-    };
+        }).ToArray();
+
+        // Step only when set, so the spec (and the layout cache key) of an existing chart stays as it was.
+        return Step
+            ? (object)new { Points = points, Width = ViewWidth, Height = ViewHeight, Smooth, Step }
+            : new { Points = points, Width = ViewWidth, Height = ViewHeight, Smooth };
+    }
 
     private string _color => ChartPalette.At(0, Color);
 

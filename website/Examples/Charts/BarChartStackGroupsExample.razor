@@ -1,0 +1,14 @@
+<BarChart Title="Active seats by plan, EU and US side by side (thousands)" Labels="_quarters" Series="_seats" Stacked="true" />
+
+@code {
+    private readonly string[] _quarters = ["Q1", "Q2", "Q3", "Q4"];
+
+    // Series sharing a Stack name stack together; the two regions stand next to each other.
+    private readonly ChartSeries[] _seats =
+    [
+        new("Pro · EU", [6.2, 6.9, 7.4, 8.1]) { Stack = "EU" },
+        new("Team · EU", [2.8, 3.1, 3.3, 3.9]) { Stack = "EU" },
+        new("Pro · US", [8.4, 9.0, 9.8, 10.6]) { Stack = "US" },
+        new("Team · US", [3.6, 3.8, 4.4, 4.9]) { Stack = "US" },
+    ];
+}

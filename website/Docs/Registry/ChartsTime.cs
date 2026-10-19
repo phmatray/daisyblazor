@@ -33,6 +33,7 @@ public static partial class DocRegistry
             [
                 new("Basic", "Points built with a date sit on a time axis; Low and High bound the band and Center draws the line. BandLabel and CenterLabel name them in the legend and tooltips.", typeof(RangeAreaChartBasicExample)),
                 new("Category axis", "Points built with a label sit on a category axis; Smooth=\"false\" joins them with straight segments and Color picks the theme colour.", typeof(RangeAreaChartCategoryExample)),
+                new("Step", "Step draws the band and the center line as steps that hold until the next point; it wins over Smooth, which is on by default.", typeof(RangeAreaChartStepExample)),
             ])
         {
             Portrait = typeof(RangeAreaChartCoverExample),

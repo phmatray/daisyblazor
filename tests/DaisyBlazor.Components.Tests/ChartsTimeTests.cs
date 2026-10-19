@@ -204,4 +204,17 @@ public class ChartsTimeTests : BunitContext
         calendar.Markup.ShouldNotContain("Less");
         module.Invocations["layout"].Count.ShouldBe(2);
     }
+
+    [Fact]
+    public void RangeAreaChart_sends_step()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        module.Setup<RangeAreaLayout>("layout", _ => true).SetResult(new RangeAreaLayout("", "", [], [], [], _plot));
+
+        Render<RangeAreaChart>(ps => ps
+            .Add(p => p.Points, [new RangePoint("Mon", 1, 3), new RangePoint("Tue", 2, 4)])
+            .Add(p => p.Step, true));
+
+        Spec(module, "range-area").ShouldContain("\"smooth\":true,\"step\":true");
+    }
 }

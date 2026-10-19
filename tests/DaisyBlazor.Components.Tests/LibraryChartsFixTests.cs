@@ -290,4 +290,69 @@ public class LibraryChartsFixTests : BunitContext
         cut.Find("desc").TextContent.ShouldBe("No data.");
         cut.FindAll("ul").Count.ShouldBe(0);
     }
+
+    [Fact]
+    public void BarChart_sends_stacked_percent_and_stack_groups_and_tooltips_show_the_share()
+    {
+        // charts-core.test.mjs: stacks side by side, each to 100%.
+        BunitJSModuleInterop module = JSInterop.SetupCharts(bar: ChartFakes.Bar with
+        {
+            Bars = [new(0, 0, 100, 8, 80, 111.5), new(0, 1, 100, 119.5, 80, 111.5), new(0, 2, 180, 8, 80, 223)],
+        });
+        IRenderedComponent<BarChart> cut = Render<BarChart>(ps => ps
+            .Add(p => p.Series, new List<ChartSeries>
+            {
+                new("Pro", [10]) { Stack = "EU" },
+                new("Team", [30]) { Stack = "EU" },
+                new("Pro", [20]) { Stack = "US" },
+            })
+            .Add(p => p.Labels, new[] { "Q1" })
+            .Add(p => p.Percent, true));
+
+        module.Spec().ShouldContain("\"stacked\":false,\"percent\":true,\"stacks\":[0,0,1]");
+        cut.FindAll("rect title").Select(t => t.TextContent).ShouldBe(["Pro · Q1: 10 (25%)", "Team · Q1: 30 (75%)", "Pro · Q1: 20 (100%)"]);
+    }
+
+    [Fact]
+    public void BarChart_stacked_keeps_each_series_own_value_in_tooltips()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupCharts(bar: ChartFakes.Bar with
+        {
+            Bars = [new(0, 0, 100, 100, 160, 131), new(0, 1, 100, 50, 160, 50)],
+        });
+        IRenderedComponent<BarChart> cut = Render<BarChart>(ps => ps
+            .Add(p => p.Series, new List<ChartSeries> { new("Pro", [12]), new("Team", [-4]) })
+            .Add(p => p.Labels, new[] { "Q1" })
+            .Add(p => p.Stacked, true));
+
+        module.Spec().ShouldContain("\"stacked\":true,\"percent\":false,\"stacks\":[0,0]");
+        cut.FindAll("rect title").Select(t => t.TextContent).ShouldBe(["Pro · Q1: 12", "Team · Q1: -4"]);
+    }
+
+    [Fact]
+    public void LineChart_sends_step_and_percent_and_tooltips_show_the_share()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupCharts();
+        IRenderedComponent<LineChart> cut = Render<LineChart>(ps => ps
+            .Add(p => p.Series, new List<ChartSeries> { new("Pro", [30, 10]), new("Team", [10, 10]) })
+            .Add(p => p.Labels, new[] { "Jan", "Feb" })
+            .Add(p => p.Percent, true)
+            .Add(p => p.Step, true));
+
+        module.Spec().ShouldContain("\"stacked\":false,\"percent\":true,\"smooth\":false,\"step\":true");
+        cut.FindAll("circle title")[0].TextContent.ShouldBe("Pro · Jan: 30 (75%)");
+    }
+
+    [Fact]
+    public void AreaChart_forwards_step_and_percent_and_fills_like_a_stack()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupCharts();
+        IRenderedComponent<AreaChart> cut = Render<AreaChart>(ps => ps
+            .Add(p => p.Series, One(1, 2))
+            .Add(p => p.Percent, true)
+            .Add(p => p.Step, true));
+
+        module.Spec().ShouldContain("\"percent\":true,\"smooth\":false,\"step\":true");
+        cut.Find("path[fill-opacity]").GetAttribute("fill-opacity").ShouldBe("0.7");
+    }
 }

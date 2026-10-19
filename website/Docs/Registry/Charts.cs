@@ -14,6 +14,7 @@ public static partial class DocRegistry
                 new("Basic", "Labels name the x positions; each series' Data lines up with them by index. Points are shown by default.", typeof(LineChartBasicExample)),
                 new("Several series, smoothed", "Each series takes the next palette colour and appears in the legend; Smooth draws curves.", typeof(LineChartSeriesExample)),
                 new("Minimal", "Turn off ShowGrid and ShowLegend, set a Height, and give a series its own Color.", typeof(LineChartMinimalExample)),
+                new("Step", "Step draws each value as a step that holds until the next one (step-after), for counts that change in jumps; it wins over Smooth.", typeof(LineChartStepExample)),
             ])
         {
             Portrait = typeof(LineChartCoverExample),
@@ -26,6 +27,7 @@ public static partial class DocRegistry
                 new("Basic", "One smoothed series with the area filled; points stay off by default for a clean silhouette.", typeof(AreaChartBasicExample)),
                 new("Several series", "Fills are translucent so overlapping series stay readable; turn ShowPoints on to mark each value.", typeof(AreaChartSeriesExample)),
                 new("Stacked", "Stacked draws each series on top of the running total, so the bands add up to the whole and the fills never mix; tooltips still show each series' own value.", typeof(AreaChartStackedExample)),
+                new("100% stacked", "Percent stacks the series to 100% at every label, so the fills show each one's share; tooltips show the value and the share.", typeof(AreaChartPercentExample)),
             ])
         {
             Portrait = typeof(AreaChartCoverExample),
@@ -38,6 +40,9 @@ public static partial class DocRegistry
                 new("Flat data", "A list of ChartDataPoint, one bar per label.", typeof(BarChartBasicExample)),
                 new("Grouped series", "Labels name the groups; each ChartSeries adds one bar per group and a legend entry.", typeof(BarChartGroupedExample)),
                 new("Horizontal", "Horizontal flips the axes so categories read down the side; the label gutter grows with the names up to 40% of the width, and longer names are cut with an ellipsis.", typeof(BarChartHorizontalExample)),
+                new("Stacked", "Stacked puts the series in one bar per label; positive values stack up from zero and negative ones down, so mixed signs diverge. Tooltips keep each series' own value.", typeof(BarChartStackedExample)),
+                new("100% stacked", "Percent stacks each bar to 100% of its total, here horizontal; tooltips show the value and the share.", typeof(BarChartPercentExample)),
+                new("Side-by-side stacks", "Give each ChartSeries a Stack name: series with the same name stack together and the stacks stand side by side in each label.", typeof(BarChartStackGroupsExample)),
                 new("Per-bar colours", "Give a point any CSS colour; ChartPalette.FromColor maps a Color value to its theme token.", typeof(BarChartColorsExample)),
             ])
         {

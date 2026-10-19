@@ -38,7 +38,7 @@
                     string color = ChartPalette.At(s, _series[s].Color);
                     @if (Area)
                     {
-                        <path d="@geometry.Area" fill="@color" fill-opacity="@(Stacked ? "0.7" : "0.15")" stroke="none" />
+                        <path d="@geometry.Area" fill="@color" fill-opacity="@(Stacked || Percent ? "0.7" : "0.15")" stroke="none" />
                     }
 
                     <path d="@geometry.Line" fill="none" stroke="@color" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
@@ -94,8 +94,21 @@
     /// </summary>
     [Parameter] public bool Stacked { get; set; }
 
+    /// <summary>
+    /// 100% stacked lines (implies <see cref="Stacked"/>): each value is drawn as its share of the
+    /// total at its index, on a percent axis. Negative or missing values count as 0. Tooltips show
+    /// the value and the share.
+    /// </summary>
+    [Parameter] public bool Percent { get; set; }
+
     /// <summary>Smooth the line with cubic curves instead of straight segments.</summary>
     [Parameter] public bool Smooth { get; set; }
+
+    /// <summary>
+    /// Draw the line as steps (step-after: each value holds until the next one). If both
+    /// <see cref="Step"/> and <see cref="Smooth"/> are set, Step wins.
+    /// </summary>
+    [Parameter] public bool Step { get; set; }
 
     /// <summary>Draw horizontal gridlines and value labels.</summary>
     [Parameter] public bool ShowGrid { get; set; } = true;
@@ -128,14 +141,17 @@
     protected override bool Measured => true;
 
     /// <inheritdoc />
-    protected override object BuildSpec() => new
+    protected override object BuildSpec()
     {
-        Series = _series.Select(s => s.Data ?? []).ToArray(),
-        Labels = Labels ?? [],
-        Stacked,
-        Smooth,
-        ShowGrid,
-    };
+        IReadOnlyList<double>[] series = _series.Select(s => s.Data ?? []).ToArray();
+        IReadOnlyList<string> labels = Labels ?? [];
+
+        // Percent and Step only when set, so the spec (and the layout cache key) of an existing
+        // chart stays as it was.
+        return Percent || Step
+            ? (object)new { Series = series, Labels = labels, Stacked, Percent, Smooth, Step, ShowGrid }
+            : new { Series = series, Labels = labels, Stacked, Smooth, ShowGrid };
+    }
 
     // Per-instance id for the SVG <desc> that exposes the plotted values to screen readers.
     private readonly string _descId = "line-desc-" + Guid.NewGuid().ToString("N")[..8];
@@ -153,7 +169,19 @@
         string prefix = _series.Count > 1 && !string.IsNullOrEmpty(_series[s].Name) ? $"{_series[s].Name} · " : string.Empty;
         IReadOnlyList<double> data = _series[s].Data ?? new List<double>();
         // A layout still being replaced may name points the new data no longer has.
-        return $"{prefix}{_label(i)}: {(i < data.Count && double.IsFinite(data[i]) ? ChartText.Value(data[i]) : "no data")}";
+        if (i >= data.Count || !double.IsFinite(data[i]))
+        {
+            return $"{prefix}{_label(i)}: no data";
+        }
+
+        return $"{prefix}{_label(i)}: {ChartText.Value(data[i])}{(Percent ? $" ({ChartText.Percent(_share(i, data[i]))})" : string.Empty)}";
+    }
+
+    // Percent mode: the value's share of the positive total at index i, as the layout draws it.
+    private double _share(int i, double value)
+    {
+        double total = _series.Select(s => s.Data is { } d && i < d.Count && double.IsFinite(d[i]) && d[i] > 0 ? d[i] : 0).Sum();
+        return total > 0 ? Math.Max(0, value) / total * 100 : 0;
     }
 
     private string _description => string.Join("; ", _series.Select(series =>

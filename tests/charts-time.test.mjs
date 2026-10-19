@@ -118,6 +118,17 @@ test('range-area: labels make a category axis; no valid point is empty', async (
     assert.deepEqual((await layout('range-area', { points: [{ label: 'x', low: null, high: 1 }], width: W, height: H })).points, []);
 });
 
+test('range-area: step draws the band and the center line as step-after segments, over smooth', async () => {
+    const out = await layout('range-area', {
+        points: ['Mon', 'Tue'].map((label, i) => ({ label, low: i, high: i + 4, center: i + 2 })), step: true, width: W, height: H,
+    });
+    const [a, b] = out.points;
+    assert.doesNotMatch(out.band + out.center, /C/);
+    assert.match(out.center, /^M([\d.]+),([\d.]+)L([\d.]+),\2L\3,[\d.]+$/);
+    assert.equal(out.center.match(/L([\d.]+),/)[1], String(b.x));
+    assert.ok(a.x < b.x);
+});
+
 test('stream: wiggle has no value axis, stacked and percent stack from zero', async () => {
     const series = [{ name: 'Billing', values: [10, 20, 30] }, { name: 'Search', values: [30, -5, null] }];
     const spec = { series, labels: ['W1', 'W2', 'W3'], width: W, height: H };

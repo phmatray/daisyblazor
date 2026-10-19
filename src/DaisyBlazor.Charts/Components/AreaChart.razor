@@ -7,7 +7,9 @@
            Labels="Labels"
            Area="true"
            Stacked="Stacked"
+           Percent="Percent"
            Smooth="Smooth"
+           Step="Step"
            ShowGrid="ShowGrid"
            ShowPoints="ShowPoints"
            ShowLegend="ShowLegend"
@@ -31,8 +33,21 @@
     /// </summary>
     [Parameter] public bool Stacked { get; set; }
 
+    /// <summary>
+    /// 100% stacked areas (implies <see cref="Stacked"/>): each fill shows its share of the total
+    /// at its index, on a percent axis. Negative or missing values count as 0. Tooltips show the
+    /// value and the share.
+    /// </summary>
+    [Parameter] public bool Percent { get; set; }
+
     /// <summary>Smooth the line with cubic curves instead of straight segments.</summary>
     [Parameter] public bool Smooth { get; set; }
+
+    /// <summary>
+    /// Draw the line and the fill as steps (step-after: each value holds until the next one). If
+    /// both <see cref="Step"/> and <see cref="Smooth"/> are set, Step wins.
+    /// </summary>
+    [Parameter] public bool Step { get; set; }
 
     /// <summary>Draw horizontal gridlines and value labels.</summary>
     [Parameter] public bool ShowGrid { get; set; } = true;
