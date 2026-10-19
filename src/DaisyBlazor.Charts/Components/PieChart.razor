@@ -130,6 +130,9 @@
     /// </summary>
     [Parameter] public IReadOnlyList<DonutRing>? Rings { get; set; }
 
+    /// <summary>Show each slice's share of the whole in its tooltip and the description (default true).</summary>
+    [Parameter] public bool ShowPercent { get; set; } = true;
+
     /// <summary>Additional CSS classes merged onto the <c>w-full</c> wrapper.</summary>
     [Parameter] public string? Class { get; set; }
     /// <summary>Inline styles appended after the width on the wrapper.</summary>
@@ -215,7 +218,7 @@
     {
         Ring ring = _rings[slice.Ring];
         ChartDataPoint point = ring.Items[slice.Index];
-        string title = $"{(ring.Name is null ? string.Empty : ring.Name + ", ")}{point.Label}: {ChartText.Value(point.Value)} ({_percent(slice)}%)";
+        string title = $"{(ring.Name is null ? string.Empty : ring.Name + ", ")}{point.Label}: {ChartText.Value(point.Value)}{(ShowPercent ? $" ({_percent(slice)}%)" : string.Empty)}";
         return ring.Merged.Count > 0 && slice.Index == ring.Items.Count - 1
             ? $"{title}: {string.Join(", ", ring.Merged.Select(p => $"{p.Label} {ChartText.Value(p.Value)}"))}"
             : title;

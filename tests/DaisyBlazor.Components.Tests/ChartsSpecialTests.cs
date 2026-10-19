@@ -1,3 +1,4 @@
+using AngleSharp.Dom;
 using System.Text.Json;
 using DaisyBlazor.Charts;
 using Microsoft.JSInterop;
@@ -285,6 +286,93 @@ public class ChartsSpecialTests : BunitContext
         cut.WaitForAssertion(() => cut.FindAll("svg circle[r='4.5']").Count.ShouldBe(1));
         cut.FindAll("svg path").Count.ShouldBe(0);
         cut.FindAll("span.inline-flex").Count.ShouldBe(0);
+    }
+
+    [Fact]
+    public void Polar_stacked_sends_the_flags_and_adds_the_total_and_share_to_tooltips()
+    {
+        (BunitJSModuleInterop module, JSRuntimeInvocationHandler<PolarLayout> call) = Setup<PolarLayout>();
+        PolarSeries[] series =
+        [
+            new("Free", [new(0, 30), new(90, 10)]),
+            new("Pro", [new(0, 10), new(90, 30)]),
+        ];
+
+        IRenderedComponent<PolarChart> cut = Render<PolarChart>(ps => ps
+            .Add(p => p.Series, series)
+            .Add(p => p.Percent, true)
+            .Add(p => p.Mode, PolarChartMode.Area));
+
+        Sent(module).Spec.ShouldEndWith("\"levels\":4,\"stacked\":true,\"percent\":true}");
+        call.SetResult(new PolarLayout(320, 320, 290, [], [],
+            [new("M0,0Z", [new(0, 320, 100), new(1, 400, 320)]), new("M0,0ZM1,1Z", [new(0, 320, 30), new(1, 610, 320)])]));
+
+        cut.WaitForAssertion(() => cut.FindAll("svg circle[r='3']").Count.ShouldBe(4));
+        cut.Markup.ShouldContain("Free, 0: 30 (total 40, 75%)");
+        cut.Markup.ShouldContain("Pro, 90: 30 (total 40, 75%)");
+    }
+
+    [Fact]
+    public void Polar_unstacked_sends_no_stack_flags()
+    {
+        (BunitJSModuleInterop module, JSRuntimeInvocationHandler<PolarLayout> _) = Setup<PolarLayout>();
+        Render<PolarChart>(ps => ps.Add(p => p.Series, [new PolarSeries("Free", [new(0, 30)])]));
+
+        string spec = Sent(module).Spec;
+        spec.ShouldEndWith("\"levels\":4}");
+        spec.ShouldNotContain("stacked");
+    }
+
+    [Fact]
+    public void MultiPie_draws_one_titled_pie_per_group_with_shared_colours_and_one_legend()
+    {
+        JSInterop.SetupCharts();
+        PieGroup[] groups =
+        [
+            new("Europe", [new("Free", 50), new("Pro", 30), new("Team", 20)]),
+            new("Americas", [new("Pro", 40), new("Free", 45), new("Enterprise", 15, "var(--color-accent)")]),
+            new("Asia Pacific", [new("Team", 25), new("Free", 75)]),
+        ];
+
+        IRenderedComponent<MultiPieChart> cut = Render<MultiPieChart>(ps => ps
+            .Add(p => p.Groups, groups)
+            .Add(p => p.Title, "Plan mix by region")
+            .Add(p => p.Columns, 3)
+            .Add(p => p.InnerRadiusRatio, 0.5)
+            .Add(p => p.ShowPercent, false));
+
+        IReadOnlyList<IRenderedComponent<PieChart>> pies = cut.FindComponents<PieChart>();
+        pies.Count.ShouldBe(3);
+        cut.FindAll("svg").Select(s => s.GetAttribute("aria-label")).ShouldBe(["Europe", "Americas", "Asia Pacific"]);
+        cut.FindAll("svg desc").Select(d => d.Id).Distinct().Count().ShouldBe(3);
+        cut.Find("[role=group]").GetAttribute("aria-label").ShouldBe("Plan mix by region");
+        cut.Find(".grid").GetAttribute("style").ShouldBe("grid-template-columns:repeat(3,minmax(0,1fr));");
+
+        // "Free" is the first label everywhere it appears, whatever its place in the group.
+        string Color(int pie, string label) => pies[pie].Instance.Data.Single(d => d.Label == label).Color!;
+        Color(0, "Free").ShouldBe(Color(1, "Free"));
+        Color(0, "Free").ShouldBe(Color(2, "Free"));
+        Color(0, "Pro").ShouldBe(Color(1, "Pro"));
+        Color(0, "Team").ShouldBe(Color(2, "Team"));
+        Color(1, "Enterprise").ShouldBe("var(--color-accent)");
+        pies.ShouldAllBe(p => p.Instance.InnerRadiusRatio == 0.5 && !p.Instance.ShowPercent && !p.Instance.ShowLegend);
+
+        cut.FindAll("ul").Count.ShouldBe(0);
+        cut.FindAll("span.inline-flex").Select(s => s.TextContent.Trim()).ShouldBe(["Free", "Pro", "Team", "Enterprise"]);
+        cut.FindAll("path title")[0].TextContent.ShouldBe("Free: 50");
+    }
+
+    [Fact]
+    public void MultiPie_fills_the_width_when_no_columns_are_given()
+    {
+        JSInterop.SetupCharts();
+        IRenderedComponent<MultiPieChart> cut = Render<MultiPieChart>(ps => ps
+            .Add(p => p.Groups, [new PieGroup("Europe", [new("Free", 1)])])
+            .Add(p => p.ShowLegend, false));
+
+        cut.Find(".grid").GetAttribute("style").ShouldBe("grid-template-columns:repeat(auto-fill,minmax(min(12rem,100%),1fr));");
+        cut.FindAll("span.inline-flex").Count.ShouldBe(0);
+        cut.Find("[role=group]").GetAttribute("aria-label").ShouldBe("Pie charts");
     }
 
     [Fact]

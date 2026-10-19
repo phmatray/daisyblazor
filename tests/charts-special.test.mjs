@@ -188,6 +188,40 @@ test('polar start angle, direction, closed lines, areas, splines and markers', a
     assert.deepEqual(await layout('polar', { series: [], width: 0, height: 0 }), { cx: 0, cy: 0, radius: 0, rings: [], spokes: [], series: [] });
 });
 
+test('polar stacked puts each series on the running total at its angle', async () => {
+    const a = [{ a: 0, r: 10 }, { a: 90, r: 20 }, { a: 180, r: 30 }];
+    const b = [{ a: 0, r: 30 }, { a: 90, r: 20 }, { a: 270, r: 5 }];
+    const base = { series: [{ points: a }, { points: b }], width: 640, height: 640, levels: 4 };
+    const dist = (geo, p) => Math.hypot(p.x - geo.cx, p.y - geo.cy);
+    const top = geo => geo.rings.at(-1);
+    const unit = geo => geo.radius / top(geo).value;
+
+    const geo = await layout('polar', { ...base, stacked: true });
+    // 10 + 30 = 40 and 20 + 20 = 40 at the shared angles; 270 has nothing below it.
+    near(dist(geo, geo.series[1].points[0]), 40 * unit(geo), 0.02);
+    near(dist(geo, geo.series[1].points[1]), 40 * unit(geo), 0.02);
+    near(dist(geo, geo.series[1].points[2]), 5 * unit(geo), 0.02);
+    near(dist(geo, geo.series[0].points[2]), 30 * unit(geo), 0.02);
+    assert.match(geo.series[1].path, /^M[^Z]*$/, 'a stacked line stays open');
+
+    const area = await layout('polar', { ...base, stacked: true, mode: 'area' });
+    assert.equal(area.series[0].path.match(/M/g).length, 1, 'the first band starts at the centre');
+    assert.equal(area.series[1].path.match(/M/g).length, 2, 'later bands cut out the total below them');
+
+    const pct = await layout('polar', { ...base, percent: true, mode: 'area', smooth: true });
+    assert.equal(top(pct).value, 100);
+    // Every angle's top series reaches 100%; at 0 the first series is 10 / 40 = 25%.
+    for (const p of pct.series[1].points) {
+        near(dist(pct, p), pct.radius, 0.02);
+    }
+    near(dist(pct, pct.series[0].points[0]), pct.radius * 0.25, 0.02);
+    near(dist(pct, pct.series[0].points[2]), pct.radius, 0.02);
+
+    // Off by default: the same series overlap instead.
+    const flat = await layout('polar', base);
+    near(dist(flat, flat.series[1].points[0]), 30 * unit(flat), 0.02);
+});
+
 test('shape draws closed polygons with holes and open polylines on shared axes', async () => {
     const square = [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }];
     const hole = [{ x: 4, y: 4 }, { x: 6, y: 4 }, { x: 6, y: 6 }, { x: null, y: 1 }];

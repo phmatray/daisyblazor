@@ -17,6 +17,11 @@ public record ChartDataPoint(string Label, double Value, string? Color = null);
 /// <param name="Data">The ring's slices; a label used in several rings keeps one colour.</param>
 public sealed record DonutRing(string Name, IReadOnlyList<ChartDataPoint> Data);
 
+/// <summary>One pie of a <see cref="MultiPieChart"/>.</summary>
+/// <param name="Name">Name of the pie, shown above it and used as its accessible name.</param>
+/// <param name="Data">The pie's slices; a label used in several pies keeps one colour.</param>
+public sealed record PieGroup(string Name, IReadOnlyList<ChartDataPoint> Data);
+
 /// <summary>
 /// A named numeric series for multi-series line, area and bar charts. The ordinal index of each
 /// value lines up with the chart's X labels.

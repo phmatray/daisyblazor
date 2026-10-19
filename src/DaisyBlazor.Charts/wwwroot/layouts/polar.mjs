@@ -12,7 +12,10 @@ const EMPTY = { cx: 0, cy: 0, radius: 0, rings: [], spokes: [], series: [] };
 // that keeps those labels in the box. mode 'line' joins each series' points in order (closed joins
 // the last back to the first), 'area' always closes and is filled by the chart, 'marker' has no
 // path; smooth draws a Catmull-Rom spline. Points without a finite angle and radius are skipped.
-export default function polar({ series = [], width, height, angleMax = 360, startAngle = 0, clockwise = true, angleTicks = [], mode = 'line', smooth = false, closed = false, levels = 4 }) {
+// stacked: each point sits on the running total of the earlier series at the same angle (its base);
+// percent also divides each angle's total to 100. A stacked area is the band between the bases and
+// the tops (the inner ring drawn the other way round, so it cuts out).
+export default function polar({ series = [], width, height, angleMax = 360, startAngle = 0, clockwise = true, angleTicks = [], mode = 'line', smooth = false, closed = false, levels = 4, stacked = false, percent = false }) {
     if (!(width > 0 && height > 0)) {
         return EMPTY;
     }
@@ -28,7 +31,11 @@ export default function polar({ series = [], width, height, angleMax = 360, star
     const radius = Math.max(10, Math.min(cx - maxWidth(labels.map(t => t.label)) - gap - 2, cy - FONT * 1.2 - gap - 2));
 
     const rows = (series ?? []).map(s => (s?.points ?? []).map((p, i) => ({ i, a: p?.a, r: p?.r })).filter(p => finite(p.a) && finite(p.r)));
-    const scale = valueScale(rows.flat().map(p => p.r), { zero: true, count: levels }).range([0, radius]);
+    const stack = stacked || percent;
+    if (stack) {
+        stackRows(rows, percent);
+    }
+    const scale = valueScale(stack ? rows.flat().flatMap(p => [p.base, p.top]) : rows.flat().map(p => p.r), { zero: true, count: levels }).range([0, radius]);
     const at = (a, r) => {
         const t = theta(a);
         const d = scale(r);
@@ -60,10 +67,35 @@ export default function polar({ series = [], width, height, angleMax = 360, star
         }),
         series: rows.map(row => {
             const points = row.map(p => {
-                const [x, y] = at(p.a, p.r);
+                const [x, y] = at(p.a, stack ? p.top : p.r);
                 return { i: p.i, x: r2(x), y: r2(y) };
             });
-            return { path: mode === 'marker' || points.length < 2 ? '' : path(points.map(p => [p.x, p.y])), points };
+            if (mode === 'marker' || points.length < 2) {
+                return { path: '', points };
+            }
+            const outer = path(points.map(p => [p.x, p.y]));
+            const hole = stack && mode === 'area' && row.some(p => p.base !== 0)
+                ? path(row.map(p => at(p.a, p.base).map(r2)).reverse())
+                : '';
+            return { path: outer + hole, points };
         }),
     };
+}
+
+// Adds base and top to each point, stacking the series in order per angle.
+function stackRows(rows, percent) {
+    const totals = new Map();
+    for (const p of rows.flat()) {
+        totals.set(p.a, (totals.get(p.a) ?? 0) + p.r);
+    }
+    const running = new Map();
+    for (const row of rows) {
+        for (const p of row) {
+            const total = totals.get(p.a);
+            const k = percent ? (total !== 0 ? 100 / total : 0) : 1;
+            p.base = (running.get(p.a) ?? 0) * k;
+            running.set(p.a, (running.get(p.a) ?? 0) + p.r);
+            p.top = running.get(p.a) * k;
+        }
+    }
 }

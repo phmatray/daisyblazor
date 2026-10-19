@@ -1,0 +1,80 @@
+@namespace DaisyBlazor.Charts
+
+@* Several pies (or donuts) side by side, one per group, in a responsive grid. Each is a PieChart
+   titled with its group name, keeping its own accessible name and description; a label keeps one
+   colour in every pie and a single legend lists each label once. *@
+
+<div class="@CssClass.Merge("w-full", Class)" style="@Style" role="group" aria-label="@(Title ?? "Pie charts")" @attributes="UserAttributes">
+    @if (!string.IsNullOrEmpty(Title))
+    {
+        <div class="text-sm font-medium mb-2 text-base-content/80">@Title</div>
+    }
+
+    <div class="grid gap-4" style="@_gridStyle">
+        @foreach (PieGroup group in Groups)
+        {
+            <PieChart Title="@group.Name" Data="@_colored(group)" ShowLegend="false" InnerRadiusRatio="@InnerRadiusRatio"
+                      ShowPercent="@ShowPercent" Height="@Height" />
+        }
+    </div>
+
+    @if (ShowLegend)
+    {
+        <ChartLegend Items="@_labels.Select(l => (l, _colors[l])).ToList()" />
+    }
+</div>
+
+@code {
+    /// <summary>The pies to draw, in order: each group's name titles its pie and its data makes up that pie's whole.</summary>
+    [Parameter] public IReadOnlyList<PieGroup> Groups { get; set; } = [];
+
+    /// <summary>How many pies per row; null (default) fits as many as the width allows at <see cref="MinPieWidth"/> each.</summary>
+    [Parameter] public int? Columns { get; set; }
+
+    /// <summary>Smallest width of a grid cell when <see cref="Columns"/> is null, as a CSS length.</summary>
+    [Parameter] public string MinPieWidth { get; set; } = "12rem";
+
+    /// <summary>Inner radius as a fraction of the outer radius (0 = pies; above 0 draws donuts).</summary>
+    [Parameter] public double InnerRadiusRatio { get; set; }
+
+    /// <summary>Show each slice's share of its pie in the tooltips (default true).</summary>
+    [Parameter] public bool ShowPercent { get; set; } = true;
+
+    /// <summary>Show one legend under the grid, listing each label once.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>CSS height of each pie.</summary>
+    [Parameter] public string? Height { get; set; } = "12rem";
+
+    /// <summary>Optional heading rendered above the grid; also the grid's accessible name.</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>Additional CSS classes merged onto the <c>w-full</c> wrapper.</summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>Inline styles on the wrapper.</summary>
+    [Parameter] public string? Style { get; set; }
+
+    /// <summary>Additional attributes splatted onto the wrapper.</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
+
+    private List<string> _labels = [];
+    private Dictionary<string, string> _colors = [];
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        List<ChartDataPoint> points = [.. Groups.SelectMany(g => g.Data ?? [])];
+        _labels = [.. points.Select(p => p.Label).Distinct()];
+        _colors = _labels
+            .Select((label, i) => (Label: label, Color: ChartPalette.At(i, points.FirstOrDefault(p => p.Label == label && p.Color is not null)?.Color)))
+            .ToDictionary(x => x.Label, x => x.Color);
+    }
+
+    // Every point takes its label's colour, so a label looks the same in every pie.
+    private ChartDataPoint[] _colored(PieGroup group) => [.. (group.Data ?? []).Select(p => p with { Color = _colors[p.Label] })];
+
+    private string _gridStyle => Columns is int n && n > 0
+        ? $"grid-template-columns:repeat({n},minmax(0,1fr));"
+        : $"grid-template-columns:repeat(auto-fill,minmax(min({MinPieWidth},100%),1fr));";
+}

@@ -104,6 +104,16 @@
     /// <summary>Format string for radii in tooltips and the description, e.g. "{0:N0} ms".</summary>
     [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
 
+    /// <summary>
+    /// Stack the series: at each angle shared by several series, a point is drawn on top of the running
+    /// total of the series before it; Area mode fills the band between that total and the new one.
+    /// Tooltips keep each point's own value and add the angle's total and the point's share.
+    /// </summary>
+    [Parameter] public bool Stacked { get; set; }
+
+    /// <summary>Stack the series to 100%: each angle's total fills the radius (implies <see cref="Stacked"/>).</summary>
+    [Parameter] public bool Percent { get; set; }
+
     /// <summary>Creates a polar chart with a square default shape.</summary>
     public PolarChart()
     {
@@ -114,20 +124,34 @@
     protected override string Kind => "polar";
 
     /// <inheritdoc />
-    protected override object BuildSpec() => new
+    protected override object BuildSpec()
     {
-        Series = Series.Select(s => new { Points = (s.Points ?? []).Select(p => new { A = p.Angle, R = p.Radius }).ToArray() }).ToArray(),
-        Width = ViewWidth,
-        Height = ViewHeight,
-        AngleMax = _turn,
-        StartAngle,
-        Clockwise,
-        AngleTicks = _angleTicks().Select(v => new { Value = v, Label = _format(AngleFormat, v) }).ToArray(),
-        Mode = Mode.ToString().ToLowerInvariant(),
-        Smooth,
-        Closed,
-        Levels,
-    };
+        object series = Series.Select(s => new { Points = (s.Points ?? []).Select(p => new { A = p.Angle, R = p.Radius }).ToArray() }).ToArray();
+        object ticks = _angleTicks().Select(v => new { Value = v, Label = _format(AngleFormat, v) }).ToArray();
+        string mode = Mode.ToString().ToLowerInvariant();
+        // Unstacked charts send the original spec, so they lay out exactly as before.
+        return _stack
+            ? new { Series = series, Width = ViewWidth, Height = ViewHeight, AngleMax = _turn, StartAngle, Clockwise, AngleTicks = ticks, Mode = mode, Smooth, Closed, Levels, Stacked = true, Percent }
+            : new { Series = series, Width = ViewWidth, Height = ViewHeight, AngleMax = _turn, StartAngle, Clockwise, AngleTicks = ticks, Mode = mode, Smooth, Closed, Levels };
+    }
+
+    private bool _stack => Stacked || Percent;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        _totals = _stack ? _angleTotals() : [];
+        base.OnParametersSet();
+    }
+
+    private Dictionary<double, double> _totals = [];
+
+    // Each angle's total over all series, for the stacked tooltips.
+    private Dictionary<double, double> _angleTotals() => Series
+        .SelectMany(s => s.Points ?? [])
+        .Where(p => double.IsFinite(p.Angle) && double.IsFinite(p.Radius))
+        .GroupBy(p => p.Angle)
+        .ToDictionary(g => g.Key, g => g.Sum(p => p.Radius));
 
     private double _turn => double.IsFinite(AngleMax) && AngleMax > 0 ? AngleMax : 360;
 
@@ -149,6 +173,11 @@
     {
         string name = string.Join(" · ", new[] { series.Name, p.Label }.Where(n => !string.IsNullOrEmpty(n)));
         string body = $"{_format(AngleFormat, p.Angle)}: {_format(ValueFormat, p.Radius)}";
+        if (_totals.TryGetValue(p.Angle, out double total))
+        {
+            string share = total != 0 ? (p.Radius / total * 100).ToString("0.#", CultureInfo.CurrentCulture) : "0";
+            body += $" (total {_format(ValueFormat, total)}, {share}%)";
+        }
         return name.Length > 0 ? $"{name}, {body}" : body;
     }
 
