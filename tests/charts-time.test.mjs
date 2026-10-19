@@ -75,6 +75,16 @@ test('heatmap: rows and columns in first-appearance order, a sequential t from m
     }
 });
 
+test('heatmap: the longest row name that fits the gutter is never cut, and keeps a margin at the left edge', async () => {
+    // The docs "levels" example: "Platform" came out as "Platfor…" with plenty of room (left - 8 lost a rounding error).
+    const rows = ['Platform', 'Billing', 'Search', 'Mobile', 'Data'];
+    const out = await layout('heatmap', { cells: rows.map(row => ({ row, column: 'Mon', value: 1 })), width: 716, height: 400 });
+    assert.deepEqual(out.rows.map(r => r.label), rows);
+    // Row names are drawn ending 6 units left of the plot; the estimate needs slack before x = 0.
+    const wed = await layout('heatmap', { cells: ['Mon', 'Wed'].map(row => ({ row, column: '00', value: 1 })), width: 306, height: 172 });
+    assert.ok(wed.plot.left - 6 >= 2.15 * 11 * 1.15, 'room for a "Wed" 15 % wider than estimated');
+});
+
 test('heatmap: given orders win, long row names are shortened, crowded column labels thinned', async () => {
     const columns = Array.from({ length: 60 }, (_, i) => `Column ${i}`);
     const out = await layout('heatmap', {

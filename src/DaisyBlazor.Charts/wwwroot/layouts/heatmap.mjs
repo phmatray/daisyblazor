@@ -31,8 +31,11 @@ export default function heatmap({ cells, rows, columns, levels, width, height })
     const rowNames = rows?.length ? rows.map(String) : [...new Set(entries.map(e => e.row))];
     const colNames = columns?.length ? columns.map(String) : [...new Set(entries.map(e => e.column))];
 
-    // Row names on the left, column names on top; both margins follow the longest name.
-    const left = Math.min(width * 0.3, maxWidth(rowNames)) + 8;
+    // Row names on the left, column names on top; both margins follow the longest name. Names end
+    // 6 units left of the plot, with 6 more of slack for text wider than its estimate; they are
+    // cut to the gutter itself (left - 12 could round below it and cut the longest name).
+    const gutter = Math.min(width * 0.3, maxWidth(rowNames));
+    const left = gutter + 12;
     const plot = { left, top: 20, right: width - 2, bottom: height - 2 };
     const x = scaleBand().domain(colNames).range([plot.left, plot.right]).padding(0.06);
     const y = scaleBand().domain(rowNames).range([plot.top, plot.bottom]).padding(0.06);
@@ -48,7 +51,7 @@ export default function heatmap({ cells, rows, columns, levels, width, height })
     const every = stride(colNames, x.step(), 6, 10);
 
     const out = {
-        rows: rowNames.map(name => ({ pos: r2(y(name) + y.bandwidth() / 2), label: fit(name, left - 8), full: name })),
+        rows: rowNames.map(name => ({ pos: r2(y(name) + y.bandwidth() / 2), label: fit(name, gutter), full: name })),
         columns: colNames.map((name, i) => ({ pos: r2(x(name) + x.bandwidth() / 2), label: i % every === 0 ? name : '', full: name })),
         cells: entries.filter(e => x(e.column) !== undefined && y(e.row) !== undefined).map(e => ({
             row: e.row, column: e.column, value: e.value, t: r2(t(e.value)),
