@@ -27,6 +27,21 @@ public sealed class SnackbarOptions
     /// <summary>Raised when the <see cref="Action"/> button is clicked; the toast then closes.</summary>
     public Func<Task>? OnAction { get; set; }
 
+    /// <summary>Tooltip of the <see cref="Action"/> button, e.g. "Undo (Ctrl+Z)".</summary>
+    public string? ActionTitle { get; set; }
+
+    /// <summary>Keyboard shortcut that also runs the action, announced through <c>aria-keyshortcuts</c> (e.g. "Control+Z"). The app handles the key itself.</summary>
+    public string? ActionKeyShortcuts { get; set; }
+
+    /// <summary>Move keyboard focus to the <see cref="Action"/> button when the toast appears. Pair it with <see cref="ReturnFocus"/>.</summary>
+    public bool FocusAction { get; set; }
+
+    /// <summary>Icon shown instead of the severity icon (an <c>Icons.Material.*</c> name).</summary>
+    public string? Icon { get; set; }
+
+    /// <summary>Show no icon on the toast.</summary>
+    public bool HideIcon { get; set; }
+
     /// <summary>Show a bar with the time left before the toast auto-dismisses (it pauses with the countdown).</summary>
     public bool ShowProgress { get; set; }
 

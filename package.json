@@ -10,7 +10,7 @@
     "d3-contour": "4.0.2",
     "d3-delaunay": "6.0.4",
     "d3-force": "3.0.0",
-    "d3-format": "3.1.0",
+    "d3-format": "3.1.2",
     "d3-geo": "3.1.1",
     "d3-hierarchy": "3.1.2",
     "d3-sankey": "0.12.3",
@@ -19,7 +19,7 @@
     "d3-time": "3.1.0",
     "d3-time-format": "4.1.0",
     "daisyui": "5.7.50",
-    "esbuild": "0.25.10",
+    "esbuild": "0.28.2",
     "tailwindcss": "^4.1.0"
   }
 }
