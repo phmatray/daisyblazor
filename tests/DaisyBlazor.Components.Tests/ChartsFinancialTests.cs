@@ -47,7 +47,7 @@ public class ChartsFinancialTests : BunitContext
         cut.Markup.ShouldContain("Brick 1, rising: 10 % → 11 %; Oct 19, 2026 09:00 – Oct 19, 2026 10:00");
         cut.Markup.ShouldContain("Brick 2, falling: 11 % → 10 %; Oct 19, 2026 10:00<");
         cut.Markup.ShouldContain("2 bricks, 1 rising and 1 falling");
-        cut.Markup.ShouldContain(">10 %<"); // y ticks in the value format
+        cut.Markup.ShouldContain(">10<"); // y ticks as the layout labels them
         cut.Find("svg").GetAttribute("aria-label").ShouldBe("Renko chart");
         Spec(module).ShouldBe("{\"prices\":[{\"time\":\"2026-10-19T09:00:00\",\"open\":10,\"high\":11,\"low\":9,\"close\":10},{\"time\":\"2026-10-19T10:00:00\",\"open\":10,\"high\":12,\"low\":10,\"close\":11}],"
             + "\"kind\":\"renko\",\"boxSize\":1,\"reversal\":null,\"reversalPercent\":false,\"lines\":3,\"atrPeriod\":14,\"width\":640,\"height\":360}");

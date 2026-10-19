@@ -10,7 +10,7 @@
     <ChildContent>
         @if (Layout is { } geo)
         {
-            <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="@_yTicks(geo)" YGrid="true" Baseline="true" XTickMarks="true" ViewWidth="ViewWidth" />
+            <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="geo.YTicks" YGrid="true" Baseline="true" XTickMarks="true" ViewWidth="ViewWidth" />
             @foreach (PriceActionStroke s in geo.Strokes)
             {
                 <line x1="@N(s.X1)" y1="@N(s.Y1)" x2="@N(s.X2)" y2="@N(s.Y2)" stroke="@(s.Thick ? UpColor : DownColor)"
@@ -111,7 +111,7 @@
     /// <summary>Show the legend under the chart.</summary>
     [Parameter] public bool ShowLegend { get; set; } = true;
 
-    /// <summary>Format string for prices in tooltips and on the price axis, e.g. "{0:0.#} %".</summary>
+    /// <summary>Format string for prices in tooltips and the description, e.g. "{0:0.#} %".</summary>
     [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
 
     /// <inheritdoc />
@@ -132,9 +132,6 @@
     };
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
-
-    private IReadOnlyList<AxisTick> _yTicks(PriceActionLayout geo) =>
-        geo.YTicks.Select(t => t.Value is { } v ? t with { Label = _format(v) } : t).ToList();
 
     private bool _kagi => ChartKind == PriceActionKind.Kagi;
 
