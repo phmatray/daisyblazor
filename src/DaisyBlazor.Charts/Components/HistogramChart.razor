@@ -1,0 +1,81 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<HistogramLayout>
+
+@* Histogram: raw values counted into equal-width bins (d3.bin on round edges), one bar per bin, with
+   an optional dashed line at the median. *@
+
+<D3ChartFrame TLayout="HistogramLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { } view)
+    {
+        <DistributionAxes Plot="view.Plot" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
+                          YGrid="true" Height="ViewHeight" />
+        @foreach (HistogramBar b in view.Bars)
+        {
+            <rect x="@N(b.Left + 0.5)" y="@N(b.Top)" width="@N(Math.Max(0.5, b.Right - b.Left - 1))" height="@N(b.Bottom - b.Top)"
+                  fill="@Color" fill-opacity="0.85">
+                <title>@($"{_format(b.X0)} to {_format(b.X1)}: {string.Format(CultureInfo.CurrentCulture, CountFormat, b.Count)}")</title>
+            </rect>
+        }
+        @if (view.Median is { } median)
+        {
+            // The label sits in the row the layout keeps above the plot, flipped left near the right edge.
+            bool flip = median.Pos > (view.Plot.Left + view.Plot.Right) / 2;
+            <line x1="@N(median.Pos)" x2="@N(median.Pos)" y1="@N(view.Plot.Top - 12)" y2="@N(view.Plot.Bottom)"
+                  stroke="var(--color-base-content)" stroke-width="1.5" stroke-dasharray="4 3">
+                <title>@($"Median: {_format(median.Value)}")</title>
+            </line>
+            <SvgText X="@(median.Pos + (flip ? -5 : 5))" Y="@(view.Plot.Top - 4)" Anchor="@(flip ? "end" : "start")"
+                     FontSize="11" FontWeight="600" Text="@($"Median {_format(median.Value)}")" />
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The raw values to count. Values that are not finite numbers are ignored.</summary>
+    [Parameter] public IReadOnlyList<double> Values { get; set; } = [];
+
+    /// <summary>About how many bins to use; D3 picks round bin edges near it. 0 uses Sturges' rule.</summary>
+    [Parameter] public int Bins { get; set; }
+
+    /// <summary>Title of the horizontal (value) axis.</summary>
+    [Parameter] public string? XTitle { get; set; }
+
+    /// <summary>Title of the vertical (count) axis.</summary>
+    [Parameter] public string? YTitle { get; set; } = "Count";
+
+    /// <summary>Mark the median with a dashed line and its value.</summary>
+    [Parameter] public bool ShowMedian { get; set; }
+
+    /// <summary>Colour of the bars (any CSS colour).</summary>
+    [Parameter] public string Color { get; set; } = "var(--color-primary)";
+
+    /// <summary>Format string for bin edges and the median, e.g. "{0:N0} ms".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Format string for a bin's count in its tooltip, e.g. "{0:N0} deployments".</summary>
+    [Parameter] public string CountFormat { get; set; } = "{0:N0}";
+
+    /// <inheritdoc />
+    protected override string Kind => "histogram";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Values = Values.Where(double.IsFinite).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        XTitle,
+        YTitle,
+        Bins,
+        ShowMedian,
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _label => Title ?? (XTitle is null ? "Histogram" : $"Histogram of {XTitle}");
+
+    private string _description => Layout is { Bars.Count: > 0 } view
+        ? string.Join("; ", view.Bars.Select(b => $"{_format(b.X0)} to {_format(b.X1)}: {b.Count}"))
+          + (view.Median is { } m ? $". Median {_format(m.Value)}." : ".")
+        : $"{Values.Count} values";
+}

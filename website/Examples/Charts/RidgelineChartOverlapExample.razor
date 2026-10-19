@@ -1,0 +1,12 @@
+<RidgelineChart Groups="_regions" Overlap="1" Bandwidth="6" AspectRatio="2.2" ValueTitle="Response time (ms)" />
+
+@code {
+    // Overlap="1" keeps each curve inside its own row; a fixed Bandwidth smooths all rows alike.
+    private readonly ValueGroup[] _regions =
+    [
+        new("EU West", DistributionSamples.Skewed(seed: 41, count: 300, median: 85, spread: 0.25)),
+        new("US East", DistributionSamples.Skewed(seed: 42, count: 300, median: 70, spread: 0.25)),
+        new("APAC", DistributionSamples.Skewed(seed: 44, count: 300, median: 140, spread: 0.2)),
+        new("LATAM", DistributionSamples.Skewed(seed: 45, count: 200, median: 160, spread: 0.25), "var(--color-success)"),
+    ];
+}

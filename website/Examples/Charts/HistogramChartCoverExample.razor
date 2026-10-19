@@ -1,0 +1,5 @@
+<HistogramChart Values="_responseTimes" AspectRatio="1.1" YTitle="@null" ShowMedian="true" />
+
+@code {
+    private readonly double[] _responseTimes = DistributionSamples.Skewed(seed: 61, count: 600, median: 90, spread: 0.4);
+}

@@ -1,0 +1,84 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<ViolinLayout>
+
+@* Violin plot: each group's values as a mirrored density curve, wide where values are common and
+   narrow where they are rare, with an optional bar for the quartiles and a dot at the median. The
+   layout estimates the densities and draws the outlines with d3-shape. *@
+
+<D3ChartFrame TLayout="ViolinLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { } view)
+    {
+        <DistributionAxes Plot="view.Plot" XTicks="view.XTicks" YTicks="view.YTicks" Height="ViewHeight"
+                          XTitle="@(view.Horizontal ? ValueTitle : null)" YTitle="@(view.Horizontal ? null : ValueTitle)"
+                          XGrid="view.Horizontal" YGrid="!view.Horizontal" />
+        @foreach (ViolinLayoutGroup g in view.Groups)
+        {
+            string color = _color(g);
+            <g>
+                <title>@_tooltip(g)</title>
+                <path d="@g.Path" fill="@color" fill-opacity="0.3" stroke="@color" stroke-width="1.5" stroke-linejoin="round" />
+                @if (ShowQuartiles)
+                {
+                    BoxPositions p = g.Pos;
+                    @if (view.Horizontal)
+                    {
+                        <line x1="@N(p.Q1)" x2="@N(p.Q3)" y1="@N(g.Center)" y2="@N(g.Center)" stroke="@color" stroke-width="5" stroke-linecap="round" />
+                        <circle cx="@N(p.Median)" cy="@N(g.Center)" r="3.5" fill="var(--color-base-100)" stroke="@color" stroke-width="1.5" />
+                    }
+                    else
+                    {
+                        <line x1="@N(g.Center)" x2="@N(g.Center)" y1="@N(p.Q1)" y2="@N(p.Q3)" stroke="@color" stroke-width="5" stroke-linecap="round" />
+                        <circle cx="@N(g.Center)" cy="@N(p.Median)" r="3.5" fill="var(--color-base-100)" stroke="@color" stroke-width="1.5" />
+                    }
+                }
+            </g>
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The groups, each with its raw values. Values that are not finite numbers are ignored; empty groups are not drawn.</summary>
+    [Parameter] public IReadOnlyList<ValueGroup> Groups { get; set; } = [];
+
+    /// <summary>Lay the violins out in rows, with values along the horizontal axis.</summary>
+    [Parameter] public bool Horizontal { get; set; }
+
+    /// <summary>Title of the value axis, e.g. "Deployment time (min)".</summary>
+    [Parameter] public string? ValueTitle { get; set; }
+
+    /// <summary>Kernel bandwidth in value units: smaller shows more bumps, larger smooths them out. 0 picks one per group (Silverman's rule).</summary>
+    [Parameter] public double Bandwidth { get; set; }
+
+    /// <summary>Draw a bar from the first to the third quartile and a dot at the median inside each violin.</summary>
+    [Parameter] public bool ShowQuartiles { get; set; } = true;
+
+    /// <summary>Format string for values in tooltips and the description, e.g. "{0:N1} min".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <inheritdoc />
+    protected override string Kind => "violin";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Groups = Groups.Select(g => new { g.Name, Values = g.Values.Where(double.IsFinite).ToArray() }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        Horizontal,
+        ValueTitle,
+        Bandwidth = double.IsFinite(Bandwidth) && Bandwidth > 0 ? Bandwidth : 0,
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _color(ViolinLayoutGroup g) => ChartPalette.At(g.Index, g.Index < Groups.Count ? Groups[g.Index].Color : null);
+
+    private string _tooltip(ViolinLayoutGroup g) =>
+        $"{g.Name}: median {_format(g.Median)}, quartiles {_format(g.Q1)} to {_format(g.Q3)} (n = {g.Count})";
+
+    private string _label => Title ?? (ValueTitle is null ? "Violin plot" : $"Violin plot of {ValueTitle}");
+
+    private string _description => Layout is { Groups.Count: > 0 } view
+        ? string.Join("; ", view.Groups.Select(_tooltip))
+        : $"{Groups.Count} groups";
+}

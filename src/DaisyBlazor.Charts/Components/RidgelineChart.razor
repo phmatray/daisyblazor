@@ -1,0 +1,60 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<RidgelineLayout>
+
+@* Ridgeline: one density curve per group, stacked in rows on a shared value axis so the shapes are
+   easy to compare. Peaks may rise into the row above; each curve is backed with the page colour so
+   the one in front hides the one behind. The layout estimates the densities and draws the outlines
+   with d3-shape. *@
+
+<D3ChartFrame TLayout="RidgelineLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { } view)
+    {
+        <DistributionAxes Plot="view.Plot" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@ValueTitle" XGrid="true" Height="ViewHeight" />
+        @foreach (RidgelineLayoutGroup g in view.Groups)
+        {
+            string color = _color(g);
+            <g>
+                <title>@($"{g.Name}: {g.Count} values")</title>
+                <path d="@g.Path" fill="var(--color-base-100)" />
+                <path d="@g.Path" fill="@color" fill-opacity="0.35" />
+                <path d="@g.Line" fill="none" stroke="@color" stroke-width="1.5" stroke-linejoin="round" />
+                <line x1="@N(view.Plot.Left)" x2="@N(view.Plot.Right)" y1="@N(g.Baseline)" y2="@N(g.Baseline)"
+                      stroke="var(--color-base-content)" stroke-opacity="0.2" />
+            </g>
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The groups, one row each from top to bottom, with their raw values. Values that are not finite numbers are ignored; empty groups are not drawn.</summary>
+    [Parameter] public IReadOnlyList<ValueGroup> Groups { get; set; } = [];
+
+    /// <summary>Title of the value axis, e.g. "Response time (ms)".</summary>
+    [Parameter] public string? ValueTitle { get; set; }
+
+    /// <summary>How many rows the tallest peak rises above its baseline. Above 1, curves overlap the rows above them.</summary>
+    [Parameter] public double Overlap { get; set; } = 1.6;
+
+    /// <summary>Kernel bandwidth in value units: smaller shows more bumps, larger smooths them out. 0 picks one per group (Silverman's rule).</summary>
+    [Parameter] public double Bandwidth { get; set; }
+
+    /// <inheritdoc />
+    protected override string Kind => "ridgeline";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Groups = Groups.Select(g => new { g.Name, Values = g.Values.Where(double.IsFinite).ToArray() }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        ValueTitle,
+        Bandwidth = double.IsFinite(Bandwidth) && Bandwidth > 0 ? Bandwidth : 0,
+        Overlap = double.IsFinite(Overlap) && Overlap > 0 ? Overlap : 1.6,
+    };
+
+    private string _color(RidgelineLayoutGroup g) => ChartPalette.At(g.Index, g.Index < Groups.Count ? Groups[g.Index].Color : null);
+
+    private string _label => Title ?? (ValueTitle is null ? "Ridgeline plot" : $"Ridgeline plot of {ValueTitle}");
+
+    private string _description => "Density of values for " + string.Join(", ", Groups.Where(g => g.Values.Any(double.IsFinite)).Select(g => g.Name)) + ", one row each.";
+}

@@ -1,0 +1,99 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<BoxPlotLayout>
+
+@* Box plot: for each group, a box from the first to the third quartile with the median across it,
+   whiskers out to the furthest values within 1.5 IQR of the box, and dots for the outliers beyond.
+   The layout computes the statistics with d3-array and places them on D3 scales. *@
+
+<D3ChartFrame TLayout="BoxPlotLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { } view)
+    {
+        <DistributionAxes Plot="view.Plot" XTicks="view.XTicks" YTicks="view.YTicks" Height="ViewHeight"
+                          XTitle="@(view.Horizontal ? ValueTitle : null)" YTitle="@(view.Horizontal ? null : ValueTitle)"
+                          XGrid="view.Horizontal" YGrid="!view.Horizontal" />
+        @foreach (BoxPlotLayoutGroup g in view.Groups)
+        {
+            string color = _color(g);
+            double cap = view.Half / 2;
+            BoxPositions p = g.Pos;
+            (double bx, double by, double bw, double bh) = _box(view.Horizontal, g.Center, view.Half, p.Q1, p.Q3);
+            <g>
+                <title>@_tooltip(g)</title>
+                @_line(view.Horizontal, g.Center, 0, p.Low, 0, p.Q1, color)
+                @_line(view.Horizontal, g.Center, 0, p.Q3, 0, p.High, color)
+                @_line(view.Horizontal, g.Center, -cap, p.Low, cap, p.Low, color)
+                @_line(view.Horizontal, g.Center, -cap, p.High, cap, p.High, color)
+                <rect x="@N(bx)" y="@N(by)" width="@N(bw)" height="@N(Math.Max(1, bh))" rx="2"
+                      fill="@color" fill-opacity="0.25" stroke="@color" stroke-width="1.5" />
+                @_line(view.Horizontal, g.Center, -view.Half, p.Median, view.Half, p.Median, color, 2.5)
+            </g>
+            @if (ShowOutliers)
+            {
+                @foreach (PositionedValue o in g.Outliers)
+                {
+                    <circle cx="@N(view.Horizontal ? o.Pos : g.Center)" cy="@N(view.Horizontal ? g.Center : o.Pos)" r="3"
+                            fill="var(--color-base-100)" stroke="@color" stroke-width="1.5">
+                        <title>@($"{g.Name} outlier: {_format(o.Value)}")</title>
+                    </circle>
+                }
+            }
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The groups, each with its raw values. Values that are not finite numbers are ignored; empty groups are not drawn.</summary>
+    [Parameter] public IReadOnlyList<ValueGroup> Groups { get; set; } = [];
+
+    /// <summary>Lay the boxes out in rows, with values along the horizontal axis.</summary>
+    [Parameter] public bool Horizontal { get; set; }
+
+    /// <summary>Title of the value axis, e.g. "Response time (ms)".</summary>
+    [Parameter] public string? ValueTitle { get; set; }
+
+    /// <summary>Draw values beyond the whiskers as individual dots.</summary>
+    [Parameter] public bool ShowOutliers { get; set; } = true;
+
+    /// <summary>Format string for values in tooltips and the description, e.g. "{0:N0} ms".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <inheritdoc />
+    protected override string Kind => "boxplot";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Groups = Groups.Select(g => new { g.Name, Values = g.Values.Where(double.IsFinite).ToArray() }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        Horizontal,
+        ValueTitle,
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _color(BoxPlotLayoutGroup g) => ChartPalette.At(g.Index, g.Index < Groups.Count ? Groups[g.Index].Color : null);
+
+    // A rectangle spanning value positions a..b, `half` either side of the band centre.
+    private static (double X, double Y, double W, double H) _box(bool horizontal, double center, double half, double a, double b) =>
+        horizontal
+            ? (Math.Min(a, b), center - half, Math.Abs(b - a), 2 * half)
+            : (center - half, Math.Min(a, b), 2 * half, Math.Abs(b - a));
+
+    // A line between (offset1, value1) and (offset2, value2), offsets measured across the band from its centre.
+    private RenderFragment _line(bool horizontal, double center, double o1, double v1, double o2, double v2, string color, double width = 1.5) =>
+        horizontal
+            ? @<line x1="@N(v1)" y1="@N(center + o1)" x2="@N(v2)" y2="@N(center + o2)" stroke="@color" stroke-width="@N(width)" stroke-linecap="round" />
+            : @<line x1="@N(center + o1)" y1="@N(v1)" x2="@N(center + o2)" y2="@N(v2)" stroke="@color" stroke-width="@N(width)" stroke-linecap="round" />;
+
+    private string _tooltip(BoxPlotLayoutGroup g) =>
+        $"{g.Name}: median {_format(g.Median)}, quartiles {_format(g.Q1)} to {_format(g.Q3)}, whiskers {_format(g.Low)} to {_format(g.High)}"
+        + (g.Outliers.Count > 0 ? $", {g.Outliers.Count} outlier{(g.Outliers.Count == 1 ? "" : "s")}" : string.Empty)
+        + $" (n = {g.Count})";
+
+    private string _label => Title ?? (ValueTitle is null ? "Box plot" : $"Box plot of {ValueTitle}");
+
+    private string _description => Layout is { Groups.Count: > 0 } view
+        ? string.Join("; ", view.Groups.Select(_tooltip))
+        : $"{Groups.Count} groups";
+}

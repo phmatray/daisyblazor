@@ -1,0 +1,113 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<ScatterLayout>
+
+@* Scatter plot: one dot per point, or a bubble when points carry a Size. D3 builds the scales and a
+   Voronoi diagram of the points; each dot sits under its invisible cell, so hovering anywhere in the
+   plot highlights and describes the nearest point. *@
+
+<D3ChartFrame TLayout="ScatterLayout" Chart="this" Label="@_label" Description="@_description" Legend="@_legend">
+    @if (Layout is { } view)
+    {
+        <style>.dbc-cell{fill:transparent;cursor:crosshair}.dbc-cell:hover+circle{fill-opacity:1;stroke:var(--color-base-content);stroke-width:2}</style>
+        <DistributionAxes Plot="view.Plot" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
+                          XGrid="true" YGrid="true" Height="ViewHeight" />
+        @foreach (ScatterLayoutPoint p in view.Points)
+        {
+            string color = _color(p.Series, view);
+            <g>
+                <path class="dbc-cell" d="@p.Cell">
+                    <title>@_tooltip(p, view)</title>
+                </path>
+                <circle cx="@N(p.Cx)" cy="@N(p.Cy)" r="@N(p.R)" fill="@color" fill-opacity="@(p.Size is null ? "0.85" : "0.55")"
+                        stroke="@color" stroke-width="1" pointer-events="none" />
+            </g>
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The points. Those without a finite X and Y (or not above zero on a log axis) are skipped.</summary>
+    [Parameter] public IReadOnlyList<ScatterPoint> Points { get; set; } = [];
+
+    /// <summary>Title of the horizontal axis, also used in tooltips.</summary>
+    [Parameter] public string? XTitle { get; set; }
+
+    /// <summary>Title of the vertical axis, also used in tooltips.</summary>
+    [Parameter] public string? YTitle { get; set; }
+
+    /// <summary>Scale of the horizontal axis.</summary>
+    [Parameter] public AxisScale XScale { get; set; } = AxisScale.Linear;
+
+    /// <summary>Scale of the vertical axis.</summary>
+    [Parameter] public AxisScale YScale { get; set; } = AxisScale.Linear;
+
+    /// <summary>Radius of each dot, in chart units, when no point has a Size.</summary>
+    [Parameter] public double PointRadius { get; set; } = 4;
+
+    /// <summary>Radius of the smallest bubble when points have a Size.</summary>
+    [Parameter] public double MinBubbleRadius { get; set; } = 3;
+
+    /// <summary>Radius of the largest bubble when points have a Size.</summary>
+    [Parameter] public double MaxBubbleRadius { get; set; } = 20;
+
+    /// <summary>Show a legend when there is more than one series.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>Optional colour per series name (any CSS colour); other series cycle through the theme palette.</summary>
+    [Parameter] public IReadOnlyDictionary<string, string>? SeriesColors { get; set; }
+
+    /// <summary>Format string for X and Y in tooltips, e.g. "{0:N0}".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Format string for Size in tooltips, e.g. "{0:N0} seats".</summary>
+    [Parameter] public string SizeFormat { get; set; } = "{0:#,0.##}";
+
+    /// <inheritdoc />
+    protected override string Kind => "scatter";
+
+    // Non-finite numbers cannot be serialized, so they are dropped here; the view drops the rest.
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Points = Points.Where(p => double.IsFinite(p.X) && double.IsFinite(p.Y))
+            .Select(p => new { p.X, p.Y, Size = p.Size is { } s && double.IsFinite(s) ? s : (double?)null, p.Series, p.Label })
+            .ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        XLog = XScale == AxisScale.Log,
+        YLog = YScale == AxisScale.Log,
+        XTitle,
+        YTitle,
+        Radius = PointRadius,
+        MinRadius = MinBubbleRadius,
+        MaxRadius = MaxBubbleRadius,
+    };
+
+    private string _format(string format, double value) => string.Format(CultureInfo.CurrentCulture, format, value);
+
+    private string _color(int series, ScatterLayout view)
+    {
+        string name = series < view.Series.Count ? view.Series[series] : string.Empty;
+        return SeriesColors is not null && SeriesColors.TryGetValue(name, out string? c) ? c : ChartPalette.At(series);
+    }
+
+    private string _tooltip(ScatterLayoutPoint p, ScatterLayout view)
+    {
+        string series = p.Series < view.Series.Count ? view.Series[p.Series] : string.Empty;
+        string head = string.Join(" · ", new[] { p.Label, series }.Where(s => !string.IsNullOrEmpty(s)));
+        string body = $"{XTitle ?? "x"} {_format(ValueFormat, p.X)}, {YTitle ?? "y"} {_format(ValueFormat, p.Y)}"
+            + (p.Size is { } size ? $", {_format(SizeFormat, size)}" : string.Empty);
+        return head.Length > 0 ? $"{head}: {body}" : body;
+    }
+
+    private RenderFragment? _legend => ShowLegend && Layout is { Series.Count: > 1 } view
+        ? @<ChartLegend Items="@(view.Series.Select((s, i) => (s, _color(i, view))).ToList())" />
+        : null;
+
+    private string _label => Title ?? (XTitle is not null && YTitle is not null ? $"Scatter plot of {YTitle} against {XTitle}" : "Scatter plot");
+
+    private string _description => $"{Points.Count} points"
+        + (Points.Any(p => p.Series is not null) ? $" in {Points.Select(p => p.Series).Distinct().Count()} series" : string.Empty)
+        + (Points.Any(p => p.Size is not null) ? ", sized by value" : string.Empty)
+        + (XScale == AxisScale.Log || YScale == AxisScale.Log ? ", on a logarithmic scale" : string.Empty) + ".";
+}

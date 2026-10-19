@@ -1,0 +1,11 @@
+<BeeswarmChart Title="Weekly active seats per customer, by plan" Groups="_plans" ValueTitle="Active seats" ValueFormat="{0:N0} seats" AspectRatio="1.5" />
+
+@code {
+    // Every customer is one dot, so small groups and gaps stay visible.
+    private readonly ValueGroup[] _plans =
+    [
+        new("Starter", DistributionSamples.Normal(seed: 71, count: 40, mean: 9, sd: 4, min: 1, decimals: 0)),
+        new("Pro", DistributionSamples.Normal(seed: 72, count: 45, mean: 28, sd: 8, min: 5, decimals: 0)),
+        new("Enterprise", DistributionSamples.Normal(seed: 73, count: 18, mean: 70, sd: 14, min: 30, decimals: 0)),
+    ];
+}

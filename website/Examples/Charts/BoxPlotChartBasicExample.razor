@@ -1,0 +1,13 @@
+<BoxPlotChart Title="API response time by region" Groups="_regions" ValueTitle="Response time (ms)" ValueFormat="{0:N0} ms" />
+
+@code {
+    // Raw response times; the chart works out the quartiles, whiskers and outliers.
+    private readonly ValueGroup[] _regions =
+    [
+        new("EU West", DistributionSamples.Skewed(seed: 41, count: 200, median: 85)),
+        new("US East", DistributionSamples.Skewed(seed: 42, count: 200, median: 70)),
+        new("US West", DistributionSamples.Skewed(seed: 43, count: 200, median: 95, spread: 0.3)),
+        new("APAC", DistributionSamples.Skewed(seed: 44, count: 200, median: 140, spread: 0.45)),
+        new("LATAM", DistributionSamples.Skewed(seed: 45, count: 120, median: 160, spread: 0.5)),
+    ];
+}

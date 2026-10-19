@@ -1,0 +1,10 @@
+<BeeswarmChart Groups="_plans" AspectRatio="1.1" Radius="3.5" />
+
+@code {
+    private readonly ValueGroup[] _plans =
+    [
+        new("Starter", DistributionSamples.Normal(seed: 71, count: 40, mean: 8, sd: 3, min: 1, decimals: 0)),
+        new("Pro", DistributionSamples.Normal(seed: 72, count: 30, mean: 28, sd: 8, min: 5, decimals: 0)),
+        new("Ent.", DistributionSamples.Normal(seed: 73, count: 14, mean: 60, sd: 12, min: 30, decimals: 0)),
+    ];
+}
