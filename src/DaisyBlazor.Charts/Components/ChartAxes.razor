@@ -1,0 +1,58 @@
+@namespace DaisyBlazor.Charts
+
+@* Axes for a D3-backed chart, drawn inside its SVG from ticks its layout computed: value ticks
+   with grid lines on the left, period ticks under the plot. A label near either edge of the chart
+   is anchored to that edge so it never leaves the viewBox. *@
+
+@foreach (AxisTick tick in YTicks)
+{
+    <line x1="@N(Plot.X0)" x2="@N(Plot.X1)" y1="@N(tick.Position)" y2="@N(tick.Position)"
+          stroke="var(--color-base-content)" stroke-opacity="0.1" />
+    <SvgText X="@(Plot.X0 - 6)" Y="@tick.Position" Dy="0.35em" Anchor="end" FontSize="11"
+             FillOpacity="0.6" Text="@tick.Label" />
+}
+
+@foreach (AxisTick tick in XTicks)
+{
+    @if (XGrid)
+    {
+        <line x1="@N(tick.Position)" x2="@N(tick.Position)" y1="@N(Plot.Y0)" y2="@N(Plot.Y1)"
+              stroke="var(--color-base-content)" stroke-opacity="0.1" />
+    }
+    <line x1="@N(tick.Position)" x2="@N(tick.Position)" y1="@N(Plot.Y1)" y2="@N(Plot.Y1 + 4)"
+          stroke="var(--color-base-content)" stroke-opacity="0.3" />
+    <SvgText X="@tick.Position" Y="@(Plot.Y1 + 16)" Anchor="@_anchor(tick)" FontSize="11"
+             FillOpacity="0.6" Text="@tick.Label" />
+}
+
+@if (XTicks.Count > 0)
+{
+    <line x1="@N(Plot.X0)" x2="@N(Plot.X1)" y1="@N(Plot.Y1)" y2="@N(Plot.Y1)"
+          stroke="var(--color-base-content)" stroke-opacity="0.3" />
+}
+
+@code {
+    /// <summary>The plot rectangle the axes frame.</summary>
+    [Parameter, EditorRequired] public PlotArea Plot { get; set; } = null!;
+
+    /// <summary>Ticks under the plot (positions are x coordinates).</summary>
+    [Parameter] public IReadOnlyList<AxisTick> XTicks { get; set; } = [];
+
+    /// <summary>Ticks left of the plot (positions are y coordinates), each with a horizontal grid line.</summary>
+    [Parameter] public IReadOnlyList<AxisTick> YTicks { get; set; } = [];
+
+    /// <summary>Also draw a vertical grid line at each x tick.</summary>
+    [Parameter] public bool XGrid { get; set; }
+
+    /// <summary>Width of the chart's coordinate space, to keep edge labels inside it.</summary>
+    [Parameter] public double ViewWidth { get; set; } = 640;
+
+    private static string N(double value) => Math.Round(value, 2).ToString(CultureInfo.InvariantCulture);
+
+    // Tick labels are 11 units high with ~0.6em glyphs.
+    private string _anchor(AxisTick tick)
+    {
+        double half = tick.Label.Length * 11 * 0.6 / 2;
+        return tick.Position - half < 0 ? "start" : tick.Position + half > ViewWidth ? "end" : "middle";
+    }
+}

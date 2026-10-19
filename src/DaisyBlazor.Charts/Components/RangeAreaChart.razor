@@ -1,0 +1,101 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<RangeAreaLayout>
+
+@* Range area: a band from a low to a high value at each point, with an optional center line, over
+   a time or category axis. D3 computes the scales, ticks and paths; this component draws them in
+   theme colours. *@
+
+<D3ChartFrame TLayout="RangeAreaLayout" Chart="this" Label="@_label" Description="@_description">
+    <ChildContent>
+        @if (Layout is { } geo)
+        {
+            <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="geo.YTicks" ViewWidth="ViewWidth" />
+            <path d="@geo.Band" fill="@_color" fill-opacity="0.25" stroke="@_color" stroke-opacity="0.4" stroke-width="1" />
+            @if (!string.IsNullOrEmpty(geo.Center))
+            {
+                <path d="@geo.Center" fill="none" stroke="@_color" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
+            }
+
+            @* One invisible strip per point carries its tooltip. *@
+            @foreach (RangeAreaLayoutPoint point in geo.Points)
+            {
+                <rect x="@N(point.X0)" y="@N(geo.Plot.Y0)" width="@N(Math.Max(1, point.X1 - point.X0))"
+                      height="@N(geo.Plot.Y1 - geo.Plot.Y0)" fill="transparent">
+                    <title>@_tooltip(point)</title>
+                </rect>
+            }
+        }
+    </ChildContent>
+    <Legend>
+        @if (ShowLegend)
+        {
+            <ChartLegend Items="_legend" />
+        }
+    </Legend>
+</D3ChartFrame>
+
+@code {
+    /// <summary>The points, in order. Each has a Low and High value and an optional Center; points with dates use a time axis, points with labels a category axis.</summary>
+    [Parameter] public IReadOnlyList<RangePoint> Points { get; set; } = [];
+
+    /// <summary>Draw the band and the center line as smooth curves (monotone, so they never overshoot the data).</summary>
+    [Parameter] public bool Smooth { get; set; } = true;
+
+    /// <summary>CSS colour of the band and line. Defaults to the theme's primary colour.</summary>
+    [Parameter] public string? Color { get; set; }
+
+    /// <summary>Name of the band in the legend and tooltips, e.g. "p50–p95".</summary>
+    [Parameter] public string BandLabel { get; set; } = "Range";
+
+    /// <summary>Name of the center line in the legend and tooltips, e.g. "Median".</summary>
+    [Parameter] public string CenterLabel { get; set; } = "Center";
+
+    /// <summary>Show a legend naming the band and the center line under the chart.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>Format string for values in tooltips, e.g. "{0:N0} ms".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <inheritdoc />
+    protected override string Kind => "range-area";
+
+    // Dates cross to the layout as ISO strings; non-finite values as null.
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Points = Points.Select(p => new
+        {
+            p.Date,
+            p.Label,
+            Low = SpecValue.Finite(p.Low),
+            High = SpecValue.Finite(p.High),
+            Center = p.Center is double c ? SpecValue.Finite(c) : null,
+        }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        Smooth,
+    };
+
+    private string _color => ChartPalette.At(0, Color);
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _tooltip(RangeAreaLayoutPoint p) =>
+        $"{p.Label}: {BandLabel} {_format(p.Low)}–{_format(p.High)}" + (p.Center is double c ? $", {CenterLabel} {_format(c)}" : string.Empty);
+
+    // The band's key is the band's own tint; the line's key is the full colour.
+    private IReadOnlyList<(string, string)> _legend
+    {
+        get
+        {
+            string band = $"color-mix(in oklab, {_color} 35%, transparent)";
+            return Points.Any(p => p.Center is not null) ? [(BandLabel, band), (CenterLabel, _color)] : [(BandLabel, band)];
+        }
+    }
+
+    private string _label => Title ?? "Range area chart";
+
+    private string _description => Layout is { Points.Count: > 0 } geo
+        ? $"{BandLabel} at {geo.Points.Count} points from {geo.Points[0].Label} to {geo.Points[^1].Label}, between {_format(geo.Points.Min(p => p.Low))} and {_format(geo.Points.Max(p => p.High))}."
+        : "No data.";
+}

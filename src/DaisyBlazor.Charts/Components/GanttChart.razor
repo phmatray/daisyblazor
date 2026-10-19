@@ -1,0 +1,96 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<GanttLayout>
+
+@* Gantt chart: one row per task, a bar from its start to its end on a time axis, an optional
+   progress fill, milestones as diamonds, groups under header rows and a marker for today. D3
+   computes the time scale, rows and ticks; this component draws them in theme colours. *@
+
+<D3ChartFrame TLayout="GanttLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { } geo)
+    {
+        <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" XGrid="true" ViewWidth="ViewWidth" />
+        @foreach (GanttRow row in geo.Rows)
+        {
+            double mid = row.Y + row.H / 2;
+            @if (row.Header)
+            {
+                <SvgText X="2" Y="@mid" Dy="0.35em" FontSize="11" FontWeight="700" Text="@row.Label" />
+                continue;
+            }
+
+            string color = ChartPalette.At(Math.Max(0, row.Group));
+            <SvgText X="@(row.Group >= 0 ? 10 : 2)" Y="@mid" Dy="0.35em" FontSize="11" FillOpacity="0.85" Text="@row.Label" />
+            @if (row.Milestone)
+            {
+                double r = Math.Min(row.H / 2, 8);
+                <path d="@($"M{N(row.X0)},{N(mid - r)}L{N(row.X0 + r)},{N(mid)}L{N(row.X0)},{N(mid + r)}L{N(row.X0 - r)},{N(mid)}Z")" fill="@color">
+                    <title>@($"{row.Name}: {row.Start}")</title>
+                </path>
+            }
+            else
+            {
+                <g>
+                    <title>@_tooltip(row)</title>
+                    <rect x="@N(row.X0)" y="@N(row.Y)" width="@N(row.X1 - row.X0)" height="@N(row.H)" rx="3"
+                          fill="@color" fill-opacity="@(row.Progress is null ? "0.85" : "0.3")" />
+                    @if (row.Progress is double done && done > 0)
+                    {
+                        <rect x="@N(row.X0)" y="@N(row.Y)" width="@N((row.X1 - row.X0) * done)" height="@N(row.H)" rx="3" fill="@color" />
+                    }
+                </g>
+            }
+        }
+
+        @if (ShowToday && geo.Today is { } today)
+        {
+            <line x1="@N(today.Position)" x2="@N(today.Position)" y1="@N(geo.Plot.Y0 - 4)" y2="@N(geo.Plot.Y1)"
+                  stroke="var(--color-error)" stroke-width="1.5" stroke-dasharray="4 3">
+                <title>@($"{TodayLabel}: {today.Label}")</title>
+            </line>
+            <SvgText X="@today.Position" Y="@(geo.Plot.Y0 - 7)" Anchor="@(today.Position + TodayLabel.Length * 3 > ViewWidth ? "end" : "middle")" FontSize="10" FontWeight="600"
+                     Fill="var(--color-error)" Text="@TodayLabel" />
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The tasks, listed top to bottom (grouped tasks under their group's header, groups in order of first appearance). A task without an End is a milestone.</summary>
+    [Parameter] public IReadOnlyList<GanttTask> Tasks { get; set; } = [];
+
+    /// <summary>The date the today marker shows. Defaults to the current date; the marker is drawn only when it falls within the tasks' span.</summary>
+    [Parameter] public DateTime? Today { get; set; }
+
+    /// <summary>Draw the today marker.</summary>
+    [Parameter] public bool ShowToday { get; set; } = true;
+
+    /// <summary>Text of the today marker.</summary>
+    [Parameter] public string TodayLabel { get; set; } = "Today";
+
+    /// <inheritdoc />
+    protected override string Kind => "gantt";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Tasks = Tasks.Select(t => new
+        {
+            t.Name,
+            t.Start,
+            t.End,
+            t.Group,
+            Progress = t.Progress is double p ? SpecValue.Finite(p) : null,
+        }).ToArray(),
+        Today = ShowToday ? Today ?? DateTime.Today : (DateTime?)null,
+        Width = ViewWidth,
+        Height = ViewHeight,
+    };
+
+    private static string _tooltip(GanttRow row) =>
+        $"{row.Name}: {row.Start} – {row.End}" + (row.Progress is double p ? $" ({p.ToString("P0", CultureInfo.CurrentCulture)} done)" : string.Empty);
+
+    private string _label => Title ?? "Gantt chart";
+
+    private string _description => Layout is { Rows.Count: > 0 } geo
+        ? string.Join("; ", geo.Rows.Where(r => !r.Header).Select(r => r.Milestone ? $"{r.Name} (milestone): {r.Start}" : _tooltip(r)))
+        : "No tasks.";
+}

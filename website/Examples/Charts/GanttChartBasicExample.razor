@@ -1,0 +1,16 @@
+<GanttChart Title="Acme Cloud 3.0 release plan" Tasks="_tasks" Today="new DateTime(2026, 10, 19)" AspectRatio="1.6" />
+
+@code {
+    // Tasks share a Group to be listed together; Progress is the done fraction; no End makes a milestone.
+    private readonly GanttTask[] _tasks =
+    [
+        new("Kick-off", new DateTime(2026, 9, 28)),
+        new("Research", new DateTime(2026, 9, 28), new DateTime(2026, 10, 9), "Discovery", 1),
+        new("Specs", new DateTime(2026, 10, 5), new DateTime(2026, 10, 16), "Discovery", 1),
+        new("API", new DateTime(2026, 10, 12), new DateTime(2026, 11, 6), "Build", 0.45),
+        new("Dashboard", new DateTime(2026, 10, 19), new DateTime(2026, 11, 13), "Build", 0.1),
+        new("Docs", new DateTime(2026, 11, 2), new DateTime(2026, 11, 20), "Build", 0),
+        new("Beta", new DateTime(2026, 11, 16), new DateTime(2026, 11, 27), "Launch"),
+        new("General availability", new DateTime(2026, 11, 30), Group: "Launch"),
+    ];
+}

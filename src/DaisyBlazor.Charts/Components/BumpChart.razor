@@ -1,0 +1,78 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<BumpLayout>
+
+@* Bump chart: the rank of each series in each period, joined by smooth lines, with the series'
+   names at both ends. D3 ranks the values and draws the curves; this component colours each
+   series with the theme palette. *@
+
+<D3ChartFrame TLayout="BumpLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { } geo)
+    {
+        <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" XGrid="true" ViewWidth="ViewWidth" />
+        @foreach (BumpLine line in geo.Lines)
+        {
+            string color = _color(line.Index);
+            <path d="@line.Path" fill="none" stroke="@color" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <title>@line.Name</title>
+            </path>
+            @if (ShowPoints)
+            {
+                @foreach (BumpPoint point in line.Points)
+                {
+                    <circle cx="@N(point.X)" cy="@N(point.Y)" r="5" fill="@color" stroke="var(--color-base-100)" stroke-width="2">
+                        <title>@_tooltip(line, point)</title>
+                    </circle>
+                }
+            }
+            @if (line.Start is { } start)
+            {
+                <SvgText X="@(start.X - 10)" Y="@start.Y" Dy="0.35em" Anchor="end" FontSize="12" FontWeight="600" Text="@line.Label" />
+            }
+            @if (line.End is { } end)
+            {
+                <SvgText X="@(end.X + 10)" Y="@end.Y" Dy="0.35em" FontSize="12" FontWeight="600" Text="@line.Label" />
+            }
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The series. Data[i] is the series' value in period Labels[i]; a missing (NaN) value leaves the series unranked in that period.</summary>
+    [Parameter] public IReadOnlyList<ChartSeries> Series { get; set; } = [];
+
+    /// <summary>The name of each period, under the chart. Defaults to 1, 2, 3…</summary>
+    [Parameter] public IReadOnlyList<string>? Labels { get; set; }
+
+    /// <summary>The data already holds ranks (1 = top) instead of values to rank, highest first.</summary>
+    [Parameter] public bool ValuesAreRanks { get; set; }
+
+    /// <summary>Draw a dot at each ranked point (it carries the tooltip).</summary>
+    [Parameter] public bool ShowPoints { get; set; } = true;
+
+    /// <summary>Format string for values in tooltips, e.g. "{0:N0} signups".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <inheritdoc />
+    protected override string Kind => "bump";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Series = Series.Select(s => new { s.Name, Values = s.Data.Select(SpecValue.Finite).ToArray() }).ToArray(),
+        Labels,
+        ValuesAreRanks,
+        Width = ViewWidth,
+        Height = ViewHeight,
+    };
+
+    private string _color(int index) => ChartPalette.At(index, index < Series.Count ? Series[index].Color : null);
+
+    private string _tooltip(BumpLine line, BumpPoint point) =>
+        $"{line.Name}, {point.Period}: #{point.Rank}" + (!ValuesAreRanks && point.Value is double v ? $" ({string.Format(CultureInfo.CurrentCulture, ValueFormat, v)})" : string.Empty);
+
+    private string _label => Title ?? "Bump chart";
+
+    private string _description => Layout is { Lines.Count: > 0 } geo
+        ? string.Join("; ", geo.Lines.Select(l => $"{l.Name}: " + string.Join(", ", l.Points.Select(p => $"{p.Period} #{p.Rank}"))))
+        : "No data.";
+}

@@ -1,0 +1,103 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<StreamLayout>
+
+@* Streamgraph: series stacked as flowing layers over time. d3.stack stacks them (wiggle offset by
+   default, or a plain or 100% stack) and d3-shape draws the areas; this component colours them
+   with the theme and names each layer where it is thick enough. *@
+
+<D3ChartFrame TLayout="StreamLayout" Chart="this" Label="@_label" Description="@_description">
+    <ChildContent>
+        @if (Layout is { } geo)
+        {
+            <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="geo.YTicks" ViewWidth="ViewWidth" />
+            @foreach (StreamLayer layer in geo.Layers)
+            {
+                <path d="@layer.Path" fill="@_color(layer.Index)" fill-opacity="0.85"
+                      stroke="var(--color-base-100)" stroke-width="0.5" />
+            }
+
+            @if (ShowLabels)
+            {
+                @foreach (StreamLayer layer in geo.Layers.Where(l => l.ShowLabel))
+                {
+                    <SvgText X="@layer.LabelX" Y="@layer.LabelY" Dy="0.35em" Anchor="middle" FontSize="11" FontWeight="600"
+                             Fill="@_contentColor(layer.Index)" Text="@layer.Name" />
+                }
+            }
+
+            @* One invisible strip per x position carries every series' value there. *@
+            @foreach (StreamColumn column in geo.Columns)
+            {
+                <rect x="@N(column.X0)" y="@N(geo.Plot.Y0)" width="@N(Math.Max(1, column.X1 - column.X0))"
+                      height="@N(geo.Plot.Y1 - geo.Plot.Y0)" fill="transparent">
+                    <title>@_tooltip(column)</title>
+                </rect>
+            }
+        }
+    </ChildContent>
+    <Legend>
+        @if (ShowLegend)
+        {
+            <ChartLegend Items="@(Series.Select((s, i) => (s.Name, _color(i))).ToArray())" />
+        }
+    </Legend>
+</D3ChartFrame>
+
+@code {
+    /// <summary>The layers. Each series' Data[i] is its value at Dates[i] (or Labels[i]); missing or negative values count as 0.</summary>
+    [Parameter] public IReadOnlyList<ChartSeries> Series { get; set; } = [];
+
+    /// <summary>The date of each position, in order, for a time axis. When null or shorter than the data, Labels are used instead.</summary>
+    [Parameter] public IReadOnlyList<DateTime>? Dates { get; set; }
+
+    /// <summary>The label of each position, for a category axis (when Dates is not set).</summary>
+    [Parameter] public IReadOnlyList<string>? Labels { get; set; }
+
+    /// <summary>How the layers stack: a streamgraph (Wiggle, no value axis), a plain stacked area (Stacked) or shares of 100% (Percent).</summary>
+    [Parameter] public StreamOffset Offset { get; set; } = StreamOffset.Wiggle;
+
+    /// <summary>Write each series' name inside its layer, where the layer is thick enough.</summary>
+    [Parameter] public bool ShowLabels { get; set; } = true;
+
+    /// <summary>Show a legend with a key per series under the chart.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>Format string for values in tooltips, e.g. "{0:N0} users".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <inheritdoc />
+    protected override string Kind => "stream";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Series = Series.Select(s => new { s.Name, Values = s.Data.Select(SpecValue.Finite).ToArray() }).ToArray(),
+        Dates,
+        Labels,
+        Offset = Offset.ToString().ToLowerInvariant(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+    };
+
+    private string _color(int index) => ChartPalette.At(index, index < Series.Count ? Series[index].Color : null);
+
+    // Text on a theme colour uses that colour's -content token; on a custom colour, the base text colour.
+    private string _contentColor(int index)
+    {
+        string color = _color(index);
+        return color.StartsWith("var(--color-", StringComparison.Ordinal) && color.EndsWith(')')
+            ? color[..^1] + "-content)"
+            : "var(--color-base-content)";
+    }
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _tooltip(StreamColumn column) =>
+        column.Label + ": " + string.Join(", ", column.Values.Select((v, i) => $"{(i < Series.Count ? Series[i].Name : "")} {_format(v)}"));
+
+    private string _label => Title ?? "Stream chart";
+
+    private string _description => Layout is { Columns.Count: > 0 } geo
+        ? $"{Series.Count} series over {geo.Columns.Count} positions, from {geo.Columns[0].Label} to {geo.Columns[^1].Label}: {string.Join(", ", Series.Select(s => s.Name))}."
+        : "No data.";
+}

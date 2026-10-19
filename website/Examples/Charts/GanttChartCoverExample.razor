@@ -1,0 +1,12 @@
+<GanttChart Tasks="_tasks" Today="new DateTime(2026, 10, 19)" AspectRatio="1.3" />
+
+@code {
+    private readonly GanttTask[] _tasks =
+    [
+        new("Research", new DateTime(2026, 10, 1), new DateTime(2026, 10, 12), Progress: 1),
+        new("Specs", new DateTime(2026, 10, 8), new DateTime(2026, 10, 19), Progress: 0.9),
+        new("Build", new DateTime(2026, 10, 15), new DateTime(2026, 11, 6), Progress: 0.3),
+        new("Beta", new DateTime(2026, 11, 2), new DateTime(2026, 11, 13)),
+        new("Launch", new DateTime(2026, 11, 16)),
+    ];
+}

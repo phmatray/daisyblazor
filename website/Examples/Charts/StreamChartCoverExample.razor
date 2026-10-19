@@ -1,0 +1,14 @@
+<StreamChart Series="_series" AspectRatio="1.3" ShowLabels="false" ShowLegend="false" />
+
+@code {
+    private static ChartSeries Area(string name, double start, double swing, int phase) =>
+        new(name, Enumerable.Range(0, 12).Select(i => Math.Round(start + swing * Math.Sin((i + phase) / 1.8))).ToArray());
+
+    private readonly ChartSeries[] _series =
+    [
+        Area("Dashboards", 40, 14, 0),
+        Area("API", 30, 12, 4),
+        Area("Alerts", 22, 10, 7),
+        Area("Integrations", 16, 8, 2),
+    ];
+}
