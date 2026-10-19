@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.7.0](https://github.com/phmatray/daisyblazor/compare/v0.6.1...v0.7.0) (2026-10-19)
+
+
+### Features
+
+* **charts:** 45 chart types on D3, with server rendering ([#129](https://github.com/phmatray/daisyblazor/issues/129)) ([2e2dadc](https://github.com/phmatray/daisyblazor/commit/2e2dadc933215de2828e39889346d47fdf59ee8a))
+* **charts:** consistent API, shared axes, smaller D3 and prerendered layouts before 0.7.0 ([#131](https://github.com/phmatray/daisyblazor/issues/131)) ([567698f](https://github.com/phmatray/daisyblazor/commit/567698ff9591bb381c37b52cf101b9a02d06b95b))
+* **charts:** D3-backed chart foundation and SankeyChart ([#124](https://github.com/phmatray/daisyblazor/issues/124)) ([167eb5f](https://github.com/phmatray/daisyblazor/commit/167eb5f62c5eb4c0920644450c6fc642a05cb5f1))
+* **charts:** polar, shape, price-action and multi-pie charts; every variant the Blazor vendors list ([#133](https://github.com/phmatray/daisyblazor/issues/133)) ([7d1bdbb](https://github.com/phmatray/daisyblazor/commit/7d1bdbbf6bd96faa5e088abacc0f771ba3e5e94a))
+* **charts:** polynomial and moving-average trend lines, and trend lines on line and bar charts ([#134](https://github.com/phmatray/daisyblazor/issues/134)) ([1f1ebc1](https://github.com/phmatray/daisyblazor/commit/1f1ebc10929581a180e7f0403596421c906ec718))
+* **charts:** stacked, 100%, step, trendline, drill-down and indicator variants; combo, range selector, Smith, 3D and choropleth charts ([#132](https://github.com/phmatray/daisyblazor/issues/132)) ([e3759fe](https://github.com/phmatray/daisyblazor/commit/e3759fe96ba63314564c3902c8b484a905907650))
+
+
+### Bug Fixes
+
+* **snackbar:** run an action once; add position, Escape, action title/shortcut/focus and icon options ([#128](https://github.com/phmatray/daisyblazor/issues/128)) ([58c2e8f](https://github.com/phmatray/daisyblazor/commit/58c2e8f96a9af305b8115f1b1f60a5e74fc77324)), closes [#121](https://github.com/phmatray/daisyblazor/issues/121)
+
 ## [0.6.1](https://github.com/phmatray/daisyblazor/compare/v0.6.0...v0.6.1) (2026-10-19)
 
 
