@@ -100,3 +100,37 @@ export function dodge(ys, gap, lo, hi) {
     }
     return out;
 }
+
+/**
+ * Reference lines and shaded value bands across a plot, on its value scale. `across` is true when
+ * the values run along x (lines and bands are then vertical). references: [{ value, label }],
+ * bands: [{ from, to, label }]; bands are clipped to the plot and dropped when nothing is left.
+ * Labels sit inside the plot, clear of the tick labels outside it: a horizontal line's at its right
+ * end above it (below it near the top), a vertical line's at the top beside it, a band's in its corner.
+ * Returns { references: [{ index, x1, y1, x2, y2, labelX, labelY, anchor }],
+ * bands: [{ index, x, y, width, height, labelX, labelY, anchor }] }, index being the input position.
+ */
+export function referenceMarks(scale, across, plot, references = [], bands = []) {
+    const lo = across ? plot.left : plot.top;
+    const hi = across ? plot.right : plot.bottom;
+    const at = v => Math.max(lo, Math.min(hi, scale(v)));
+    const lines = (references ?? []).map((r, index) => ({ r, index })).filter(({ r }) => finite(r?.value)).map(({ r, index }) => {
+        const p = r2(at(r.value));
+        if (across) {
+            const flip = p + 4 + textWidth(r.label) > plot.right;
+            return { index, x1: p, y1: plot.top, x2: p, y2: plot.bottom, labelX: r2(flip ? p - 4 : p + 4), labelY: r2(plot.top + FONT), anchor: flip ? 'end' : 'start' };
+        }
+        const below = p - 4 - FONT < plot.top;
+        return { index, x1: plot.left, y1: p, x2: plot.right, y2: p, labelX: r2(plot.right - 4), labelY: r2(below ? p + FONT + 2 : p - 4), anchor: 'end' };
+    });
+    const shaded = (bands ?? []).map((b, index) => ({ b, index })).filter(({ b }) => finite(b?.from) && finite(b?.to)).map(({ b, index }) => {
+        const [a, z] = [at(b.from), at(b.to)].sort((m, n) => m - n);
+        return across
+            ? { index, x: r2(a), y: plot.top, width: r2(z - a), height: r2(plot.bottom - plot.top), labelX: r2(a + 4), labelY: r2(plot.bottom - 6), anchor: 'start' }
+            : { index, x: plot.left, y: r2(a), width: r2(plot.right - plot.left), height: r2(z - a), labelX: r2(plot.left + 4), labelY: r2(a + FONT + 2), anchor: 'start' };
+    }).filter(b => b.width > 0 && b.height > 0);
+    return { references: lines, bands: shaded };
+}
+
+/** The finite reference values, to take into a value axis's domain so every reference line shows. */
+export const referenceValues = references => (references ?? []).map(r => r?.value).filter(finite);

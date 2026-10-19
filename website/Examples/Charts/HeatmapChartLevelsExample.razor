@@ -1,0 +1,11 @@
+<HeatmapChart Title="Build failures by team and weekday" Cells="_cells" Levels="4" ShowValues="true" Color="var(--color-error)" />
+
+@code {
+    private static readonly string[] _teams = ["Platform", "Billing", "Search", "Mobile", "Data"];
+    private static readonly string[] _days = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+
+    // Levels="4" splits the counts into four equal ranges, one shade each, with a stepped legend.
+    private static readonly HeatmapCell[] _cells = _teams
+        .SelectMany((team, t) => _days.Select((day, d) => new HeatmapCell(team, day, (t * 7 + d * 5 + t * d) % 13)))
+        .ToArray();
+}

@@ -15,6 +15,8 @@ public static partial class DocRegistry
                 new("Several series, smoothed", "Each series takes the next palette colour and appears in the legend; Smooth draws curves.", typeof(LineChartSeriesExample)),
                 new("Minimal", "Turn off ShowGrid and ShowLegend, set a Height, and give a series its own Color.", typeof(LineChartMinimalExample)),
                 new("Step", "Step draws each value as a step that holds until the next one (step-after), for counts that change in jumps; it wins over Smooth.", typeof(LineChartStepExample)),
+                new("Rotated", "Horizontal puts the labels down the side and the values along the bottom, each line reading top to bottom; it works with Smooth, Step, Stacked, Percent and Area.", typeof(LineChartRotatedExample)),
+                new("Reference lines and bands", "References draws a ChartReference line across the plot at a value (dashed unless Dashed is false) and Bands shades a ChartBand range behind the data; labels sit inside the plot, and the axis grows to show every line.", typeof(LineChartReferencesExample)),
             ])
         {
             Portrait = typeof(LineChartCoverExample),
@@ -28,6 +30,7 @@ public static partial class DocRegistry
                 new("Several series", "Fills are translucent so overlapping series stay readable; turn ShowPoints on to mark each value.", typeof(AreaChartSeriesExample)),
                 new("Stacked", "Stacked draws each series on top of the running total, so the bands add up to the whole and the fills never mix; tooltips still show each series' own value.", typeof(AreaChartStackedExample)),
                 new("100% stacked", "Percent stacks the series to 100% at every label, so the fills show each one's share; tooltips show the value and the share.", typeof(AreaChartPercentExample)),
+                new("Rotated", "Horizontal turns the chart so the labels run down the side and the areas fill from the left; here also Stacked and Step. References and Bands work as on LineChart.", typeof(AreaChartRotatedExample)),
             ])
         {
             Portrait = typeof(AreaChartCoverExample),
@@ -44,6 +47,7 @@ public static partial class DocRegistry
                 new("100% stacked", "Percent stacks each bar to 100% of its total, here horizontal; tooltips show the value and the share.", typeof(BarChartPercentExample)),
                 new("Side-by-side stacks", "Give each ChartSeries a Stack name: series with the same name stack together and the stacks stand side by side in each label.", typeof(BarChartStackGroupsExample)),
                 new("Per-bar colours", "Give a point any CSS colour; ChartPalette.FromColor maps a Color value to its theme token.", typeof(BarChartColorsExample)),
+                new("Reference lines and bands", "References draws a line across the bars at a value (a target, a limit) and Bands shades a value range behind them; on a Horizontal chart both run down the plot.", typeof(BarChartReferencesExample)),
             ])
         {
             Portrait = typeof(BarChartCoverExample),

@@ -491,4 +491,9 @@ public class ChartsHierarchyTests : BunitContext
             System.Globalization.CultureInfo.CurrentCulture = before;
         }
     }
+
+    [Fact]
+    public void Treemap_strip_tiling_is_sent_to_the_layout() =>
+        _hierarchyChart("treemap", () => Render<TreemapChart>(ps => ps.Add(p => p.Root, _root).Add(p => p.Tile, TreemapTile.Strip)), "\"tile\":\"strip\"", cut =>
+            cut.FindAll("svg rect").Count.ShouldBe(5));
 }

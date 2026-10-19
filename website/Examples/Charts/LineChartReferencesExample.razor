@@ -1,0 +1,16 @@
+<LineChart Title="p95 API latency (ms)" Labels="_days" Series="_latency" References="_references" Bands="_bands" />
+
+@code {
+    private readonly string[] _days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+    private readonly ChartSeries[] _latency = [new("p95", [182, 195, 240, 310, 228, 160, 150])];
+
+    // A dashed line at the objective, a solid one at the alert, and the normal range shaded behind.
+    private readonly ChartReference[] _references =
+    [
+        new(250, "Objective", "var(--color-warning)"),
+        new(300, "Alert", "var(--color-error)", Dashed: false),
+    ];
+
+    private readonly ChartBand[] _bands = [new(150, 200, "Normal", "var(--color-success)")];
+}

@@ -243,4 +243,41 @@ public class ChartsCompareTests : BunitContext
         cut.Render(ps => ps.Add(p => p.Horizontal, false));
         module.Invocations["layout"].Count.ShouldBe(2);
     }
+
+    [Fact]
+    public void Radar_stacked_fills_each_series_band_and_percent_tooltips_show_the_share()
+    {
+        (BunitJSModuleInterop module, JSRuntimeInvocationHandler<RadarLayout> call) = Setup<RadarLayout>();
+        IRenderedComponent<RadarChart> cut = Render<RadarChart>(ps => ps
+            .Add(p => p.Labels, ["Seats", "Storage", "Support"])
+            .Add(p => p.Series, [new ChartSeries("Team", [10, 20, 30]), new ChartSeries("Scale", [30, 20, 10])])
+            .Add(p => p.Percent, true));
+
+        (_, string spec) = Sent(module);
+        spec.ShouldContain("\"stacked\":false,\"percent\":true");
+
+        call.SetResult(new RadarLayout(320, 240, 150,
+            [new("Seats", 320, 90, 320, 80, "middle"), new("Storage", 450, 315, 465, 330, "start"), new("Support", 190, 315, 175, 330, "end")],
+            [new(100, "100%", 150, "M320,90Z")],
+            [
+                new("M320,202Z", [new(320, 202, 10), new(385, 277, 20), new(190, 315, 30)], "M320,202ZM320,240Z"),
+                new("M320,90Z", [new(320, 90, 30), new(450, 315, 20), new(190, 315, 10)], "M320,90ZM320,202Z"),
+            ]));
+
+        cut.WaitForAssertion(() => cut.FindAll("path[fill-rule=evenodd]").Count.ShouldBe(2));
+        cut.Find("path[fill-rule=evenodd]").GetAttribute("fill-opacity").ShouldBe("0.55");
+        cut.Markup.ShouldContain("Team, Seats: 10 (25%)");
+        cut.Markup.ShouldContain("Scale, Seats: 30 (75%)");
+    }
+
+    [Fact]
+    public void Radar_without_stacking_sends_the_same_spec_as_before()
+    {
+        (BunitJSModuleInterop module, _) = Setup<RadarLayout>();
+        Render<RadarChart>(ps => ps.Add(p => p.Labels, ["A", "B", "C"]).Add(p => p.Series, [new ChartSeries("Team", [1, 2, 3])]));
+
+        (_, string spec) = Sent(module);
+        spec.ShouldNotContain("stacked");
+        spec.ShouldNotContain("percent");
+    }
 }

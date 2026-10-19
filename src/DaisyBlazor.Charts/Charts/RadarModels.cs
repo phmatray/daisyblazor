@@ -19,8 +19,8 @@ public sealed record RadarLayoutAxis(string Name, double X, double Y, double Lab
 /// <summary>A grid ring at a tick value, with its radius and SVG path.</summary>
 public sealed record RadarLayoutRing(double Value, string Label, double R, string Path);
 
-/// <summary>A series' closed SVG path and its points, one per spoke.</summary>
-public sealed record RadarLayoutSeries(string Path, IReadOnlyList<RadarLayoutPoint> Points);
+/// <summary>A series' closed SVG path (its outer edge when stacked) and its points, one per spoke; <paramref name="Band"/> is the even-odd ring it fills when stacked, else null.</summary>
+public sealed record RadarLayoutSeries(string Path, IReadOnlyList<RadarLayoutPoint> Points, string? Band = null);
 
 /// <summary>A series value on a spoke; Value is null when it was missing.</summary>
 public sealed record RadarLayoutPoint(double X, double Y, double? Value);

@@ -8,7 +8,12 @@ const EMPTY = { cx: 0, cy: 0, radius: 0, axes: [], rings: [], series: [] };
 // One spoke per axis, clockwise from the top; each series is a closed shape through its values.
 // The radius is the largest that keeps every axis name inside the box. Missing or negative values
 // sit at the centre. Needs at least three axes.
-export default function radar({ axes, series, width, height, max = null, levels = 4, grid = 'polygon' }) {
+// stacked draws each series on the running total of the ones before it, on every spoke, and gives
+// it `band`: the ring between that total and its own (an even-odd path). percent (implies stacked)
+// scales every spoke's total to 100, on a 0-100 axis with % ring labels. Points keep the series'
+// own value.
+export default function radar({ axes, series, width, height, max = null, levels = 4, grid = 'polygon', stacked = false, percent = false }) {
+    stacked ||= percent;
     const names = (axes ?? []).map(a => String(a ?? ''));
     const n = names.length;
     const rows = (series ?? []).map(s => names.map((_, i) => finite(s?.[i]) ? Math.max(0, s[i]) : null));
@@ -37,14 +42,25 @@ export default function radar({ axes, series, width, height, max = null, levels 
     });
     radius = Math.max(radius, 10);
 
-    const values = rows.flat().filter(finite);
-    const fixed = finite(max) && max > 0;
-    const scale = scaleLinear().domain([0, fixed ? max : Math.max(...values, 0) || 1]).range([0, radius]).clamp(true);
+    // Running totals per series and spoke: [base, top]; unstacked shapes start at the centre.
+    const totals = names.map((_, i) => rows.reduce((sum, row) => sum + (row[i] ?? 0), 0));
+    const spans = rows.map((row, s) => row.map((v, i) => {
+        if (!stacked) {
+            return [0, v ?? 0];
+        }
+        const base = rows.slice(0, s).reduce((sum, r) => sum + (r[i] ?? 0), 0);
+        const k = percent ? (totals[i] > 0 ? 100 / totals[i] : 0) : 1;
+        return [base * k, Math.min(percent ? 100 : Infinity, (base + (v ?? 0)) * k)];
+    }));
+
+    const values = stacked ? spans.flat().map(([, t]) => t) : rows.flat().filter(finite);
+    const fixed = percent || (finite(max) && max > 0);
+    const scale = scaleLinear().domain([0, percent ? 100 : fixed ? max : Math.max(...values, 0) || 1]).range([0, radius]).clamp(true);
     if (!fixed) {
         scale.nice(levels);
     }
     const top = scale.domain()[1];
-    const format = scale.tickFormat(levels);
+    const format = percent ? v => `${v}%` : scale.tickFormat(levels);
     const ringValues = [...scale.ticks(levels).filter(v => v > 0 && v < top), top];
 
     const point = (i, v) => [cx + scale(v) * Math.cos(angle(i)), cy + scale(v) * Math.sin(angle(i))];
@@ -67,12 +83,13 @@ export default function radar({ axes, series, width, height, max = null, levels 
             };
         }),
         rings: ringValues.map(v => ({ value: v, label: format(v), r: r2(scale(v)), path: ring(scale(v)) })),
-        series: rows.map(row => ({
-            path: closed(row.map((v, i) => point(i, v ?? 0).map(r2))),
-            points: row.map((v, i) => {
-                const [x, y] = point(i, v ?? 0);
-                return { x: r2(x), y: r2(y), value: v };
-            }),
-        })),
+        series: rows.map((row, s) => {
+            const outer = row.map((_, i) => point(i, spans[s][i][1]).map(r2));
+            const shape = {
+                path: closed(outer),
+                points: row.map((v, i) => ({ x: outer[i][0], y: outer[i][1], value: v })),
+            };
+            return stacked ? { ...shape, band: shape.path + closed(row.map((_, i) => point(i, spans[s][i][0]).map(r2))) } : shape;
+        }),
     };
 }

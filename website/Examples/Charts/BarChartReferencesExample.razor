@@ -1,0 +1,17 @@
+<BarChart Title="Deployments per team this month" Data="_deploys" References="_references" Bands="_bands" />
+
+@code {
+    private readonly ChartDataPoint[] _deploys =
+    [
+        new("Platform", 64),
+        new("Billing", 22),
+        new("Search", 41),
+        new("Mobile", 18),
+        new("Data", 35),
+    ];
+
+    // A reference line at the target and a shaded band for the healthy range.
+    private readonly ChartReference[] _references = [new(40, "Target", "var(--color-accent)")];
+
+    private readonly ChartBand[] _bands = [new(30, 50, "Healthy range", "var(--color-success)")];
+}

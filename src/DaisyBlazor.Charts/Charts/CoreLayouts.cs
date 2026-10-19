@@ -6,8 +6,9 @@ namespace DaisyBlazor.Charts;
 /// <summary>A point in a chart's box.</summary>
 public sealed record ChartPoint(double X, double Y);
 
-/// <summary>Geometry of a <see cref="LineChart"/>, computed with D3.</summary>
-public sealed record LineLayout(double Width, double Height, PlotArea Plot, IReadOnlyList<AxisTick> XTicks, IReadOnlyList<AxisTick> YTicks, IReadOnlyList<LineLayoutSeries> Series);
+/// <summary>Geometry of a <see cref="LineChart"/>, computed with D3; References and Bands are null when the chart has none.</summary>
+public sealed record LineLayout(double Width, double Height, PlotArea Plot, IReadOnlyList<AxisTick> XTicks, IReadOnlyList<AxisTick> YTicks, IReadOnlyList<LineLayoutSeries> Series,
+    IReadOnlyList<ReferenceLineLayout>? References = null, IReadOnlyList<ReferenceBandLayout>? Bands = null);
 
 /// <summary>One series of a <see cref="LineLayout"/>: line and area paths, and the points that have a value.</summary>
 public sealed record LineLayoutSeries(string Line, string Area, IReadOnlyList<LineLayoutPoint> Points);
@@ -15,8 +16,9 @@ public sealed record LineLayoutSeries(string Line, string Area, IReadOnlyList<Li
 /// <summary>A value's point; <paramref name="Isolated"/> when no line reaches it, so it needs a marker.</summary>
 public sealed record LineLayoutPoint(int Index, double X, double Y, bool Isolated);
 
-/// <summary>Geometry of a <see cref="BarChart"/>, computed with D3: the value ticks and the category labels sit on the x or the y axis, depending on the direction.</summary>
-public sealed record BarLayout(double Width, double Height, PlotArea Plot, IReadOnlyList<AxisTick> XTicks, IReadOnlyList<AxisTick> YTicks, IReadOnlyList<BarLayoutBar> Bars);
+/// <summary>Geometry of a <see cref="BarChart"/>, computed with D3: the value ticks and the category labels sit on the x or the y axis, depending on the direction. References and Bands are null when the chart has none.</summary>
+public sealed record BarLayout(double Width, double Height, PlotArea Plot, IReadOnlyList<AxisTick> XTicks, IReadOnlyList<AxisTick> YTicks, IReadOnlyList<BarLayoutBar> Bars,
+    IReadOnlyList<ReferenceLineLayout>? References = null, IReadOnlyList<ReferenceBandLayout>? Bands = null);
 
 /// <summary>A bar of category <paramref name="C"/> and series <paramref name="S"/>.</summary>
 public sealed record BarLayoutBar(int C, int S, double X, double Y, double Width, double Height);

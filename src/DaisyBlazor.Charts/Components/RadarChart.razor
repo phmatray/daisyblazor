@@ -24,9 +24,20 @@
                 RadarLayoutSeries series = layout.Series[s];
                 string name = _name(s);
                 string color = _color(s);
-                <path d="@series.Path" fill="@(Filled ? color : "none")" fill-opacity="0.18" stroke="@color" stroke-width="2" stroke-linejoin="round">
-                    <title>@name</title>
-                </path>
+                @if (series.Band is { } band)
+                {
+                    @* Stacked: the series fills its own ring, between the totals before it and its outer edge. *@
+                    <path d="@band" fill="@color" fill-opacity="@(Filled ? "0.55" : "0")" fill-rule="evenodd" stroke="none">
+                        <title>@name</title>
+                    </path>
+                    <path d="@series.Path" fill="none" stroke="@color" stroke-width="2" stroke-linejoin="round" />
+                }
+                else
+                {
+                    <path d="@series.Path" fill="@(Filled ? color : "none")" fill-opacity="0.18" stroke="@color" stroke-width="2" stroke-linejoin="round">
+                        <title>@name</title>
+                    </path>
+                }
                 @if (ShowPoints)
                 {
                     @for (int i = 0; i < series.Points.Count && i < layout.Axes.Count; i++)
@@ -35,7 +46,7 @@
                         @if (point.Value is { } value)
                         {
                             <circle cx="@N(point.X)" cy="@N(point.Y)" r="3.5" fill="@color" stroke="var(--color-base-100)" stroke-width="1">
-                                <title>@($"{name}, {layout.Axes[i].Name}: {_format(value)}")</title>
+                                <title>@($"{name}, {layout.Axes[i].Name}: {_format(value)}{(Percent ? $" ({ChartText.Percent(_share(s, i))})" : string.Empty)}")</title>
                             </circle>
                         }
                     }
@@ -83,6 +94,20 @@
     /// <summary>Fill each series' shape with a light tint of its colour; when false only the outlines are drawn.</summary>
     [Parameter] public bool Filled { get; set; } = true;
 
+    /// <summary>
+    /// Stack the series radially: on every spoke each series starts where the ones before it end,
+    /// and fills its own band. Missing or negative values count as 0; tooltips still show each
+    /// series' own value.
+    /// </summary>
+    [Parameter] public bool Stacked { get; set; }
+
+    /// <summary>
+    /// 100% stacked (implies <see cref="Stacked"/>): every spoke's total reaches the outer ring, so
+    /// the bands show each series' share; the rings read in percent and <see cref="Max"/> is ignored.
+    /// Tooltips show the value and the share.
+    /// </summary>
+    [Parameter] public bool Percent { get; set; }
+
     /// <summary>Draw a dot at each value.</summary>
     [Parameter] public bool ShowPoints { get; set; } = true;
 
@@ -102,16 +127,24 @@
     protected override string Kind => "radar";
 
     /// <inheritdoc />
-    protected override object BuildSpec() => new
+    protected override object BuildSpec()
     {
-        Axes = Labels.ToArray(),
-        Series = Series.Select(s => Labels.Select((_, i) => i < s.Data.Count ? s.Data[i] : (double?)null).ToArray()).ToArray(),
-        Width = ViewWidth,
-        Height = ViewHeight,
-        Max,
-        Levels,
-        Grid = Grid.ToString().ToLowerInvariant(),
-    };
+        double?[][] series = Series.Select(s => Labels.Select((_, i) => i < s.Data.Count ? s.Data[i] : (double?)null).ToArray()).ToArray();
+        string grid = Grid.ToString().ToLowerInvariant();
+
+        // Stacked and Percent only when set, so the spec (and the layout cache key) of an existing chart stays as it was.
+        return Stacked || Percent
+            ? new { Axes = Labels.ToArray(), Series = series, Width = ViewWidth, Height = ViewHeight, Max, Levels, Grid = grid, Stacked, Percent }
+            : new { Axes = Labels.ToArray(), Series = series, Width = ViewWidth, Height = ViewHeight, Max, Levels, Grid = grid };
+    }
+
+    // Percent mode: series s's share of the positive total on spoke i, as the layout draws it.
+    private double _share(int s, int i)
+    {
+        double Value(ChartSeries series) => i < series.Data.Count && double.IsFinite(series.Data[i]) && series.Data[i] > 0 ? series.Data[i] : 0;
+        double total = Series.Sum(Value);
+        return total > 0 ? Value(Series[s]) / total * 100 : 0;
+    }
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
 

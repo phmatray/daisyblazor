@@ -1,0 +1,16 @@
+<TreemapChart Root="_storage" Tile="TreemapTile.Strip" ValueFormat="{0:N0} GB" AspectRatio="2" />
+
+@code {
+    // Strip fills rows in the children's order (largest first), each row growing while its tiles get closer to square.
+    private readonly HierarchyNode _storage = new("Storage", Children:
+    [
+        new("Logs", 620),
+        new("Backups", 540),
+        new("Artifacts", 380),
+        new("Databases", 290),
+        new("Uploads", 210),
+        new("Search index", 150),
+        new("Cache", 90),
+        new("Metrics", 60),
+    ]);
+}

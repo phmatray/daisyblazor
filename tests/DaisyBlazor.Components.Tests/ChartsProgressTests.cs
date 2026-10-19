@@ -302,4 +302,41 @@ public class ChartsProgressTests : BunitContext
         cut.WaitForAssertion(() => cut.FindAll("svg").Count.ShouldBe(1));
         cut.FindAll("svg rect").Count.ShouldBe(0);
     }
+
+    [Fact]
+    public void Polar_area_with_series_draws_a_wind_rose_with_a_legend()
+    {
+        (BunitJSModuleInterop module, JSRuntimeInvocationHandler<PolarAreaLayout> call) = Setup<PolarAreaLayout>();
+
+        IRenderedComponent<PolarAreaChart> cut = Render<PolarAreaChart>(ps => ps
+            .Add(p => p.Labels, ["North", "East"])
+            .Add(p => p.Series, [new ChartSeries("Reads", [4, 1]), new ChartSeries("Writes", [5, double.NaN])]));
+
+        (string kind, string spec) = Sent(module);
+        kind.ShouldBe("polar-area");
+        spec.ShouldContain("\"labels\":[\"North\",\"East\"]");
+        spec.ShouldContain("\"series\":[[4,1],[5,null]]");
+        spec.ShouldNotContain("items");
+
+        call.SetResult(new PolarAreaLayout(320, 320, 200, 17.8, [new(4, 100)],
+            [new(0, "North", 9, "M0,0Z", 320, 100, "middle"), new(1, "East", 1, "M0,0Z", 540, 320, "start")],
+            [new(0, 0, 4, "M0,-1Z"), new(0, 1, 5, "M0,-2Z"), new(1, 0, 1, "M1,0Z")]));
+
+        cut.WaitForAssertion(() => cut.FindAll("svg path").Count.ShouldBe(3));
+        cut.Markup.ShouldContain("North, Writes: 5");
+        cut.Markup.ShouldContain("North 9");
+        cut.FindAll("svg path")[1].GetAttribute("fill").ShouldBe("var(--color-secondary)");
+        cut.FindAll(".flex-wrap span.inline-flex").Count.ShouldBe(2);
+        cut.Find("desc").TextContent.ShouldBe("North: Reads 4, Writes 5; East: Reads 1, Writes no value");
+    }
+
+    [Fact]
+    public void Funnel_rectangle_sends_its_shape()
+    {
+        (BunitJSModuleInterop module, _) = Setup<FunnelLayout>();
+        Render<FunnelChart>(ps => ps.Add(p => p.Data, [new ChartDataPoint("Trial", 100), new ChartDataPoint("Paid", 20)]).Add(p => p.Shape, FunnelShape.Rectangle));
+
+        (_, string spec) = Sent(module);
+        spec.ShouldContain("\"shape\":\"rectangle\"");
+    }
 }

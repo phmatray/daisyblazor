@@ -1,0 +1,13 @@
+<RadarChart Title="Compute hours by service and region" Labels="_regions" Series="_services" Stacked="true" ValueFormat="{0:N0} h" />
+
+@code {
+    private readonly string[] _regions = ["Europe", "Americas", "Asia", "Africa", "Oceania"];
+
+    // Stacked: each service's band starts where the services before it end, on every spoke.
+    private readonly ChartSeries[] _services =
+    [
+        new("API", [420, 380, 210, 60, 90]),
+        new("Workers", [260, 300, 150, 40, 70]),
+        new("Search", [120, 140, 90, 20, 30]),
+    ];
+}

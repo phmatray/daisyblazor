@@ -28,7 +28,7 @@
     /// <summary>The stages, first (widest) to last. Points without a finite, non-negative Value are skipped.</summary>
     [Parameter] public IReadOnlyList<ChartDataPoint> Data { get; set; } = [];
 
-    /// <summary>Funnel (equal-height stages narrowing top to bottom) or Pyramid (a triangle sliced by value, first stage at the base).</summary>
+    /// <summary>Funnel (equal-height stages narrowing top to bottom), Pyramid (a triangle sliced by value, first stage at the base) or Rectangle (equal-height centred rectangles as wide as their value).</summary>
     [Parameter] public FunnelShape Shape { get; set; } = FunnelShape.Funnel;
 
     /// <summary>Gap between stages, in chart units.</summary>

@@ -1,0 +1,12 @@
+<LineChart Title="Build time by pipeline stage (minutes)" Labels="_stages" Series="_runs" Horizontal="true" Smooth="true" Height="18rem" />
+
+@code {
+    // Horizontal puts the stages down the side and the minutes along the bottom.
+    private readonly string[] _stages = ["Checkout", "Restore", "Compile", "Unit tests", "Integration", "Package", "Deploy"];
+
+    private readonly ChartSeries[] _runs =
+    [
+        new("main", [0.4, 1.8, 3.2, 2.6, 5.1, 1.2, 2.4]),
+        new("release", [0.5, 2.1, 4.0, 3.1, 6.3, 1.6, 3.0]),
+    ];
+}
