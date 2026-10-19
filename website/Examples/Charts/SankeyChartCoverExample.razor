@@ -1,0 +1,16 @@
+<SankeyChart Links="_links" AspectRatio="1.1" ShowValues="false" />
+
+@code {
+    private readonly SankeyLink[] _links =
+    [
+        new("Organic", "Starter", 320),
+        new("Organic", "Pro", 180),
+        new("Referral", "Pro", 140),
+        new("Partner", "Enterprise", 70),
+        new("Starter", "Active", 250),
+        new("Starter", "Churned", 70),
+        new("Pro", "Active", 290),
+        new("Pro", "Churned", 30),
+        new("Enterprise", "Active", 70),
+    ];
+}

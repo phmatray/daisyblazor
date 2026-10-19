@@ -1,0 +1,79 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<SankeyLayout>
+
+@* Sankey diagram: flows between named stages, each band as wide as its value. D3 (d3-sankey) places
+   the nodes and bands; this component draws them in theme colours. *@
+
+<D3ChartFrame TLayout="SankeyLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { } layout)
+    {
+        @for (int i = 0; i < layout.Links.Count; i++)
+        {
+            SankeyLayoutLink link = layout.Links[i];
+            <path d="@link.Path" fill="none" stroke="@_color(link.Source, layout)" stroke-opacity="0.35"
+                  stroke-width="@N(Math.Max(1, link.Width))">
+                <title>@($"{layout.Nodes[link.Source].Name} → {layout.Nodes[link.Target].Name}: {_format(link.Value)}")</title>
+            </path>
+        }
+
+        @for (int i = 0; i < layout.Nodes.Count; i++)
+        {
+            SankeyLayoutNode node = layout.Nodes[i];
+            bool labelLeft = node.X0 > ViewWidth / 2;
+            <rect x="@N(node.X0)" y="@N(node.Y0)" width="@N(node.X1 - node.X0)" height="@N(Math.Max(1, node.Y1 - node.Y0))"
+                  rx="2" fill="@_color(i, layout)">
+                <title>@($"{node.Name}: {_format(node.Value)}")</title>
+            </rect>
+            <SvgText X="@(labelLeft ? node.X0 - 6 : node.X1 + 6)" Y="@((node.Y0 + node.Y1) / 2)" Dy="0.35em"
+                     Anchor="@(labelLeft ? "end" : "start")" FontSize="12" FontWeight="600"
+                     Text="@(ShowValues ? $"{node.Name} {_format(node.Value)}" : node.Name)" />
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The flows. Node names come from Source and Target; links without a positive Value are skipped. Cycles are not allowed.</summary>
+    [Parameter] public IReadOnlyList<SankeyLink> Links { get; set; } = [];
+
+    /// <summary>Width of each node bar, in chart units.</summary>
+    [Parameter] public double NodeWidth { get; set; } = 12;
+
+    /// <summary>Vertical gap between nodes in the same column, in chart units.</summary>
+    [Parameter] public double NodePadding { get; set; } = 14;
+
+    /// <summary>How nodes without outgoing links are placed in columns.</summary>
+    [Parameter] public SankeyAlign Align { get; set; } = SankeyAlign.Justify;
+
+    /// <summary>Print each node's total after its name.</summary>
+    [Parameter] public bool ShowValues { get; set; } = true;
+
+    /// <summary>Format string for values in labels and tooltips, e.g. "{0:N0} customers".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Optional colour per node name (any CSS colour); other nodes cycle through the theme palette.</summary>
+    [Parameter] public IReadOnlyDictionary<string, string>? NodeColors { get; set; }
+
+    /// <inheritdoc />
+    protected override string Kind => "sankey";
+
+    // Labels sit beside the nodes, so the layout leaves a margin for them on both sides.
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Links = Links.Select(l => new { l.Source, l.Target, l.Value }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        NodeWidth,
+        NodePadding,
+        Align = Align.ToString().ToLowerInvariant(),
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _color(int node, SankeyLayout layout) =>
+        NodeColors is not null && NodeColors.TryGetValue(layout.Nodes[node].Name, out string? c) ? c : ChartPalette.At(node);
+
+    private string _label => Title ?? "Sankey diagram";
+
+    private string _description => string.Join("; ", Links.Where(l => l.Value > 0).Select(l => $"{l.Source} to {l.Target}: {_format(l.Value)}"));
+}

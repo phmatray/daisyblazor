@@ -1,0 +1,58 @@
+@namespace DaisyBlazor.Charts
+@typeparam TLayout where TLayout : class
+
+@* The shared outer shape of every D3-backed chart: wrapper, optional title, and an SVG in the
+   chart's coordinate space. Shows a same-size placeholder until the layout arrives, and the
+   layout's message when it fails. *@
+
+<div class="@Chart.WrapperClass" style="@Chart.WrapperStyle" @attributes="Chart.UserAttributes">
+    @if (!string.IsNullOrEmpty(Chart.Title))
+    {
+        <div class="text-sm font-medium mb-2 text-base-content/80">@Chart.Title</div>
+    }
+
+    @if (Chart.ErrorMessage is { } error)
+    {
+        <div role="alert" class="flex items-center justify-center rounded-box border border-dashed border-error/50 text-error text-sm p-4 text-center"
+             style="@($"aspect-ratio:{Chart.AspectRatio.ToString(CultureInfo.InvariantCulture)};")">
+            The chart could not be drawn: @error
+        </div>
+    }
+    else if (!Chart.IsReady)
+    {
+        <div aria-busy="true" aria-label="@($"{Label} (loading)")" class="rounded-box bg-base-200 animate-pulse motion-reduce:animate-none"
+             style="@($"aspect-ratio:{Chart.AspectRatio.ToString(CultureInfo.InvariantCulture)};")"></div>
+    }
+    else
+    {
+        <svg viewBox="@Chart.ViewBox" role="img" aria-label="@Label" aria-describedby="@(Description is null ? null : _descId)"
+             style="display:block;width:100%;height:auto;overflow:visible;font-family:inherit;font-size:12px;">
+            <title>@Label</title>
+            @if (Description is not null)
+            {
+                <desc id="@_descId">@Description</desc>
+            }
+            @ChildContent
+        </svg>
+        @Legend
+    }
+</div>
+
+@code {
+    /// <summary>The chart being framed.</summary>
+    [Parameter, EditorRequired] public D3Chart<TLayout> Chart { get; set; } = null!;
+
+    /// <summary>Accessible name of the SVG.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "Chart";
+
+    /// <summary>Optional longer text description of what the chart shows.</summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>The SVG content, drawn only once a layout exists.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Optional HTML legend under the SVG.</summary>
+    [Parameter] public RenderFragment? Legend { get; set; }
+
+    private readonly string _descId = "d3c-" + Guid.NewGuid().ToString("N")[..8];
+}

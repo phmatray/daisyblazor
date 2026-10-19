@@ -1,0 +1,17 @@
+<SankeyChart Links="_links" NodeColors="_colors" ShowValues="false" AspectRatio="2" NodeWidth="8" />
+
+@code {
+    private readonly SankeyLink[] _links =
+    [
+        new("Trial", "Converted", 512),
+        new("Trial", "Expired", 1128),
+        new("Converted", "Annual", 190),
+        new("Converted", "Monthly", 322),
+    ];
+
+    private readonly Dictionary<string, string> _colors = new()
+    {
+        ["Converted"] = "var(--color-success)",
+        ["Expired"] = "var(--color-error)",
+    };
+}
