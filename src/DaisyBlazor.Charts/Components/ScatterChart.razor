@@ -111,7 +111,11 @@
     /// <summary>Join each series' points with a line, in X order.</summary>
     [Parameter] public bool ShowLine { get; set; }
 
-    /// <summary>Fit and draw a dashed trend line per series; its tooltip gives the equation and R².</summary>
+    /// <summary>
+    /// Fit and draw a dashed trend line per series, on the series' own values; its tooltip gives the
+    /// equation and R². Ignored when <see cref="Stacked"/> is on: a fit of the own values would not
+    /// follow the stacked points, and a fit of the stacked totals would not describe the series.
+    /// </summary>
     [Parameter] public ChartTrendline Trendline { get; set; } = ChartTrendline.None;
 
     /// <summary>With <see cref="ShowLine"/>, draw each series' line as a smooth monotone spline through its points (a scatter spline) instead of straight segments.</summary>
@@ -136,6 +140,7 @@
     /// <summary>
     /// Stack the series: each point is drawn on top of the running total of the previous series at the
     /// same X (from 0 where no earlier series has a point at that X). Tooltips give the point's own Y and the total.
+    /// <see cref="Trendline"/> is ignored while stacked.
     /// </summary>
     [Parameter] public bool Stacked { get; set; }
 
@@ -332,5 +337,5 @@
         + (!HighDensity && Points.Any(p => p.XError > 0 || p.YError > 0) ? ", with error bars" : string.Empty)
         + (XReference is not null || YReference is not null ? ", with reference lines" : string.Empty)
         + (XScale == AxisScale.Log || YScale == AxisScale.Log ? ", on a logarithmic scale" : string.Empty)
-        + (Trendline != ChartTrendline.None ? $", with a {Trendline.ToString().ToLowerInvariant()} trend line per series" : string.Empty) + ".";
+        + (Trendline != ChartTrendline.None && !Stacked ? $", with a {Trendline.ToString().ToLowerInvariant()} trend line per series" : string.Empty) + ".";
 }

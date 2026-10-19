@@ -11,7 +11,8 @@ import { cartesian } from './_distribution.mjs';
 // cell, so the chart can highlight the nearest point wherever the pointer is. showLine adds `lines`
 // (each series joined in x order, as a monotone spline with smooth); trendline ('linear',
 // 'exponential', 'logarithmic', 'power') adds `trends`, one fitted curve per series. Neither key is
-// returned when not asked for.
+// returned when not asked for. trendline is ignored when stacked (a fit of the own values would not
+// follow the stacked points, a fit of the totals would not describe the series).
 // Optional extras, each returned only when used: xError / yError (symmetric ±) give a point
 // `xWhisker` / `yWhisker` ({ error, from, to } in chart units, clamped to the plot); stacked draws
 // each series on the running total of the previous ones at the same x (the point keeps its own y and
@@ -50,7 +51,8 @@ export default function scatter({ points, width, height, xLog = false, yLog = fa
     if (showLine) {
         extra.lines = [];
     }
-    if (trendline && trendline !== 'none') {
+    // A trend is fitted on each series' own values, so it would not follow stacked points: none when stacked.
+    if (trendline && trendline !== 'none' && !stacked) {
         extra.trends = [];
     }
     if (highDensity) {
