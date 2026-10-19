@@ -1,0 +1,21 @@
+@namespace DaisyBlazor.Charts
+
+@* A row of colour keys under a chart: one swatch and name per item. *@
+
+@if (Items is { Count: > 0 })
+{
+    <div class="flex flex-wrap gap-3 mt-2 text-xs">
+        @foreach ((string name, string color) in Items)
+        {
+            <span class="inline-flex items-center gap-1.5">
+                <span class="inline-block w-3 h-3 rounded-sm" style="@($"background:{color};")"></span>
+                <span class="text-base-content/80">@name</span>
+            </span>
+        }
+    </div>
+}
+
+@code {
+    /// <summary>The keys to show: a name and the CSS colour it is drawn in.</summary>
+    [Parameter] public IReadOnlyList<(string Name, string Color)>? Items { get; set; }
+}
