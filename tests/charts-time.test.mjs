@@ -319,6 +319,27 @@ test('candlestick: overlays on the price panel follow the candles, values line u
     }
 });
 
+test('candlestick: the price panel keeps at least 40% of the height, however many panels and however small', async () => {
+    const candles = hourly(24, i => 50 + 10 * Math.sin(i / 3));
+    const kinds = ['rsi', 'macd', 'rsi', 'macd', 'rsi', 'macd'];
+    for (const height of [60, 100, 160, 213, 300, 360]) {
+        for (let n = 1; n <= kinds.length; n++) {
+            const out = await layout('candlestick', {
+                candles, width: W, height, showVolume: true, indicators: kinds.slice(0, n).map(kind => ({ kind, period: 3 })),
+            });
+            const bottom = height - 24;
+            const label = `height ${height}, ${n} indicators`;
+            assert.ok(out.plot.bottom - out.plot.top >= (bottom - out.plot.top) * 0.4 - 0.01, label);
+            let prev = out.plot.bottom;
+            for (const p of out.panels) {
+                assert.ok(p.top >= prev && p.bottom >= p.top, label);
+                prev = p.bottom;
+            }
+            assert.ok(Math.abs(prev - bottom) < 0.01, label);
+        }
+    }
+});
+
 test('candlestick: RSI, MACD and volume panels stack under the price panel on one time axis', async () => {
     const candles = hourly(24, i => 50 + 10 * Math.sin(i / 3));
     candles[3].volume = null;

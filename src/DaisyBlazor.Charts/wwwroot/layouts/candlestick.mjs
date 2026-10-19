@@ -134,10 +134,13 @@ export default function candlestick({ candles, width, height, indicators, showVo
     const y = valueScale([...lows, ...highs, ...overlays.flatMap(s => present([...s.main, ...(s.upper ?? []), ...(s.lower ?? [])]))]);
     const top = 10, bottom = height - 24;
 
-    // Panels under the price panel: a share of the height each, a gap above each.
+    // Panels under the price panel: a share of the height each (32 at least when there is room), a
+    // gap above each. Together they never take more than 60% of the height, so the price panel keeps
+    // 40%: when space runs out the panels and their gaps shrink.
     const below = [...studies.filter(s => s.oscillator), ...(hasVolume ? [{ kind: 'volume' }] : [])];
-    const gap = 14;
-    const share = below.length ? Math.max(32, Math.min((bottom - top) * 0.22, (bottom - top) * 0.6 / below.length - gap)) : 0;
+    const room = (bottom - top) * 0.6 / Math.max(1, below.length);
+    const gap = Math.min(14, room / 3);
+    const share = below.length ? Math.min(Math.max(32, Math.min((bottom - top) * 0.22, room - 14)), room - gap) : 0;
     const priceBottom = bottom - below.length * (share + gap);
 
     const yCount = Math.max(2, Math.floor((priceBottom - top) / 40));
