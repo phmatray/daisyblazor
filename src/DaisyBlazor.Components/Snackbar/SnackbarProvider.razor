@@ -2,13 +2,13 @@
 @implements IDisposable
 @inject ISnackbar Snackbar
 
-@* MudSnackbarProvider replacement. Renders queued toasts bottom-end and auto-dismisses each
+@* MudSnackbarProvider replacement. Renders queued toasts at Position (bottom-end by default) and auto-dismisses each
    after its VisibleStateDuration (paused while the toast is hovered or focused, WCAG 2.2.1).
    Place once in MainLayout (or App). The container is the single live region: it turns
    assertive while an error/warning is shown, polite otherwise; toasts carry no role of their
-   own so each message is announced once. *@
+   own so each message is announced once. Escape closes the focused toast. *@
 
-<div class="@CssClass.Merge("toast toast-end toast-bottom z-50", Class)"
+<div class="@CssClass.Merge("toast", PositionClass, "z-50", Class)"
      style="@Style"
      aria-live="@Politeness"
      @attributes="UserAttributes">
@@ -19,12 +19,18 @@
              @onmouseenter="() => Pause(message, hover: true)"
              @onmouseleave="() => Resume(message, hover: true)"
              @onfocusin="() => Pause(message, hover: false)"
-             @onfocusout="() => Resume(message, hover: false)">
-            <Icon Name="@SeverityIcon(message.Severity)" Size="Size.Small" Class="@(IsTinted(message) ? Alert.Tint(message.Severity) : null)" />
+             @onfocusout="() => Resume(message, hover: false)"
+             @onkeydown="e => OnKeyDown(e, message)">
+            @if (!message.Options.HideIcon)
+            {
+                <Icon Name="@(message.Options.Icon ?? SeverityIcon(message.Severity))" Size="Size.Small" Class="@(IsTinted(message) ? Alert.Tint(message.Severity) : null)" />
+            }
             <span>@message.Message</span>
             @if (!string.IsNullOrEmpty(message.Options.Action))
             {
-                <button type="button" class="btn btn-sm btn-ghost" @onclick="() => OnActionAsync(message)">
+                <button type="button" class="btn btn-sm btn-ghost" @onclick="() => OnActionAsync(message)"
+                        title="@message.Options.ActionTitle" aria-keyshortcuts="@message.Options.ActionKeyShortcuts"
+                        @ref="_actionRefs[message.Id]">
                     @message.Options.Action
                 </button>
             }
@@ -71,6 +77,9 @@
     /// </summary>
     [Parameter] public int VisibleStateDuration { get; set; } = 5000;
 
+    /// <summary>Corner or edge of the viewport the toasts stack at. Center rows are vertically centred; defaults to BottomRight.</summary>
+    [Parameter] public Origin Position { get; set; } = Origin.BottomRight;
+
     // Auto-dismiss state per toast: the countdown is cancelled while hovered/focused and resumes
     // with the remaining time once neither applies.
     private sealed class DismissTimer
@@ -85,6 +94,22 @@
     }
 
     private readonly Dictionary<Guid, DismissTimer> _timers = [];
+    private readonly Dictionary<Guid, ElementReference> _actionRefs = [];
+    private readonly HashSet<Guid> _focusAction = [];
+
+    // daisyUI toast placement: one vertical and one horizontal class.
+    private string PositionClass => Position switch
+    {
+        Origin.TopLeft => "toast-top toast-start",
+        Origin.TopCenter => "toast-top toast-center",
+        Origin.TopRight => "toast-top toast-end",
+        Origin.CenterLeft => "toast-middle toast-start",
+        Origin.CenterCenter => "toast-middle toast-center",
+        Origin.CenterRight => "toast-middle toast-end",
+        Origin.BottomLeft => "toast-bottom toast-start",
+        Origin.BottomCenter => "toast-bottom toast-center",
+        _ => "toast-bottom toast-end",
+    };
 
     private string Politeness =>
         Snackbar.Shown.Any(m => m.Severity is Severity.Error or Severity.Warning) ? "assertive" : "polite";
@@ -111,6 +136,8 @@
             DismissTimer timer = _timers[gone];
             timer.Cts?.Cancel();
             _timers.Remove(gone);
+            _actionRefs.Remove(gone);
+            _focusAction.Remove(gone);
             // The toast held focus (e.g. its action was clicked): hand it back instead of to <body>.
             if (timer.Focused && timer.ReturnFocus is { } target)
             {
@@ -131,6 +158,10 @@
             timer.ReturnFocus = message.Options.ReturnFocus;
             _timers[message.Id] = timer;
             Start(message, timer);
+            if (message.Options.FocusAction && !string.IsNullOrEmpty(message.Options.Action))
+            {
+                _focusAction.Add(message.Id);
+            }
         }
     }
 
@@ -190,14 +221,41 @@
         }
     }
 
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        foreach (Guid id in _focusAction.ToArray())
+        {
+            _focusAction.Remove(id);
+            if (_actionRefs.TryGetValue(id, out ElementReference button))
+            {
+                await FocusAsync(button);
+            }
+        }
+    }
+
+    private void OnKeyDown(KeyboardEventArgs e, SnackbarMessage message)
+    {
+        if (e.Key == "Escape")
+        {
+            Snackbar.Remove(message);
+        }
+    }
+
+    // Close first, then run: the toast (and its button) is gone while the callback awaits, so a
+    // second click cannot run the action again (#121).
     private async Task OnActionAsync(SnackbarMessage message)
     {
+        if (!Snackbar.Shown.Any(m => m.Id == message.Id))
+        {
+            return;
+        }
+
+        Snackbar.Remove(message);
         if (message.Options.OnAction is not null)
         {
             await message.Options.OnAction();
         }
-
-        Snackbar.Remove(message);
     }
 
     private static async Task FocusAsync(ElementReference target)

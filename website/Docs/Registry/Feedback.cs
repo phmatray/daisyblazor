@@ -174,7 +174,7 @@ public static partial class DocRegistry
             [
                 new("Severities", "The Severity argument picks the alert colour and icon.", typeof(SnackbarSeveritiesExample)),
                 new("Options", "The configure callback sets SnackbarOptions: VisibleStateDuration (ms, default 5000), ShowCloseIcon (default true) and PreventDuplicates (default true). ISnackbar.Remove(message) drops one toast, Clear removes them all and Shown lists the visible ones.", typeof(SnackbarOptionsExample)),
-                new("Action", "Action and OnAction add a button such as Undo; clicking it runs the callback and closes the toast. ShowProgress draws the time left, which pauses with the countdown on hover and focus. ReturnFocus names the element that gets focus back when the toast closes while it held focus. SnackbarProvider.VisibleStateDuration sets the house default for messages that set none.", typeof(SnackbarActionExample)),
+                new("Action", "Action and OnAction add a button such as Undo; clicking it closes the toast, then runs the callback, so it runs once even on a double click. ActionTitle and ActionKeyShortcuts describe the button, FocusAction moves focus to it when the toast appears, and Icon or HideIcon replace the severity icon. Escape closes a focused toast. ShowProgress draws the time left, which pauses with the countdown on hover and focus. ReturnFocus names the element that gets focus back when the toast closes while it held focus. SnackbarProvider.VisibleStateDuration sets the house default for messages that set none, and SnackbarProvider.Position (an Origin, BottomRight by default) where the toasts stack.", typeof(SnackbarActionExample)),
             ])
         {
             DaisyClass = "toast",

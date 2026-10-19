@@ -14,6 +14,8 @@
         Snackbar.Add("Invoice INV-1042 deleted", Severity.Normal, o =>
         {
             o.Action = "Undo";
+            o.ActionTitle = "Undo the deletion";
+            o.Icon = Icons.Material.Filled.Delete;
             o.OnAction = () =>
             {
                 _deleted = false;
