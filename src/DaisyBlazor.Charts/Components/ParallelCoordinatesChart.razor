@@ -1,0 +1,94 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<ParallelLayout>
+
+@* Parallel coordinates: one vertical axis per numeric dimension, each with its own scale and
+   ticks, and one line per item through its values, so items are compared on several measures at
+   once. D3 computes the scales, ticks and paths; this component draws them in theme colours. *@
+
+<D3ChartFrame TLayout="ParallelLayout" Chart="this" Label="@_label" Description="@_description">
+    <ChildContent>
+        @if (Layout is { } layout)
+        {
+            @foreach (ParallelLayoutAxis axis in layout.Axes)
+            {
+                <line x1="@N(axis.X)" y1="@N(axis.Y1)" x2="@N(axis.X)" y2="@N(axis.Y2)" stroke="var(--color-base-content)" stroke-opacity="0.35" />
+            }
+
+            @foreach (ParallelLayoutLine line in _drawOrder(layout))
+            {
+                bool faded = Highlight is not null && line.Label != Highlight;
+                <path d="@line.Path" fill="none" stroke="@_color(line.Index)" stroke-width="@(faded ? "1.5" : "2.5")"
+                      stroke-opacity="@(faded ? "0.35" : "0.9")" stroke-linejoin="round">
+                    <title>@_tip(line, layout)</title>
+                </path>
+            }
+
+            @* Tick values are haloed in the background colour so they stay readable where lines cross the axis. *@
+            <g style="paint-order:stroke;stroke:var(--color-base-100);stroke-width:3px;stroke-linejoin:round;">
+                @foreach (ParallelLayoutAxis axis in layout.Axes)
+                {
+                    <CompareAxis Ticks="axis.Ticks" LineOpacity="0.35" />
+                }
+            </g>
+            @foreach (ParallelLayoutAxis axis in layout.Axes)
+            {
+                <SvgText X="@axis.Label.X" Y="@axis.Label.Y" Anchor="middle" FontSize="12" FontWeight="600" Text="@axis.Label.Text" />
+            }
+        }
+    </ChildContent>
+    <Legend>
+        @if (ShowLegend)
+        {
+            <ChartLegend Items="@Items.Select((item, i) => (item.Label, _color(i))).ToList()" />
+        }
+    </Legend>
+</D3ChartFrame>
+
+@code {
+    /// <summary>The axis names, left to right. At least two are needed.</summary>
+    [Parameter] public IReadOnlyList<string> Dimensions { get; set; } = [];
+
+    /// <summary>The items, one line each; value <c>i</c> of an item lines up with dimension <c>i</c>. A missing or NaN value breaks the line there.</summary>
+    [Parameter] public IReadOnlyList<ParallelItem> Items { get; set; } = [];
+
+    /// <summary>Label of an item to bring forward; the other lines fade. Null shows all lines alike.</summary>
+    [Parameter] public string? Highlight { get; set; }
+
+    /// <summary>Show a legend naming each line.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>Format string for values in tooltips and the description, e.g. "{0:N0}".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <inheritdoc />
+    protected override string Kind => "parallel";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Dimensions = Dimensions.ToArray(),
+        Items = Items.Select(i => new
+        {
+            i.Label,
+            Values = Dimensions.Select((_, d) => d < i.Values.Count ? CompareSpec.Finite(i.Values[d]) : null).ToArray(),
+        }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+    };
+
+    // The highlighted line is drawn last so it sits on top.
+    private IEnumerable<ParallelLayoutLine> _drawOrder(ParallelLayout layout) =>
+        layout.Lines.OrderBy(l => Highlight is not null && l.Label == Highlight);
+
+    private string _color(int i) => ChartPalette.At(i, i < Items.Count ? Items[i].Color : null);
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _tip(ParallelLayoutLine line, ParallelLayout layout) =>
+        $"{line.Label}: " + string.Join(", ", layout.Axes.Select((a, i) => i < line.Values.Count && line.Values[i] is { } v ? $"{a.Name} {_format(v)}" : $"{a.Name} no value"));
+
+    private string _label => Title ?? "Parallel coordinates chart";
+
+    private string _description => string.Join("; ", Items.Select(item =>
+        $"{item.Label}: " + string.Join(", ", Dimensions.Select((d, i) => i < item.Values.Count && double.IsFinite(item.Values[i]) ? $"{d} {_format(item.Values[i])}" : $"{d} no value"))));
+}

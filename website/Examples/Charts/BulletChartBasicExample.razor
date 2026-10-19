@@ -1,0 +1,12 @@
+<BulletChart Title="Quarterly goals" Items="_goals" />
+
+@code {
+    // Ranges are ascending thresholds for the shaded bands behind each bar: behind, on track, ahead.
+    private readonly BulletItem[] _goals =
+    [
+        new("Active seats", 8240, Target: 9000, Ranges: [6000, 8000, 10000]),
+        new("Deployments", 412, Target: 380, Ranges: [250, 350, 450]),
+        new("New workspaces", 1180, Target: 1400, Ranges: [800, 1200, 1600]),
+        new("NPS", 46, Target: 50, Ranges: [20, 40, 60]),
+    ];
+}

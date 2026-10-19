@@ -1,0 +1,14 @@
+<ParallelCoordinatesChart Title="Workspaces compared, Team plan highlighted" Dimensions="_measures" Items="_workspaces" Highlight="Team plan" />
+
+@code {
+    private readonly string[] _measures = ["Active seats", "Deployments", "Response time (ms)", "NPS"];
+
+    // A NaN breaks the line on that axis.
+    private readonly ParallelItem[] _workspaces =
+    [
+        new("Starter plan", [4, 12, 240, 31]),
+        new("Team plan", [22, 85, 190, 46]),
+        new("Business plan", [80, 210, 175, 52]),
+        new("Scale plan", [230, 640, double.NaN, 44]),
+    ];
+}

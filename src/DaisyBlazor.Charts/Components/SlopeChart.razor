@@ -1,0 +1,101 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<SlopeLayout>
+
+@* Slope chart: each item as a line from its value at a first time point to its value at a second,
+   on one shared scale, named at both ends. D3 computes the scale and moves the end labels apart so
+   they never overlap; this component draws them in theme colours. *@
+
+<D3ChartFrame TLayout="SlopeLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { } layout && layout.Items.Count > 0)
+    {
+        <line x1="@N(layout.X1)" y1="@N(layout.Y0)" x2="@N(layout.X1)" y2="@N(layout.Y1)" stroke="var(--color-base-content)" stroke-opacity="0.2" />
+        <line x1="@N(layout.X2)" y1="@N(layout.Y0)" x2="@N(layout.X2)" y2="@N(layout.Y1)" stroke="var(--color-base-content)" stroke-opacity="0.2" />
+        <CompareAxis Labels="layout.Headers" LabelSize="12" />
+
+        @for (int i = 0; i < layout.Items.Count; i++)
+        {
+            SlopeLayoutItem item = layout.Items[i];
+            string color = _color(item, i);
+            <g>
+                <title>@($"{item.Label}: {StartLabel} {_format(item.Start)}, {EndLabel} {_format(item.End)}".Trim())</title>
+                <line x1="@N(item.X1)" y1="@N(item.Y1)" x2="@N(item.X2)" y2="@N(item.Y2)" stroke="@color" stroke-width="2.5" stroke-linecap="round" />
+                <circle cx="@N(item.X1)" cy="@N(item.Y1)" r="4" fill="@color" />
+                <circle cx="@N(item.X2)" cy="@N(item.Y2)" r="4" fill="@color" />
+            </g>
+            <SvgText X="@item.Left.X" Y="@item.Left.Y" Anchor="end" FontSize="12" FillOpacity="0.85" Text="@item.Left.Text" />
+            <SvgText X="@item.Right.X" Y="@item.Right.Y" Anchor="start" FontSize="12" FillOpacity="0.85" Text="@item.Right.Text" />
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The lines. Items whose Start or End is not a finite number are skipped.</summary>
+    [Parameter] public IReadOnlyList<SlopeItem> Items { get; set; } = [];
+
+    /// <summary>Header over the left column, e.g. "Q1".</summary>
+    [Parameter] public string StartLabel { get; set; } = string.Empty;
+
+    /// <summary>Header over the right column, e.g. "Q4".</summary>
+    [Parameter] public string EndLabel { get; set; } = string.Empty;
+
+    /// <summary>Write each value next to the item's name at both ends.</summary>
+    [Parameter] public bool ShowValues { get; set; } = true;
+
+    /// <summary>Colour lines by direction (success when the value rises, error when it falls, neutral when flat) instead of the palette. An item's own Color still wins.</summary>
+    [Parameter] public bool ColorByChange { get; set; }
+
+    /// <summary>Format string for values in labels and tooltips, e.g. "{0:N0}".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Creates a slope chart; it is a little taller than the other charts by default.</summary>
+    public SlopeChart()
+    {
+        AspectRatio = 4d / 3;
+    }
+
+    /// <inheritdoc />
+    protected override string Kind => "slope";
+
+    // The formatted values travel with the data so the layout can size the label columns.
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Items = Items.Select(i => new
+        {
+            i.Label,
+            Start = CompareSpec.Finite(i.Start),
+            End = CompareSpec.Finite(i.End),
+            StartText = _format(i.Start),
+            EndText = _format(i.End),
+        }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        StartLabel,
+        EndLabel,
+        ShowValues,
+    };
+
+    // Layout items keep the data's order among the valid items, so the palette index follows the data.
+    private string _color(SlopeLayoutItem item, int i)
+    {
+        SlopeItem? source = Items.Where(d => double.IsFinite(d.Start) && double.IsFinite(d.End)).ElementAtOrDefault(i);
+        if (!string.IsNullOrWhiteSpace(source?.Color))
+        {
+            return source.Color;
+        }
+
+        if (ColorByChange)
+        {
+            return item.End > item.Start ? "var(--color-success)" : item.End < item.Start ? "var(--color-error)" : "var(--color-base-content)";
+        }
+
+        return ChartPalette.At(i);
+    }
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _label => Title ?? "Slope chart";
+
+    private string _description => string.Join("; ", Items.Where(i => double.IsFinite(i.Start) && double.IsFinite(i.End))
+        .Select(i => $"{i.Label}: from {_format(i.Start)} to {_format(i.End)}"));
+}

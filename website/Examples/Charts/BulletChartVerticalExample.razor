@@ -1,0 +1,12 @@
+<BulletChart Title="Deployments this quarter, by team" Items="_teams" Vertical="true" AspectRatio="1.6"
+             BarColor="var(--color-secondary)" ValueFormat="{0:N0} deployments" />
+
+@code {
+    private readonly BulletItem[] _teams =
+    [
+        new("Platform", 132, Target: 120, Ranges: [80, 110, 150]),
+        new("Billing", 64, Target: 90, Ranges: [50, 80, 110]),
+        new("Mobile", 88, Target: 85, Ranges: [60, 80, 100]),
+        new("Search", 41, Target: 60, Ranges: [30, 50, 70]),
+    ];
+}

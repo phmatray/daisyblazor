@@ -1,0 +1,14 @@
+<ParallelCoordinatesChart Title="Plan limits" Dimensions="_limits" Items="_plans" />
+
+@code {
+    // Each axis has its own scale, so seats, gigabytes and calls per minute sit side by side.
+    private readonly string[] _limits = ["Seats", "Storage (GB)", "API calls / min", "Projects", "Support hours"];
+
+    private readonly ParallelItem[] _plans =
+    [
+        new("Starter", [5, 10, 60, 3, 8]),
+        new("Team", [25, 100, 300, 20, 24]),
+        new("Business", [100, 500, 1200, 100, 72]),
+        new("Scale", [250, 2000, 3000, 400, 168]),
+    ];
+}

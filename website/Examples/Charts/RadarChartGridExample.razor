@@ -1,0 +1,12 @@
+<RadarChart Title="Team health check (out of 5)" Labels="_axes" Series="_teams"
+            Grid="RadarGrid.Circle" Filled="false" Max="5" Levels="5" ValueFormat="{0:0.0} / 5" />
+
+@code {
+    private readonly string[] _axes = ["Delivery pace", "Code quality", "On-call load", "Docs", "Onboarding", "Focus time"];
+
+    private readonly ChartSeries[] _teams =
+    [
+        new("Platform", [4.2, 4.5, 2.8, 3.9, 3.5, 3.1]),
+        new("Billing", [3.6, 3.9, 4.1, 2.7, 4.0, 3.8]),
+    ];
+}
