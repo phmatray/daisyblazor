@@ -198,9 +198,9 @@
     // The value's share of the absolute total of its stack in the category, in percent.
     private double _share(int category, int series, double value)
     {
-        string? stack = _grouped ? _series![series].Stack : null;
+        string? stack = _grouped ? _series![series].Stack ?? string.Empty : null;
         double total = Enumerable.Range(0, _seriesCount)
-            .Where(s => !_grouped || _series![s].Stack == stack)
+            .Where(s => !_grouped || (_series![s].Stack ?? string.Empty) == stack) // null and "" are one stack, as in the spec
             .Select(s => _value(category, s))
             .Where(double.IsFinite)
             .Sum(Math.Abs);

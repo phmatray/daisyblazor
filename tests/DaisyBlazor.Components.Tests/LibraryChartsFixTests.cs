@@ -314,6 +314,23 @@ public class LibraryChartsFixTests : BunitContext
     }
 
     [Fact]
+    public void BarChart_percent_tooltips_treat_a_null_and_an_empty_stack_as_one()
+    {
+        // The layout puts Stack null and "" in the same stack, so the shares must add them up too.
+        BunitJSModuleInterop module = JSInterop.SetupCharts(bar: ChartFakes.Bar with
+        {
+            Bars = [new(0, 0, 100, 8, 80, 111.5), new(0, 1, 100, 119.5, 80, 111.5)],
+        });
+        IRenderedComponent<BarChart> cut = Render<BarChart>(ps => ps
+            .Add(p => p.Series, new List<ChartSeries> { new("Pro", [10]), new("Team", [30]) { Stack = "" } })
+            .Add(p => p.Labels, new[] { "Q1" })
+            .Add(p => p.Percent, true));
+
+        module.Spec().ShouldContain("\"stacks\":[0,0]");
+        cut.FindAll("rect title").Select(t => t.TextContent).ShouldBe(["Pro · Q1: 10 (25%)", "Team · Q1: 30 (75%)"]);
+    }
+
+    [Fact]
     public void BarChart_stacked_keeps_each_series_own_value_in_tooltips()
     {
         BunitJSModuleInterop module = JSInterop.SetupCharts(bar: ChartFakes.Bar with
