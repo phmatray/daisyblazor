@@ -262,3 +262,14 @@ test('treemap: strip tiling fills rows in order while they get closer to square'
         [0, 266.67, 225, 400], [225, 266.67, 375, 400], [375, 266.67, 525, 400], [525, 266.67, 600, 400],
     ]);
 });
+
+test('treemap: strip tiling keeps the input order, not largest first', async () => {
+    const flat = { name: 'r', children: [['small', 1], ['large', 6], ['mid', 3]].map(([name, value]) => ({ name, value })) };
+    const { nodes } = await layout('treemap', { root: flat, width: 600, height: 400, tile: 'strip', padding: 0 });
+    assert.deepEqual(nodes.map(n => n.name), ['small', 'large', 'mid']);
+    assert.equal(nodes[0].x0, 0);
+    assert.equal(nodes[0].y0, 0);
+    // Other tilings still place the largest first.
+    const squarified = await layout('treemap', { root: flat, width: 600, height: 400, tile: 'squarify', padding: 0 });
+    assert.equal(squarified.nodes[0].name, 'large');
+});

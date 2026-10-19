@@ -357,8 +357,8 @@ public class ChartsDistributionTests : BunitContext
             [new(1, 2, 100, 200, 40)], Max: 60, Labels: [new(50, 30, 40)]));
         cut.WaitForAssertion(() => cut.FindAll("svg g[transform] path").Count.ShouldBe(2));
         IReadOnlyList<AngleSharp.Dom.IElement> bands = cut.FindAll("svg g[transform] path");
-        bands[0].GetAttribute("fill").ShouldContain("10%");
-        bands[1].GetAttribute("fill").ShouldContain("100%");
+        bands[0].GetAttribute("fill")!.ShouldContain("10%");
+        bands[1].GetAttribute("fill")!.ShouldContain("100%");
         bands[0].GetAttribute("stroke").ShouldBe("none");
         bands[1].GetAttribute("stroke").ShouldBe("var(--color-base-content)");
         cut.Markup.ShouldContain("Latency (ms) 40–50");

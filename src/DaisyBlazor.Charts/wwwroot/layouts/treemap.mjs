@@ -46,7 +46,7 @@ const HEADER = 18;
 // spec: { root: { name, value, children }, focus?: ['Branch', 'child'], width, height, tile, padding }
 // Every node but the root: leaves are tiles, parents are frames with an 18-unit header for their name.
 export default function treemapLayout({ root, focus: path, width, height, tile = 'squarify', padding = 2 }) {
-    const full = build(root);
+    const full = build(root, tile === 'strip');
     if (!full) {
         return EMPTY;
     }

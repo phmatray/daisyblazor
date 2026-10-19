@@ -9,14 +9,16 @@ const positive = v => (Number.isFinite(v) && v > 0 ? v : 0);
 const kids = d => (Array.isArray(d.children) && d.children.length > 0 ? d.children : null);
 
 // A summed, largest-first d3 hierarchy of { name, value, children }, or null when nothing has a
-// positive value. Only leaves carry value; a parent is the sum of its children.
-export function build(root) {
+// positive value. Only leaves carry value; a parent is the sum of its children. keepOrder leaves the
+// children in input order (the strip treemap tiling is defined by that order).
+export function build(root, keepOrder = false) {
     if (!root || typeof root !== 'object') {
         return null;
     }
-    const h = hierarchy(root, kids)
-        .sum(d => (kids(d) ? 0 : positive(d.value)))
-        .sort((a, b) => b.value - a.value);
+    const h = hierarchy(root, kids).sum(d => (kids(d) ? 0 : positive(d.value)));
+    if (!keepOrder) {
+        h.sort((a, b) => b.value - a.value);
+    }
     if (!(h.value > 0)) {
         return null;
     }
