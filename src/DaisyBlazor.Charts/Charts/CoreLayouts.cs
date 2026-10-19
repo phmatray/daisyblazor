@@ -85,7 +85,7 @@ internal static class ChartText
     /// <summary>Estimated width of a label at the given font size, as the layouts estimate it.</summary>
     public static double Width(string text, double fontSize = 11) => text.Sum(Glyph) * fontSize;
 
-    /// <summary>The text shortened with an ellipsis so it fits <paramref name="room"/>, or null when not even three letters fit.</summary>
+    /// <summary>The text shortened with an ellipsis so it fits <paramref name="room"/>, or null when not even four letters fit (a shorter stub such as "Bil…" names nothing).</summary>
     public static string? Fit(string text, double room, double fontSize = 11)
     {
         if (Width(text, fontSize) <= room)
@@ -99,7 +99,7 @@ internal static class ChartText
             keep++;
         }
 
-        return keep >= 3 ? text[..keep] + "…" : null;
+        return keep >= 4 ? text[..keep] + "…" : null;
     }
 
     /// <summary>A trend kind in words: <see cref="ChartTrendline.MovingAverage"/> → "moving average".</summary>
