@@ -150,6 +150,16 @@
             ? [.. Rings!.Select(r => _merge(r.Name, r.Data ?? []))]
             : [_merge(null, Data ?? new List<ChartDataPoint>())];
         _labelOrder = [.. _rings.SelectMany(r => r.Items).Select(p => p.Label).Distinct()];
+
+        // A label takes the first colour any of its points gives, else its palette slot.
+        Dictionary<string, string> custom = [];
+        foreach (ChartDataPoint point in _rings.SelectMany(r => r.Items).Where(p => p.Color is not null))
+        {
+            custom.TryAdd(point.Label, point.Color!);
+        }
+
+        _labelColors = _labelOrder.Select((label, i) => (Label: label, Color: ChartPalette.At(i, custom.GetValueOrDefault(label))))
+            .ToDictionary(x => x.Label, x => x.Color);
         base.OnParametersSet();
     }
 
@@ -181,6 +191,7 @@
 
     private List<Ring> _rings = [];
     private List<string> _labelOrder = [];
+    private Dictionary<string, string> _labelColors = [];
     private bool _multi;
 
     // Two or more slices below the threshold become one slice at the end; the rest keep their order.
@@ -209,8 +220,7 @@
     private string _color(PieLayoutSlice slice, int k) =>
         _multi ? _labelColor(_point(slice).Label) : ChartPalette.At(k, _point(slice).Color);
 
-    private string _labelColor(string label) =>
-        ChartPalette.At(_labelOrder.IndexOf(label), _rings.SelectMany(r => r.Items).FirstOrDefault(p => p.Label == label && p.Color is not null)?.Color);
+    private string _labelColor(string label) => _labelColors[label];
 
     private static string _percent(PieLayoutSlice slice) => slice.Percent.ToString("0.#", CultureInfo.InvariantCulture);
 

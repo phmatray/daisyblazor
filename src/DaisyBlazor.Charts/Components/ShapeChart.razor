@@ -70,15 +70,34 @@
 
     private static string _key(ChartShape shape) => shape.Group ?? shape.Name;
 
-    private List<string> _keys => [.. Shapes.Select(_key).Distinct()];
+    // Palette slot of each group (or ungrouped shape), in order of first appearance, and the legend:
+    // built once per parameters set.
+    private Dictionary<string, int> _slots = [];
+    private List<(string Name, string Color)> _legendItems = [];
 
-    private string _color(ChartShape shape) => ChartPalette.At(_keys.IndexOf(_key(shape)), shape.Color);
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        _slots = [];
+        _legendItems = [];
+        foreach (ChartShape shape in Shapes)
+        {
+            if (_slots.TryAdd(_key(shape), _slots.Count))
+            {
+                _legendItems.Add((_key(shape), _color(shape)));
+            }
+        }
+
+        base.OnParametersSet();
+    }
+
+    private string _color(ChartShape shape) => ChartPalette.At(_slots.GetValueOrDefault(_key(shape)), shape.Color);
 
     private static string _tooltip(ChartShape shape) =>
         shape.Group is { Length: > 0 } group && group != shape.Name ? $"{shape.Name} ({group})" : shape.Name;
 
-    private RenderFragment? _legend => ShowLegend && _keys.Count > 1
-        ? @<ChartLegend Items="@(_keys.Select(k => (k, _color(Shapes.First(s => _key(s) == k)))).ToList())" />
+    private RenderFragment? _legend => ShowLegend && _legendItems.Count > 1
+        ? @<ChartLegend Items="@_legendItems" />
         : null;
 
     private string _label => Title ?? "Shape chart";

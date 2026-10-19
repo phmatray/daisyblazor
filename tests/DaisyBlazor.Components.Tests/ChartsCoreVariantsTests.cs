@@ -131,6 +131,14 @@ public class ChartsCoreVariantsTests : BunitContext
         paths[3].GetAttribute("fill").ShouldBe("var(--color-primary)");
         paths[2].TextContent.ShouldBe("2025, Pro: 50 (50%)");
         cut.FindAll("li").Count.ShouldBe(2);
+
+        // Label colours are worked out per parameters set: a colour given in a later ring applies to every ring.
+        DonutRing[] recoloured = [rings[0], new("2025", [new("Pro", 50, "red"), new("Free", 50)])];
+        cut.Render(ps => ps.Add(p => p.Rings, recoloured));
+        paths = cut.FindAll("path");
+        paths[1].GetAttribute("fill").ShouldBe("red");
+        paths[2].GetAttribute("fill").ShouldBe("red");
+        cut.FindAll("li span.rounded-sm")[1].GetAttribute("style").ShouldBe("background:red;");
     }
     [Fact]
     public void Donut_forwards_ShowPercent_to_the_pie()

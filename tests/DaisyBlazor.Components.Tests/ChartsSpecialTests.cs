@@ -415,6 +415,15 @@ public class ChartsSpecialTests : BunitContext
         cut.Markup.ShouldContain("Rack A2 (Free)");
         cut.Markup.ShouldContain("Metres");
         cut.FindAll("span.inline-flex").Count.ShouldBe(3);
+
+        // The group colours are worked out per parameters set: regrouping (same geometry, same layout) recolours.
+        ChartShape[] regrouped = [shapes[0] with { Group = "Free" }, shapes[1] with { Group = "Full" }, shapes[2], shapes[3]];
+        cut.Render(ps => ps.Add(p => p.Shapes, regrouped));
+        polygons = cut.FindAll("path.dbc-shape");
+        polygons[0].GetAttribute("fill").ShouldBe("var(--color-primary)");
+        polygons[1].GetAttribute("fill").ShouldBe("var(--color-secondary)");
+        polygons[2].GetAttribute("fill").ShouldBe("var(--color-secondary)");
+        cut.Find("span.inline-flex").TextContent.ShouldContain("Free");
     }
 
     [Fact]
