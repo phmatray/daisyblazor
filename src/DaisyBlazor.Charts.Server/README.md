@@ -11,7 +11,9 @@ builder.Services.AddDaisyBlazorChartsServerRendering();
 ```
 
 With it registered, charts render their finished SVG during prerendering and static server
-rendering, instead of a placeholder. Interactive charts lay out again in the browser.
+rendering, instead of a placeholder. The prerendered layout is handed to the interactive render
+(WebAssembly or a new circuit) through the persisted component state, so the chart never flashes
+back to a placeholder; charts sized by their box lay out again at its real size.
 
 The first layout parses the D3 bundle (about half a second); later layouts take a few milliseconds.
 Each concurrent request uses its own engine from a pool.
