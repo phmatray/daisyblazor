@@ -1,0 +1,303 @@
+@namespace DaisyBlazor.Charts
+@inherits D3ChartBase<RangeSelectorLayout>
+
+@* Range selector: a compact overview of a time series with a window from From to To that the
+   pointer moves (drag the window) and resizes (drag either handle), and the keyboard moves through
+   the two handles, which are sliders. Outside the window is dimmed. Bind From and To, and filter
+   the data of a chart by them, to show the selected window in detail. D3 lays out the overview at
+   the box's real pixel size (measured mode); the window is HTML over it, placed in percent so it
+   lines up at any size, server rendering included. *@
+
+<div class="@CssClass.Merge("w-full", Class)" style="@(string.IsNullOrEmpty(Width) ? Style : $"width:{Width};{Style}")" @attributes="UserAttributes">
+    @if (!string.IsNullOrEmpty(Title))
+    {
+        <div class="text-sm font-medium mb-2 text-base-content/80">@Title</div>
+    }
+
+    <div @ref="MeasuredElement" style="@($"position:relative;height:{ChartText.Size(Height, "5rem")};")">
+        @if (Error is { } error)
+        {
+            <div role="alert" class="flex items-center justify-center rounded-box border border-dashed border-error/50 text-error text-sm p-4 text-center" style="height:100%;">
+                The chart could not be drawn: @error
+            </div>
+        }
+        else if (Layout is not { } geo)
+        {
+            <div aria-busy="true" aria-label="@($"{_ariaLabel} (loading)")" class="rounded-box bg-base-200 animate-pulse motion-reduce:animate-none" style="height:100%;"></div>
+        }
+        else
+        {
+            <svg viewBox="@($"0 0 {N(geo.Width)} {N(geo.Height)}")" role="img" aria-label="@_ariaLabel" aria-describedby="@_descId"
+                 style="position:absolute;inset:0;display:block;width:100%;height:100%;overflow:visible;font-family:inherit;">
+                <title>@_ariaLabel</title>
+                <desc id="@_descId">@_description</desc>
+                <rect x="@N(geo.Plot.Left)" y="@N(geo.Plot.Top)" width="@N(geo.Plot.Right - geo.Plot.Left)" height="@N(geo.Plot.Bottom - geo.Plot.Top)"
+                      fill="var(--color-base-200)" fill-opacity="0.5" rx="4" />
+                <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" XGrid="true" Baseline="true" ViewWidth="geo.Width" />
+                @if (!LineOnly)
+                {
+                    <path d="@geo.Area" fill="@Color" fill-opacity="0.2" stroke="none" />
+                }
+                <path d="@geo.Line" fill="none" stroke="@Color" stroke-width="1.5" stroke-linejoin="round" />
+            </svg>
+
+            @if (_hasData)
+            {
+                double from = _x(geo, _from), to = _x(geo, _to);
+                @* The track covers the plot. Arrow, Page, Home and End keys on a handle would also scroll
+                   the page: the inline handler stops that, Blazor's own handler still gets the key. *@
+                <div class="absolute select-none" style="@_track(geo)" onkeydown="if(/^(Arrow|Page|Home$|End$)/.test(event.key))event.preventDefault()"
+                     @onpointermove="OnPointerMove" @onpointerup="EndDrag" @onpointercancel="EndDrag">
+                    <div class="absolute inset-y-0 left-0 bg-base-100/70 pointer-events-none" style="@($"width:{P(from - geo.Plot.Left, geo)}%")"></div>
+                    <div class="absolute inset-y-0 right-0 bg-base-100/70 pointer-events-none" style="@($"width:{P(geo.Plot.Right - to, geo)}%")"></div>
+                    <div class="range-selector-window absolute inset-y-0 border-y-2" title="Drag to move the selected range"
+                         style="@($"left:{P(from - geo.Plot.Left, geo)}%;width:{P(to - from, geo)}%;border-color:{Color};touch-action:none;cursor:{(_drag == Drag.Move ? "grabbing" : "grab")};")"
+                         @onpointerdown="@(e => StartDrag(e, Drag.Move))"></div>
+                    @foreach (bool isFrom in new[] { true, false })
+                    {
+                        bool start = isFrom;
+                        <div class="range-selector-handle absolute inset-y-0 -translate-x-1/2 flex items-center justify-center rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                             style="@($"left:{P((start ? from : to) - geo.Plot.Left, geo)}%;width:16px;cursor:ew-resize;touch-action:none;")"
+                             role="slider" tabindex="0"
+                             aria-label="@(start ? FromLabel : ToLabel)"
+                             aria-valuemin="@_unix(start ? _min : _from + _minSpan)"
+                             aria-valuemax="@_unix(start ? _to - _minSpan : _max)"
+                             aria-valuenow="@_unix(start ? _from : _to)"
+                             aria-valuetext="@_text(start ? _from : _to)"
+                             @onpointerdown="@(e => StartDrag(e, start ? Drag.From : Drag.To))"
+                             @onkeydown="@(e => OnKey(e, start))">
+                            <span class="block h-3/5 w-1.5 rounded-full border bg-base-100 shadow-sm pointer-events-none" style="@($"border-color:{Color};")"></span>
+                        </div>
+                    }
+                </div>
+                @if (_drag != Drag.None)
+                {
+                    @* While dragging, a page-wide layer keeps the pointer's moves coming when it leaves the selector. *@
+                    <div class="range-selector-capture fixed inset-0 z-50" style="@($"cursor:{(_drag == Drag.Move ? "grabbing" : "ew-resize")};touch-action:none;")"
+                         @onpointermove="OnPointerMove" @onpointerup="EndDrag" @onpointercancel="EndDrag"></div>
+                }
+            }
+        }
+    </div>
+</div>
+
+@code {
+    /// <summary>The series to overview: a value at each time. Points are sorted by time; ones without a finite value are left out.</summary>
+    [Parameter] public IReadOnlyList<RangeSelectorPoint> Points { get; set; } = [];
+
+    /// <summary>Start of the selected window. The default value (or anything before the first point) selects from the first point.</summary>
+    [Parameter] public DateTime From { get; set; }
+
+    /// <summary>Raised with the new start when the window is moved or its start handle is dragged or keyed.</summary>
+    [Parameter] public EventCallback<DateTime> FromChanged { get; set; }
+
+    /// <summary>End of the selected window. The default value (or anything after the last point) selects up to the last point.</summary>
+    [Parameter] public DateTime To { get; set; }
+
+    /// <summary>Raised with the new end when the window is moved or its end handle is dragged or keyed.</summary>
+    [Parameter] public EventCallback<DateTime> ToChanged { get; set; }
+
+    /// <summary>
+    /// Snap the window to whole steps from the first point (e.g. one hour, one day); the arrow keys move
+    /// a handle by one step, Shift+arrow by ten, and the window is never shorter than one step. Without
+    /// a step nothing snaps and the keys step by the smallest gap between points.
+    /// </summary>
+    [Parameter] public TimeSpan? Step { get; set; }
+
+    /// <summary>CSS colour of the overview and the window.</summary>
+    [Parameter] public string Color { get; set; } = "var(--color-primary)";
+
+    /// <summary>Draw only the line of the overview, without the filled area under it.</summary>
+    [Parameter] public bool LineOnly { get; set; }
+
+    /// <summary>Smooth the overview with a monotone curve; false joins the points with straight lines.</summary>
+    [Parameter] public bool Smooth { get; set; } = true;
+
+    /// <summary>.NET format of the handles' dates read by screen readers; null shows the date, and the time when the points have one.</summary>
+    [Parameter] public string? DateFormat { get; set; }
+
+    /// <summary>Accessible name of the start handle.</summary>
+    [Parameter] public string FromLabel { get; set; } = "Start of the selected range";
+
+    /// <summary>Accessible name of the end handle.</summary>
+    [Parameter] public string ToLabel { get; set; } = "End of the selected range";
+
+    /// <summary>Optional heading above the selector; also its accessible name.</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>CSS width of the selector.</summary>
+    [Parameter] public string? Width { get; set; } = "100%";
+
+    /// <summary>CSS height of the overview.</summary>
+    [Parameter] public string? Height { get; set; } = "5rem";
+
+    /// <summary>Additional CSS classes merged onto the <c>w-full</c> wrapper.</summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>Inline styles appended to the wrapper after the width.</summary>
+    [Parameter] public string? Style { get; set; }
+
+    /// <summary>Attributes splatted onto the wrapper.</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
+
+    private enum Drag { None, Move, From, To }
+
+    private readonly string _descId = "range-desc-" + Guid.NewGuid().ToString("N")[..8];
+    private bool _hasData;
+    private DateTime _min, _max, _from, _to;
+    private TimeSpan _step, _minSpan;
+    private bool _withTime;
+    private Drag _drag;
+    private double _dragX;
+    private DateTime _dragFrom, _dragTo;
+
+    /// <inheritdoc />
+    protected override string Kind => "range-selector";
+
+    /// <inheritdoc />
+    protected override bool Measured => true;
+
+    /// <inheritdoc />
+    protected override (double Width, double Height) ServerSize => (800, 80);
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Points = Points.Select(p => new { p.Time, p.Value }).ToArray(),
+        Smooth,
+    };
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        DateTime[] times = Points.Where(p => double.IsFinite(p.Value)).Select(p => p.Time).Order().ToArray();
+        _hasData = times.Length > 0;
+        if (_hasData)
+        {
+            _min = times[0];
+            _max = times[^1] > times[0] ? times[^1] : times[0].AddDays(1);
+            TimeSpan span = _max - _min;
+            TimeSpan gap = times.Zip(times.Skip(1), (a, b) => b - a).Where(g => g > TimeSpan.Zero).DefaultIfEmpty(span / 100).Min();
+            _step = Step is { } s && s > TimeSpan.Zero ? s : gap;
+            _minSpan = _step < span ? _step : span;
+            _withTime = times.Any(t => t.TimeOfDay != TimeSpan.Zero);
+
+            // While a drag is under way the window is the selector's own; the echo of what it raised changes nothing.
+            if (_drag == Drag.None)
+            {
+                _to = Clamp(To == default || To > _max ? _max : To, _min + _minSpan, _max);
+                _from = Clamp(From == default || From < _min ? _min : From, _min, _to - _minSpan);
+            }
+        }
+
+        base.OnParametersSet();
+    }
+
+    private static DateTime Clamp(DateTime value, DateTime lo, DateTime hi) => value < lo ? lo : value > hi ? hi : value;
+
+    // Whole steps from the first point, when snapping.
+    private DateTime Snap(DateTime value) =>
+        Step is { } s && s > TimeSpan.Zero ? _min + s * Math.Round((value - _min) / s) : value;
+
+    private void StartDrag(PointerEventArgs e, Drag mode)
+    {
+        _drag = mode;
+        _dragX = e.ClientX;
+        _dragFrom = _from;
+        _dragTo = _to;
+    }
+
+    private async Task OnPointerMove(PointerEventArgs e)
+    {
+        if (_drag == Drag.None || Layout is not { } geo || geo.Plot.Right <= geo.Plot.Left)
+        {
+            return;
+        }
+
+        // The overview is laid out at the box's pixel size, so a pixel of pointer travel is a pixel of plot.
+        TimeSpan delta = (_max - _min) * ((e.ClientX - _dragX) / (geo.Plot.Right - geo.Plot.Left));
+        switch (_drag)
+        {
+            case Drag.Move:
+                TimeSpan length = _dragTo - _dragFrom;
+                DateTime from = Clamp(Snap(_dragFrom + delta), _min, _max - length);
+                await SetWindow(from, from + length);
+                break;
+            case Drag.From:
+                await SetWindow(Clamp(Snap(_dragFrom + delta), _min, _to - _minSpan), _to);
+                break;
+            default:
+                await SetWindow(_from, Clamp(Snap(_dragTo + delta), _from + _minSpan, _max));
+                break;
+        }
+    }
+
+    private void EndDrag() => _drag = Drag.None;
+
+    private async Task OnKey(KeyboardEventArgs e, bool start)
+    {
+        int steps = e.ShiftKey ? 10 : 1;
+        DateTime lo = start ? _min : _from + _minSpan;
+        DateTime hi = start ? _to - _minSpan : _max;
+        DateTime now = start ? _from : _to;
+        DateTime? next = e.Key switch
+        {
+            "ArrowLeft" or "ArrowDown" => now - _step * steps,
+            "ArrowRight" or "ArrowUp" => now + _step * steps,
+            "PageDown" => now - _step * 10,
+            "PageUp" => now + _step * 10,
+            "Home" => lo,
+            "End" => hi,
+            _ => null,
+        };
+        if (next is not { } value)
+        {
+            return;
+        }
+
+        value = Clamp(e.Key is "Home" or "End" ? value : Snap(value), lo, hi);
+        await (start ? SetWindow(value, _to) : SetWindow(_from, value));
+    }
+
+    private async Task SetWindow(DateTime from, DateTime to)
+    {
+        bool fromMoved = from != _from, toMoved = to != _to;
+        _from = from;
+        _to = to;
+        if (fromMoved)
+        {
+            await FromChanged.InvokeAsync(from);
+        }
+
+        if (toMoved)
+        {
+            await ToChanged.InvokeAsync(to);
+        }
+    }
+
+    private double _x(RangeSelectorLayout geo, DateTime t) =>
+        geo.Plot.Left + (t - _min) / (_max - _min) * (geo.Plot.Right - geo.Plot.Left);
+
+    // A length in layout units as a percentage of the plot's width (the track's width).
+    private static string P(double length, RangeSelectorLayout geo) =>
+        N(Math.Max(0, length) / Math.Max(1, geo.Plot.Right - geo.Plot.Left) * 100);
+
+    // The plot's box in percent of the chart's, for the track laid over the SVG.
+    private static string _track(RangeSelectorLayout geo)
+    {
+        double w = Math.Max(1, geo.Width), h = Math.Max(1, geo.Height);
+        return $"left:{N(geo.Plot.Left / w * 100)}%;width:{N((geo.Plot.Right - geo.Plot.Left) / w * 100)}%;" +
+            $"top:{N(geo.Plot.Top / h * 100)}%;height:{N((geo.Plot.Bottom - geo.Plot.Top) / h * 100)}%;";
+    }
+
+    private static long _unix(DateTime t) => (long)(DateTime.SpecifyKind(t, DateTimeKind.Utc) - DateTime.UnixEpoch).TotalSeconds;
+
+    private string _text(DateTime t) =>
+        t.ToString(DateFormat ?? (_withTime ? "MMM d, yyyy HH:mm" : "MMM d, yyyy"), CultureInfo.CurrentCulture);
+
+    private string _ariaLabel => Title ?? "Range selector";
+
+    private string _description => _hasData
+        ? $"{Points.Count} points from {_text(_min)} to {_text(_max)}; selected {_text(_from)} to {_text(_to)}."
+        : "No data.";
+}

@@ -1,0 +1,29 @@
+<CandlestickChart Title="CPU utilisation per hour, api-01 (%)" Candles="_window" ValueFormat="{0:0.#} %" AspectRatio="2.2"
+                  Indicators="_average" />
+<RangeSelector Points="_overview" @bind-From="_from" @bind-To="_to" Step="TimeSpan.FromHours(1)" Height="4rem" Class="mt-2" />
+
+@code {
+    // The selector holds the window; the chart only gets the candles inside it.
+    private DateTime _from = new(2026, 10, 12);
+    private DateTime _to = new(2026, 10, 14);
+
+    private Candle[] _window => _hours.Where(c => c.Time >= _from && c.Time <= _to).ToArray();
+
+    private static readonly ChartIndicator[] _average = [new(IndicatorKind.Sma, Period: 6)];
+
+    // Two weeks of hourly CPU readings; the overview draws each hour's close.
+    private static readonly Candle[] _hours = Enumerable.Range(0, 14 * 24)
+        .Select(h =>
+        {
+            double open = Level(h), close = Level(h + 1);
+            double spread = 2 + h * 7 % 6;
+            return new Candle(new DateTime(2026, 10, 5).AddHours(h), open, Math.Round(Math.Max(open, close) + spread, 1),
+                Math.Round(Math.Max(0, Math.Min(open, close) - spread / 2), 1), close);
+        })
+        .ToArray();
+
+    private static readonly RangeSelectorPoint[] _overview = _hours.Select(c => new RangeSelectorPoint(c.Time, c.Close)).ToArray();
+
+    private static double Level(int h) =>
+        Math.Round(30 + 26 * Math.Max(0, Math.Sin((h % 24 - 7) / 11.0 * Math.PI)) + h / 24 * 1.5 + (h % 24 is 2 or 3 ? 20 : 0) + h * 5 % 7, 1);
+}
