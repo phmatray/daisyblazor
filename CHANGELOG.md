@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/phmatray/daisyblazor/compare/v0.6.0...v0.6.1) (2026-10-19)
+
+
+### Bug Fixes
+
+* **packaging:** add NuGet package icon and packaging best practices ([#122](https://github.com/phmatray/daisyblazor/issues/122)) ([d4ad278](https://github.com/phmatray/daisyblazor/commit/d4ad278f2d2300d383737a1feafab23b747c6a5b))
+
 ## [0.6.0](https://github.com/phmatray/daisyblazor/compare/v0.5.1...v0.6.0) (2026-10-17)
 
 
