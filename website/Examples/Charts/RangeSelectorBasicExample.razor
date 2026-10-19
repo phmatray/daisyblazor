@@ -1,0 +1,17 @@
+<RangeSelector Title="Requests per day, last six months" Points="_days" @bind-From="_from" @bind-To="_to" Step="TimeSpan.FromDays(1)" />
+
+<p class="mt-3 text-sm text-base-content/80">
+    Selected: <span class="font-medium">@_from.ToString("MMM d")</span> to <span class="font-medium">@_to.ToString("MMM d, yyyy")</span>
+    (@((_to - _from).TotalDays) days, @_days.Where(d => d.Time >= _from && d.Time <= _to).Sum(d => d.Value).ToString("N0") requests)
+</p>
+
+@code {
+    private DateTime _from = new(2026, 8, 1);
+    private DateTime _to = new(2026, 9, 1);
+
+    // Daily request counts: a weekly rhythm and steady growth.
+    private static readonly RangeSelectorPoint[] _days = Enumerable.Range(0, 183)
+        .Select(i => new RangeSelectorPoint(new DateTime(2026, 4, 20).AddDays(i),
+            Math.Round(42000 + i * 160 + 9000 * Math.Sin(i / 7.0 * 2 * Math.PI) + 4000 * Math.Sin(i / 23.0))))
+        .ToArray();
+}

@@ -254,3 +254,25 @@ test('measured: a box without a size waits until it gets one', async () => {
     assert.equal(ref.calls[0][1].width, 100);
     unobserve(el);
 });
+
+test('measured: arrow keys on a slider inside the chart do not scroll the page; other keys pass', async () => {
+    const listeners = {};
+    const el = {
+        clientWidth: 300, clientHeight: 120,
+        addEventListener(type, fn) { listeners[type] = fn; },
+        removeEventListener(type, fn) { if (listeners[type] === fn) delete listeners[type]; },
+    };
+    await observe(el, 'spark', { data: [1, 2] }, dotnet());
+    const key = (k, slider) => {
+        const event = { key: k, prevented: false, target: { closest: s => (slider && s === '[role="slider"]' ? {} : null) }, preventDefault() { this.prevented = true; } };
+        listeners.keydown(event);
+        return event.prevented;
+    };
+    assert.equal(key('ArrowLeft', true), true);
+    assert.equal(key('PageUp', true), true);
+    assert.equal(key('End', true), true);
+    assert.equal(key('Tab', true), false);
+    assert.equal(key('ArrowLeft', false), false);
+    unobserve(el);
+    assert.equal(listeners.keydown, undefined);
+});

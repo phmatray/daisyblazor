@@ -18,6 +18,15 @@ export async function layout(kind, spec) {
 const observed = new Map();
 const RESIZE_DELAY = 100;
 
+// Arrow, Page, Home and End on a chart's slider (RangeSelector handles) would also scroll the page;
+// stop that here so the chart's own keyboard handler is the only one that acts.
+const SLIDER_KEYS = /^(Arrow|Page|Home$|End$)/;
+function keepSliderKeys(event) {
+    if (SLIDER_KEYS.test(event.key) && event.target?.closest?.('[role="slider"]')) {
+        event.preventDefault();
+    }
+}
+
 async function measure(state, force) {
     const width = Math.round(state.element.clientWidth);
     const height = Math.round(state.element.clientHeight);
@@ -46,6 +55,7 @@ export async function observe(element, kind, spec, dotnetRef) {
         }, RESIZE_DELAY);
     });
     state.observer.observe(element);
+    element.addEventListener?.('keydown', keepSliderKeys);
     observed.set(element, state);
     return (await measure(state, true)) ?? null;
 }
@@ -64,6 +74,7 @@ export function unobserve(element) {
     if (state) {
         clearTimeout(state.timer);
         state.observer.disconnect();
+        element.removeEventListener?.('keydown', keepSliderKeys);
         observed.delete(element);
     }
 }

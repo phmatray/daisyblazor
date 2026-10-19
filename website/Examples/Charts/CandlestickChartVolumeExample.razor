@@ -1,0 +1,22 @@
+<CandlestickChart Title="Job queue depth per hour, with jobs processed" Candles="_hours" ShowVolume="true"
+                  Indicators="_average" UpLabel="Growing" DownLabel="Draining" ValueFormat="{0:N0} jobs" AspectRatio="1.5" />
+
+@code {
+    private static readonly ChartIndicator[] _average = [new(IndicatorKind.Sma, Period: 6, Label: "6-hour average")];
+
+    // Each hour's first, highest, lowest and last queue depth; Volume is the number of jobs processed
+    // that hour, drawn as bars under the candles in the hour's rising or falling colour.
+    private static readonly Candle[] _hours = Enumerable.Range(0, 36)
+        .Select(h =>
+        {
+            double open = Depth(h), close = Depth(h + 1);
+            return new Candle(new DateTime(2026, 10, 18, 12, 0, 0).AddHours(h), open,
+                Math.Max(open, close) + 20 + h % 4 * 9, Math.Max(0, Math.Min(open, close) - 15 - h % 3 * 7), close)
+            {
+                Volume = Math.Round(900 + 600 * Math.Abs(Math.Sin(h / 5.0)) + h * 17 % 250),
+            };
+        })
+        .ToArray();
+
+    private static double Depth(int h) => Math.Round(220 + 140 * Math.Sin(h / 6.0) + 45 * Math.Cos(h * 1.3));
+}
