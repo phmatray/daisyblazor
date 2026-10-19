@@ -19,7 +19,7 @@
     "d3-time": "3.1.0",
     "d3-time-format": "4.1.0",
     "daisyui": "5.7.50",
-    "esbuild": "0.25.10",
+    "esbuild": "0.28.2",
     "tailwindcss": "^4.1.0"
   }
 }
