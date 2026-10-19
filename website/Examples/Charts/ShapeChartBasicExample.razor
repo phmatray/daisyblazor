@@ -13,11 +13,19 @@
             int row = i / 6;
             double x = 1 + (i % 6) * 0.8;
             double y = row == 0 ? 1 : 3.6;
-            racks.Add(new ChartShape($"Rack {(row == 0 ? 'A' : 'B')}{i % 6 + 1}", [Rect(x, y, 0.6, 1.2)], Group: occupancy[i]));
+            racks.Add(new ChartShape($"Rack {(row == 0 ? 'A' : 'B')}{i % 6 + 1}", [Rect(x, y, 0.6, 1.2)], Group: occupancy[i], Color: _colors[occupancy[i]]));
         }
 
         return [.. racks];
     }
+
+    private static readonly Dictionary<string, string> _colors = new()
+    {
+        ["Full"] = "var(--color-error)",
+        ["Over 50%"] = "var(--color-warning)",
+        ["Under 50%"] = "var(--color-info)",
+        ["Empty"] = "var(--color-success)",
+    };
 
     private static ShapePoint[] Rect(double x, double y, double w, double h) => [new(x, y), new(x + w, y), new(x + w, y + h), new(x, y + h)];
 }
