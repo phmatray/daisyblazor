@@ -138,6 +138,96 @@ public class ChartsTimeTests : BunitContext
     }
 
     [Fact]
+    public void CandlestickChart_without_indicators_or_volume_sends_the_plain_spec()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        module.Setup<CandlestickLayout>("layout", _ => true);
+
+        Render<CandlestickChart>(ps => ps
+            .Add(p => p.Candles, [new Candle(new DateTime(2026, 10, 1, 9, 0, 0), 40, 70, 30, 55) { Volume = 1200 }]));
+
+        Spec(module, "candlestick").ShouldBe("{\"candles\":[{\"time\":\"2026-10-01T09:00:00\",\"open\":40,\"high\":70,\"low\":30,\"close\":55}],\"width\":640,\"height\":360}");
+    }
+
+    [Fact]
+    public void CandlestickChart_draws_indicators_panels_and_volume()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        CandlestickLayout layout = new(
+            [new("Oct 1, 2026 09:00", 40, 70, 30, 55, true, 300, 20, 200, 120, 40, 260) { Volume = 1200 }],
+            [new(300, "09:00")], [], _plot with { Bottom = 200 })
+        {
+            Indicators =
+            [
+                new(0, "sma", -1, "M290,150L310,140", "", "", "", "", [], [47.5]),
+                new(1, "bollinger", -1, "M290,150L310,140", "", "M290,100L310,90", "M290,200L310,190", "M290,100L310,90L310,190L290,200Z", [], [47.5]),
+                new(2, "rsi", 0, "M290,230L310,220", "", "", "", "", [], [61.25]),
+            ],
+            Panels =
+            [
+                new("rsi", 214, 260, [new(250, "30", 30), new(224, "70", 70)], [250, 224], []),
+                new("volume", 274, 336, [new(336, "0", 0)], [], [new(290, 280, 20, 56, true, 1200)]),
+            ],
+        };
+        module.Setup<CandlestickLayout>("layout", _ => true).SetResult(layout);
+
+        IRenderedComponent<CandlestickChart> cut = Render<CandlestickChart>(ps => ps
+            .Add(p => p.Candles, [new Candle(new DateTime(2026, 10, 1, 9, 0, 0), 40, 70, 30, 55) { Volume = 1200 }])
+            .Add(p => p.ShowVolume, true)
+            .Add(p => p.Indicators, [new ChartIndicator(IndicatorKind.Sma, Period: 20), new ChartIndicator(IndicatorKind.Bollinger), new ChartIndicator(IndicatorKind.Rsi)]));
+
+        cut.WaitForAssertion(() => cut.Markup.ShouldContain("M290,150L310,140"));
+        string spec = Spec(module, "candlestick");
+        spec.ShouldContain("\"volume\":1200");
+        spec.ShouldContain("\"indicators\":[{\"kind\":\"sma\",\"period\":20,");
+        spec.ShouldContain("{\"kind\":\"bollinger\",\"period\":null,\"stdDev\":2,");
+        spec.ShouldContain("\"showVolume\":true");
+
+        // Indicators take palette colours other than the rising and falling ones, in order.
+        cut.Find("path[d='M290,150L310,140']").GetAttribute("stroke").ShouldBe("var(--color-primary)");
+        cut.Find("path[d='M290,100L310,90L310,190L290,200Z']").GetAttribute("fill").ShouldBe("var(--color-secondary)");
+        cut.Find("path[d='M290,230L310,220']").GetAttribute("stroke").ShouldBe("var(--color-accent)");
+        cut.FindAll("line[stroke-dasharray='3 3']").Count.ShouldBe(2); // RSI 30 and 70
+        cut.Markup.ShouldContain("Oct 1, 2026 09:00: open 40, high 70, low 30, close 55, volume 1,200; SMA 20 47.5; Bollinger 20, 2σ 47.5; RSI 14 61.25");
+        cut.Markup.ShouldContain("Volume: 1,200");
+        cut.Markup.ShouldContain(">Volume<");
+        cut.Markup.ShouldContain(">RSI 14<");
+        string legend = cut.Find("svg + div").TextContent;
+        legend.ShouldContain("SMA 20");
+        legend.ShouldContain("Bollinger 20, 2σ");
+        legend.ShouldContain("RSI 14");
+    }
+
+    [Fact]
+    public void CandlestickChart_names_indicators_by_the_periods_the_layout_uses()
+    {
+        // The layout takes the default for a period under 1, so the legend must say so too.
+        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        CandlestickLayout layout = new(
+            [new("Oct 1, 2026 09:00", 40, 70, 30, 55, true, 300, 20, 200, 120, 40, 260)],
+            [new(300, "09:00")], [], _plot with { Bottom = 200 })
+        {
+            Indicators =
+            [
+                new(0, "sma", -1, "M290,150L310,140", "", "", "", "", [], [47.5]),
+                new(1, "macd", 0, "M290,230L310,220", "", "", "", "", [], [1.5]),
+            ],
+            Panels = [new("macd", 214, 260, [new(250, "0", 0)], [237], [])],
+        };
+        module.Setup<CandlestickLayout>("layout", _ => true).SetResult(layout);
+
+        IRenderedComponent<CandlestickChart> cut = Render<CandlestickChart>(ps => ps
+            .Add(p => p.Candles, [new Candle(new DateTime(2026, 10, 1, 9, 0, 0), 40, 70, 30, 55)])
+            .Add(p => p.Indicators, [new ChartIndicator(IndicatorKind.Sma, Period: 0), new ChartIndicator(IndicatorKind.Macd, Period: 0, SlowPeriod: 0, SignalPeriod: -3)]));
+
+        cut.WaitForAssertion(() => cut.Markup.ShouldContain("M290,150L310,140"));
+        string legend = cut.Find("svg + div").TextContent;
+        legend.ShouldContain("SMA 20");
+        legend.ShouldContain("MACD 12, 26, 9");
+        legend.ShouldNotContain("SMA 0");
+    }
+
+    [Fact]
     public void GanttChart_draws_bars_progress_milestones_and_today()
     {
         BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
@@ -203,5 +293,18 @@ public class ChartsTimeTests : BunitContext
         calendar.WaitForAssertion(() => calendar.FindAll("svg rect").Count.ShouldBe(0));
         calendar.Markup.ShouldNotContain("Less");
         module.Invocations["layout"].Count.ShouldBe(2);
+    }
+
+    [Fact]
+    public void RangeAreaChart_sends_step()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        module.Setup<RangeAreaLayout>("layout", _ => true).SetResult(new RangeAreaLayout("", "", [], [], [], _plot));
+
+        Render<RangeAreaChart>(ps => ps
+            .Add(p => p.Points, [new RangePoint("Mon", 1, 3), new RangePoint("Tue", 2, 4)])
+            .Add(p => p.Step, true));
+
+        Spec(module, "range-area").ShouldContain("\"smooth\":true,\"step\":true");
     }
 }

@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
@@ -59,6 +60,14 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
 
     /// <summary>The layout's input. It is serialized to JSON (camelCase); a new layout is requested only when that JSON changes.</summary>
     protected abstract object BuildSpec();
+
+    /// <summary>
+    /// A cheap change check run before <see cref="BuildSpec"/> on every parameter set: return true
+    /// when none of the spec's inputs changed (compared by reference or value) since the last call,
+    /// and once a spec exists it is neither built nor serialized again. For charts whose spec is
+    /// costly to serialize (a map's geometry); the default, false, always builds the spec and compares its JSON.
+    /// </summary>
+    protected virtual bool InputsUnchanged() => false;
 
     /// <summary>
     /// True to lay out at the pixel size of <see cref="MeasuredElement"/> instead of a fixed
@@ -142,6 +151,12 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
+        // Always asked, so the chart records its inputs from the first spec on.
+        if (InputsUnchanged() && _specJson is not null)
+        {
+            return;
+        }
+
         object spec = BuildSpec();
         string json = JsonSerializer.Serialize(spec, spec.GetType(), _json);
         if (json == _specJson)
@@ -169,7 +184,7 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
     }
 
     // Persisted state only exists for the first render, so only the first spec is looked up.
-    private bool TryRestore(string json, out string? persisted)
+    private bool TryRestore(string json, [NotNullWhen(true)] out string? persisted)
     {
         _restoreTried = true;
         return _state!.TryTakeFromJson(StateKey(json), out persisted) && persisted is not null;

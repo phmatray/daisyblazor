@@ -1,0 +1,9 @@
+world-countries-110m.json: the world's countries as a GeoJSON FeatureCollection, for the ChoroplethMap docs.
+
+Source: Natural Earth 1:110m Admin 0 countries (https://www.naturalearthdata.com/), version 4.1.0, as
+redistributed in the world-atlas npm package (countries-110m.json, TopoJSON). Natural Earth data is in the
+public domain (https://www.naturalearthdata.com/about/terms-of-use/).
+
+Converted to GeoJSON with topojson-client, coordinates rounded to 2 decimals (kept as they were for the
+7 small countries whose area rounding changed by more than 5 %), properties reduced to "name"; the feature
+id is the ISO 3166-1 numeric code.

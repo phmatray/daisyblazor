@@ -1,0 +1,15 @@
+<RangeAreaChart Title="Deployments per day, by week" Points="_points" Step="true"
+                BandLabel="Fewest–most" CenterLabel="Median" AspectRatio="2" ValueFormat="{0:N0} deploys" />
+
+@code {
+    private readonly RangePoint[] _points =
+    [
+        new("W1", 4, 18, 9),
+        new("W2", 6, 22, 12),
+        new("W3", 5, 19, 11),
+        new("W4", 8, 27, 15),
+        new("W5", 7, 24, 14),
+        new("W6", 9, 31, 17),
+        new("W7", 10, 29, 18),
+    ];
+}

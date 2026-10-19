@@ -1,0 +1,12 @@
+<Column3DChart Title="New workspaces per quarter" Labels="_quarters" Series="_series" />
+
+@code {
+    private readonly string[] _quarters = ["Q1", "Q2", "Q3", "Q4"];
+
+    private readonly ChartSeries[] _series =
+    [
+        new("Free", [420, 510, 488, 602]),
+        new("Pro", [180, 214, 251, 290]),
+        new("Enterprise", [34, 41, 39, 52]),
+    ];
+}

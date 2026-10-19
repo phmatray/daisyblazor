@@ -39,6 +39,9 @@ internal static class ChartText
     /// <summary>A data value for tooltips and screen-reader descriptions: 48200 → "48,200".</summary>
     public static string Value(double value) => value.ToString("#,0.##", System.Globalization.CultureInfo.InvariantCulture);
 
+    /// <summary>A share in percent for tooltips: 33.333 → "33.3%".</summary>
+    public static string Percent(double value) => value.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + "%";
+
     /// <summary>A CSS size of a measured chart box; an empty one falls back so the box can be measured.</summary>
     public static string Size(string? size, string fallback) => string.IsNullOrWhiteSpace(size) ? fallback : size;
 

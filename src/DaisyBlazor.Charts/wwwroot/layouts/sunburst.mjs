@@ -1,15 +1,16 @@
 import { partition } from '../d3/d3-hierarchy.mjs';
 import { arc } from '../d3/d3-shape.mjs';
-import { build, groups, base, EMPTY } from './_hierarchy.mjs';
+import { build, groups, base, focus, echo, EMPTY } from './_hierarchy.mjs';
 
-// spec: { root: { name, value, children }, width, height }
+// spec: { root: { name, value, children }, focus?: ['Branch', 'child'], width, height }
 // One ring per level around a centre disc for the root. Paths are relative to (cx, cy); labels run
 // along the radius, flipped on the left half so they read left to right.
-export default function sunburst({ root, width, height }) {
-    const h = build(root);
-    if (!h) {
+export default function sunburst({ root, focus: path, width, height }) {
+    const full = build(root);
+    if (!full) {
         return EMPTY;
     }
+    const h = focus(full, path);
     const radius = Math.max(10, Math.min(width, height) / 2 - 2);
     const ring = radius / (h.height + 1);
     partition().size([2 * Math.PI, h.height + 1])(h);
@@ -41,5 +42,5 @@ export default function sunburst({ root, width, height }) {
                 thickness: (d.x1 - d.x0) * mid,
             };
         });
-    return { nodes, groups: groups(h), cx: width / 2, cy: height / 2 };
+    return { nodes, groups: groups(full), cx: width / 2, cy: height / 2, ...echo(h, path) };
 }

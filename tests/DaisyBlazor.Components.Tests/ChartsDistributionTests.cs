@@ -66,6 +66,43 @@ public class ChartsDistributionTests : BunitContext
     }
 
     [Fact]
+    public void Scatter_draws_series_lines_and_trend_lines_with_their_equation()
+    {
+        JSRuntimeInvocationHandler<ScatterLayout> call = Setup<ScatterLayout>();
+        IRenderedComponent<ScatterChart> cut = Render<ScatterChart>(ps => ps
+            .Add(p => p.Points, [new ScatterPoint(1, 2, Series: "Pro"), new ScatterPoint(3, 5, Series: "Pro")])
+            .Add(p => p.ShowLine, true).Add(p => p.Trendline, ChartTrendline.Linear));
+
+        string spec = Spec("scatter");
+        spec.ShouldContain("\"showLine\":true");
+        spec.ShouldContain("\"trendline\":\"linear\"");
+
+        call.SetResult(new ScatterLayout(_plot, _xTicks, _yTicks, ["Pro"],
+            [new(1, 2, null, null, 0, 100, 200, 4, "M0,0Z"), new(3, 5, null, null, 0, 300, 100, 4, "M1,1Z")],
+            [new(0, "M100,200L300,100")],
+            [new(0, "linear", 0.5, 1.5, 1, "M100,200L300,100")]));
+        cut.WaitForAssertion(() => cut.FindAll("svg path[stroke-dasharray]").Count.ShouldBe(1));
+        cut.FindAll("svg path[d='M100,200L300,100']").Count.ShouldBe(3, "series line, trend hit area and dashed trend");
+        cut.Markup.ShouldContain("Pro linear trend: y = 1.5x + 0.5, R² = 1");
+        cut.Find("svg").QuerySelector("desc")!.TextContent.ShouldContain("with a linear trend line per series");
+    }
+
+    [Theory]
+    [InlineData("exponential", 2, 0.5, "y = 2·e^(0.5x)")]
+    [InlineData("logarithmic", -1, 3, "y = 3·ln(x) − 1")]
+    [InlineData("power", 2, 1.25, "y = 2·x^1.25")]
+    public void Scatter_trend_equations_follow_their_kind(string kind, double a, double b, string equation)
+    {
+        JSRuntimeInvocationHandler<ScatterLayout> call = Setup<ScatterLayout>();
+        IRenderedComponent<ScatterChart> cut = Render<ScatterChart>(ps => ps
+            .Add(p => p.Points, [new ScatterPoint(1, 2)]).Add(p => p.Trendline, Enum.Parse<ChartTrendline>(kind, ignoreCase: true)));
+
+        call.SetResult(new ScatterLayout(_plot, _xTicks, _yTicks, [""], [], Trends: [new(0, kind, a, b, 0.9, "M0,0L1,1")]));
+        cut.WaitForAssertion(() => cut.Markup.ShouldContain(equation));
+        cut.Markup.ShouldContain("R² = 0.9");
+    }
+
+    [Fact]
     public void Contour_draws_bands_relative_to_the_plot()
     {
         JSRuntimeInvocationHandler<ContourLayout> call = Setup<ContourLayout>();

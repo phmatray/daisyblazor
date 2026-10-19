@@ -1,0 +1,17 @@
+<SmithChart Title="Office Wi-Fi antenna, 2.40 to 2.48 GHz" Series="_sweep" />
+
+@code {
+    // Impedances normalized to 50 Ω (r + jx), from a sweep of the antenna on an office access point.
+    private readonly SmithSeries[] _sweep =
+    [
+        new("Antenna",
+        [
+            new(0.42, -0.65, "2.40 GHz"),
+            new(0.58, -0.38, "2.42 GHz"),
+            new(0.78, -0.12, "2.44 GHz"),
+            new(1.05, 0.08, "2.45 GHz"),
+            new(1.38, 0.31, "2.46 GHz"),
+            new(1.72, 0.62, "2.48 GHz"),
+        ]),
+    ];
+}

@@ -1,0 +1,14 @@
+<ScatterChart Title="Load test: p95 response time by concurrent sessions" Points="_runs" ShowLine="true"
+              XTitle="Concurrent sessions" YTitle="p95 response time (ms)" />
+
+@code {
+    // One point per load step and region; ShowLine joins each region's steps in X order.
+    private static readonly double[] _sessions = [250, 500, 1_000, 2_000, 4_000, 8_000];
+
+    private readonly ScatterPoint[] _runs =
+    [
+        .. _sessions.Zip([82d, 88, 97, 118, 164, 290]).Select(s => new ScatterPoint(s.First, s.Second, Series: "eu-west")),
+        .. _sessions.Zip([95d, 101, 115, 142, 210, 405]).Select(s => new ScatterPoint(s.First, s.Second, Series: "us-east")),
+        .. _sessions.Zip([120d, 126, 139, 171, 248, 520]).Select(s => new ScatterPoint(s.First, s.Second, Series: "ap-south")),
+    ];
+}

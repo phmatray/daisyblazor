@@ -70,6 +70,21 @@
     /// <summary>Render bars horizontally instead of vertically.</summary>
     [Parameter] public bool Horizontal { get; set; }
 
+    /// <summary>
+    /// Stack the series in one bar per category instead of side by side: positive values stack up
+    /// from zero and negative ones down, so mixed signs diverge. Series with different
+    /// <see cref="ChartSeries.Stack"/> names form stacks standing side by side. Tooltips still show
+    /// each series' own value.
+    /// </summary>
+    [Parameter] public bool Stacked { get; set; }
+
+    /// <summary>
+    /// 100% stacked bars (implies <see cref="Stacked"/>): each bar shows the shares of its stack's
+    /// total (of absolute values) in the category, on a percent axis. Tooltips show the value and
+    /// the share. Meant for grouped <see cref="Series"/>; a flat list fills every bar.
+    /// </summary>
+    [Parameter] public bool Percent { get; set; }
+
     /// <summary>Draw value gridlines and labels.</summary>
     [Parameter] public bool ShowGrid { get; set; } = true;
 
@@ -100,6 +115,7 @@
     private IReadOnlyList<ChartSeries>? _series;
     private IReadOnlyList<ChartDataPoint> _points = [];
     private List<string> _categories = new();
+    private List<string> _stackNames = new();
 
     // Per-instance id for the SVG <desc> that exposes the plotted values to screen readers.
     private readonly string _descId = "bar-desc-" + Guid.NewGuid().ToString("N")[..8];
@@ -129,14 +145,28 @@
             _categories = _points.Select(p => p.Label).ToList();
         }
 
+        _stackNames = _grouped ? _series!.Select(s => s.Stack ?? string.Empty).Distinct().ToList() : [];
+
+        IReadOnlyList<double>[] series = _grouped
+            ? _series!.Select(s => s.Data ?? []).ToArray()
+            : [_points.Select(p => p.Value).ToArray()];
+
+        // The stacking keys only when stacking, so the spec (and the layout cache key) of a
+        // side-by-side chart stays as it was.
+        if (!Stacked && !Percent)
+        {
+            return new { Categories = _categories, Series = series, Horizontal, ShowGrid };
+        }
+
         return new
         {
             Categories = _categories,
-            Series = _grouped
-                ? _series!.Select(s => s.Data ?? []).ToArray()
-                : [_points.Select(p => p.Value).ToArray()],
+            Series = series,
             Horizontal,
             ShowGrid,
+            Stacked,
+            Percent,
+            Stacks = _grouped ? _series!.Select(s => _stackNames.IndexOf(s.Stack ?? string.Empty)).ToArray() : [],
         };
     }
 
@@ -161,7 +191,20 @@
         string prefix = _grouped && _seriesCount > 1 && !string.IsNullOrEmpty(_series![series].Name)
             ? $"{_series![series].Name} · "
             : string.Empty;
-        return $"{prefix}{_categories[category]}: {ChartText.Value(_value(category, series))}";
+        double value = _value(category, series);
+        return $"{prefix}{_categories[category]}: {ChartText.Value(value)}{(Percent ? $" ({ChartText.Percent(_share(category, series, value))})" : string.Empty)}";
+    }
+
+    // The value's share of the absolute total of its stack in the category, in percent.
+    private double _share(int category, int series, double value)
+    {
+        string? stack = _grouped ? _series![series].Stack ?? string.Empty : null;
+        double total = Enumerable.Range(0, _seriesCount)
+            .Where(s => !_grouped || (_series![s].Stack ?? string.Empty) == stack) // null and "" are one stack, as in the spec
+            .Select(s => _value(category, s))
+            .Where(double.IsFinite)
+            .Sum(Math.Abs);
+        return total > 0 ? value / total * 100 : 0;
     }
 
     private string _description

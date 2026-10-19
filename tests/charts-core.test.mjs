@@ -5,6 +5,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { layout, observe, update, unobserve } from '../src/DaisyBlazor.Charts/wwwroot/charts.mjs';
 import { compact } from '../src/DaisyBlazor.Charts/wwwroot/layouts/_shared.mjs';
+// Sweeps call the layouts directly, so the replay fixture does not record thousands of specs.
+import barLayout from '../src/DaisyBlazor.Charts/wwwroot/layouts/bar.mjs';
+import lineLayout from '../src/DaisyBlazor.Charts/wwwroot/layouts/line.mjs';
 
 const size = { width: 640, height: 256 };
 const moves = path => path.split('M').filter(Boolean).length;
@@ -108,6 +111,87 @@ test('bar: horizontal keeps long category labels whole and has no value row with
     assert.equal(narrow.yTicks[0].full, 'A very long region name indeed');
 });
 
+test('bar: stacked series share one bar, negatives stack down from zero so mixed signs diverge', async () => {
+    const { bars, yTicks } = await layout('bar', { categories: ['Q1', 'Q2'], series: [[10, 20], [30, -10], [-5, 15]], stacked: true, ...size });
+    const y = v => yTicks.find(t => t.label === String(v))?.pos;
+    const at = (c, s) => bars.find(b => b.c === c && b.s === s);
+    const zero = y(0);
+    // Q1: 10 then 30 on top (top at 40), -5 below zero.
+    assert.ok(Math.abs(at(0, 0).y + at(0, 0).height - zero) < 0.01);
+    assert.ok(Math.abs(at(0, 1).y + at(0, 1).height - at(0, 0).y) < 0.01);
+    assert.ok(Math.abs(at(0, 1).y - y(40)) < 0.01);
+    assert.equal(at(0, 2).y, zero);
+    // Q2: 20 + 15 = 35 up, -10 down; every series of a category sits in the same x slot.
+    assert.ok(Math.abs(at(1, 2).y + at(1, 2).height - at(1, 0).y) < 0.01);
+    assert.equal(at(1, 1).y, zero);
+    assert.ok(bars.filter(b => b.c === 1).every(b => b.x === at(1, 0).x && b.width === at(1, 0).width));
+    assert.ok(yTicks.some(t => t.value < 0));
+});
+
+test('bar: percent stacks each category to 100%, horizontal too', async () => {
+    const { bars, xTicks, plot } = await layout('bar', { categories: ['Q1', 'Q2'], series: [[1, 30], [3, 10]], percent: true, horizontal: true, ...size });
+    assert.equal(xTicks.at(-1).label, '100%');
+    for (const c of [0, 1]) {
+        const own = bars.filter(b => b.c === c);
+        assert.ok(Math.abs(own.reduce((sum, b) => sum + b.width, 0) - (plot.right - plot.left)) < 0.05);
+        assert.ok(own.every(b => b.y === own[0].y));
+    }
+    const q1 = bars.filter(b => b.c === 0);
+    assert.ok(Math.abs(q1[1].width / q1[0].width - 3) < 0.01); // 25% and 75%
+});
+
+test('bar: stacks put several stacks side by side in a category, percent per stack', async () => {
+    const { bars, yTicks } = await layout('bar', { categories: ['Q1'], series: [[10], [30], [20], [30]], stacks: [0, 0, 1, 1], percent: true, ...size });
+    const at = s => bars.find(b => b.s === s);
+    assert.equal(at(0).x, at(1).x);
+    assert.equal(at(2).x, at(3).x);
+    assert.ok(at(2).x > at(0).x + at(0).width - 0.01);
+    const y = v => yTicks.find(t => t.label === `${v}%`)?.pos;
+    assert.ok(Math.abs(at(1).y - y(100)) < 0.01 && Math.abs(at(3).y - y(100)) < 0.01);
+    assert.ok(Math.abs(at(2).y - y(40)) < 0.01); // 20 of 50
+
+    // Without stacked, stacks are ignored: one bar per series side by side.
+    const grouped = await layout('bar', { categories: ['Q1'], series: [[1], [2]], stacks: [0, 0], ...size });
+    assert.notEqual(grouped.bars[0].x, grouped.bars[1].x);
+});
+
+test('line: percent stacks every index to 100%, negatives count as 0; step draws step-after paths', async () => {
+    const { yTicks, series } = await layout('line', { series: [[20, 0, 5], [60, 30, -5]], percent: true, ...size });
+    assert.equal(yTicks.at(-1).label, '100%');
+    const y = v => yTicks.find(t => t.label === `${v}%`)?.pos;
+    assert.deepEqual(series[1].points.map(p => p.y), [y(100), y(100), y(100)]);
+    assert.equal(series[0].points[0].y, y(20) + (y(40) - y(20)) / 2 * 0.5); // 25% of 80
+
+    const step = await layout('line', { series: [[1, 3, 2]], step: true, smooth: true, showGrid: false, ...size });
+    assert.doesNotMatch(step.series[0].line, /C/); // step wins over smooth
+    const [p0, p1] = step.series[0].points;
+    assert.match(step.series[0].line, new RegExp(`^M${p0.x},${p0.y}L${p1.x},${p0.y}L${p1.x},${p1.y}`));
+});
+
+// Every triple of small integers: floating-point drift in the shares must never push the axis past 100%.
+const triples = [];
+for (let a = 1; a <= 25; a++) for (let b = 1; b <= 25; b += 2) for (let c = 1; c <= 9; c += 2) triples.push([a, b, c]);
+
+test('bar: 100% stacks keep the axis at exactly 100%, whatever the rounding (vertical, horizontal, negatives)', async () => {
+    // The reported case, through layout() so the replay fixture holds it: 1/11 + 1/11 + 9/11 > 1.
+    assert.equal((await layout('bar', { categories: ['A'], series: [[1], [1], [9]], percent: true, ...size })).yTicks.at(-1).label, '100%');
+    for (const [a, b, c] of triples) {
+        for (const [horizontal, sign] of [[false, 1], [true, 1], [false, -1]]) {
+            const { xTicks, yTicks } = barLayout({ categories: ['A'], series: [[a * sign], [b * sign], [c * sign]], percent: true, horizontal, ...size });
+            const values = (horizontal ? xTicks : yTicks).map(t => t.value);
+            assert.equal(sign > 0 ? Math.max(...values) : Math.min(...values), 100 * sign, `${a},${b},${c}`);
+        }
+    }
+});
+
+test('line: 100% stacks keep the axis at exactly 100%, whatever the rounding', async () => {
+    assert.equal((await layout('line', { series: [[6, 1], [23, 1], [1, 1]], percent: true, ...size })).yTicks.at(-1).label, '100%');
+    for (const [a, b, c] of triples) {
+        const { yTicks } = lineLayout({ series: [[a, 1], [b, 1], [c, 1]], percent: true, ...size });
+        assert.equal(yTicks.at(-1).value, 100, `${a},${b},${c}`);
+    }
+});
+
 test('pie: slices clockwise from 12 o\'clock in input order, with percentages', async () => {
     const { slices } = await layout('pie', { values: [30, null, -5, 10], size: 200 });
     assert.deepEqual(slices.map(s => s.index), [0, 3]);
@@ -196,4 +280,26 @@ test('measured: a box without a size waits until it gets one', async () => {
     assert.equal(ref.calls.length, 1);
     assert.equal(ref.calls[0][1].width, 100);
     unobserve(el);
+});
+
+test('measured: arrow keys on a slider inside the chart do not scroll the page; other keys pass', async () => {
+    const listeners = {};
+    const el = {
+        clientWidth: 300, clientHeight: 120,
+        addEventListener(type, fn) { listeners[type] = fn; },
+        removeEventListener(type, fn) { if (listeners[type] === fn) delete listeners[type]; },
+    };
+    await observe(el, 'spark', { data: [1, 2] }, dotnet());
+    const key = (k, slider) => {
+        const event = { key: k, prevented: false, target: { closest: s => (slider && s === '[role="slider"]' ? {} : null) }, preventDefault() { this.prevented = true; } };
+        listeners.keydown(event);
+        return event.prevented;
+    };
+    assert.equal(key('ArrowLeft', true), true);
+    assert.equal(key('PageUp', true), true);
+    assert.equal(key('End', true), true);
+    assert.equal(key('Tab', true), false);
+    assert.equal(key('ArrowLeft', false), false);
+    unobserve(el);
+    assert.equal(listeners.keydown, undefined);
 });

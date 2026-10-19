@@ -1,0 +1,17 @@
+<ComboChart Title="Deployments and rollbacks per week" Labels="_weeks" Bars="_bars" Lines="_lines" />
+
+@code {
+    // Bar series sit side by side in each week; the line shares their scale.
+    private readonly string[] _weeks = ["W14", "W15", "W16", "W17", "W18", "W19", "W20", "W21"];
+
+    private readonly ChartSeries[] _bars =
+    [
+        new("Deployments", [42, 51, 38, 57, 63, 48, 66, 71]),
+        new("Rollbacks", [3, 5, 2, 6, 4, 3, 5, 2]),
+    ];
+
+    private readonly ChartSeries[] _lines =
+    [
+        new("Hotfixes", [8, 11, 6, 12, 9, 7, 10, 8]),
+    ];
+}

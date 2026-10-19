@@ -1,0 +1,35 @@
+<div class="space-y-6">
+    <CandlestickChart Title="CPU utilisation per 15 minutes, api-01 (%)" Candles="_slots" ValueFormat="{0:0.#} %" Indicators="_overlays" />
+    <CandlestickChart Title="Same hours with RSI and MACD panels" Candles="_slots" ValueFormat="{0:0.#} %" Indicators="_oscillators" AspectRatio="1.3" />
+</div>
+
+@code {
+    // Bollinger bands (SMA 20 ± 2 population standard deviations) and an EMA over the candles.
+    private static readonly ChartIndicator[] _overlays =
+    [
+        new(IndicatorKind.Bollinger, Period: 20, StdDev: 2),
+        new(IndicatorKind.Ema, Period: 9),
+    ];
+
+    // RSI 14 and MACD 12, 26, 9 each get a panel under the price, on the same time axis.
+    private static readonly ChartIndicator[] _oscillators =
+    [
+        new(IndicatorKind.Sma, Period: 20),
+        new(IndicatorKind.Rsi, Period: 14),
+        new(IndicatorKind.Macd),
+    ];
+
+    // 96 quarter-hours of CPU readings: a slow daytime swell, a load test around noon, small noise.
+    private static readonly Candle[] _slots = Enumerable.Range(0, 96)
+        .Select(i =>
+        {
+            double open = Level(i), close = Level(i + 1);
+            double spread = 1.5 + (i * 7 % 5) * 0.8;
+            return new Candle(new DateTime(2026, 10, 19, 0, 0, 0).AddMinutes(15 * i), open,
+                Math.Round(Math.Max(open, close) + spread, 1), Math.Round(Math.Min(open, close) - spread * 0.7, 1), close);
+        })
+        .ToArray();
+
+    private static double Level(int i) =>
+        Math.Round(38 + 14 * Math.Sin((i - 24) / 96.0 * 2 * Math.PI) + (i is >= 44 and <= 54 ? 18 * Math.Sin((i - 44) / 10.0 * Math.PI) : 0) + 3 * Math.Sin(i * 1.7), 1);
+}

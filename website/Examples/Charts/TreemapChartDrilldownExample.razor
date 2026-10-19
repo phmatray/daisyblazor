@@ -1,0 +1,28 @@
+<TreemapChart Title="Acme Cloud storage by team, service and data set (GB)" Root="_storage" ValueFormat="{0:N0} GB"
+              Drilldown="true" @bind-Focus="_focus" />
+<p class="text-sm text-base-content/70 mt-2">Focus: <code>@(_focus ?? "(whole tree)")</code></p>
+
+@code {
+    private string? _focus;
+
+    // Three levels: team, service, then data set. Click a team, then a service; the trail goes back.
+    private readonly HierarchyNode _storage = new("Storage", Children:
+    [
+        new("Platform", Children:
+        [
+            new("api", Children: [new("Request logs", 260), new("Audit trail", 120), new("Cache dumps", 40)]),
+            new("auth", Children: [new("Sessions", 90), new("Sign-in logs", 70)]),
+            new("notifications", Children: [new("Outbox", 80), new("Delivery logs", 150)]),
+        ]),
+        new("Product", Children:
+        [
+            new("uploads", Children: [new("Originals", 380), new("Thumbnails", 90)]),
+            new("exports", Children: [new("CSV", 40), new("PDF", 25)]),
+        ]),
+        new("Data", Children:
+        [
+            new("warehouse", Children: [new("Events", 420), new("Snapshots", 210)]),
+            new("search", Children: [new("Indexes", 130)]),
+        ]),
+    ]);
+}

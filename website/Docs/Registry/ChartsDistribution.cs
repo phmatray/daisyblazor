@@ -9,10 +9,12 @@ public static partial class DocRegistry
     [
         new("ScatterChart", Category.Charts,
             "One dot per observation on two value axes, to show how two measures move together: seats against API calls, payload against response time. Points can carry a Size (bubbles) and a Series (colour and legend), and either axis can be logarithmic. D3 builds the scales and a Voronoi diagram, so hovering anywhere highlights the nearest point.",
-            [typeof(ScatterChart), typeof(ScatterPoint), typeof(AxisScale)],
+            [typeof(ScatterChart), typeof(ScatterPoint), typeof(AxisScale), typeof(ChartTrendline)],
             [
                 new("Basic", "Each ScatterPoint has an X and a Y; Series groups points by colour and adds a legend. XTitle and YTitle name the axes and the tooltips.", typeof(ScatterChartBasicExample)),
                 new("Bubbles on log axes", "Give points a Size to draw bubbles whose area follows it, and a Label for the tooltip. XScale and YScale set to AxisScale.Log spread values over several orders of magnitude.", typeof(ScatterChartBubbleExample)),
+                new("Connected points", "ShowLine=\"true\" joins each series' points in X order, for measurements taken at increasing steps such as a load test.", typeof(ScatterChartLineExample)),
+                new("Trend lines", "Trendline fits a least-squares curve to each series (Linear, Exponential, Logarithmic or Power) in data space, so it also works on log axes. Hover the dashed line for its equation and R².", typeof(ScatterChartTrendlineExample)),
             ])
         {
             Portrait = typeof(ScatterChartCoverExample),

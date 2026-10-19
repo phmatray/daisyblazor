@@ -35,7 +35,14 @@ public enum TreemapTile
 /// <param name="Groups">Names of the root's children; a node's <see cref="HierarchyLayoutNode.Group"/> indexes this list.</param>
 /// <param name="Cx">Horizontal centre for radial layouts (their paths are relative to it).</param>
 /// <param name="Cy">Vertical centre for radial layouts.</param>
-public sealed record HierarchyLayout(IReadOnlyList<HierarchyLayoutNode> Nodes, IReadOnlyList<string> Groups, double Cx, double Cy);
+public sealed record HierarchyLayout(IReadOnlyList<HierarchyLayoutNode> Nodes, IReadOnlyList<string> Groups, double Cx, double Cy)
+{
+    /// <summary>
+    /// When the spec asked for a focus: the names below the root of the node laid out as the root
+    /// (["Platform", "api"]), or empty when that was the whole tree. Null otherwise.
+    /// </summary>
+    public IReadOnlyList<string>? Focus { get; init; }
+}
 
 /// <summary>
 /// A placed hierarchy node. X0..Y1 is its rectangle (treemap, icicle) or the bounding box of its
@@ -46,7 +53,14 @@ public sealed record HierarchyLayout(IReadOnlyList<HierarchyLayoutNode> Nodes, I
 public sealed record HierarchyLayoutNode(
     string Name, string Path, int Depth, int Group, bool Leaf, double Value,
     double X0, double Y0, double X1, double Y1, string? D,
-    double LabelX, double LabelY, double LabelAngle, double Room, double Thickness);
+    double LabelX, double LabelY, double LabelAngle, double Room, double Thickness)
+{
+    /// <summary>
+    /// The node's place in the whole tree: the names below the root, down to this node (empty for the
+    /// root). Unlike <see cref="Path"/> (the same joined by " / " for tooltips), names may hold any text.
+    /// </summary>
+    public IReadOnlyList<string> Names { get; init; } = [];
+}
 
 /// <summary>Group colours and descriptions shared by the hierarchy and graph charts.</summary>
 internal static class ChartInk

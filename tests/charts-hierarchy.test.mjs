@@ -107,6 +107,65 @@ test('sunburst: arcs fill the circle in proportion, labels inside the radius', a
     }
 });
 
+test('drill-down: a focus path lays out that subtree at full size, coloured by its top-level branch', async () => {
+    const deep = {
+        name: 'Acme Cloud',
+        children: [
+            { name: 'Data', value: 30 },
+            { name: 'Platform', children: [{ name: 'api', children: [{ name: 'auth', value: 25 }, { name: 'search', value: 15 }] }, { name: 'web', value: 20 }] },
+        ],
+    };
+    for (const kind of ['treemap', 'sunburst', 'icicle']) {
+        const whole = await layout(kind, { root: deep, width: W, height: H });
+        assert.equal(whole.focus, undefined, `${kind}: no focus asked, none echoed`);
+
+        const { nodes, groups, focus } = await layout(kind, { root: deep, focus: ['Platform', 'api'], width: W, height: H });
+        assert.deepEqual(focus, ['Platform', 'api'], kind);
+        assert.deepEqual(groups, ['Platform', 'Data'], `${kind}: legend keys stay those of the whole tree`);
+        assert.deepEqual(nodes.map(n => n.name).filter(n => n !== 'api').sort(), ['auth', 'search'], kind);
+        const auth = nodes.find(n => n.name === 'auth');
+        assert.equal(auth.group, 0, `${kind}: colour keyed to the top-level branch`);
+        assert.equal(auth.path, 'Platform / api / auth', `${kind}: paths stay those of the whole tree`);
+        assert.deepEqual(auth.names, ['Platform', 'api', 'auth'], kind);
+        assert.equal(auth.depth, 1, kind);
+
+        const unknown = await layout(kind, { root: deep, focus: ['Platform', 'nope'], width: W, height: H });
+        assert.deepEqual(unknown.focus, [], `${kind}: unknown path falls back to the root`);
+        assert.deepEqual(unknown.nodes, whole.nodes, kind);
+
+        const leaf = await layout(kind, { root: deep, focus: ['Platform', 'web'], width: W, height: H });
+        assert.deepEqual(leaf.focus, ['Platform'], `${kind}: a leaf shows its parent`);
+    }
+
+    const { nodes } = await layout('treemap', { root: deep, focus: ['Platform', 'api'], width: W, height: H, padding: 0 });
+    close(nodes.reduce((s, n) => s + area(n), 0), W * H, 1e-3);
+    const icicle = await layout('icicle', { root: deep, focus: ['Platform'], width: W, height: H });
+    const top = icicle.nodes.find(n => n.depth === 0);
+    assert.deepEqual([top.name, top.y0, top.y1], ['Platform', 0, H]);
+    close(top.x1, W / 3);
+});
+
+test('drill-down: names containing "/" or " / " stay whole, the focus and the node paths are lists of names', async () => {
+    const tree = {
+        name: 'Ops',
+        children: [
+            { name: 'CI/CD', children: [{ name: 'A / B', children: [{ name: 'x', value: 5 }, { name: 'y', value: 3 }] }, { name: 'z', value: 2 }] },
+            { name: 'CI', children: [{ name: 'CD', value: 50 }, { name: 'w', value: 1 }] },
+        ],
+    };
+    for (const kind of ['treemap', 'sunburst', 'icicle', 'circle-packing']) {
+        const whole = await layout(kind, { root: tree, width: W, height: H });
+        assert.deepEqual(whole.nodes.find(n => n.name === 'A / B').names, ['CI/CD', 'A / B'], kind);
+        assert.ok(whole.nodes.filter(n => n.depth === 0).every(n => n.names.length === 0), `${kind}: the root is no name below the root`);
+    }
+    for (const kind of ['treemap', 'sunburst', 'icicle']) {
+        const out = await layout(kind, { root: tree, focus: ['CI/CD', 'A / B'], width: W, height: H });
+        assert.deepEqual(out.focus, ['CI/CD', 'A / B'], kind);
+        assert.deepEqual(out.nodes.map(n => n.name).filter(n => n !== 'A / B').sort(), ['x', 'y'], kind);
+        assert.ok(out.nodes.every(n => n.names.slice(0, 2).join('\n') === 'CI/CD\nA / B'), `${kind}: nodes keep their place in the whole tree`);
+    }
+});
+
 test('hierarchy layouts return an empty layout for missing or all-zero trees', async () => {
     const empty = { nodes: [], groups: [], cx: 0, cy: 0 };
     for (const kind of ['treemap', 'sunburst', 'circle-packing', 'icicle']) {

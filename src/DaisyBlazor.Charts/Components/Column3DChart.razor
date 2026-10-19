@@ -1,0 +1,135 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<Column3DLayout>
+
+@* 3D column (or bar) chart: each value is a prism standing on a floor in front of a back wall that
+   carries the gridlines. D3 scales place the columns; the top and side faces are shaded from the
+   series colour with color-mix, so they follow any theme. *@
+
+<D3ChartFrame TLayout="Column3DLayout" Chart="this" Label="@_label" Description="@_description">
+    <ChildContent>
+        @if (Layout is { } geo)
+        {
+            @if (geo.Wall.Length > 0)
+            {
+                <polygon points="@geo.Wall" fill="var(--color-base-content)" fill-opacity="0.03" stroke="var(--color-base-content)" stroke-opacity="0.15" />
+                <polygon points="@geo.Floor" fill="var(--color-base-content)" fill-opacity="0.08" stroke="var(--color-base-content)" stroke-opacity="0.2" />
+            }
+            @foreach (Column3DGridLine line in geo.Grid)
+            {
+                <path d="@line.Path" fill="none" stroke="var(--color-base-content)" stroke-opacity="@(line.Value == 0 ? "0.35" : "0.12")" />
+            }
+            <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="geo.YTicks" XCategories="!Horizontal" YCategories="Horizontal" />
+
+            @* A layout still being replaced may name columns the new data no longer has. *@
+            @foreach (Column3DColumn col in geo.Columns.Where(c => c.C < _categories.Count && c.S < _seriesCount))
+            {
+                string color = _color(col.C, col.S);
+                <g stroke="var(--color-base-100)" stroke-opacity="0.35" stroke-width="0.5" stroke-linejoin="round">
+                    <title>@_tooltip(col.C, col.S)</title>
+                    <polygon points="@col.Side" fill="@($"color-mix(in oklab, {color} 68%, black)")" />
+                    <polygon points="@col.Top" fill="@($"color-mix(in oklab, {color} 72%, white)")" />
+                    <polygon points="@col.Front" fill="@color" />
+                </g>
+            }
+        }
+    </ChildContent>
+    <Legend>
+        @if (ShowLegend && _seriesCount > 1)
+        {
+            <ChartLegend Items="@Enumerable.Range(0, _seriesCount).Select(s => (_series![s].Name, ChartPalette.At(s, _series![s].Color))).ToList()" />
+        }
+    </Legend>
+</D3ChartFrame>
+
+@code {
+    /// <summary>Flat data points, one column each; used when no <see cref="Series"/> are supplied.</summary>
+    [Parameter] public IReadOnlyList<ChartDataPoint>? Data { get; set; }
+
+    /// <summary>Series of values, index-aligned with <see cref="Labels"/>. Takes precedence over <see cref="Data"/>.</summary>
+    [Parameter] public IReadOnlyList<ChartSeries>? Series { get; set; }
+
+    /// <summary>Category labels for <see cref="Series"/>.</summary>
+    [Parameter] public IReadOnlyList<string>? Labels { get; set; }
+
+    /// <summary>Lay the bars out sideways, categories down the left side.</summary>
+    [Parameter] public bool Horizontal { get; set; }
+
+    /// <summary>Stack the series in one column per category instead of side by side.</summary>
+    [Parameter] public bool Stacked { get; set; }
+
+    /// <summary>How deep a column is, as a share of its width (0 to 1).</summary>
+    [Parameter] public double Depth { get; set; } = 0.5;
+
+    /// <summary>Show a legend when there is more than one series.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <inheritdoc />
+    protected override string Kind => "column3d";
+
+    private IReadOnlyList<ChartSeries>? _series;
+    private IReadOnlyList<ChartDataPoint> _points = [];
+    private List<string> _categories = [];
+
+    private int _seriesCount => _series?.Count ?? 1;
+
+    /// <inheritdoc />
+    protected override object BuildSpec()
+    {
+        _series = Series is { Count: > 0 } ? Series : null;
+        _points = Data ?? [];
+        if (_series is not null)
+        {
+            int count = Math.Max(_series.Max(s => s.Data?.Count ?? 0), Labels?.Count ?? 0);
+            _categories = Enumerable.Range(0, count)
+                .Select(i => Labels is not null && i < Labels.Count ? Labels[i] : (i + 1).ToString(Ci))
+                .ToList();
+        }
+        else
+        {
+            _categories = _points.Select(p => p.Label).ToList();
+        }
+
+        return new
+        {
+            Categories = _categories,
+            Series = _series is not null
+                ? _series.Select(s => s.Data ?? []).ToArray()
+                : [_points.Select(p => p.Value).ToArray()],
+            Stacked,
+            Horizontal,
+            Depth,
+            Width = ViewWidth,
+            Height = ViewHeight,
+        };
+    }
+
+    private double _value(int category, int series)
+    {
+        if (_series is not null)
+        {
+            IReadOnlyList<double>? d = _series[series].Data;
+            return d is not null && category < d.Count ? d[category] : double.NaN;
+        }
+
+        return category < _points.Count ? _points[category].Value : double.NaN;
+    }
+
+    // Series: one colour per series. Flat: each point cycles the palette unless it overrides.
+    private string _color(int category, int series) => _series is not null
+        ? ChartPalette.At(series, _series[series].Color)
+        : ChartPalette.At(category, category < _points.Count ? _points[category].Color : null);
+
+    private string _tooltip(int category, int series)
+    {
+        string prefix = _series is { Count: > 1 } && !string.IsNullOrEmpty(_series[series].Name) ? $"{_series[series].Name} · " : string.Empty;
+        return $"{prefix}{_categories[category]}: {ChartText.Value(_value(category, series))}";
+    }
+
+    private string _label => Title ?? (Horizontal ? "3D bar chart" : "3D column chart");
+
+    private string _description => string.Join("; ", Enumerable.Range(0, _seriesCount).Select(s =>
+    {
+        string values = string.Join(", ", _categories.Select((c, i) => $"{c} {(double.IsFinite(_value(i, s)) ? ChartText.Value(_value(i, s)) : "no data")}"));
+        return _series is not null && !string.IsNullOrEmpty(_series[s].Name) ? $"{_series[s].Name}: {values}" : values;
+    }));
+}

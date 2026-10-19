@@ -1,0 +1,113 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<ComboLayout>
+
+@* Combo chart: bars and lines over the same categories. Bar series sit side by side (or stacked);
+   line series join the category centres, on the bars' scale or on their own scale labelled right of
+   the plot. D3 computes the scales, the bands and the lines. *@
+
+<D3ChartFrame TLayout="ComboLayout" Chart="this" Label="@_label" Description="@_description" Legend="@_legend">
+    @if (Layout is { Plot: { } plot } geo)
+    {
+        <ChartAxes Plot="plot" YGrid="true" ZeroLine="true" XCategories="true" Baseline="true" XTicks="geo.XTicks"
+                   YTicks="@geo.YTicks.Select(t => t with { Label = _format(ValueFormat, t.Value ?? 0) }).ToList()"
+                   Y2Ticks="@geo.Y2Ticks.Select(t => t with { Label = _format(SecondaryValueFormat, t.Value ?? 0) }).ToList()" />
+
+        @foreach (ComboBar bar in geo.Bars)
+        {
+            <rect x="@N(bar.X)" y="@N(bar.Y)" width="@N(bar.Width)" height="@N(bar.Height)" rx="2" fill="@_color(bar.Series)">
+                <title>@($"{_category(bar.Index)} · {_name(Bars, bar.Series)}: {_format(ValueFormat, bar.Value)}")</title>
+            </rect>
+        }
+
+        @foreach (ComboLine line in geo.Lines)
+        {
+            string color = _color(Bars.Count + line.Series);
+            <path d="@line.Path" fill="none" stroke="@color" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
+            @foreach (ComboPoint p in line.Points)
+            {
+                <circle cx="@N(p.Cx)" cy="@N(p.Cy)" r="4" fill="@color" stroke="var(--color-base-100)" stroke-width="1.5">
+                    <title>@($"{_category(p.Index)} · {_name(Lines, line.Series)}: {_format(_lineFormat, p.Value)}")</title>
+                </circle>
+            }
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The categories along the horizontal axis; value i of every series belongs to label i.</summary>
+    [Parameter] public IReadOnlyList<string> Labels { get; set; } = [];
+
+    /// <summary>Series drawn as bars, side by side in each category (or stacked with <see cref="StackBars"/>).</summary>
+    [Parameter] public IReadOnlyList<ChartSeries> Bars { get; set; } = [];
+
+    /// <summary>Series drawn as lines through the category centres, over the bars.</summary>
+    [Parameter] public IReadOnlyList<ChartSeries> Lines { get; set; } = [];
+
+    /// <summary>Stack the bar series in one bar per category instead of side by side.</summary>
+    [Parameter] public bool StackBars { get; set; }
+
+    /// <summary>Draw the lines as smooth curves (monotone, so they never overshoot a value).</summary>
+    [Parameter] public bool Smooth { get; set; }
+
+    /// <summary>Give the lines their own value scale, labelled right of the plot.</summary>
+    [Parameter] public bool SecondaryAxis { get; set; }
+
+    /// <summary>Show a legend of the bar and line series.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>Format string for bar values (and line values without a secondary axis) in ticks and tooltips.</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Format string for the secondary axis ticks and the line tooltips when <see cref="SecondaryAxis"/> is on, e.g. "{0:0.#}%".</summary>
+    [Parameter] public string SecondaryValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <inheritdoc />
+    protected override string Kind => "combo";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Labels,
+        Bars = Bars.Select(s => new { s.Name, s.Data }).ToArray(),
+        Lines = Lines.Select(s => new { s.Name, s.Data }).ToArray(),
+        StackBars,
+        Smooth,
+        SecondaryAxis,
+        YLabelPad = _labelPad(ValueFormat),
+        Y2LabelPad = _labelPad(SecondaryValueFormat),
+        Width = ViewWidth,
+        Height = ViewHeight,
+    };
+
+    // The layout sizes its margins from D3's tick labels (like "1,000" or "0.5"); the axes draw this
+    // format's. How many characters it adds at most, over a few probe values.
+    private static int _labelPad(string format) =>
+        new[] { 0, 0.5, 1000, -1000, 1_000_000 }
+            .Max(v => _format(format, v).Length - v.ToString("#,0.##", CultureInfo.InvariantCulture).Length) is int pad and > 0 ? pad : 0;
+
+    private string _lineFormat => SecondaryAxis ? SecondaryValueFormat : ValueFormat;
+
+    private static string _format(string format, double value) => string.Format(CultureInfo.CurrentCulture, format, value);
+
+    // Colours run through the palette across the bars, then the lines.
+    private string _color(int index)
+    {
+        ChartSeries? series = index < Bars.Count ? Bars[index] : index - Bars.Count < Lines.Count ? Lines[index - Bars.Count] : null;
+        return series?.Color ?? ChartPalette.At(index);
+    }
+
+    private static string _name(IReadOnlyList<ChartSeries> list, int index) => index < list.Count ? list[index].Name : string.Empty;
+
+    private string _category(int index) => index < Labels.Count ? Labels[index] : string.Empty;
+
+    private RenderFragment? _legend => ShowLegend && Bars.Count + Lines.Count > 0
+        ? @<ChartLegend Items="@(Bars.Select((s, i) => (s.Name, _color(i)))
+                .Concat(Lines.Select((s, i) => (SecondaryAxis ? $"{s.Name} (right axis)" : s.Name, _color(Bars.Count + i)))).ToList())" />
+        : null;
+
+    private string _label => Title ?? "Combo chart";
+
+    private string _description => $"{Labels.Count} categories"
+        + (Bars.Count > 0 ? $"; {(StackBars ? "stacked" : "grouped")} bars: {string.Join(", ", Bars.Select(s => s.Name))}" : string.Empty)
+        + (Lines.Count > 0 ? $"; lines: {string.Join(", ", Lines.Select(s => s.Name))}{(SecondaryAxis ? " on the right axis" : string.Empty)}" : string.Empty) + ".";
+}

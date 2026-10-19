@@ -32,14 +32,48 @@ export function groups(h) {
 }
 
 // The plain fields every hierarchy node returns; geometry and label room are added by each layout.
+// `names` is the node's place in the whole tree, as the names below the root (the root has none):
+// a list, so a name may hold any text, '/' included. `path` is the same joined by ' / ' for tooltips.
 export function base(d) {
-    const chain = d.ancestors().reverse();
+    const chain = (d.full ?? d).ancestors().reverse();
     return {
         name: String(d.data.name ?? ''),
         path: (chain.length > 1 ? chain.slice(1) : chain).map(a => String(a.data.name ?? '')).join(' / '),
+        names: chain.slice(1).map(a => String(a.data.name ?? '')),
         depth: d.depth,
         group: d.group,
         leaf: !d.children,
         value: d.value,
     };
+}
+
+// The subtree to lay out for a focus path, the list of names below the root (['Platform', 'api']),
+// re-rooted so D3 gives it the full size. An unknown path is the whole tree; a leaf is its parent.
+// Nodes keep their value, colour group and (in `full`) their place in the whole tree, for paths.
+export function focus(h, path) {
+    if (!Array.isArray(path) || path.length === 0) {
+        return h;
+    }
+    let f = h;
+    for (const name of path) {
+        f = f.children?.find(c => String(c.data.name ?? '') === name);
+        if (!f) {
+            return h;
+        }
+    }
+    while (!f.children) {
+        f = f.parent;
+    }
+    return f === h ? h : hierarchy(f, n => n.children).eachBefore(n => {
+        const o = n.data;
+        Object.assign(n, { data: o.data, value: o.value, group: o.group, full: o });
+    });
+}
+
+// What a layout echoes when the spec asked for a focus: the names of the node it laid out ([] for
+// the root). Specs without a focus get nothing, so their result is unchanged.
+export function echo(view, path) {
+    return Array.isArray(path)
+        ? { focus: (view.full ?? view).ancestors().reverse().slice(1).map(a => String(a.data.name ?? '')) }
+        : {};
 }

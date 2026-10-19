@@ -1,0 +1,13 @@
+<BarChart Title="Support tickets by priority, share per team" Labels="_teams" Series="_priorities" Percent="true" Horizontal="true" />
+
+@code {
+    private readonly string[] _teams = ["Billing", "Platform", "Identity", "Storage"];
+
+    private readonly ChartSeries[] _priorities =
+    [
+        new("Low", [120, 64, 38, 90]),
+        new("Normal", [210, 140, 72, 150]),
+        new("High", [40, 85, 30, 26]),
+        new("Urgent", [8, 21, 12, 5]),
+    ];
+}

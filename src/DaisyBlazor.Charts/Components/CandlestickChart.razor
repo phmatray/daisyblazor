@@ -3,19 +3,27 @@
 
 @* Candlestick chart: the open, high, low and close of each period on a time axis. D3 computes the
    scales, ticks and the width each period gets; this component draws candles, OHLC bars or
-   high–low bars, rising periods in the success colour and falling ones in the error colour. *@
+   high–low bars, rising periods in the success colour and falling ones in the error colour.
+   Technical indicators (SMA, EMA, Bollinger bands) are drawn over the candles; RSI, MACD and the
+   volume get panels under them, on the same time axis. *@
 
 <D3ChartFrame TLayout="CandlestickLayout" Chart="this" Label="@_label" Description="@_description">
     <ChildContent>
         @if (Layout is { } geo)
         {
-            <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="geo.YTicks" YGrid="true" Baseline="true" XTickMarks="true" ViewWidth="ViewWidth" />
-            @foreach (CandlestickLayoutCandle c in geo.Candles)
+            <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="geo.YTicks" YGrid="true" Baseline="true" XTickMarks="true" ViewWidth="ViewWidth"
+                       XAxisAt="@(geo.Panels.Count > 0 ? geo.Panels[^1].Bottom : null)" />
+            @foreach (CandlestickLayoutIndicator ind in geo.Indicators.Where(i => i.Panel < 0 && i.Band.Length > 0))
             {
+                <path d="@ind.Band" fill="@_indicatorColor(ind.Index)" fill-opacity="0.08" stroke="none" />
+            }
+            @for (int k = 0; k < geo.Candles.Count; k++)
+            {
+                CandlestickLayoutCandle c = geo.Candles[k];
                 string color = c.Up ? UpColor : DownColor;
                 double half = c.Width / 2;
                 <g>
-                    <title>@_tooltip(c)</title>
+                    <title>@_tooltip(geo, k)</title>
                     @switch (CandleStyle)
                     {
                         case CandlestickStyle.Candle:
@@ -37,12 +45,58 @@
                     <rect x="@N(c.X - half)" y="@N(c.YHigh)" width="@N(c.Width)" height="@N(Math.Max(1, c.YLow - c.YHigh))" fill="transparent" />
                 </g>
             }
+            @foreach (CandlestickLayoutIndicator ind in geo.Indicators.Where(i => i.Panel < 0))
+            {
+                string color = _indicatorColor(ind.Index);
+                <g pointer-events="none">
+                    @if (ind.Band.Length > 0)
+                    {
+                        <path d="@ind.Upper" fill="none" stroke="@color" stroke-width="1" stroke-opacity="0.6" />
+                        <path d="@ind.Lower" fill="none" stroke="@color" stroke-width="1" stroke-opacity="0.6" />
+                    }
+                    <path d="@ind.Line" fill="none" stroke="@color" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round" />
+                </g>
+            }
+            @for (int p = 0; p < geo.Panels.Count; p++)
+            {
+                CandlestickLayoutPanel panel = geo.Panels[p];
+                PlotArea area = new(geo.Plot.Left, panel.Top, geo.Plot.Right, panel.Bottom);
+                <g>
+                    <ChartAxes Plot="area" YTicks="panel.YTicks" YGrid="true" ViewWidth="ViewWidth" />
+                    <SvgText X="@(geo.Plot.Left + 4)" Y="@(panel.Top + 10)" FontSize="10" FontWeight="600" FillOpacity="0.6" Text="@_panelName(geo, p)" />
+                    @foreach (double guide in panel.Guides)
+                    {
+                        <line x1="@N(geo.Plot.Left)" x2="@N(geo.Plot.Right)" y1="@N(guide)" y2="@N(guide)" stroke="var(--color-base-content)" stroke-opacity="0.35" stroke-dasharray="3 3" />
+                    }
+                    @foreach (CandlestickLayoutBar bar in panel.Bars)
+                    {
+                        <rect x="@N(bar.X)" y="@N(bar.Y)" width="@N(bar.Width)" height="@N(bar.Height)" fill="@(bar.Up ? UpColor : DownColor)" fill-opacity="0.45">
+                            <title>@($"Volume: {ChartText.Value(bar.Value)}")</title>
+                        </rect>
+                    }
+                    @foreach (CandlestickLayoutIndicator ind in geo.Indicators.Where(i => i.Panel == p))
+                    {
+                        string color = _indicatorColor(ind.Index);
+                        @foreach (CandlestickLayoutBar bar in ind.Bars)
+                        {
+                            <rect x="@N(bar.X)" y="@N(bar.Y)" width="@N(bar.Width)" height="@N(bar.Height)" fill="@(bar.Up ? UpColor : DownColor)" fill-opacity="0.45">
+                                <title>@($"{_indicatorName(ind.Index)} histogram: {ChartText.Value(bar.Value)}")</title>
+                            </rect>
+                        }
+                        <path d="@ind.Line" fill="none" stroke="@color" stroke-width="1.75" stroke-linejoin="round" pointer-events="none" />
+                        @if (ind.Signal.Length > 0)
+                        {
+                            <path d="@ind.Signal" fill="none" stroke="@color" stroke-width="1.25" stroke-dasharray="4 3" stroke-opacity="0.8" pointer-events="none" />
+                        }
+                    }
+                </g>
+            }
         }
     </ChildContent>
     <Legend>
         @if (ShowLegend)
         {
-            <ChartLegend Items="@([(UpLabel, UpColor), (DownLabel, DownColor)])" />
+            <ChartLegend Items="@_legend" />
         }
     </Legend>
 </D3ChartFrame>
@@ -66,38 +120,144 @@
     /// <summary>Legend name of falling periods.</summary>
     [Parameter] public string DownLabel { get; set; } = "Falling";
 
-    /// <summary>Show the rising/falling legend under the chart.</summary>
+    /// <summary>Show the rising/falling legend (and the indicators) under the chart.</summary>
     [Parameter] public bool ShowLegend { get; set; } = true;
 
     /// <summary>Format string for values in tooltips, e.g. "{0:0.#} %".</summary>
     [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
 
+    /// <summary>
+    /// Technical indicators computed over the closes: SMA, EMA and Bollinger bands are drawn over
+    /// the candles, RSI and MACD in a panel each under them. Each takes a palette colour other than
+    /// the rising and falling ones, is named in the legend and its value at each period shows in the candle's tooltip.
+    /// </summary>
+    [Parameter] public IReadOnlyList<ChartIndicator> Indicators { get; set; } = [];
+
+    /// <summary>Show each period's <see cref="Candle.Volume"/> as bars in a panel under the price, in the rising or falling colour.</summary>
+    [Parameter] public bool ShowVolume { get; set; }
+
     /// <inheritdoc />
     protected override string Kind => "candlestick";
 
     /// <inheritdoc />
-    protected override object BuildSpec() => new
+    protected override object BuildSpec()
     {
-        Candles = Candles.Select(c => new
+        // Without indicators or volume, the spec (and so the layout) is exactly the plain chart's.
+        bool volume = ShowVolume && Candles.Any(c => c.Volume is not null);
+        if (Indicators.Count == 0 && !volume)
         {
-            c.Time,
-            c.Open,
-            c.High,
-            c.Low,
-            c.Close,
-        }).ToArray(),
-        Width = ViewWidth,
-        Height = ViewHeight,
-    };
+            return new
+            {
+                Candles = Candles.Select(c => new
+                {
+                    c.Time,
+                    c.Open,
+                    c.High,
+                    c.Low,
+                    c.Close,
+                }).ToArray(),
+                Width = ViewWidth,
+                Height = ViewHeight,
+            };
+        }
+
+        return new
+        {
+            Candles = Candles.Select(c => new
+            {
+                c.Time,
+                c.Open,
+                c.High,
+                c.Low,
+                c.Close,
+                c.Volume,
+            }).ToArray(),
+            Width = ViewWidth,
+            Height = ViewHeight,
+            Indicators = Indicators.Select(i => new
+            {
+                Kind = i.Kind.ToString().ToLowerInvariant(),
+                i.Period,
+                i.StdDev,
+                i.SlowPeriod,
+                i.SignalPeriod,
+            }).ToArray(),
+            ShowVolume = volume,
+        };
+    }
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
 
-    private string _tooltip(CandlestickLayoutCandle c) =>
-        $"{c.Label}: open {_format(c.Open)}, high {_format(c.High)}, low {_format(c.Low)}, close {_format(c.Close)}";
+    // Palette colours in order, skipping the rising and falling colours so an indicator never reads as one of them.
+    private string _indicatorColor(int index)
+    {
+        if (index < Indicators.Count && !string.IsNullOrWhiteSpace(Indicators[index].Color))
+        {
+            return Indicators[index].Color!;
+        }
+
+        string[] free = ChartPalette.Default.Where(c => c != UpColor && c != DownColor).ToArray();
+        return free.Length == 0 ? ChartPalette.Neutral : free[index % free.Length];
+    }
+
+    private string _indicatorName(int index)
+    {
+        if (index >= Indicators.Count)
+        {
+            return string.Empty;
+        }
+
+        ChartIndicator i = Indicators[index];
+        return i.Label ?? i.Kind switch
+        {
+            IndicatorKind.Sma => $"SMA {_period(i.Period, 20)}",
+            IndicatorKind.Ema => $"EMA {_period(i.Period, 20)}",
+            IndicatorKind.Bollinger => $"Bollinger {_period(i.Period, 20)}, {i.StdDev.ToString("0.##", CultureInfo.CurrentCulture)}σ",
+            IndicatorKind.Rsi => $"RSI {_period(i.Period, 14)}",
+            _ => $"MACD {_period(i.Period, 12)}, {_period(i.SlowPeriod, 26)}, {_period(i.SignalPeriod, 9)}",
+        };
+    }
+
+    // The period the layout uses (whole() in candlestick.mjs): the default when missing or under 1.
+    private static int _period(int? value, int fallback) => value is >= 1 ? value.Value : fallback;
+
+    private string _panelName(CandlestickLayout geo, int panel) =>
+        geo.Panels[panel].Kind == "volume"
+            ? "Volume"
+            : string.Join(", ", geo.Indicators.Where(i => i.Panel == panel).Select(i => _indicatorName(i.Index)));
+
+    private IReadOnlyList<(string Name, string Color)> _legend =>
+    [
+        (UpLabel, UpColor),
+        (DownLabel, DownColor),
+        .. (Layout?.Indicators ?? []).Select(i => (_indicatorName(i.Index), _indicatorColor(i.Index))),
+    ];
+
+    private string _tooltip(CandlestickLayout geo, int at)
+    {
+        CandlestickLayoutCandle c = geo.Candles[at];
+        string text = $"{c.Label}: open {_format(c.Open)}, high {_format(c.High)}, low {_format(c.Low)}, close {_format(c.Close)}";
+        if (c.Volume is { } volume)
+        {
+            text += $", volume {ChartText.Value(volume)}";
+        }
+
+        foreach (CandlestickLayoutIndicator ind in geo.Indicators)
+        {
+            if (at < ind.Values.Count && ind.Values[at] is { } value)
+            {
+                text += $"; {_indicatorName(ind.Index)} {(ind.Panel < 0 ? _format(value) : ChartText.Value(value))}";
+            }
+        }
+
+        return text;
+    }
 
     private string _label => Title ?? "Candlestick chart";
 
     private string _description => Layout is { Candles.Count: > 0 } geo
         ? $"{geo.Candles.Count} periods from {geo.Candles[0].Label} to {geo.Candles[^1].Label}; {geo.Candles.Count(c => c.Up)} rising, {geo.Candles.Count(c => !c.Up)} falling; lowest {_format(geo.Candles.Min(c => c.Low))}, highest {_format(geo.Candles.Max(c => c.High))}."
+            + (geo.Indicators.Count > 0 ? $" Indicators: {string.Join(", ", geo.Indicators.Select(i => _indicatorName(i.Index)))}." : string.Empty)
+            + (geo.Panels.Any(p => p.Kind == "volume") ? " Volume shown under the price." : string.Empty)
         : "No data.";
 }

@@ -2,6 +2,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { layout } from '../src/DaisyBlazor.Charts/wwwroot/charts.mjs';
+// Sweeps call the layouts directly, so the replay fixture does not record thousands of specs.
+import streamLayout from '../src/DaisyBlazor.Charts/wwwroot/layouts/stream.mjs';
+import candlestickLayout from '../src/DaisyBlazor.Charts/wwwroot/layouts/candlestick.mjs';
 
 const W = 640, H = 360;
 const inside = (x, y, w = W, h = H) => x >= 0 && x <= w && y >= 0 && y <= h;
@@ -118,6 +121,17 @@ test('range-area: labels make a category axis; no valid point is empty', async (
     assert.deepEqual((await layout('range-area', { points: [{ label: 'x', low: null, high: 1 }], width: W, height: H })).points, []);
 });
 
+test('range-area: step draws the band and the center line as step-after segments, over smooth', async () => {
+    const out = await layout('range-area', {
+        points: ['Mon', 'Tue'].map((label, i) => ({ label, low: i, high: i + 4, center: i + 2 })), step: true, width: W, height: H,
+    });
+    const [a, b] = out.points;
+    assert.doesNotMatch(out.band + out.center, /C/);
+    assert.match(out.center, /^M([\d.]+),([\d.]+)L([\d.]+),\2L\3,[\d.]+$/);
+    assert.equal(out.center.match(/L([\d.]+),/)[1], String(b.x));
+    assert.ok(a.x < b.x);
+});
+
 test('stream: wiggle has no value axis, stacked and percent stack from zero', async () => {
     const series = [{ name: 'Billing', values: [10, 20, 30] }, { name: 'Search', values: [30, -5, null] }];
     const spec = { series, labels: ['W1', 'W2', 'W3'], width: W, height: H };
@@ -140,6 +154,15 @@ test('stream: wiggle has no value axis, stacked and percent stack from zero', as
         if (l.showLabel) {
             assert.ok(l.labelX >= percent.plot.left && l.labelX <= percent.plot.right);
         }
+    }
+});
+
+test('stream: percent keeps the axis at exactly 100%, whatever the rounding', async () => {
+    for (let a = 1; a <= 25; a++) for (let b = 1; b <= 25; b += 2) for (let c = 1; c <= 9; c += 2) {
+        const series = [[a, 1], [b, 1], [c, 1]].map((values, i) => ({ name: `S${i}`, values }));
+        const out = streamLayout({ series, labels: ['W1', 'W2'], offset: 'percent', width: W, height: H });
+        assert.equal(out.yTicks.at(-1).label, '100%', `${a},${b},${c}`);
+        assert.equal(out.yTicks.at(-1).pos, out.plot.top, `${a},${b},${c}`);
     }
 });
 
@@ -239,3 +262,130 @@ test('bump: ranks given as data are kept; no series is empty', async () => {
     assert.deepEqual(out.xTicks.map(t => t.label), ['1', '2']);
     assert.deepEqual((await layout('bump', { series: [], width: W, height: H })).lines, []);
 });
+
+test('candlestick indicators: SMA, EMA, Bollinger (population σ), RSI (Wilder) and MACD of fixed series', async () => {
+    const { sma, ema, bollinger, rsi, macd } = await import('../src/DaisyBlazor.Charts/wwwroot/layouts/candlestick.mjs');
+    const near = (actual, expected) => assert.deepEqual(actual.map(v => (v === null ? null : Math.round(v * 1e6) / 1e6)), expected);
+
+    near(sma([1, 2, 3, 4, 5], 3), [null, null, 2, 3, 4]);
+    // α = 2 / (3 + 1) = 0.5, seeded with SMA(1, 2, 3) = 2: then 0.5·4 + 0.5·2 = 3, 0.5·5 + 0.5·3 = 4.
+    near(ema([1, 2, 3, 4, 5], 3), [null, null, 2, 3, 4]);
+    near(ema([10, 20, 10, 20], 2), [null, 15, 11.666667, 17.222222]);
+
+    // Mean 4, population σ = √((4 + 0 + 4) / 3) = 1.632993: bands at 4 ± 2σ.
+    const b = bollinger([2, 4, 6], 3, 2);
+    near(b.middle, [null, null, 4]);
+    near(b.upper, [null, null, 7.265986]);
+    near(b.lower, [null, null, 0.734014]);
+
+    // Changes +1, −1, +1, +1. First averages: gain 0.5, loss 0.5 → 50; then Wilder's
+    // (avg·(n − 1) + change) / n: gain 0.75 / loss 0.25 → 75, gain 0.875 / loss 0.125 → 87.5.
+    near(rsi([1, 2, 1, 2, 3], 2), [null, null, 50, 75, 87.5]);
+    near(rsi([1, 2, 3], 2), [null, null, 100]); // no losses
+    near(rsi([5, 5, 5], 2), [null, null, 50]); // flat
+
+    // On a straight line an EMA lags by a constant: EMA(2) by 0.5, EMA(3) by 1, so the MACD is 0.5,
+    // its signal 0.5 and the histogram 0.
+    const m = macd([1, 2, 3, 4, 5, 6], 2, 3, 2);
+    near(m.main, [null, null, 0.5, 0.5, 0.5, 0.5]);
+    near(m.signal, [null, null, null, 0.5, 0.5, 0.5]);
+    near(m.histogram, [null, null, null, 0, 0, 0]);
+});
+
+const hourly = (n, f) => Array.from({ length: n }, (_, i) => {
+    const open = f(i), close = f(i + 1);
+    return { time: `2026-10-19T${String(i).padStart(2, '0')}:00:00`, open, high: Math.max(open, close) + 2, low: Math.min(open, close) - 2, close, volume: 100 + i * 10 };
+});
+
+test('candlestick: overlays on the price panel follow the candles, values line up with them', async () => {
+    const candles = hourly(24, i => 50 + 10 * Math.sin(i / 3));
+    const out = await layout('candlestick', {
+        candles, width: W, height: H,
+        indicators: [{ kind: 'sma', period: 5 }, { kind: 'bollinger', period: 5, stdDev: 2 }, { kind: 'ema', period: 5 }, { kind: 'nope' }],
+    });
+    assert.equal(out.indicators.length, 3);
+    assert.deepEqual(out.indicators.map(i => [i.index, i.kind, i.panel]), [[0, 'sma', -1], [1, 'bollinger', -1], [2, 'ema', -1]]);
+    assert.equal(out.panels.length, 0);
+    assert.equal(out.plot.bottom, H - 24); // nothing under the price panel
+    const [smaOut, boll] = out.indicators;
+    assert.equal(smaOut.values.length, 24);
+    assert.deepEqual(smaOut.values.slice(0, 4), [null, null, null, null]);
+    const closes = candles.map(c => c.close);
+    assert.equal(smaOut.values[4], Math.round(closes.slice(0, 5).reduce((s, v) => s + v, 0) / 5 * 100) / 100);
+    assert.match(smaOut.line, /^M[\d.]+,[\d.]+L/);
+    assert.ok(boll.band.length > 0 && boll.upper.length > 0 && boll.lower.length > 0);
+    // The line starts at the fifth candle.
+    assert.equal(r(Number(smaOut.line.slice(1).split(',')[0])), r(out.candles[4].x));
+    // The bands widen the price scale, so every candle still sits inside the plot.
+    for (const c of out.candles) {
+        assert.ok(c.yHigh >= out.plot.top && c.yLow <= out.plot.bottom);
+    }
+});
+
+test('candlestick: the price panel keeps at least 40% of the height, however many panels and however small', async () => {
+    const candles = hourly(24, i => 50 + 10 * Math.sin(i / 3));
+    const kinds = ['rsi', 'macd', 'rsi', 'macd', 'rsi', 'macd'];
+    // The reported case (aspect ratio 3: volume, RSI, MACD and a second RSI), through layout() for the replay fixture.
+    const reported = await layout('candlestick', { candles, width: W, height: 213, showVolume: true, indicators: [{ kind: 'rsi' }, { kind: 'macd', period: 3 }, { kind: 'rsi', period: 5 }] });
+    assert.ok(reported.plot.bottom - reported.plot.top >= (213 - 24 - 10) * 0.4 - 0.01);
+    for (const height of [60, 100, 160, 213, 300, 360]) {
+        for (let n = 1; n <= kinds.length; n++) {
+            const out = candlestickLayout({
+                candles, width: W, height, showVolume: true, indicators: kinds.slice(0, n).map(kind => ({ kind, period: 3 })),
+            });
+            const bottom = height - 24;
+            const label = `height ${height}, ${n} indicators`;
+            assert.ok(out.plot.bottom - out.plot.top >= (bottom - out.plot.top) * 0.4 - 0.01, label);
+            let prev = out.plot.bottom;
+            for (const p of out.panels) {
+                assert.ok(p.top >= prev && p.bottom >= p.top, label);
+                prev = p.bottom;
+            }
+            assert.ok(Math.abs(prev - bottom) < 0.01, label);
+        }
+    }
+});
+
+test('candlestick: RSI, MACD and volume panels stack under the price panel on one time axis', async () => {
+    const candles = hourly(24, i => 50 + 10 * Math.sin(i / 3));
+    candles[3].volume = null;
+    const out = await layout('candlestick', {
+        candles, width: W, height: H, showVolume: true,
+        indicators: [{ kind: 'rsi', period: 5 }, { kind: 'macd', period: 3, slowPeriod: 6, signalPeriod: 3 }],
+    });
+    assert.deepEqual(out.panels.map(p => p.kind), ['rsi', 'macd', 'volume']);
+    assert.deepEqual(out.indicators.map(i => i.panel), [0, 1]);
+    // Panels sit under each other, below the price panel, and end where the time axis is drawn.
+    let prev = out.plot.bottom;
+    for (const p of out.panels) {
+        assert.ok(p.top > prev && p.bottom > p.top);
+        prev = p.bottom;
+    }
+    assert.equal(prev, H - 24);
+    const [rsiPanel, macdPanel, volume] = out.panels;
+    assert.deepEqual(rsiPanel.yTicks.map(t => t.label), ['30', '70']);
+    assert.equal(rsiPanel.guides.length, 2);
+    assert.equal(macdPanel.guides.length, 1);
+    assert.ok(out.indicators[1].signal.length > 0 && out.indicators[1].bars.length > 0);
+    // One volume bar per candle with a volume, under its candle, as wide as its body, standing on the panel's bottom.
+    assert.equal(volume.bars.length, 23);
+    assert.equal(out.candles[3].volume, null);
+    assert.equal(out.candles[4].volume, 140);
+    const bar = volume.bars[3]; // the fifth candle
+    assert.equal(bar.value, 140);
+    assert.equal(r(bar.x + bar.width / 2), r(out.candles[4].x));
+    assert.equal(bar.width, out.candles[4].width);
+    assert.equal(r(bar.y + bar.height), r(volume.bottom));
+    assert.equal(bar.up, out.candles[4].up);
+    const tallest = volume.bars.reduce((a, b) => (b.value > a.value ? b : a));
+    assert.ok(tallest.y >= volume.top && tallest.value === 330);
+    // The left margin fits the widest axis of all panels; without extras the output has no panels.
+    const plain = await layout('candlestick', { candles, width: W, height: H });
+    assert.ok(out.plot.left >= plain.plot.left);
+    assert.deepEqual(out.xTicks.map(t => t.label), plain.xTicks.map(t => t.label));
+    assert.equal(plain.panels, undefined);
+    assert.equal(plain.indicators, undefined);
+    assert.equal('volume' in plain.candles[0], false);
+});
+
+const r = v => Math.round(v * 10) / 10;

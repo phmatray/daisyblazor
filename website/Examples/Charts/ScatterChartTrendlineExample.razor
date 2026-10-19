@@ -1,0 +1,11 @@
+<ScatterChart Title="Seats and API calls per customer" Points="_points" Trendline="ChartTrendline.Linear"
+              XTitle="Seats" YTitle="API calls (thousands / day)" />
+
+@code {
+    // Trendline fits a least-squares line to each series; hover it for the equation and R².
+    private readonly ScatterPoint[] _points =
+    [
+        .. DistributionSamples.Cloud(seed: 1, count: 40, xMean: 12, xSd: 4, intercept: 2, slope: 0.8, noise: 2.5, series: "Starter"),
+        .. DistributionSamples.Cloud(seed: 2, count: 30, xMean: 45, xSd: 12, intercept: 5, slope: 0.4, noise: 4, series: "Pro"),
+    ];
+}

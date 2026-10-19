@@ -1,0 +1,180 @@
+@namespace DaisyBlazor.Charts
+@using System.Text.Json
+@inherits D3Chart<ChoroplethLayout>
+
+@* Choropleth map: GeoJSON features projected with d3-geo and filled on a sequential scale of one
+   theme colour by their value. Only each feature's key, name and geometry travel to the layout, and
+   they are extracted again only when the GeoJSON itself changes. *@
+
+<D3ChartFrame TLayout="ChoroplethLayout" Chart="this" Label="@_label" Description="@_description">
+    <ChildContent>
+        @if (Layout is { } geo)
+        {
+            @if (geo.Sphere.Length > 0)
+            {
+                <path d="@geo.Sphere" fill="var(--color-base-content)" fill-opacity="0.04" stroke="var(--color-base-content)" stroke-opacity="0.25" />
+            }
+            <g stroke="var(--color-base-100)" stroke-width="0.5" stroke-linejoin="round">
+                @foreach (ChoroplethFeature f in geo.Features)
+                {
+                    <path d="@f.Path" fill="@f.Fill"><title>@_tooltip(f)</title></path>
+                }
+            </g>
+        }
+    </ChildContent>
+    <Legend>
+        @if (ShowLegend && Layout is { Min: { } min, Max: { } max } geo)
+        {
+            <div class="flex flex-wrap items-center gap-3 mt-2 text-xs text-base-content/80">
+                <span class="inline-flex items-center gap-2">
+                    <span>@_format(min)</span>
+                    <span class="inline-block w-24 h-2 rounded-sm" style="@($"background:linear-gradient(to right, {geo.Low}, {geo.High});")"></span>
+                    <span>@_format(max)</span>
+                </span>
+                @if (geo.Features.Any(f => f.Value is null))
+                {
+                    <span class="inline-flex items-center gap-1.5">
+                        <span class="inline-block w-3 h-3 rounded-sm" style="@($"background:{NoDataColor};")"></span>
+                        <span>No data</span>
+                    </span>
+                }
+            </div>
+        }
+    </Legend>
+</D3ChartFrame>
+
+@code {
+    /// <summary>
+    /// The map as a GeoJSON FeatureCollection, for example from
+    /// <c>await Http.GetFromJsonAsync&lt;JsonElement&gt;("data/countries.json")</c>. Each feature's key
+    /// (see <see cref="IdProperty"/>), name (see <see cref="NameProperty"/>) and geometry are sent to the
+    /// layout, nothing else; they are extracted again only when a different document is passed.
+    /// </summary>
+    [Parameter] public JsonElement Features { get; set; }
+
+    /// <summary>The value of each feature, keyed like <see cref="IdProperty"/>. A feature without a finite value gets <see cref="NoDataColor"/>.</summary>
+    [Parameter] public IReadOnlyDictionary<string, double> Values { get; set; } = new Dictionary<string, double>();
+
+    /// <summary>The property that keys <see cref="Values"/>: a property of the feature's <c>properties</c>, else the feature's own member of that name (the GeoJSON <c>id</c> by default).</summary>
+    [Parameter] public string IdProperty { get; set; } = "id";
+
+    /// <summary>The feature property shown as its name in the tooltips; the key when it is missing.</summary>
+    [Parameter] public string NameProperty { get; set; } = "name";
+
+    /// <summary>How the globe is flattened. The projection is always fitted to the features.</summary>
+    [Parameter] public MapProjection Projection { get; set; } = MapProjection.NaturalEarth;
+
+    /// <summary>CSS colour of the highest value; lower values are lighter tints of it. Defaults to the theme's primary colour.</summary>
+    [Parameter] public string? Color { get; set; }
+
+    /// <summary>CSS colour of features without a value.</summary>
+    [Parameter] public string NoDataColor { get; set; } = "var(--color-base-300)";
+
+    /// <summary>Format string for values in the legend and tooltips, e.g. "{0:N0} customers".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Show the colour scale (lowest to highest value) under the map.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>Creates a map with the shape of a world map.</summary>
+    public ChoroplethMap()
+    {
+        AspectRatio = 1.9;
+    }
+
+    /// <inheritdoc />
+    protected override string Kind => "choropleth";
+
+    private (JsonElement Source, string Id, string Name)? _leanKey;
+    private object[] _lean = [];
+    private (JsonElement Features, IReadOnlyDictionary<string, double> Values, string Id, string Name, MapProjection Projection, string? Color, string NoData, double Height)? _inputs;
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// The spec holds every feature's geometry, so a parent re-rendering with the same Features and
+    /// Values (by reference) and the same settings skips building and serializing it.
+    /// </remarks>
+    protected override bool InputsUnchanged()
+    {
+        (JsonElement, IReadOnlyDictionary<string, double>, string, string, MapProjection, string?, string, double) now =
+            (Features, Values, IdProperty, NameProperty, Projection, Color, NoDataColor, ViewHeight);
+        bool same = _inputs is { } last && last.Equals(now);
+        _inputs = now;
+        return same;
+    }
+
+    /// <inheritdoc />
+    protected override object BuildSpec()
+    {
+        // JsonElement equality is the document and the position in it, so this is a cheap identity check.
+        (JsonElement, string, string) key = (Features, IdProperty, NameProperty);
+        if (_leanKey is not { } last || !last.Equals(key))
+        {
+            _lean = Lean(Features, IdProperty, NameProperty);
+            _leanKey = key;
+        }
+
+        return new
+        {
+            Features = _lean,
+            Values,
+            Projection = Projection switch
+            {
+                MapProjection.EqualEarth => "equal-earth",
+                MapProjection.Mercator => "mercator",
+                MapProjection.Equirectangular => "equirectangular",
+                MapProjection.Albers => "albers",
+                _ => "natural-earth",
+            },
+            Color = ChartPalette.At(0, Color),
+            NoDataColor,
+            Width = ViewWidth,
+            Height = ViewHeight,
+        };
+    }
+
+    private static object[] Lean(JsonElement collection, string idProperty, string nameProperty)
+    {
+        if (collection.ValueKind != JsonValueKind.Object || !collection.TryGetProperty("features", out JsonElement features) || features.ValueKind != JsonValueKind.Array)
+        {
+            return [];
+        }
+
+        List<object> lean = [];
+        foreach (JsonElement feature in features.EnumerateArray())
+        {
+            if (feature.ValueKind != JsonValueKind.Object || !feature.TryGetProperty("geometry", out JsonElement geometry) || geometry.ValueKind != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            JsonElement properties = feature.TryGetProperty("properties", out JsonElement p) && p.ValueKind == JsonValueKind.Object ? p : default;
+            string? id = Text(properties, idProperty) ?? Text(feature, idProperty);
+            string? name = Text(properties, nameProperty);
+            lean.Add(new { Id = id ?? string.Empty, Name = name ?? id ?? string.Empty, Geometry = geometry });
+        }
+
+        return [.. lean];
+    }
+
+    // A string or number member as text; anything else (or a missing member) is null.
+    private static string? Text(JsonElement owner, string name) =>
+        owner.ValueKind == JsonValueKind.Object && owner.TryGetProperty(name, out JsonElement v)
+            ? v.ValueKind switch
+            {
+                JsonValueKind.String => v.GetString(),
+                JsonValueKind.Number => v.GetRawText(),
+                _ => null,
+            }
+            : null;
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _tooltip(ChoroplethFeature f) => $"{f.Name}: {(f.Value is { } v ? _format(v) : "no data")}";
+
+    private string _label => Title ?? "Choropleth map";
+
+    private string? _description => Layout is { } geo
+        ? string.Join("; ", geo.Features.Where(f => f.Value is not null).OrderByDescending(f => f.Value).Select(_tooltip))
+        : null;
+}

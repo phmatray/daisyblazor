@@ -1,13 +1,14 @@
 import { partition } from '../d3/d3-hierarchy.mjs';
-import { build, groups, base, EMPTY } from './_hierarchy.mjs';
+import { build, groups, base, focus, echo, EMPTY } from './_hierarchy.mjs';
 
-// spec: { root: { name, value, children }, width, height, orientation: 'horizontal' | 'vertical' }
+// spec: { root: { name, value, children }, focus?: ['Branch', 'child'], width, height, orientation: 'horizontal' | 'vertical' }
 // Horizontal: one column per level, root on the left. Vertical: one row per level, root on top.
-export default function icicle({ root, width, height, orientation = 'horizontal' }) {
-    const h = build(root);
-    if (!h) {
+export default function icicle({ root, focus: path, width, height, orientation = 'horizontal' }) {
+    const full = build(root);
+    if (!full) {
         return EMPTY;
     }
+    const h = focus(full, path);
     const vertical = orientation === 'vertical';
     partition().size(vertical ? [width, height] : [height, width])(h);
 
@@ -25,5 +26,5 @@ export default function icicle({ root, width, height, orientation = 'horizontal'
                 thickness: y1 - y0,
             };
         });
-    return { nodes, groups: groups(h), cx: 0, cy: 0 };
+    return { nodes, groups: groups(full), cx: 0, cy: 0, ...echo(h, path) };
 }

@@ -1,0 +1,28 @@
+<IcicleChart Title="Acme Cloud API requests by region, service and endpoint (thousands)" Root="_requests" ValueFormat="{0:N0}k"
+             Drilldown="true" @bind-Focus="_focus" />
+<p class="text-sm text-base-content/70 mt-2">Focus: <code>@(_focus ?? "(whole tree)")</code></p>
+
+@code {
+    // Starts drilled into Europe: Focus can be set up front. The first band, or the trail, goes back up.
+    private string? _focus = "Europe";
+
+    private readonly HierarchyNode _requests = new("Requests", Children:
+    [
+        new("Europe", Children:
+        [
+            new("api", Children: [new("projects", 820), new("tasks", 640), new("search", 310)]),
+            new("auth", Children: [new("token", 540), new("sso", 120)]),
+            new("webhooks", Children: [new("deliveries", 260)]),
+        ]),
+        new("Americas", Children:
+        [
+            new("api", Children: [new("projects", 700), new("tasks", 520)]),
+            new("auth", Children: [new("token", 480), new("sso", 160)]),
+        ]),
+        new("Asia", Children:
+        [
+            new("api", Children: [new("projects", 260), new("tasks", 180)]),
+            new("auth", Children: [new("token", 150)]),
+        ]),
+    ]);
+}
