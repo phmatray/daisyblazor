@@ -12,19 +12,20 @@ export const ticks = (scale, count) => niceTicks(scale, Math.max(2, Math.round(c
 
 /**
  * The plot rectangle inside a width x height chart, leaving room for the y tick labels on the left,
- * the y title above them, the x tick labels and the x title below.
+ * the y title above them, the x tick labels and the x title below; extraTop and extraRight add room
+ * above and beside it (extraRight replaces the default right margin when wider).
  */
-export function frame({ width, height, yLabels, xTitle, yTitle, extraTop = 0 }) {
+export function frame({ width, height, yLabels, xTitle, yTitle, extraTop = 0, extraRight = 0 }) {
     const left = Math.ceil(maxWidth(yLabels)) + 12;
     const top = (yTitle ? 26 : 10) + extraTop;
     const bottom = height - (xTitle ? 42 : 24);
-    return { left, top, right: width - 16, bottom };
+    return { left, top, right: width - Math.max(16, extraRight), bottom };
 }
 
 /** A frame plus labelled x and y ticks for two continuous scales; the scales get their ranges. */
-export function cartesian({ width, height, x, y, xTitle, yTitle, inset = 0, extraTop = 0 }) {
+export function cartesian({ width, height, x, y, xTitle, yTitle, inset = 0, extraTop = 0, extraRight = 0 }) {
     const yCount = Math.max(2, height / 60);
-    const plot = frame({ width, height, yLabels: ticks(y, yCount).map(t => t.label), xTitle, yTitle, extraTop });
+    const plot = frame({ width, height, yLabels: ticks(y, yCount).map(t => t.label), xTitle, yTitle, extraTop, extraRight });
     x.range([plot.left + inset, plot.right - inset]);
     y.range([plot.bottom - inset, plot.top + inset]);
     return { plot, xTicks: ticks(x, (plot.right - plot.left) / 80), yTicks: ticks(y, yCount) };

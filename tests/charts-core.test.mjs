@@ -478,7 +478,7 @@ test('line: horizontal percent stacks reach exactly 100% on the x axis', async (
     assert.ok(series[1].points.every(p => p.x === plot.right));
 });
 
-test('line and bar: references and bands sit at their values, labels inside the plot', async () => {
+test('line and bar: references and bands sit at their values, labels beside the plot', async () => {
     const out = await layout('line', {
         series: [[20, 35, 30]], labels: ['A', 'B', 'C'],
         references: [{ value: 60, label: 'Quota' }, { value: 25, label: 'Target' }], bands: [{ from: 10, to: 30, label: 'Normal' }, { from: 500, to: 900 }],
@@ -488,19 +488,19 @@ test('line and bar: references and bands sit at their values, labels inside the 
     assert.equal(out.yTicks.at(-1).label, '60', 'the axis grows to show the reference');
     const [quota, target] = out.references;
     assert.deepEqual([quota.y1, quota.y2, quota.x1, quota.x2], [y(60), y(60), out.plot.left, out.plot.right]);
-    assert.ok(quota.labelY > quota.y1 && quota.labelY - 11 >= out.plot.top, 'a line at the top is labelled below it');
-    assert.ok(target.labelY < target.y1 && target.anchor === 'end' && target.labelX < out.plot.right);
+    assert.ok(Math.abs(quota.labelY - quota.y1 - 4) < 1 && quota.labelX > out.plot.right, 'beside its line, in the right margin');
+    assert.ok(target.anchor === 'start' && target.labelX > out.plot.right);
     assert.equal(out.bands.length, 1, 'a band outside the axis is dropped');
     const [normal] = out.bands;
     assert.deepEqual([normal.y, normal.y + normal.height].map(Math.round), [y(30), y(10)].map(Math.round));
-    assert.ok(normal.labelX > out.plot.left && normal.labelY > normal.y);
+    assert.ok(normal.labelX > out.plot.right && normal.labelY > normal.y);
 
     const bar = await layout('bar', { categories: ['A', 'B'], series: [[10, 40]], horizontal: true, references: [{ value: 50, label: 'Limit' }], bands: [{ from: 30, to: 0 }], ...size });
     const x = v => bar.xTicks.find(t => t.label === String(v))?.pos;
     const [limit] = bar.references;
     assert.deepEqual([limit.x1, limit.x2, limit.y1, limit.y2], [x(50), x(50), bar.plot.top, bar.plot.bottom]);
-    assert.equal(limit.anchor, 'end', 'a label that would leave the plot turns back');
-    assert.ok(limit.labelX - 'Limit'.length * 6.6 >= bar.plot.left);
+    assert.ok(limit.labelY < bar.plot.top, 'above the plot');
+    assert.ok(limit.labelX + 'Limit'.length * 3.3 <= size.width, 'a label at the right end stays in the chart');
     assert.deepEqual([bar.bands[0].x, Math.round(bar.bands[0].x + bar.bands[0].width)], [x(0), Math.round(x(30))]);
 
     const vertical = await layout('bar', { categories: ['A'], series: [[10]], references: [{ value: 4 }], ...size });
@@ -508,4 +508,30 @@ test('line and bar: references and bands sit at their values, labels inside the 
     assert.deepEqual(vertical.bands, []);
     // Without references or bands, the result has neither key.
     assert.ok(!('references' in await layout('bar', { categories: ['A'], series: [[10]], ...size })));
+});
+
+test('references: labels sit outside the plot, clear of the bars (right margin, or a row above)', async () => {
+    // The docs example: the band's label used to sit on the tall first bar.
+    const out = await layout('bar', {
+        categories: ['Platform', 'Billing', 'Search', 'Mobile', 'Data'], series: [[64, 22, 41, 18, 35]],
+        references: [{ value: 40, label: 'Target' }], bands: [{ from: 30, to: 50, label: 'Healthy range' }], ...size,
+    });
+    const [target] = out.references, [healthy] = out.bands;
+    for (const l of [target, healthy]) {
+        assert.equal(l.anchor, 'start');
+        assert.ok(l.labelX > out.plot.right, 'in the right margin');
+        assert.ok(l.labelX + 'Healthy range'.length * 6.6 <= size.width + 1, 'the margin holds the label');
+    }
+    assert.ok(Math.abs(target.labelY - healthy.labelY) >= 11, 'margin labels do not overlap each other');
+
+    // Values along x: labels go in a row above the plot.
+    const across = await layout('bar', { categories: ['A'], series: [[10]], horizontal: true, references: [{ value: 5, label: 'Half' }], bands: [{ from: 0, to: 2, label: 'Low' }], ...size });
+    for (const l of [...across.references, ...across.bands]) {
+        assert.ok(l.labelY < across.plot.top && l.labelY - 9 >= 0, 'above the plot, inside the chart');
+    }
+    // Unlabelled marks reserve no room; a label too long for its margin is cut.
+    const plain = await layout('bar', { categories: ['A'], series: [[10]], references: [{ value: 5 }], ...size });
+    assert.equal(plain.plot.right, size.width - 6);
+    const long = await layout('line', { series: [[1, 2]], references: [{ value: 1, label: 'A very long reference label indeed' }], width: 200, height: 160 });
+    assert.ok(long.references[0].label.endsWith('…') && long.plot.right >= 140);
 });

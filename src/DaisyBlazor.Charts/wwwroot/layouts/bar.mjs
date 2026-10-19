@@ -1,5 +1,5 @@
 import { scaleBand } from '../d3/d3-scale.mjs';
-import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, compact, valueScale, ticks, referenceMarks, referenceValues, categoryTrends } from './_shared.mjs';
+import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, compact, valueScale, ticks, referenceRoom, referenceMarks, referenceValues, categoryTrends } from './_shared.mjs';
 
 // Bar chart, flat or grouped. spec: { categories: [string], series: [[number|null]], horizontal,
 // showGrid, width, height } (px); a flat chart is one series. Bars run from the zero line to their
@@ -40,7 +40,8 @@ export default function bar({ trendline = 'none', trendlineOrder = 2, trendlineP
     }
     const values = [...(stacked ? spans.flat().filter(Boolean).flat() : series.flat().filter(finite)), ...referenceValues(references)];
     const tickText = percent ? v => `${compact(v)}%` : compact;
-    const top = 8;
+    const marginal = referenceRoom(width, horizontal, references, bands);
+    const top = 8 + marginal.top;
     let left;
     let right;
     let bottom;
@@ -59,7 +60,7 @@ export default function bar({ trendline = 'none', trendlineOrder = 2, trendlineP
         value = valueScale(values, { zero: true, count: 5 }).range([bottom, top]);
         const tickLabels = showGrid ? ticks(value, 5, tickText) : [];
         left = tickLabels.length > 0 ? Math.max(...tickLabels.map(t => textWidth(t.label))) + 6 : 0;
-        right = width - 6;
+        right = width - Math.max(6, marginal.right);
     }
 
     const band = scaleBand()
@@ -102,5 +103,5 @@ export default function bar({ trendline = 'none', trendlineOrder = 2, trendlineP
         // Grouped bars: each series' trend runs through its own bars, not the category centre.
         out.trends = categoryTrends(series, (c, s) => band(c) + inner(stackOf(s)) + inner.bandwidth() / 2, value, horizontal, plot, { kind: trendline, order: trendlineOrder, period: trendlinePeriod });
     }
-    return references?.length || bands?.length ? { ...out, ...referenceMarks(value, horizontal, plot, references, bands) } : out;
+    return references?.length || bands?.length ? { ...out, ...referenceMarks(value, horizontal, plot, references, bands, marginal.right) } : out;
 }

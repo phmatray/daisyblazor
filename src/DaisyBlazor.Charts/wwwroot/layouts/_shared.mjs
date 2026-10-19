@@ -115,33 +115,57 @@ export function dodge(ys, gap, lo, hi) {
 }
 
 /**
+ * Room the reference labels need outside a plot, for a layout to reserve before it places the plot:
+ * `right`, a margin for the labels of lines and bands across y (at most 30 % of the width; longer
+ * labels are cut), or with `across`, `top`, a row above the plot for those along x. Zero when
+ * nothing is labelled.
+ */
+export function referenceRoom(width, across, references = [], bands = []) {
+    const labels = [...(references ?? []), ...(bands ?? [])].map(r => r?.label).filter(Boolean);
+    if (labels.length === 0) {
+        return { right: 0, top: 0 };
+    }
+    return across ? { right: 0, top: FONT + 4 } : { right: Math.round(Math.min(maxWidth(labels) + 8, width * 0.3)), top: 0 };
+}
+
+/**
  * Reference lines and shaded value bands across a plot, on its value scale. `across` is true when
  * the values run along x (lines and bands are then vertical). references: [{ value, label }],
  * bands: [{ from, to, label }]; bands are clipped to the plot and dropped when nothing is left.
- * Labels sit inside the plot, clear of the tick labels outside it: a horizontal line's at its right
- * end above it (below it near the top), a vertical line's at the top beside it, a band's in its corner.
- * Returns { references: [{ index, x1, y1, x2, y2, labelX, labelY, anchor }],
- * bands: [{ index, x, y, width, height, labelX, labelY, anchor }] }, index being the input position.
+ * Labels sit outside the plot so they never cover the data, in the room referenceRoom reserved:
+ * across y, in the right margin level with the line or the band's middle (moved apart when they
+ * would overlap, cut to the margin's width `room`); along x, in the row above the plot, centred
+ * on the line or the band and kept inside the chart.
+ * Returns { references: [{ index, x1, y1, x2, y2, labelX, labelY, anchor, label }],
+ * bands: [{ index, x, y, width, height, labelX, labelY, anchor, label }] }, index being the input position.
  */
-export function referenceMarks(scale, across, plot, references = [], bands = []) {
+// ponytail: labels in the row above are not moved apart; dodge them along x if close vertical marks ever collide.
+export function referenceMarks(scale, across, plot, references = [], bands = [], room = Infinity) {
     const lo = across ? plot.left : plot.top;
     const hi = across ? plot.right : plot.bottom;
     const at = v => Math.max(lo, Math.min(hi, scale(v)));
+    const above = (p, s) => {
+        const half = textWidth(s) / 2;
+        return { labelX: r2(Math.max(plot.left + half, Math.min(plot.right + 6 - half, p))), labelY: r2(plot.top - 4), anchor: 'middle', label: s };
+    };
+    const beside = (p, s) => ({ labelX: r2(plot.right + 4), labelY: r2(p + FONT * 0.35), anchor: 'start', label: s ? fit(s, room - 4) : s });
     const lines = (references ?? []).map((r, index) => ({ r, index })).filter(({ r }) => finite(r?.value)).map(({ r, index }) => {
         const p = r2(at(r.value));
-        if (across) {
-            const flip = p + 4 + textWidth(r.label) > plot.right;
-            return { index, x1: p, y1: plot.top, x2: p, y2: plot.bottom, labelX: r2(flip ? p - 4 : p + 4), labelY: r2(plot.top + FONT), anchor: flip ? 'end' : 'start' };
-        }
-        const below = p - 4 - FONT < plot.top;
-        return { index, x1: plot.left, y1: p, x2: plot.right, y2: p, labelX: r2(plot.right - 4), labelY: r2(below ? p + FONT + 2 : p - 4), anchor: 'end' };
+        return across
+            ? { index, x1: p, y1: plot.top, x2: p, y2: plot.bottom, ...above(p, r.label) }
+            : { index, x1: plot.left, y1: p, x2: plot.right, y2: p, ...beside(p, r.label) };
     });
     const shaded = (bands ?? []).map((b, index) => ({ b, index })).filter(({ b }) => finite(b?.from) && finite(b?.to)).map(({ b, index }) => {
         const [a, z] = [at(b.from), at(b.to)].sort((m, n) => m - n);
         return across
-            ? { index, x: r2(a), y: plot.top, width: r2(z - a), height: r2(plot.bottom - plot.top), labelX: r2(a + 4), labelY: r2(plot.bottom - 6), anchor: 'start' }
-            : { index, x: plot.left, y: r2(a), width: r2(plot.right - plot.left), height: r2(z - a), labelX: r2(plot.left + 4), labelY: r2(a + FONT + 2), anchor: 'start' };
+            ? { index, x: r2(a), y: plot.top, width: r2(z - a), height: r2(plot.bottom - plot.top), ...above((a + z) / 2, b.label) }
+            : { index, x: plot.left, y: r2(a), width: r2(plot.right - plot.left), height: r2(z - a), ...beside((a + z) / 2, b.label) };
     }).filter(b => b.width > 0 && b.height > 0);
+    if (!across) {
+        // The margin labels share one column: move overlapping ones apart.
+        const labelled = [...lines, ...shaded].filter(m => m.label);
+        dodge(labelled.map(m => m.labelY), FONT + 2, plot.top, plot.bottom + FONT * 0.35).forEach((y, i) => (labelled[i].labelY = r2(y)));
+    }
     return { references: lines, bands: shaded };
 }
 
