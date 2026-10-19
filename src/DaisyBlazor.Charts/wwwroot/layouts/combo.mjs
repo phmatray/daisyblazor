@@ -1,15 +1,17 @@
 import { scaleBand } from '../d3/d3-scale.mjs';
 import { line, curveMonotoneX } from '../d3/d3-shape.mjs';
-import { finite, maxWidth, r2, stride, ticks, valueScale } from './_shared.mjs';
+import { finite, maxWidth, r2, stride, textWidth, ticks, valueScale } from './_shared.mjs';
 
 const EMPTY = { plot: null, xTicks: [], yTicks: [], y2Ticks: [], bars: [], lines: [] };
 
-// spec: { labels, bars: [{ name, data }], lines: [{ name, data }], stackBars, smooth, secondaryAxis, width, height }
+// spec: { labels, bars: [{ name, data }], lines: [{ name, data }], stackBars, smooth, secondaryAxis, yLabelPad, y2LabelPad, width, height }
 // One category per label. Bar series are grouped side by side in each category, or stacked (positive
 // values up from zero, negative ones down) with stackBars. Line series join the category centres;
 // with secondaryAxis they get their own scale, labelled right of the plot, else they share the bars'.
 // Value i of a series belongs to label i; values that are not finite numbers are skipped.
-export default function combo({ labels, bars = [], lines = [], stackBars = false, smooth = false, secondaryAxis = false, width, height }) {
+// yLabelPad and y2LabelPad (default 0) are the characters the component's tick formats add to D3's
+// labels on the left and right axes; the margins grow by that much.
+export default function combo({ labels, bars = [], lines = [], stackBars = false, smooth = false, secondaryAxis = false, yLabelPad = 0, y2LabelPad = 0, width, height }) {
     const n = (labels ?? []).length;
     if (n === 0) {
         return EMPTY;
@@ -38,11 +40,14 @@ export default function combo({ labels, bars = [], lines = [], stackBars = false
 
     const lineValues = lineSeries.flatMap(s => index.map(i => at(s, i))).filter(v => v !== null);
     const y = valueScale([...segments.map(s => s.to), ...(secondaryAxis ? [] : lineValues)], { zero: true, count: 5 });
-    const y2 = secondaryAxis ? valueScale(lineValues, { zero: true, count: 5 }) : null;
+    // No right axis without line values to put on it.
+    const y2 = secondaryAxis && lineValues.length > 0 ? valueScale(lineValues, { zero: true, count: 5 }) : null;
 
-    // Margins sized to the tick labels on each side; ticks are labelled again by the component.
-    const left = Math.ceil(maxWidth(ticks(y, 5).map(t => t.label))) + 16;
-    const right = width - (y2 ? Math.ceil(maxWidth(ticks(y2, 5).map(t => t.label))) + 20 : 8);
+    // Margins sized to the tick labels on each side. The component labels the ticks again with its
+    // own formats, which add yLabelPad / y2LabelPad characters to D3's labels at most.
+    const labelWidth = (scale, pad) => Math.ceil(maxWidth(ticks(scale, 5).map(t => t.label)) + textWidth('0'.repeat(Math.max(0, pad | 0))));
+    const left = labelWidth(y, yLabelPad) + 16;
+    const right = width - (y2 ? labelWidth(y2, y2LabelPad) + 20 : 8);
     const plot = { left, top: 10, right, bottom: height - 24 };
     y.range([plot.bottom, plot.top]);
     y2?.range([plot.bottom, plot.top]);

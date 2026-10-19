@@ -69,6 +69,24 @@ public class ChartsComboTests : BunitContext
     }
 
     [Fact]
+    public void Sends_how_much_wider_the_formatted_tick_labels_are()
+    {
+        // The layout sizes its margins from D3's labels; the chart draws ValueFormat's, so it says how many characters those add.
+        Setup();
+        Render<ComboChart>(ps => ps
+            .Add(p => p.Labels, ["W1", "W2"])
+            .Add(p => p.Bars, [new ChartSeries("Requests", [1200, 1800])])
+            .Add(p => p.Lines, [new ChartSeries("Errors", [2.5, 4.1])])
+            .Add(p => p.SecondaryAxis, true)
+            .Add(p => p.ValueFormat, "{0:#,0.##} requests/day")
+            .Add(p => p.SecondaryValueFormat, "{0:0.#}%"));
+
+        string spec = Spec();
+        spec.ShouldContain("\"yLabelPad\":13");
+        spec.ShouldContain("\"y2LabelPad\":1");
+    }
+
+    [Fact]
     public void Series_colours_override_the_palette_and_the_legend_can_be_hidden()
     {
         JSRuntimeInvocationHandler<ComboLayout> call = Setup();

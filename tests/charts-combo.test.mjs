@@ -78,3 +78,26 @@ test('combo: crowded labels thin out, empty input gives no plot', async () => {
     assert.equal(empty.plot, null);
     assert.deepEqual(empty.bars, []);
 });
+
+test('combo: the margins make room for the longer labels the component draws (ValueFormat)', async () => {
+    const spec = {
+        labels, ...size, secondaryAxis: true,
+        bars: [{ name: 'Deploys', data: [120, 180, 90, 220] }],
+        lines: [{ name: 'Failure rate', data: [2.5, 4.1, 3.2, 1] }],
+    };
+    const plain = await layout('combo', spec);
+    // "{0:#,0} requests/day" adds 13 characters to every label; 11px text at 0.6em is 6.6 per character.
+    const padded = await layout('combo', { ...spec, yLabelPad: 13, y2LabelPad: 4 });
+    assert.ok(padded.plot.left - plain.plot.left >= 13 * 6.6 - 1);
+    assert.ok(plain.plot.right - padded.plot.right >= 4 * 6.6 - 1);
+});
+
+test('combo: a secondary axis without line values draws no right axis and takes no margin', async () => {
+    const bars = [{ name: 'Deploys', data: [120, 180, 90, 220] }];
+    const plain = await layout('combo', { labels, ...size, bars });
+    for (const lines of [[], [{ name: 'Failure rate', data: [null, null, null, null] }]]) {
+        const out = await layout('combo', { labels, ...size, bars, lines, secondaryAxis: true });
+        assert.deepEqual(out.y2Ticks, []);
+        assert.deepEqual(out.plot, plain.plot);
+    }
+});

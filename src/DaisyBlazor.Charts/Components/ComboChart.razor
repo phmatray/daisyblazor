@@ -73,9 +73,17 @@
         StackBars,
         Smooth,
         SecondaryAxis,
+        YLabelPad = _labelPad(ValueFormat),
+        Y2LabelPad = _labelPad(SecondaryValueFormat),
         Width = ViewWidth,
         Height = ViewHeight,
     };
+
+    // The layout sizes its margins from D3's tick labels (like "1,000" or "0.5"); the axes draw this
+    // format's. How many characters it adds at most, over a few probe values.
+    private static int _labelPad(string format) =>
+        new[] { 0, 0.5, 1000, -1000, 1_000_000 }
+            .Max(v => _format(format, v).Length - v.ToString("#,0.##", CultureInfo.InvariantCulture).Length) is int pad and > 0 ? pad : 0;
 
     private string _lineFormat => SecondaryAxis ? SecondaryValueFormat : ValueFormat;
 
