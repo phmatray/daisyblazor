@@ -1,9 +1,11 @@
 @namespace DaisyBlazor.Charts
 @inherits D3Chart<ScatterLayout>
+@using System.Text
 
 @* Scatter plot: one dot per point, or a bubble when points carry a Size. D3 builds the scales and a
    Voronoi diagram of the points; each dot sits under its invisible cell, so hovering anywhere in the
-   plot highlights and describes the nearest point. *@
+   plot highlights and describes the nearest point. In high-density mode the layout counts the points
+   on a fine grid instead, and each series is drawn as a few paths of cells, one per count level. *@
 
 <D3ChartFrame TLayout="ScatterLayout" Chart="this" Label="@_label" Description="@_description" Legend="@_legend">
     @if (Layout is { } view)
@@ -11,6 +13,27 @@
         <style>.dbc-cell{fill:transparent;cursor:crosshair}.dbc-cell:hover+circle{fill-opacity:1;stroke:var(--color-base-content);stroke-width:2}</style>
         <ChartAxes Plot="view.Plot" Baseline="true" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
                    XGrid="true" YGrid="true" Height="ViewHeight" />
+        @if (view.XRef is { } xRef)
+        {
+            <line x1="@N(xRef)" x2="@N(xRef)" y1="@N(view.Plot.Top)" y2="@N(view.Plot.Bottom)" stroke="var(--color-base-content)" stroke-opacity="0.5" stroke-dasharray="4 3" />
+        }
+        @if (view.YRef is { } yRef)
+        {
+            <line x1="@N(view.Plot.Left)" x2="@N(view.Plot.Right)" y1="@N(yRef)" y2="@N(yRef)" stroke="var(--color-base-content)" stroke-opacity="0.5" stroke-dasharray="4 3" />
+        }
+        @if (QuadrantLabels is { Count: 4 } q)
+        {
+            <SvgText X="view.Plot.Right - 6" Y="view.Plot.Top + 14" Anchor="end" FillOpacity="0.6" FontWeight="600" Text="@q[0]" />
+            <SvgText X="view.Plot.Left + 6" Y="view.Plot.Top + 14" FillOpacity="0.6" FontWeight="600" Text="@q[1]" />
+            <SvgText X="view.Plot.Left + 6" Y="view.Plot.Bottom - 6" FillOpacity="0.6" FontWeight="600" Text="@q[2]" />
+            <SvgText X="view.Plot.Right - 6" Y="view.Plot.Bottom - 6" Anchor="end" FillOpacity="0.6" FontWeight="600" Text="@q[3]" />
+        }
+        @foreach (DensityLevel level in _levels(view))
+        {
+            <path d="@level.Path" fill="@level.Color">
+                <title>@level.Tooltip</title>
+            </path>
+        }
         @foreach (ScatterLine line in view.Lines ?? [])
         {
             <path d="@line.Path" fill="none" stroke="@_color(line.Series, view)" stroke-width="1.5" stroke-opacity="0.7" stroke-linejoin="round" pointer-events="none" />
@@ -22,6 +45,16 @@
                 <path class="dbc-cell" d="@p.Cell">
                     <title>@_tooltip(p, view)</title>
                 </path>
+                @if (p.XWhisker is { } xw)
+                {
+                    <path d="@($"M{N(xw.From)},{N(p.Cy)}H{N(xw.To)}M{N(xw.From)},{N(p.Cy - Cap)}v{N(2 * Cap)}M{N(xw.To)},{N(p.Cy - Cap)}v{N(2 * Cap)}")"
+                          fill="none" stroke="@color" stroke-width="1.25" pointer-events="none" />
+                }
+                @if (p.YWhisker is { } yw)
+                {
+                    <path d="@($"M{N(p.Cx)},{N(yw.From)}V{N(yw.To)}M{N(p.Cx - Cap)},{N(yw.From)}h{N(2 * Cap)}M{N(p.Cx - Cap)},{N(yw.To)}h{N(2 * Cap)}")"
+                          fill="none" stroke="@color" stroke-width="1.25" pointer-events="none" />
+                }
                 <circle cx="@N(p.Cx)" cy="@N(p.Cy)" r="@N(p.R)" fill="@color" fill-opacity="@(p.Size is null ? "0.85" : "0.55")"
                         stroke="@color" stroke-width="1" pointer-events="none" />
             </g>
@@ -81,6 +114,46 @@
     /// <summary>Fit and draw a dashed trend line per series; its tooltip gives the equation and R².</summary>
     [Parameter] public ChartTrendline Trendline { get; set; } = ChartTrendline.None;
 
+    /// <summary>With <see cref="ShowLine"/>, draw each series' line as a smooth monotone spline through its points (a scatter spline) instead of straight segments.</summary>
+    [Parameter] public bool Smooth { get; set; }
+
+    /// <summary>
+    /// For tens of thousands of points: instead of one dot per point, count the points on a grid of
+    /// <see cref="CellSize"/>-unit squares and shade each cell from light (few points) to the series'
+    /// full colour (most), with a legend of counts. Tooltips are per count level, not per point;
+    /// Size, Label, errors and the hover cells are not drawn. The layout's result is bounded by the grid,
+    /// not by the points, but every point is still sent to the layout (about 40 bytes each, so 100 000
+    /// points make a 4 MB request); beyond a few hundred thousand points, aggregate them before charting.
+    /// </summary>
+    [Parameter] public bool HighDensity { get; set; }
+
+    /// <summary>Side of a high-density grid cell, in chart units (at least 1). Smaller is finer, larger smooths more.</summary>
+    [Parameter] public double CellSize { get; set; } = 3;
+
+    /// <summary>Format string for a high-density cell count in tooltips and the legend, e.g. "{0:N0} requests".</summary>
+    [Parameter] public string CountFormat { get; set; } = "{0:N0} points";
+
+    /// <summary>
+    /// Stack the series: each point is drawn on top of the running total of the previous series at the
+    /// same X (from 0 where no earlier series has a point at that X). Tooltips give the point's own Y and the total.
+    /// </summary>
+    [Parameter] public bool Stacked { get; set; }
+
+    /// <summary>X of a vertical reference line across the plot; with <see cref="YReference"/>, the plot splits into quadrants.</summary>
+    [Parameter] public double? XReference { get; set; }
+
+    /// <summary>Y of a horizontal reference line across the plot; with <see cref="XReference"/>, the plot splits into quadrants.</summary>
+    [Parameter] public double? YReference { get; set; }
+
+    /// <summary>Four labels printed in the plot's corners, in this order: top right, top left, bottom left, bottom right. Other counts are ignored.</summary>
+    [Parameter] public IReadOnlyList<string>? QuadrantLabels { get; set; }
+
+    // Half the width of an error bar's cap, in chart units.
+    private const double Cap = 4;
+
+    // Count levels of the high-density cells, on a square-root scale so sparse cells stay visible.
+    private const int DensityLevels = 6;
+
     /// <inheritdoc />
     protected override string Kind => "scatter";
 
@@ -88,9 +161,12 @@
     /// <inheritdoc />
     protected override object BuildSpec() => new
     {
-        Points = Points.Where(p => double.IsFinite(p.X) && double.IsFinite(p.Y))
-            .Select(p => new { p.X, p.Y, Size = p.Size is { } s && double.IsFinite(s) ? s : (double?)null, p.Series, p.Label })
-            .ToArray(),
+        // High density sends only what it counts, to keep large requests small.
+        Points = HighDensity
+            ? (object)Points.Where(p => double.IsFinite(p.X) && double.IsFinite(p.Y)).Select(p => new { p.X, p.Y, p.Series }).ToArray()
+            : Points.Where(p => double.IsFinite(p.X) && double.IsFinite(p.Y))
+                .Select(p => new { p.X, p.Y, Size = _finite(p.Size), p.Series, p.Label, XError = _finite(p.XError), YError = _finite(p.YError) })
+                .ToArray(),
         Width = ViewWidth,
         Height = ViewHeight,
         XLog = XScale == AxisScale.Log,
@@ -102,7 +178,82 @@
         MaxRadius = MaxBubbleRadius,
         ShowLine,
         Trendline = Trendline.ToString().ToLowerInvariant(),
+        Smooth,
+        HighDensity,
+        CellSize,
+        Stacked,
+        XRef = _finite(XReference),
+        YRef = _finite(YReference),
     };
+
+    private static double? _finite(double? value) => value is { } v && double.IsFinite(v) ? v : null;
+
+    private sealed record DensityLevel(string Path, string Color, string Tooltip);
+
+    private static int _maxCount(ScatterLayout view)
+    {
+        int max = 0;
+        foreach (ScatterDensity d in view.Density ?? [])
+        {
+            for (int i = 2; i < d.Cells.Count; i += 3)
+            {
+                max = Math.Max(max, d.Cells[i]);
+            }
+        }
+
+        return max;
+    }
+
+    // Level k (1..DensityLevels) holds the counts n with sqrt(n / max) in ((k - 1) / levels, k / levels].
+    private static int _levelOf(int count, int max) => Math.Clamp((int)Math.Ceiling(DensityLevels * Math.Sqrt((double)count / max)), 1, DensityLevels);
+
+    private static (int From, int To) _range(int level, int max) =>
+        ((int)Math.Floor(max * Math.Pow((level - 1d) / DensityLevels, 2)) + 1, (int)Math.Floor(max * Math.Pow((double)level / DensityLevels, 2)));
+
+    private static string _shade(string color, int level) =>
+        $"color-mix(in oklab, {color} {Math.Round(100.0 * (0.15 + 0.85 * level / DensityLevels)).ToString(Ci)}%, transparent)";
+
+    private string _countRange(int from, int to) => from >= to
+        ? _format(CountFormat, to)
+        : $"{from.ToString("N0", CultureInfo.CurrentCulture)}–{_format(CountFormat, to)}";
+
+    // One path per series and count level, so tens of thousands of cells stay a handful of elements.
+    private List<DensityLevel> _levels(ScatterLayout view)
+    {
+        List<DensityLevel> levels = [];
+        int max = _maxCount(view);
+        if (view.Density is null || max == 0)
+        {
+            return levels;
+        }
+
+        string cs = N(view.CellSize);
+        foreach (ScatterDensity d in view.Density)
+        {
+            StringBuilder?[] paths = new StringBuilder?[DensityLevels + 1];
+            for (int i = 0; i + 2 < d.Cells.Count; i += 3)
+            {
+                int level = _levelOf(d.Cells[i + 2], max);
+                (paths[level] ??= new StringBuilder())
+                    .Append('M').Append(N(view.Plot.Left + d.Cells[i] * view.CellSize)).Append(',').Append(N(view.Plot.Top + d.Cells[i + 1] * view.CellSize))
+                    .Append('h').Append(cs).Append('v').Append(cs).Append("h-").Append(cs).Append('z');
+            }
+
+            string color = _color(d.Series, view);
+            string series = d.Series < view.Series.Count ? view.Series[d.Series] : string.Empty;
+            for (int level = 1; level <= DensityLevels; level++)
+            {
+                if (paths[level] is { } path)
+                {
+                    (int from, int to) = _range(level, max);
+                    string text = $"{_countRange(from, to)} per cell";
+                    levels.Add(new DensityLevel(path.ToString(), _shade(color, level), series.Length > 0 ? $"{series}: {text}" : text));
+                }
+            }
+        }
+
+        return levels;
+    }
 
     private string _format(string format, double value) => string.Format(CultureInfo.CurrentCulture, format, value);
 
@@ -116,10 +267,13 @@
     {
         string series = p.Series < view.Series.Count ? view.Series[p.Series] : string.Empty;
         string head = string.Join(" · ", new[] { p.Label, series }.Where(s => !string.IsNullOrEmpty(s)));
-        string body = $"{XTitle ?? "x"} {_format(ValueFormat, p.X)}, {YTitle ?? "y"} {_format(ValueFormat, p.Y)}"
+        string body = $"{XTitle ?? "x"} {_format(ValueFormat, p.X)}{_error(p.XWhisker)}, {YTitle ?? "y"} {_format(ValueFormat, p.Y)}{_error(p.YWhisker)}"
+            + (p.Total is { } total ? $" (total {_format(ValueFormat, total)})" : string.Empty)
             + (p.Size is { } size ? $", {_format(SizeFormat, size)}" : string.Empty);
         return head.Length > 0 ? $"{head}: {body}" : body;
     }
+
+    private string _error(ScatterWhisker? w) => w is null ? string.Empty : $" ± {_format(ValueFormat, w.Error)}";
 
     private static string _coef(double value) => value.ToString("G4", CultureInfo.CurrentCulture);
 
@@ -140,15 +294,43 @@
         return series.Length > 0 ? $"{series} {body}" : char.ToUpperInvariant(body[0]) + body[1..];
     }
 
-    private RenderFragment? _legend => ShowLegend && Layout is { Series.Count: > 1 } view
-        ? @<ChartLegend Items="@(view.Series.Select((s, i) => (s, _color(i, view))).ToList())" />
+    private RenderFragment? _legend => !ShowLegend || Layout is not { } view ? null
+        : view.Density is not null ? _densityLegend(view)
+        : view.Series.Count > 1 ? @<ChartLegend Items="@(view.Series.Select((s, i) => (s, _color(i, view))).ToList())" />
         : null;
+
+    // Series names (when several), then the count levels shaded in the first series' colour.
+    private RenderFragment? _densityLegend(ScatterLayout view)
+    {
+        int max = _maxCount(view);
+        if (max == 0)
+        {
+            return null;
+        }
+
+        List<(string Name, string Color)> items = view.Series.Count > 1 ? view.Series.Select((s, i) => (s, _color(i, view))).ToList() : [];
+        string color = _color(0, view);
+        for (int level = 1; level <= DensityLevels; level++)
+        {
+            (int from, int to) = _range(level, max);
+            if (from <= to)
+            {
+                items.Add(($"{_countRange(from, to)} per cell", _shade(color, level)));
+            }
+        }
+
+        return @<ChartLegend Items="@items" />;
+    }
 
     private string _label => Title ?? (XTitle is not null && YTitle is not null ? $"Scatter plot of {YTitle} against {XTitle}" : "Scatter plot");
 
     private string _description => $"{Points.Count} points"
         + (Points.Any(p => p.Series is not null) ? $" in {Points.Select(p => p.Series).Distinct().Count()} series" : string.Empty)
-        + (Points.Any(p => p.Size is not null) ? ", sized by value" : string.Empty)
+        + (Points.Any(p => p.Size is not null) && !HighDensity ? ", sized by value" : string.Empty)
+        + (HighDensity ? ", shaded by how many points fall in each small cell" : string.Empty)
+        + (Stacked ? ", series stacked" : string.Empty)
+        + (!HighDensity && Points.Any(p => p.XError > 0 || p.YError > 0) ? ", with error bars" : string.Empty)
+        + (XReference is not null || YReference is not null ? ", with reference lines" : string.Empty)
         + (XScale == AxisScale.Log || YScale == AxisScale.Log ? ", on a logarithmic scale" : string.Empty)
         + (Trendline != ChartTrendline.None ? $", with a {Trendline.ToString().ToLowerInvariant()} trend line per series" : string.Empty) + ".";
 }

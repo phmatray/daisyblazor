@@ -1,0 +1,20 @@
+<ContourChart Title="p95 latency by concurrent sessions and payload" Points="_probes" Mode="ContourMode.Value" Levels="8"
+              ShowPoints="true" ValueTitle="p95 latency (ms)" XTitle="Concurrent sessions (thousands)" YTitle="Payload (KB)" />
+
+@code {
+    // Mode="ContourMode.Value" interpolates each point's Value between the probes and fills bands of equal value.
+    private readonly ScatterPoint[] _probes = Probes(seed: 7, count: 60);
+
+    // Latency grows with load and payload, with a hot spot around 6 000 sessions and 300 KB.
+    private static ScatterPoint[] Probes(int seed, int count)
+    {
+        Random rng = new(seed);
+        return [.. Enumerable.Range(0, count).Select(_ =>
+        {
+            double sessions = Math.Round(rng.NextDouble() * 10, 1);
+            double payload = Math.Round(rng.NextDouble() * 500);
+            double hot = 120 * Math.Exp(-(Math.Pow(sessions - 6, 2) / 4 + Math.Pow(payload - 300, 2) / 12_000));
+            return new ScatterPoint(sessions, payload) { Value = Math.Round(80 + 9 * sessions + 0.12 * payload + hot) };
+        })];
+    }
+}

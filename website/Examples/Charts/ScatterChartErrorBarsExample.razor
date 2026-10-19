@@ -1,0 +1,16 @@
+<ScatterChart Title="Cold start time by function memory" Points="_starts" XTitle="Memory (MB)" YTitle="Cold start (ms)" />
+
+@code {
+    // YError draws a vertical bar of ± one standard deviation over 50 runs; XError would draw a horizontal one.
+    private readonly ScatterPoint[] _starts =
+    [
+        new(128, 920, Series: "Node.js") { YError = 140 },
+        new(256, 610, Series: "Node.js") { YError = 90 },
+        new(512, 420, Series: "Node.js") { YError = 55 },
+        new(1024, 330, Series: "Node.js") { YError = 40 },
+        new(128, 1_480, Series: ".NET") { YError = 210 },
+        new(256, 980, Series: ".NET") { YError = 150 },
+        new(512, 640, Series: ".NET") { YError = 80 },
+        new(1024, 470, Series: ".NET") { YError = 60 },
+    ];
+}
