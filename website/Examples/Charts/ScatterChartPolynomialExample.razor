@@ -1,0 +1,14 @@
+<ScatterChart Title="p95 response time as load grows" Points="_runs"
+              Trendline="ChartTrendline.Polynomial" TrendlineOrder="2"
+              XTitle="Concurrent sessions" YTitle="p95 response time (ms)" />
+
+@code {
+    // Response time bends upwards with load: a second-order polynomial follows the curve a straight line misses.
+    private static readonly double[] _sessions = [250, 500, 1_000, 1_500, 2_000, 3_000, 4_000, 5_000, 6_000, 8_000];
+
+    private readonly ScatterPoint[] _runs =
+    [
+        .. _sessions.Zip([84d, 90, 96, 104, 121, 139, 168, 205, 248, 296]).Select(s => new ScatterPoint(s.First, s.Second, Series: "eu-west")),
+        .. _sessions.Zip([96d, 104, 113, 126, 140, 172, 214, 262, 330, 410]).Select(s => new ScatterPoint(s.First, s.Second, Series: "us-east")),
+    ];
+}

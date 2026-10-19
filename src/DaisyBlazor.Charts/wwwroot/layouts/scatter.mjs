@@ -2,16 +2,17 @@ import { extent } from '../d3/d3-array.mjs';
 import { Delaunay } from '../d3/d3-delaunay.mjs';
 import { scaleSqrt } from '../d3/d3-scale.mjs';
 import { line, curveMonotoneX } from '../d3/d3-shape.mjs';
-import { finite, valueScale, r2, fitTrend, referenceMarks, referenceValues } from './_shared.mjs';
+import { finite, valueScale, r2, fitTrend, trendOf, referenceMarks, referenceValues } from './_shared.mjs';
 import { cartesian } from './_distribution.mjs';
 
 // spec: { points: [{ x, y, size, series, label, xError, yError }], width, height, xLog, yLog, xTitle, yTitle,
-//         radius, minRadius, maxRadius, showLine, trendline, smooth, highDensity, cellSize, stacked,
+//         radius, minRadius, maxRadius, showLine, trendline, trendlineOrder, trendlinePeriod, smooth, highDensity, cellSize, stacked,
 //         references, bands, xReferences, xBands }
 // Points with a size become bubbles (area proportional to size). Each point also gets its Voronoi
 // cell, so the chart can highlight the nearest point wherever the pointer is. showLine adds `lines`
 // (each series joined in x order, as a monotone spline with smooth); trendline ('linear',
-// 'exponential', 'logarithmic', 'power') adds `trends`, one fitted curve per series. Neither key is
+// 'exponential', 'logarithmic', 'power', 'polynomial' of trendlineOrder, 'movingaverage' of
+// trendlinePeriod points; see fitTrend) adds `trends`, one fitted curve per series. Neither key is
 // returned when not asked for. trendline is ignored when stacked (a fit of the own values would not
 // follow the stacked points, a fit of the totals would not describe the series).
 // Optional extras, each returned only when used: xError / yError (symmetric ±) give a point
@@ -23,7 +24,7 @@ import { cartesian } from './_distribution.mjs';
 // dropped); the result then carries `references` and `bands`, or `xReferences` and `xBands`. highDensity
 // returns no points: it counts them on a grid of cellSize-unit squares instead, `density` holding
 // per series a flat list [column, row, count, …] of the occupied cells (row 0 at the plot's top).
-export default function scatter({ points, width, height, xLog = false, yLog = false, xTitle, yTitle, radius = 4, minRadius = 3, maxRadius = 18, showLine = false, trendline = 'none', smooth = false, highDensity = false, cellSize = 3, stacked = false, references, bands, xReferences, xBands }) {
+export default function scatter({ points, width, height, xLog = false, yLog = false, xTitle, yTitle, radius = 4, minRadius = 3, maxRadius = 18, showLine = false, trendline = 'none', trendlineOrder = 2, trendlinePeriod = 3, smooth = false, highDensity = false, cellSize = 3, stacked = false, references, bands, xReferences, xBands }) {
     const ok = p => finite(p.x) && finite(p.y) && (!xLog || p.x > 0) && (!yLog || p.y > 0);
     const raw = (points ?? []).filter(ok);
     const series = [...new Set(raw.map(p => p.series ?? ''))];
@@ -128,8 +129,8 @@ export default function scatter({ points, width, height, xLog = false, yLog = fa
         }
         if (extra.trends) {
             extra.trends = bySeries.map((list, s) => {
-                const fit = fitTrend(trendline, list.map(({ p }) => p.x), list.map(({ p }) => p.y));
-                return fit && { series: s, kind: trendline, a: fit.a, b: fit.b, r2: fit.r2, path: trendPath(fit, x, y, plot, list.map(({ p }) => p.x), yLog) };
+                const fit = fitTrend(trendline, list.map(({ p }) => p.x), list.map(({ p }) => p.y), { order: trendlineOrder, period: trendlinePeriod });
+                return fit && trendOf(fit, trendline, s, trendPath(fit, x, y, plot, list.map(({ p }) => p.x), yLog));
             }).filter(Boolean);
         }
     }
@@ -180,8 +181,12 @@ export function density(px, seriesOf, seriesCount, plot, size) {
 }
 
 // The fitted curve across the series' x extent, sampled evenly along the drawn x axis (so it bends
-// correctly on log scales) and broken wherever it leaves the plot.
+// correctly on log scales) and broken wherever it leaves the plot; a moving average joins its points.
 function trendPath(fit, x, y, plot, xs, yLog) {
+    const inPlot = ([, py]) => finite(py) && py >= plot.top - 1e-6 && py <= plot.bottom + 1e-6;
+    if (fit.points) {
+        return line().defined(inPlot)(fit.points.map(([v, w]) => [r2(x(v)), r2(!yLog || w > 0 ? y(w) : NaN)])) ?? '';
+    }
     const [lo, hi] = extent(xs.filter(v => finite(x(v))));
     const p0 = x(lo), p1 = x(hi), steps = 48;
     const pts = Array.from({ length: steps + 1 }, (_, k) => {
@@ -190,5 +195,5 @@ function trendPath(fit, x, y, plot, xs, yLog) {
         const py = finite(v) && (!yLog || v > 0) ? y(v) : NaN;
         return [r2(px), r2(py)];
     });
-    return line().defined(([, py]) => finite(py) && py >= plot.top - 1e-6 && py <= plot.bottom + 1e-6)(pts) ?? '';
+    return line().defined(inPlot)(pts) ?? '';
 }

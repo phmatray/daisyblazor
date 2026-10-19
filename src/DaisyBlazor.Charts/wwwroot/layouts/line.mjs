@@ -1,6 +1,6 @@
 import { scalePoint } from '../d3/d3-scale.mjs';
 import { line as d3Line, area as d3Area, stack, stackOffsetExpand, curveMonotoneX, curveMonotoneY, curveLinear, curveStepAfter, curveStepBefore } from '../d3/d3-shape.mjs';
-import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, stride, compact, valueScale, ticks, referenceMarks, referenceValues } from './_shared.mjs';
+import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, stride, compact, valueScale, ticks, referenceMarks, referenceValues, categoryTrends } from './_shared.mjs';
 
 // Line and area charts. spec: { series: [[number|null]], labels: [string], stacked, smooth,
 // showGrid, width, height } (px). Points sit in the middle of equal slots, one per label or value.
@@ -13,8 +13,11 @@ import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, stride, compact, value
 // horizontal rotates the chart: the labels run down the y axis (category gutter on the left, at
 // most 40% of the width) and the values along x. references ([{ value, label }], taken into the
 // value axis) and bands ([{ from, to, label }]) add reference lines and value bands (see
-// referenceMarks); the result then carries `references` and `bands`.
-export default function line({ series = [], labels = [], stacked = false, percent = false, smooth = false, step = false, showGrid = true, horizontal = false, references, bands: ranges, width, height }) {
+// referenceMarks); the result then carries `references` and `bands`. trendline ('linear',
+// 'exponential', 'logarithmic', 'power', 'polynomial' of trendlineOrder, 'movingaverage' of
+// trendlinePeriod points) adds `trends`, one per series fitted over the label index on its own
+// values (see categoryTrends); it is ignored when stacked or percent.
+export default function line({ trendline = 'none', trendlineOrder = 2, trendlinePeriod = 3, series = [], labels = [], stacked = false, percent = false, smooth = false, step = false, showGrid = true, horizontal = false, references, bands: ranges, width, height }) {
     stacked ||= percent;
     const dataCount = Math.max(0, ...series.map(s => s.length));
     const count = Math.max(dataCount, labels.length);
@@ -101,5 +104,8 @@ export default function line({ series = [], labels = [], stacked = false, percen
             };
         }),
     };
+    if (trendline && trendline !== 'none' && !stacked) {
+        out.trends = categoryTrends(series, place, value, horizontal, plot, { kind: trendline, order: trendlineOrder, period: trendlinePeriod });
+    }
     return references?.length || ranges?.length ? { ...out, ...referenceMarks(value, horizontal, plot, references, ranges) } : out;
 }

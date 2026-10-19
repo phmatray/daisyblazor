@@ -304,6 +304,65 @@ test('spark trend is the shared linear fit over the indices, skipping gaps', asy
     assert.deepEqual(geo.trend, { x1: 2, y1: Math.round(y(fit.f(0)) * 100) / 100, x2: 80, y2: Math.round(y(fit.f(4)) * 100) / 100 });
 });
 
+const ends = path => {
+    const v = path.slice(1).split('L');
+    return [v[0], v.at(-1)].map(s => s.split(',').map(Number));
+};
+
+test('line: a trend per series over the label index, drawn through the label positions', async () => {
+    // y = 2 + 2i exactly: the straight trend runs from the first point to the last.
+    const out = await layout('line', { series: [[2, 4, 6, 8], [5, 2, 1, 2, 5]], labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Q5'], ...size, trendline: 'linear' });
+    const [lin, flat] = out.trends;
+    assert.ok(Math.abs(lin.a - 2) < 1e-9 && Math.abs(lin.b - 2) < 1e-9 && lin.r2 === 1);
+    const pts = out.series[0].points;
+    assert.deepEqual(ends(lin.path), [[pts[0].x, pts[0].y], [pts[3].x, pts[3].y]]);
+    // The symmetric bowl has no linear trend: y = 3, R² = 0.
+    assert.ok(Math.abs(flat.a - 3) < 1e-9 && Math.abs(flat.b) < 1e-9 && Math.abs(flat.r2) < 1e-12);
+    // (i − 2)² + 1 = 5 − 4i + i², recovered by a polynomial of order 2.
+    const poly = (await layout('line', { series: [[5, 2, 1, 2, 5]], labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Q5'], ...size, trendline: 'polynomial', trendlineOrder: 2 })).trends[0];
+    assert.deepEqual(poly.coefficients.map(c => Math.round(c * 1e9) / 1e9), [5, -4, 1]);
+    // Missing values are left out of the fit; stacked and percent draw no trend.
+    const gap = (await layout('line', { series: [[1, null, 3]], ...size, trendline: 'linear' })).trends[0];
+    assert.ok(Math.abs(gap.b - 1) < 1e-9 && Math.abs(gap.a - 1) < 1e-9);
+    assert.equal((await layout('line', { series: [[1, 2]], ...size, stacked: true, trendline: 'linear' })).trends, undefined);
+    assert.equal((await layout('line', { series: [[1, 2]], ...size, percent: true, trendline: 'linear' })).trends, undefined);
+    // Horizontal: the labels run down y, so the trend ends on the first and last points.
+    const h = await layout('line', { series: [[2, 4, 6, 8]], labels: ['Q1', 'Q2', 'Q3', 'Q4'], ...size, horizontal: true, trendline: 'linear' });
+    const hp = h.series[0].points;
+    assert.deepEqual(ends(h.trends[0].path), [[hp[0].x, hp[0].y], [hp[3].x, hp[3].y]]);
+});
+
+test('bar: a moving-average trend through the category centres, also horizontal', async () => {
+    const spec = { categories: ['Jan', 'Feb', 'Mar', 'Apr'], series: [[10, 20, 30, 40]], ...size, trendline: 'movingaverage', trendlinePeriod: 2 };
+    const out = await layout('bar', spec);
+    const t = out.trends[0];
+    assert.equal(t.period, 2);
+    const v = t.path.slice(1).split('L').map(s => s.split(',').map(Number));
+    // Means 15, 25, 35 at Feb, Mar, Apr.
+    assert.deepEqual(v.map(([x]) => x), out.xTicks.slice(1).map(tk => tk.pos));
+    const [ta, tb] = out.yTicks;
+    const yAt = val => ta.pos + (val - ta.value) * (tb.pos - ta.pos) / (tb.value - ta.value);
+    [15, 25, 35].forEach((m, i) => assert.ok(Math.abs(v[i][1] - yAt(m)) < 0.02));
+
+    const h = await layout('bar', { ...spec, horizontal: true });
+    const hv = h.trends[0].path.slice(1).split('L').map(s => s.split(',').map(Number));
+    assert.deepEqual(hv.map(([, y]) => y), h.yTicks.slice(1).map(tk => tk.pos));
+    assert.equal((await layout('bar', { ...spec, stacked: true })).trends, undefined);
+    // A linear trend on bars: y = 10 + 10c, ending on the first and last bar tops.
+    const lin = await layout('bar', { ...spec, trendline: 'linear' });
+    assert.deepEqual(ends(lin.trends[0].path).map(([, y]) => y), [lin.bars[0].y, lin.bars[3].y]);
+});
+
+test('bar: on grouped bars each trend runs through its own series\' bars', async () => {
+    const out = await layout('bar', { categories: ['Q1', 'Q2', 'Q3'], series: [[10, 20, 30], [5, 15, 25]], ...size, trendline: 'linear' });
+    for (const s of [0, 1]) {
+        const xs = out.trends[s].path.slice(1).split('L').map(p => Number(p.split(',')[0]));
+        const centres = out.bars.filter(b => b.s === s).map(b => b.x + b.width / 2);
+        assert.ok(Math.abs(xs[0] - centres[0]) < 0.02, `series ${s} starts on its first bar`);
+        assert.ok(Math.abs(xs.at(-1) - centres.at(-1)) < 0.02, `series ${s} ends on its last bar`);
+    }
+});
+
 // Measured mode, against a stubbed ResizeObserver and element.
 const observers = [];
 globalThis.ResizeObserver = class {

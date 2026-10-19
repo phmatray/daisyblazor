@@ -1,0 +1,13 @@
+<LineChart Title="Deploys per day" Labels="_days" Series="_deploys"
+           Trendline="ChartTrendline.MovingAverage" TrendlinePeriod="3" />
+
+@code {
+    // A three-day moving average per series smooths the weekend dips; hover the dashed line for its period.
+    private readonly string[] _days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+    private readonly ChartSeries[] _deploys =
+    [
+        new("Production", [14, 18, 16, 21, 12, 3, 2, 19, 22, 20, 25, 15, 4, 3]),
+        new("Staging", [31, 36, 34, 40, 28, 6, 5, 38, 41, 39, 46, 30, 8, 6]),
+    ];
+}

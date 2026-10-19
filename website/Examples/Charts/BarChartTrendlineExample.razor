@@ -1,0 +1,12 @@
+<BarChart Title="Support tickets by month" Labels="_months" Series="_tickets" Trendline="ChartTrendline.Linear" />
+
+@code {
+    // One straight trend per series, fitted over the months and drawn through their centres.
+    private readonly string[] _months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"];
+
+    private readonly ChartSeries[] _tickets =
+    [
+        new("Opened", [420, 455, 430, 480, 510, 495, 540, 560]),
+        new("Escalated", [96, 88, 91, 80, 74, 77, 65, 60]),
+    ];
+}

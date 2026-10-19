@@ -361,6 +361,56 @@ test('scatter: a trend line is not drawn on stacked series, and fits each series
     assert.deepEqual(plain.trends.map(t => [t.series, Math.round(t.a * 1e9) / 1e9, Math.round(t.b * 1e9) / 1e9]), [[0, 0, 1], [1, 10, 0]]);
 });
 
+test('trend fits: polynomial recovers a quadratic exactly, moving average trails over x order', () => {
+    // y = 2 − x + 0.5x² through five points: c = [2, −1, 0.5], R² = 1.
+    const quad = fitTrend('polynomial', [0, 1, 2, 3, 4], [2, 1.5, 2, 3.5, 6]);
+    assert.deepEqual(quad.coefficients.map(c => Math.round(c * 1e9) / 1e9), [2, -1, 0.5]);
+    assert.ok(Math.abs(quad.a - 2) < 1e-9 && Math.abs(quad.b + 1) < 1e-9 && Math.abs(quad.r2 - 1) < 1e-12);
+    // Far from zero (years) the centred fit stays exact: y = (x − 2020)² + 3.
+    const years = [2016, 2018, 2020, 2022, 2024];
+    const far = fitTrend('polynomial', years, years.map(x => (x - 2020) ** 2 + 3), { order: 2 });
+    assert.ok(years.every(x => Math.abs(far.f(x) - ((x - 2020) ** 2 + 3)) < 1e-6) && Math.abs(far.r2 - 1) < 1e-9);
+    // The order is clamped to 2–6 and kept below the number of distinct x.
+    assert.equal(fitTrend('polynomial', [0, 1, 2, 3], [0, 1, 4, 9], { order: 1 }).coefficients.length, 3);
+    assert.equal(fitTrend('polynomial', [0, 1, 2, 3, 4, 5, 6, 7, 8], [1, 3, 2, 5, 4, 6, 8, 7, 9], { order: 9 }).coefficients.length, 7);
+    assert.equal(fitTrend('polynomial', [0, 1, 2], [1, 2, 9], { order: 6 }).coefficients.length, 3);
+    // Two distinct x give a straight line; one gives none.
+    assert.deepEqual(fitTrend('polynomial', [0, 2], [1, 5]).coefficients.map(c => Math.round(c * 1e9) / 1e9), [1, 2]);
+    assert.equal(fitTrend('polynomial', [3, 3], [1, 5]), null);
+    // y = [0, 1, 0, 1] has no quadratic through it: the fit is 0.2 + 0.2x (the x² term is 0),
+    // residuals −0.2, 0.6, −0.6, 0.2 give SSres = 0.8 against SStot = 1, so R² = 0.2.
+    const wave = fitTrend('polynomial', [0, 1, 2, 3], [0, 1, 0, 1]);
+    assert.deepEqual(wave.coefficients.map(c => Math.round(c * 1e9) / 1e9), [0.2, 0.2, 0]);
+    assert.ok(Math.abs(wave.r2 - 0.2) < 1e-9);
+
+    // Period 3 over x order (input unsorted): means of (10, 20, 30), (20, 30, 40), (30, 40, 50).
+    const ma = fitTrend('movingaverage', [3, 1, 2, 4, 5], [30, 10, 20, 40, 50], { period: 3 });
+    assert.deepEqual(ma, { period: 3, points: [[3, 20], [4, 30], [5, 40]] });
+    assert.deepEqual(fitTrend('movingaverage', [1, 2, 3], [4, 8, 6]).points, [[3, 6]], 'default period 3');
+    assert.deepEqual(fitTrend('movingaverage', [1, 2, 3], [4, 8, 6], { period: 1 }).points, [[2, 6], [3, 7]], 'period at least 2');
+    assert.equal(fitTrend('movingaverage', [1, 2], [4, 8], { period: 3 }), null, 'fewer points than the period');
+});
+
+test('scatter: polynomial and moving-average trends, with their coefficients or period', async () => {
+    const points = [0, 1, 2, 3, 4].map(x => ({ x, y: 2 - x + 0.5 * x * x }));
+    const poly = (await layout('scatter', { points, ...size, trendline: 'polynomial', trendlineOrder: 2 })).trends[0];
+    assert.equal(poly.kind, 'polynomial');
+    assert.deepEqual(poly.coefficients.map(c => Math.round(c * 1e9) / 1e9), [2, -1, 0.5]);
+    assert.ok(Math.abs(poly.r2 - 1) < 1e-12 && poly.period === undefined);
+    assert.ok(poly.path.split('L').length > 10, 'the curve is sampled');
+
+    const out = await layout('scatter', { points, ...size, trendline: 'movingaverage', trendlinePeriod: 2 });
+    const ma = out.trends[0];
+    assert.equal(ma.period, 2);
+    assert.equal(ma.coefficients, undefined);
+    // Drawn from the second point, at the mean of each pair: one vertex per averaged point.
+    const vertices = ma.path.slice(1).split('L').map(s => s.split(',').map(Number));
+    assert.equal(vertices.length, 4);
+    const at = x => out.points.find(p => p.x === x);
+    assert.equal(vertices[0][0], at(1).cx);
+    assert.ok(Math.abs(vertices[0][1] - (at(0).cy + at(1).cy) / 2) < 0.02, 'the mean of two values sits midway in pixels');
+});
+
 test('scatter: horizontal and vertical references and bands, reference values taken into the scales', async () => {
     const out = await layout('scatter', {
         points: [{ x: 1, y: 1 }, { x: 5, y: 4 }], ...size,
