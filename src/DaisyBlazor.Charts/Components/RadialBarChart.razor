@@ -1,0 +1,71 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<RadialBarLayout>
+
+@* Radial bars: one concentric progress ring per item, the first outside. Rings run three quarters of a
+   turn from 12 o'clock, so their labels sit in the free top-left quarter and never cross a ring. *@
+
+<D3ChartFrame TLayout="RadialBarLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { } geo)
+    {
+        <g transform="@($"translate({N(geo.Cx)},{N(geo.Cy)})")">
+            @foreach (RadialBarRing ring in geo.Rings)
+            {
+                <path d="@ring.Track" fill="var(--color-base-content)" fill-opacity="0.08" />
+                @if (!string.IsNullOrEmpty(ring.Fill))
+                {
+                    <path d="@ring.Fill" fill="@_color(ring.Index)">
+                        <title>@_text(ring)</title>
+                    </path>
+                }
+            }
+        </g>
+        @foreach (RadialBarRing ring in geo.Rings)
+        {
+            <SvgText X="@ring.LabelX" Y="@ring.LabelY" Anchor="end" FontSize="@Math.Round(ring.FontSize, 1)" FontWeight="600"
+                     Text="@(ShowValues ? _text(ring) : ring.Label)" />
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>One ring per point, outermost first. A point's Color overrides the theme palette.</summary>
+    [Parameter] public IReadOnlyList<ChartDataPoint> Items { get; set; } = [];
+
+    /// <summary>The value of a full ring; values are clamped to [0, Max]. Zero or less uses the largest value.</summary>
+    [Parameter] public double Max { get; set; } = 100;
+
+    /// <summary>Print each item's value after its name.</summary>
+    [Parameter] public bool ShowValues { get; set; } = true;
+
+    /// <summary>Format string for values in labels and tooltips, e.g. "{0}%".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Creates a chart with a square default shape.</summary>
+    public RadialBarChart()
+    {
+        AspectRatio = 1;
+    }
+
+    /// <inheritdoc />
+    protected override string Kind => "radial-bar";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Items = Items.Select(i => new { i.Label, i.Value }).ToArray(),
+        Max,
+        Width = ViewWidth,
+        Height = ViewHeight,
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _color(int index) => ChartPalette.At(index, index < Items.Count ? Items[index].Color : null);
+
+    private string _text(RadialBarRing ring) => $"{ring.Label} {_format(ring.Value)}";
+
+    private string _label => Title ?? "Radial bar chart";
+
+    private string _description =>
+        string.Join("; ", Items.Select(i => $"{i.Label}: {_format(i.Value)}")) + (Max > 0 ? $" (full ring {_format(Max)})" : string.Empty);
+}

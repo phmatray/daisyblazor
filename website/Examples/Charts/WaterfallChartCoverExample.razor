@@ -1,0 +1,12 @@
+<WaterfallChart Steps="_steps" AspectRatio="1.1" ShowValues="false" />
+
+@code {
+    private readonly WaterfallStep[] _steps =
+    [
+        new("Start", 1_240, WaterfallStepKind.Start),
+        new("New", 310),
+        new("Back", 42),
+        new("Lost", -96),
+        new("End", 0, WaterfallStepKind.End),
+    ];
+}

@@ -1,0 +1,91 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<WaffleLayout>
+
+@* Waffle chart: a grid of cells (10 × 10 by default, so one cell is 1 %) filled row by row in
+   proportion to each part of the whole. The layout rounds shares so the cells always add up. *@
+
+<D3ChartFrame TLayout="WaffleLayout" Chart="this" Label="@_label" Description="@_description">
+    <ChildContent>
+        @if (Layout is { } geo)
+        {
+            @foreach (WaffleCell cell in geo.Cells)
+            {
+                <rect x="@N(cell.X)" y="@N(cell.Y)" width="@N(geo.Size)" height="@N(geo.Size)" rx="@N(geo.Size * 0.18)"
+                      fill="@(cell.Item < 0 ? EmptyColor : _color(cell.Item))" fill-opacity="@(cell.Item < 0 ? "0.12" : "1")">
+                    <title>@(cell.Item < 0 || cell.Item >= geo.Items.Count ? _emptyText(geo) : _text(geo.Items[cell.Item]))</title>
+                </rect>
+            }
+        }
+    </ChildContent>
+    <Legend>
+        @if (ShowLegend && Layout is { } geo)
+        {
+            <ChartLegend Items="@geo.Items.Select((item, i) => ($"{item.Label} {_percent(item.Share)}", _color(i))).ToList()" />
+        }
+    </Legend>
+</D3ChartFrame>
+
+@code {
+    /// <summary>The parts of the whole, filled in this order. Only positive values count; a point's Color overrides the palette.</summary>
+    [Parameter] public IReadOnlyList<ChartDataPoint> Items { get; set; } = [];
+
+    /// <summary>The whole. When it is larger than the sum of the items, the remaining cells stay empty; by default the items fill the grid.</summary>
+    [Parameter] public double? Total { get; set; }
+
+    /// <summary>Number of rows of cells.</summary>
+    [Parameter] public int Rows { get; set; } = 10;
+
+    /// <summary>Number of cells per row.</summary>
+    [Parameter] public int Columns { get; set; } = 10;
+
+    /// <summary>Gap between cells, in chart units.</summary>
+    [Parameter] public double Gap { get; set; } = 6;
+
+    /// <summary>Show each part's colour and share under the grid.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>CSS colour of the empty cells (drawn faint).</summary>
+    [Parameter] public string EmptyColor { get; set; } = "var(--color-base-content)";
+
+    /// <summary>Format string for values in tooltips.</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Creates a chart with a square default shape.</summary>
+    public WaffleChart()
+    {
+        AspectRatio = 1;
+    }
+
+    /// <inheritdoc />
+    protected override string Kind => "waffle";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Items = _valid.Select(i => new { i.Label, i.Value }).ToArray(),
+        Total,
+        Rows,
+        Columns,
+        Gap,
+        Width = ViewWidth,
+        Height = ViewHeight,
+    };
+
+    // The layout keeps only positive values, so the component filters the same way to keep item indexes aligned.
+    private IEnumerable<ChartDataPoint> _valid => Items.Where(i => double.IsFinite(i.Value) && i.Value > 0);
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private static string _percent(double share) => share.ToString("0.#%", CultureInfo.CurrentCulture);
+
+    private string _color(int index) => ChartPalette.At(index, _valid.ElementAtOrDefault(index)?.Color);
+
+    private string _text(WaffleItem item) => $"{item.Label}: {_format(item.Value)} ({_percent(item.Share)})";
+
+    private string _emptyText(WaffleLayout geo) =>
+        Total is { } total ? $"Rest: {_format(Math.Max(0, total - geo.Items.Sum(i => i.Value)))}" : "Rest";
+
+    private string _label => Title ?? "Waffle chart";
+
+    private string _description => string.Join("; ", (Layout?.Items ?? []).Select(_text)) + (Total is { } t ? $" (of {_format(t)})" : string.Empty);
+}

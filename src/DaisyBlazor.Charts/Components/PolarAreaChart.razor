@@ -1,0 +1,67 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<PolarAreaLayout>
+
+@* Polar area (rose, Nightingale) chart: equal angles, each wedge's area proportional to its value.
+   D3 computes the wedges on a radial scale; grid circles mark its ticks. *@
+
+<D3ChartFrame TLayout="PolarAreaLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { } geo)
+    {
+        <g transform="@($"translate({N(geo.Cx)},{N(geo.Cy)})")">
+            @foreach (PolarAreaRing ring in geo.Rings)
+            {
+                <circle r="@N(ring.Radius)" fill="none" stroke="var(--color-base-content)" stroke-opacity="0.12" vector-effect="non-scaling-stroke">
+                    <title>@_format(ring.Value)</title>
+                </circle>
+            }
+            @foreach (PolarAreaWedge wedge in geo.Wedges)
+            {
+                <path d="@wedge.Path" fill="@_color(wedge.Index)" fill-opacity="0.85" stroke="var(--color-base-100)" stroke-width="1"
+                      vector-effect="non-scaling-stroke">
+                    <title>@($"{wedge.Label}: {_format(wedge.Value)}")</title>
+                </path>
+            }
+        </g>
+        @foreach (PolarAreaWedge wedge in geo.Wedges)
+        {
+            <SvgText X="@wedge.LabelX" Y="@wedge.LabelY" Anchor="@wedge.Anchor" FontSize="@Math.Round(geo.FontSize, 1)"
+                     Text="@(ShowValues ? $"{wedge.Label} {_format(wedge.Value)}" : wedge.Label)" />
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>One wedge per point, clockwise from 12 o'clock. Points without a finite, non-negative Value are skipped; a point's Color overrides the palette.</summary>
+    [Parameter] public IReadOnlyList<ChartDataPoint> Items { get; set; } = [];
+
+    /// <summary>Print each item's value after its name.</summary>
+    [Parameter] public bool ShowValues { get; set; } = true;
+
+    /// <summary>Format string for values in labels and tooltips.</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Creates a chart with a square default shape.</summary>
+    public PolarAreaChart()
+    {
+        AspectRatio = 1;
+    }
+
+    /// <inheritdoc />
+    protected override string Kind => "polar-area";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Items = Items.Select(i => new { i.Label, i.Value }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _color(int index) => ChartPalette.At(index, index < Items.Count ? Items[index].Color : null);
+
+    private string _label => Title ?? "Polar area chart";
+
+    private string _description => string.Join("; ", Items.Where(i => i.Value >= 0).Select(i => $"{i.Label}: {_format(i.Value)}"));
+}

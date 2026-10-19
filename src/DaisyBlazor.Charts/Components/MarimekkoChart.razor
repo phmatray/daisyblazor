@@ -1,0 +1,88 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<MarimekkoLayout>
+
+@* Marimekko (mosaic) chart: 100 % stacked columns whose widths follow each column's share of the grand
+   total, so every cell's area is its share of everything. D3 scales place the columns and cells. *@
+
+<D3ChartFrame TLayout="MarimekkoLayout" Chart="this" Label="@_label" Description="@_description">
+    <ChildContent>
+        @if (Layout is { Plot: { } plot } geo)
+        {
+            @foreach (MarimekkoTick tick in geo.Ticks)
+            {
+                <SvgText X="@(plot.Left - 6)" Y="@tick.Pos" Dy="0.35em" Anchor="end" FontSize="11" FillOpacity="0.6" Text="@_percent(tick.Value)" />
+            }
+
+            @foreach (MarimekkoLayoutCell cell in geo.Cells)
+            {
+                string fill = _color(cell.Segment, geo);
+                <rect x="@N(cell.X)" y="@N(cell.Y)" width="@N(cell.Width)" height="@N(cell.Height)" fill="@fill">
+                    <title>@($"{geo.Columns[cell.Column].Label}, {geo.Segments[cell.Segment]}: {_format(cell.Value)} ({_percent(cell.Share)} of {geo.Columns[cell.Column].Label})")</title>
+                </rect>
+                @if (ShowValues && cell.Width >= 44 && cell.Height >= 18)
+                {
+                    <SvgText X="@(cell.X + cell.Width / 2)" Y="@(cell.Y + cell.Height / 2)" Dy="0.35em" Anchor="middle" FontSize="11" FontWeight="600"
+                             Fill="@_onColor(fill)" Text="@_percent(cell.Share)" />
+                }
+            }
+
+            @foreach (MarimekkoColumn column in geo.Columns.Where(c => c.X1 - c.X0 >= 48))
+            {
+                <SvgText X="@column.LabelX" Y="@(plot.Bottom + 16)" Anchor="middle" FontSize="11" FontWeight="600" Text="@column.Label" />
+                <SvgText X="@column.LabelX" Y="@(plot.Bottom + 30)" Anchor="middle" FontSize="11" FillOpacity="0.6" Text="@_percent(column.Share)" />
+            }
+        }
+    </ChildContent>
+    <Legend>
+        @if (ShowLegend && Layout is { } geo)
+        {
+            <ChartLegend Items="@geo.Segments.Select((s, i) => (s, _color(i, geo))).ToList()" />
+        }
+    </Legend>
+</D3ChartFrame>
+
+@code {
+    /// <summary>The values: how much of each Segment there is in each Column. Columns and segments keep the order they first appear in; only positive values count.</summary>
+    [Parameter] public IReadOnlyList<MarimekkoCell> Cells { get; set; } = [];
+
+    /// <summary>Print each cell's share of its column inside it, where it fits.</summary>
+    [Parameter] public bool ShowValues { get; set; } = true;
+
+    /// <summary>Show the segment colours under the chart.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>Format string for values in tooltips.</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Optional colour per segment name (any CSS colour); other segments cycle through the theme palette.</summary>
+    [Parameter] public IReadOnlyDictionary<string, string>? SegmentColors { get; set; }
+
+    /// <inheritdoc />
+    protected override string Kind => "marimekko";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Cells = Cells.Select(c => new { c.Column, c.Segment, c.Value }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private static string _percent(double share) => share.ToString("0%", CultureInfo.CurrentCulture);
+
+    private string _color(int segment, MarimekkoLayout geo) =>
+        SegmentColors is not null && SegmentColors.TryGetValue(geo.Segments[segment], out string? c) ? c : ChartPalette.At(segment);
+
+    // Text on a theme colour uses that colour's -content token; any other fill gets the base background.
+    private static string _onColor(string fill) =>
+        fill.StartsWith("var(--color-", StringComparison.Ordinal) && fill.EndsWith(')') ? fill[..^1] + "-content)" : "var(--color-base-100)";
+
+    private string _label => Title ?? "Marimekko chart";
+
+    private string _description => Layout is { } geo
+        ? string.Join("; ", geo.Columns.Select((col, ci) => $"{col.Label} ({_percent(col.Share)} of total): "
+            + string.Join(", ", geo.Cells.Where(c => c.Column == ci).Select(c => $"{geo.Segments[c.Segment]} {_percent(c.Share)}"))))
+        : string.Empty;
+}

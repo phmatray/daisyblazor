@@ -1,0 +1,89 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<ParetoLayout>
+
+@* Pareto chart: bars sorted largest first, with the cumulative share as a line on a 0–100 % right axis
+   and a reference line at the threshold. Bars up to the one that reaches it (the "vital few") are
+   drawn solid, the rest faded. D3 computes the scales, the sort and the line. *@
+
+<D3ChartFrame TLayout="ParetoLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { Plot: { } plot } geo)
+    {
+        @foreach (ParetoTick tick in geo.Ticks)
+        {
+            <line x1="@N(plot.Left)" x2="@N(plot.Right)" y1="@N(tick.Pos)" y2="@N(tick.Pos)" stroke="var(--color-base-content)"
+                  stroke-opacity="@(tick.Value == 0 ? "0.35" : "0.12")" vector-effect="non-scaling-stroke" />
+            <SvgText X="@(plot.Left - 6)" Y="@tick.Pos" Dy="0.35em" Anchor="end" FontSize="11" FillOpacity="0.6" Text="@_format(tick.Value)" />
+        }
+        @foreach (ParetoTick tick in geo.ShareTicks.Where(t => Math.Abs(t.Pos - geo.ThresholdY) > 12))
+        {
+            <SvgText X="@(plot.Right + 6)" Y="@tick.Pos" Dy="0.35em" FontSize="11" FillOpacity="0.6" Text="@_percent(tick.Value)" />
+        }
+
+        @for (int i = 0; i < geo.Bars.Count; i++)
+        {
+            ParetoBar bar = geo.Bars[i];
+            <rect x="@N(bar.X)" y="@N(bar.Y)" width="@N(bar.Width)" height="@N(Math.Max(0, bar.Height))" rx="2" fill="@BarColor"
+                  fill-opacity="@(i < geo.VitalFew ? "1" : "0.4")">
+                <title>@($"{bar.Label}: {_format(bar.Value)} ({_percent(bar.Share)}, cumulative {_percent(bar.Cumulative)})")</title>
+            </rect>
+            <SvgText X="@(bar.X + bar.Width / 2)" Y="@(plot.Bottom + 17)" Anchor="middle" FontSize="11" FillOpacity="0.8" Text="@bar.Label" />
+        }
+
+        <line x1="@N(plot.Left)" x2="@N(plot.Right)" y1="@N(geo.ThresholdY)" y2="@N(geo.ThresholdY)" stroke="@ThresholdColor"
+              stroke-width="1.5" stroke-dasharray="5 4" vector-effect="non-scaling-stroke">
+            <title>@($"{_percent(Threshold)} of the total")</title>
+        </line>
+        <SvgText X="@(plot.Right + 6)" Y="@geo.ThresholdY" Dy="0.35em" FontSize="11" FontWeight="600" Fill="@ThresholdColor" Text="@_percent(Threshold)" />
+
+        <path d="@geo.Line" fill="none" stroke="@LineColor" stroke-width="2" stroke-linejoin="round" vector-effect="non-scaling-stroke" />
+        @foreach (ParetoBar bar in geo.Bars)
+        {
+            <circle cx="@N(bar.Cx)" cy="@N(bar.Cy)" r="4" fill="@LineColor" stroke="var(--color-base-100)" stroke-width="1.5">
+                <title>@($"Up to {bar.Label}: {_percent(bar.Cumulative)}")</title>
+            </circle>
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The categories. They are sorted by value, largest first; only positive values count.</summary>
+    [Parameter] public IReadOnlyList<ChartDataPoint> Items { get; set; } = [];
+
+    /// <summary>The cumulative share (0 to 1) marked by the reference line; bars up to the one that reaches it stay solid.</summary>
+    [Parameter] public double Threshold { get; set; } = 0.8;
+
+    /// <summary>Format string for values on the left axis and in tooltips.</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>CSS colour of the bars.</summary>
+    [Parameter] public string BarColor { get; set; } = "var(--color-primary)";
+
+    /// <summary>CSS colour of the cumulative line.</summary>
+    [Parameter] public string LineColor { get; set; } = "var(--color-secondary)";
+
+    /// <summary>CSS colour of the threshold line.</summary>
+    [Parameter] public string ThresholdColor { get; set; } = "var(--color-warning)";
+
+    /// <inheritdoc />
+    protected override string Kind => "pareto";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Items = Items.Select(i => new { i.Label, i.Value }).ToArray(),
+        Threshold,
+        Width = ViewWidth,
+        Height = ViewHeight,
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private static string _percent(double share) => share.ToString("0.#%", CultureInfo.CurrentCulture);
+
+    private string _label => Title ?? "Pareto chart";
+
+    private string _description => Layout is { } geo
+        ? string.Join("; ", geo.Bars.Select(b => $"{b.Label}: {_format(b.Value)}, cumulative {_percent(b.Cumulative)}"))
+          + $". The first {geo.VitalFew} reach {_percent(Threshold)} of the total."
+        : string.Empty;
+}

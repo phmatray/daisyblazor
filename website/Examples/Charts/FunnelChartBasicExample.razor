@@ -1,0 +1,12 @@
+<FunnelChart Title="Trial to paid, last 30 days" Stages="_stages" ValueFormat="{0:N0}" />
+
+@code {
+    private readonly ChartDataPoint[] _stages =
+    [
+        new("Pricing page", 8_400),
+        new("Started trial", 2_150),
+        new("Activated", 1_320),
+        new("Invited team", 760),
+        new("Paid", 410),
+    ];
+}
