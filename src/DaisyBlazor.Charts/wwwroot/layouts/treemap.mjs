@@ -1,16 +1,17 @@
 import { treemap, treemapSquarify, treemapBinary, treemapSlice, treemapDice, treemapSliceDice } from '../d3/d3-hierarchy.mjs';
-import { build, groups, base, EMPTY } from './_hierarchy.mjs';
+import { build, groups, base, focus, echo, EMPTY } from './_hierarchy.mjs';
 
 const TILE = { squarify: treemapSquarify, binary: treemapBinary, slice: treemapSlice, dice: treemapDice, slicedice: treemapSliceDice };
 const HEADER = 18;
 
-// spec: { root: { name, value, children }, width, height, tile, padding }
+// spec: { root: { name, value, children }, focus?: "Branch/child", width, height, tile, padding }
 // Every node but the root: leaves are tiles, parents are frames with an 18-unit header for their name.
-export default function treemapLayout({ root, width, height, tile = 'squarify', padding = 2 }) {
-    const h = build(root);
-    if (!h) {
+export default function treemapLayout({ root, focus: path, width, height, tile = 'squarify', padding = 2 }) {
+    const full = build(root);
+    if (!full) {
         return EMPTY;
     }
+    const h = focus(full, path);
     const pad = Number.isFinite(padding) && padding >= 0 ? padding : 2;
     const frame = d => (d.depth > 0 ? pad : 0);
     treemap()
@@ -33,5 +34,5 @@ export default function treemapLayout({ root, width, height, tile = 'squarify', 
             room: d.x1 - d.x0 - 10,
             thickness: d.children ? Math.min(HEADER, d.y1 - d.y0) : d.y1 - d.y0,
         }));
-    return { nodes, groups: groups(h), cx: 0, cy: 0 };
+    return { nodes, groups: groups(full), cx: 0, cy: 0, ...echo(h, path) };
 }

@@ -1,47 +1,52 @@
 @namespace DaisyBlazor.Charts
-@inherits D3Chart<HierarchyLayout>
+@inherits HierarchyChart
 
 @* Treemap: a tree as nested rectangles, each leaf's area proportional to its value. D3
    (d3-hierarchy) tiles the rectangles; this component draws them in theme colours, one colour per
    top-level branch, with each parent's name in a header strip. *@
 
-<D3ChartFrame TLayout="HierarchyLayout" Chart="this" Label="@_label" Description="@_description">
-    @if (Layout is { } layout)
-    {
-        @foreach (HierarchyLayoutNode node in layout.Nodes)
+<D3ChartFrame TLayout="HierarchyLayout" Chart="this" Label="@_label" Description="@_description" SvgClass="@SvgClass">
+    <Header>
+        <ChartBreadcrumb Crumbs="@Trail" OnSelect="@Climb" />
+    </Header>
+    <ChildContent>
+        @if (Layout is { } layout)
         {
-            string color = ChartInk.GroupColor(node.Group, layout.Groups, GroupColors);
-            double w = node.X1 - node.X0;
-            double h = node.Y1 - node.Y0;
-            @if (!node.Leaf)
+            @foreach (HierarchyLayoutNode node in layout.Nodes)
             {
-                <rect x="@N(node.X0)" y="@N(node.Y0)" width="@N(w)" height="@N(h)" rx="3"
-                      fill="@color" fill-opacity="0.12" stroke="@color" stroke-opacity="0.45">
-                    <title>@($"{node.Path}: {_format(node.Value)}")</title>
-                </rect>
-                @if (node.Thickness >= 14 && ChartText.Fit(_text(node), node.Room, 11) is { } header)
+                string color = ChartInk.GroupColor(node.Group, layout.Groups, GroupColors);
+                double w = node.X1 - node.X0;
+                double h = node.Y1 - node.Y0;
+                @if (!node.Leaf)
                 {
-                    <SvgText X="@node.LabelX" Y="@node.LabelY" Dy="0.35em" FontSize="11" FontWeight="600" Text="@header" />
-                }
-            }
-            else
-            {
-                <rect x="@N(node.X0)" y="@N(node.Y0)" width="@N(w)" height="@N(h)" rx="2" fill="@color" fill-opacity="0.9">
-                    <title>@($"{node.Path}: {_format(node.Value)}")</title>
-                </rect>
-                @if (node.Thickness >= 20 && ChartText.Fit(node.Name, node.Room, 12) is { } name)
-                {
-                    <SvgText X="@node.LabelX" Y="@node.LabelY" Dy="0.1em" FontSize="12" FontWeight="600"
-                             Fill="@ChartPalette.ContentOf(color)" Text="@name" />
-                    @if (ShowValues && node.Thickness >= 36 && ChartText.Fit(_format(node.Value), node.Room, 11) is { } value)
+                    <rect x="@N(node.X0)" y="@N(node.Y0)" width="@N(w)" height="@N(h)" rx="3"
+                          fill="@color" fill-opacity="0.12" stroke="@color" stroke-opacity="0.45" @attributes="Mark(node, _tip(node))">
+                        <title>@_tip(node)</title>
+                    </rect>
+                    @if (node.Thickness >= 14 && ChartText.Fit(_text(node), node.Room, 11) is { } header)
                     {
-                        <SvgText X="@node.LabelX" Y="@(node.LabelY + 15)" Dy="0.1em" FontSize="11"
-                                 Fill="@ChartPalette.ContentOf(color)" FillOpacity="0.85" Text="@value" />
+                        <SvgText X="@node.LabelX" Y="@node.LabelY" Dy="0.35em" FontSize="11" FontWeight="600" Text="@header" />
+                    }
+                }
+                else
+                {
+                    <rect x="@N(node.X0)" y="@N(node.Y0)" width="@N(w)" height="@N(h)" rx="2" fill="@color" fill-opacity="0.9" @attributes="Mark(node, _tip(node))">
+                        <title>@_tip(node)</title>
+                    </rect>
+                    @if (node.Thickness >= 20 && ChartText.Fit(node.Name, node.Room, 12) is { } name)
+                    {
+                        <SvgText X="@node.LabelX" Y="@node.LabelY" Dy="0.1em" FontSize="12" FontWeight="600"
+                                 Fill="@ChartPalette.ContentOf(color)" Text="@name" />
+                        @if (ShowValues && node.Thickness >= 36 && ChartText.Fit(_format(node.Value), node.Room, 11) is { } value)
+                        {
+                            <SvgText X="@node.LabelX" Y="@(node.LabelY + 15)" Dy="0.1em" FontSize="11"
+                                     Fill="@ChartPalette.ContentOf(color)" FillOpacity="0.85" Text="@value" />
+                        }
                     }
                 }
             }
         }
-    }
+    </ChildContent>
 </D3ChartFrame>
 
 @code {
@@ -67,16 +72,16 @@
     protected override string Kind => "treemap";
 
     /// <inheritdoc />
-    protected override object BuildSpec() => new
-    {
-        Root,
-        Width = ViewWidth,
-        Height = ViewHeight,
-        Tile = Tile.ToString().ToLowerInvariant(),
-        Padding,
-    };
+    protected override HierarchyNode? Tree => Root;
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => SpecFocus is not { } focus
+        ? new { Root, Width = ViewWidth, Height = ViewHeight, Tile = Tile.ToString().ToLowerInvariant(), Padding }
+        : new { Root, Focus = focus, Width = ViewWidth, Height = ViewHeight, Tile = Tile.ToString().ToLowerInvariant(), Padding };
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _tip(HierarchyLayoutNode node) => $"{node.Path}: {_format(node.Value)}";
 
     private string _text(HierarchyLayoutNode node) => ShowValues ? $"{node.Name} {_format(node.Value)}" : node.Name;
 

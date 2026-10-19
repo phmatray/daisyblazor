@@ -35,7 +35,14 @@ public enum TreemapTile
 /// <param name="Groups">Names of the root's children; a node's <see cref="HierarchyLayoutNode.Group"/> indexes this list.</param>
 /// <param name="Cx">Horizontal centre for radial layouts (their paths are relative to it).</param>
 /// <param name="Cy">Vertical centre for radial layouts.</param>
-public sealed record HierarchyLayout(IReadOnlyList<HierarchyLayoutNode> Nodes, IReadOnlyList<string> Groups, double Cx, double Cy);
+public sealed record HierarchyLayout(IReadOnlyList<HierarchyLayoutNode> Nodes, IReadOnlyList<string> Groups, double Cx, double Cy)
+{
+    /// <summary>
+    /// When the spec asked for a focus: the path of the node laid out as the root ("Platform/api",
+    /// names below the root joined by '/'), or "" when that was the whole tree. Null otherwise.
+    /// </summary>
+    public string? Focus { get; init; }
+}
 
 /// <summary>
 /// A placed hierarchy node. X0..Y1 is its rectangle (treemap, icicle) or the bounding box of its

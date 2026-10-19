@@ -1,0 +1,34 @@
+@namespace DaisyBlazor.Charts
+
+@* The drill-down trail above a hierarchy chart: one button per level, root first; the last one is
+   the level shown. *@
+
+@if (Crumbs is { Count: > 0 })
+{
+    <nav class="breadcrumbs text-xs py-0 mb-1" aria-label="@Label">
+        <ul>
+            @for (int i = 0; i < Crumbs.Count; i++)
+            {
+                int index = i;
+                bool last = i == Crumbs.Count - 1;
+                <li>
+                    <button type="button" aria-current="@(last ? "location" : null)" @onclick="() => OnSelect.InvokeAsync(index)"
+                            class="@(last ? "font-semibold text-base-content cursor-default hover:no-underline" : "text-base-content/70") rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-base-content">
+                        @Crumbs[i]
+                    </button>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+
+@code {
+    /// <summary>The names on the trail, root first.</summary>
+    [Parameter] public IReadOnlyList<string>? Crumbs { get; set; }
+
+    /// <summary>Raised with the index of the clicked crumb (0 is the root).</summary>
+    [Parameter] public EventCallback<int> OnSelect { get; set; }
+
+    /// <summary>Accessible name of the trail.</summary>
+    [Parameter] public string Label { get; set; } = "Drill-down level";
+}

@@ -13,6 +13,7 @@ public static partial class DocRegistry
             [
                 new("Basic", "Root is a HierarchyNode: leaves carry a Value, parents add up their Children. Tiles show their name and value when they fit; hover any tile for its full path.", typeof(TreemapChartBasicExample)),
                 new("Tiling", "Tile chooses how each parent is cut (here SliceDice, which alternates rows and columns by level); ValueFormat sets the unit.", typeof(TreemapChartTileExample)),
+                new("Drill-down", "Drilldown=\"true\" makes every parent a button (click, or Tab then Enter): the chart re-roots on it at full size, colours stay those of its top-level branch, and the breadcrumb above goes back up. @bind-Focus sets or follows the drilled node as a path like \"Platform/api\"; OnNodeClick reports any clicked node. Clicks need an interactive render mode; static rendering draws the Focus node.", typeof(TreemapChartDrilldownExample)),
             ])
         {
             Portrait = typeof(TreemapChartCoverExample),
@@ -24,6 +25,7 @@ public static partial class DocRegistry
             [
                 new("Basic", "Root is a HierarchyNode; the centre disc shows its name and total, and each ring is one level deeper. Arcs too thin for a name keep it in their tooltip.", typeof(SunburstChartBasicExample)),
                 new("Deeper trees", "Any depth works: branches may stop at different levels. GroupColors maps a top-level branch to any CSS colour, and ValueFormat sets the unit in tooltips.", typeof(SunburstChartDepthExample)),
+                new("Drill-down", "Drilldown=\"true\": click (or Tab then Enter on) an arc with children to make it the centre, at full circle; click the centre or the breadcrumb to go back up. @bind-Focus follows the drilled node. Clicks need an interactive render mode.", typeof(SunburstChartDrilldownExample)),
             ])
         {
             Portrait = typeof(SunburstChartCoverExample),
@@ -46,6 +48,7 @@ public static partial class DocRegistry
             [
                 new("Basic", "Root is a HierarchyNode; the root fills the first column and each level splits it further. Bands show their name and value when they fit.", typeof(IcicleChartBasicExample)),
                 new("Vertical", "Horizontal=\"false\" puts the root on top with one row per level.", typeof(IcicleChartVerticalExample)),
+                new("Drill-down", "Drilldown=\"true\" with Focus=\"Europe\" set up front: the chart starts on that branch. Click a band with children to drill further; the first band and the breadcrumb go back up. Clicks need an interactive render mode.", typeof(IcicleChartDrilldownExample)),
             ])
         {
             Portrait = typeof(IcicleChartCoverExample),
