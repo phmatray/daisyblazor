@@ -1,0 +1,9 @@
+<ScatterChart Points="_points" AspectRatio="1.1" ShowLegend="false" />
+
+@code {
+    private readonly ScatterPoint[] _points =
+    [
+        .. DistributionSamples.Cloud(seed: 1, count: 30, xMean: 12, xSd: 4, intercept: 2, slope: 0.8, noise: 2.5, series: "Starter"),
+        .. DistributionSamples.Cloud(seed: 2, count: 20, xMean: 30, xSd: 6, intercept: 5, slope: 0.9, noise: 4, series: "Pro"),
+    ];
+}

@@ -1,0 +1,11 @@
+<HexbinChart Points="_sessions" Radius="22" Color="var(--color-secondary)" AspectRatio="2"
+             XTitle="Hour of day (UTC)" YTitle="Session length (min)" CountFormat="{0:N0} sessions" />
+
+@code {
+    // A larger Radius makes fewer, bigger bins: a coarser but steadier picture of where sessions fall.
+    private readonly ScatterPoint[] _sessions =
+    [
+        .. DistributionSamples.Cloud(seed: 33, count: 900, xMean: 10, xSd: 2.5, intercept: 14, slope: 0.3, noise: 6),
+        .. DistributionSamples.Cloud(seed: 34, count: 700, xMean: 16, xSd: 2.5, intercept: 30, slope: -0.6, noise: 6),
+    ];
+}

@@ -1,0 +1,9 @@
+<ContourChart Points="_sessions" AspectRatio="1.1" Levels="8" />
+
+@code {
+    private readonly ScatterPoint[] _sessions =
+    [
+        .. DistributionSamples.Cloud(seed: 21, count: 200, xMean: 6, xSd: 2.5, intercept: 2, slope: 0.6, noise: 1.5),
+        .. DistributionSamples.Cloud(seed: 22, count: 150, xMean: 30, xSd: 7, intercept: 6, slope: 0.5, noise: 3.5),
+    ];
+}

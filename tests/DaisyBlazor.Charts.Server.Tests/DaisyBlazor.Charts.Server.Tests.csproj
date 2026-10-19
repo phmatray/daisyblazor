@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="bunit" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DaisyBlazor.Charts.Server\DaisyBlazor.Charts.Server.csproj" />
+    <!-- The docs examples are the chart catalogue with real data: every one must render on the server. -->
+    <ProjectReference Include="..\..\website\DaisyBlazor.Docs.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="layouts.fixture.json" CopyToOutputDirectory="PreserveNewest" />
+    <Using Include="Xunit" />
+    <Using Include="Shouldly" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,22 @@
+<NetworkChart Title="Service dependencies" Links="_dependencies" />
+
+@code {
+    private readonly GraphLink[] _dependencies =
+    [
+        new("Gateway", "Auth"),
+        new("Gateway", "Projects"),
+        new("Gateway", "Search"),
+        new("Gateway", "Deployments"),
+        new("Projects", "Storage"),
+        new("Projects", "Auth"),
+        new("Projects", "Database"),
+        new("Search", "Index"),
+        new("Search", "Database"),
+        new("Deployments", "Builder"),
+        new("Deployments", "Storage"),
+        new("Deployments", "Notifications"),
+        new("Builder", "Registry"),
+        new("Notifications", "Mailer"),
+        new("Auth", "Database"),
+    ];
+}

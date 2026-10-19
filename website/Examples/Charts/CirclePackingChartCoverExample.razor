@@ -1,0 +1,10 @@
+<CirclePackingChart Root="_deployments" AspectRatio="1.1" ShowLegend="false" ShowValues="false" />
+
+@code {
+    private readonly HierarchyNode _deployments = new("Deployments", Children:
+    [
+        new("Platform", Children: [new("Gateway", 64), new("Auth", 48), new("Jobs", 22)]),
+        new("Product", Children: [new("Web app", 96), new("API", 41), new("Search", 27)]),
+        new("Data", Children: [new("Pipelines", 38), new("Exports", 15)]),
+    ]);
+}

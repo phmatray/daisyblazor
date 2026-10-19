@@ -1,0 +1,16 @@
+<RangeAreaChart Title="Concurrent sessions by weekday" Points="_points" Smooth="false" Color="var(--color-accent)"
+                BandLabel="Lowest–highest" CenterLabel="Average" AspectRatio="2" ValueFormat="{0:N0} sessions" />
+
+@code {
+    // Labels instead of dates put the points on a category axis.
+    private readonly RangePoint[] _points =
+    [
+        new("Mon", 1800, 6200, 4100),
+        new("Tue", 2100, 6900, 4600),
+        new("Wed", 2000, 7100, 4700),
+        new("Thu", 1900, 6800, 4500),
+        new("Fri", 1500, 5600, 3600),
+        new("Sat", 600, 2100, 1300),
+        new("Sun", 500, 1900, 1100),
+    ];
+}

@@ -1,0 +1,115 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<GaugeLayout>
+
+@* Radial gauge: one value on an arc from Min to Max, with optional coloured bands outside the arc and a
+   target marker across it. D3 computes the arcs, fits them in the box and places the ticks. *@
+
+<D3ChartFrame TLayout="GaugeLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { Radius: > 0 } geo)
+    {
+        <g transform="@($"translate({N(geo.Cx)},{N(geo.Cy)})")">
+            <path d="@geo.Track" fill="var(--color-base-content)" fill-opacity="0.1" />
+            @if (!string.IsNullOrEmpty(geo.Fill))
+            {
+                <path d="@geo.Fill" fill="@_color">
+                    <title>@_valueText</title>
+                </path>
+            }
+            @foreach (GaugeLayoutBand band in geo.Bands)
+            {
+                <path d="@band.Path" fill="@_bandColor(band.Index)" fill-opacity="0.85">
+                    <title>@_bandText(_band(band.Index) ?? new GaugeBand(band.From, band.To))</title>
+                </path>
+            }
+        </g>
+
+        @foreach (GaugeLayoutTick tick in geo.Ticks)
+        {
+            <SvgText X="@tick.X" Y="@tick.Y" Dy="0.35em" Anchor="@tick.Anchor" FontSize="@geo.FontSize" FillOpacity="0.6" Text="@_format(tick.Value)" />
+        }
+
+        @if (geo.Marker is { } marker)
+        {
+            <line x1="@N(marker.X1)" y1="@N(marker.Y1)" x2="@N(marker.X2)" y2="@N(marker.Y2)" stroke="var(--color-base-content)"
+                  stroke-width="@N(geo.Radius * 0.02 + 1)" stroke-linecap="round">
+                <title>@($"Target {_format(marker.Value)}")</title>
+            </line>
+        }
+
+        <SvgText X="@geo.Cx" Y="@geo.ValueY" Anchor="middle" FontSize="@Math.Round(geo.ValueFontSize, 1)" FontWeight="700" Text="@_format(Value)" />
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The value to show. The arc is clamped to [Min, Max]; the printed value is not.</summary>
+    [Parameter] public double Value { get; set; }
+
+    /// <summary>Start of the scale.</summary>
+    [Parameter] public double Min { get; set; }
+
+    /// <summary>End of the scale; must be greater than Min, or nothing is drawn.</summary>
+    [Parameter] public double Max { get; set; } = 100;
+
+    /// <summary>Optional coloured ranges drawn as a thin ring outside the arc, e.g. below, near and above target.</summary>
+    [Parameter] public IReadOnlyList<GaugeBand>? Bands { get; set; }
+
+    /// <summary>Optional target value, drawn as a line across the arc.</summary>
+    [Parameter] public double? Marker { get; set; }
+
+    /// <summary>Angle of Min in degrees, 0 at 12 o'clock and clockwise positive.</summary>
+    [Parameter] public double StartAngle { get; set; } = -120;
+
+    /// <summary>Angle of Max in degrees. -90 to 90 draws a half circle.</summary>
+    [Parameter] public double EndAngle { get; set; } = 120;
+
+    /// <summary>Thickness of the arc as a fraction of its radius (0.02 to 0.9).</summary>
+    [Parameter] public double Thickness { get; set; } = 0.2;
+
+    /// <summary>Theme colour of the filled arc.</summary>
+    [Parameter] public Color Color { get; set; } = Color.Primary;
+
+    /// <summary>Format string for the value and ticks, e.g. "{0:0.00}%".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Creates a gauge with a squarer default shape than other charts.</summary>
+    public GaugeChart()
+    {
+        AspectRatio = 1.25;
+    }
+
+    /// <inheritdoc />
+    protected override string Kind => "gauge";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Min,
+        Max,
+        Value,
+        Bands = (Bands ?? []).Select(b => new { b.From, b.To }).ToArray(),
+        Marker,
+        StartAngle,
+        EndAngle,
+        Thickness,
+        Width = ViewWidth,
+        Height = ViewHeight,
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _color => ChartPalette.FromColor(Color) ?? ChartPalette.At(0);
+
+    private GaugeBand? _band(int index) => Bands is { } bands && index < bands.Count ? bands[index] : null;
+
+    private string _bandColor(int index) => ChartPalette.At(index, _band(index)?.Color);
+
+    private string _bandText(GaugeBand band) => $"{band.Label ?? "Range"}: {_format(band.From)} to {_format(band.To)}";
+
+    private string _valueText => $"{_format(Value)} of {_format(Min)} to {_format(Max)}";
+
+    // The accessible name carries the reading itself, so a screen reader gets it without the description.
+    private string _label =>
+        $"{Title ?? "Gauge"}: {_format(Value)}" + (Marker is { } m ? $", target {_format(m)}" : string.Empty) + $" (scale {_format(Min)} to {_format(Max)})";
+
+    private string? _description => Bands is { Count: > 0 } ? string.Join("; ", Bands.Select(_bandText)) : null;
+}

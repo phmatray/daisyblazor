@@ -1,0 +1,9 @@
+<LinearGaugeChart Title="Storage used" Value="412" Max="500" Marker="450" Bands="_bands" ValueFormat="{0:N0} GB" />
+
+@code {
+    private readonly GaugeBand[] _bands =
+    [
+        new(400, 450, ChartPalette.FromColor(Color.Warning), "Nearly full"),
+        new(450, 500, ChartPalette.FromColor(Color.Error), "Over the alert level"),
+    ];
+}

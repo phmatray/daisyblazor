@@ -1,0 +1,9 @@
+<WaffleChart Title="Active seats of 600 licensed" Items="_seats" Total="600" Rows="5" Columns="20" AspectRatio="3.2" ValueFormat="{0:N0} seats" />
+
+@code {
+    private readonly ChartDataPoint[] _seats =
+    [
+        new("Active", 412, ChartPalette.FromColor(Color.Success)),
+        new("Invited", 96, ChartPalette.FromColor(Color.Info)),
+    ];
+}

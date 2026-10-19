@@ -1,0 +1,9 @@
+<GaugeChart Value="99.95" Min="99" Max="100" Marker="99.9" Bands="_bands" AspectRatio="1" ValueFormat="{0:0.0#}%" />
+
+@code {
+    private readonly GaugeBand[] _bands =
+    [
+        new(99, 99.9, ChartPalette.FromColor(Color.Error)),
+        new(99.9, 100, ChartPalette.FromColor(Color.Success)),
+    ];
+}

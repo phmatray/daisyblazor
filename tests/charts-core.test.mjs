@@ -1,0 +1,199 @@
+// node --test tests/ — the line, bar, pie and sparkline layouts, and the measured mode of charts.mjs.
+// These hold the geometry the bUnit tests used to check in the C# markup (ticks, gaps, stacking,
+// zero-crossing bars, arcs): the Razor components now only draw what these return.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { layout, observe, update, unobserve } from '../src/DaisyBlazor.Charts/wwwroot/charts.mjs';
+import { compact } from '../src/DaisyBlazor.Charts/wwwroot/layouts/_axis.mjs';
+
+const size = { width: 640, height: 256 };
+const moves = path => path.split('M').filter(Boolean).length;
+
+test('line: the axis rounds out to nice ticks', async () => {
+    const { yTicks } = await layout('line', { series: [[12, 30, 44, 20]], ...size });
+    assert.deepEqual(yTicks.map(t => t.label), ['0', '10', '20', '30', '40', '50']);
+});
+
+test('compact tick text for large values', async () => {
+    assert.deepEqual([0, 2.5, 0.1 + 0.2, 1500, 50000, -1500, 2_400_000, 1234.5].map(compact),
+        ['0', '2.5', '0.3', '1.5k', '50k', '-1.5k', '2.4M', '1.23k']);
+    const { valueTicks } = await layout('bar', { categories: ['Free', 'Pro'], series: [[48200, 12000]], ...size });
+    assert.equal(valueTicks.at(-1).label, '50k');
+});
+
+test('line: a slot per label, points in the middle of their slot', async () => {
+    const { plot, xLabels, series } = await layout('line', { series: [[1, 2]], labels: ['A', 'B', 'C', 'D'], showGrid: false, ...size });
+    const slot = (plot.right - plot.left) / 4;
+    assert.equal(xLabels.length, 4);
+    assert.equal(xLabels[3].pos, plot.left + slot * 3.5);
+    assert.equal(series[0].points[0].x, plot.left + slot / 2);
+});
+
+test('line: long axes thin their labels so they never overlap', async () => {
+    const labels = Array.from({ length: 60 }, (_, i) => `Day ${i + 1}`);
+    const { xLabels } = await layout('line', { series: [labels.map(() => 1)], labels, width: 300, height: 200 });
+    assert.ok(xLabels.length < 15);
+    for (let i = 1; i < xLabels.length; i++) {
+        assert.ok(xLabels[i].pos - xLabels[i - 1].pos >= 'Day 60'.length * 6.6);
+    }
+});
+
+test('line: NaN leaves a gap, an isolated point is flagged for a marker', async () => {
+    const { series } = await layout('line', { series: [[1, 2, null, 3, 4, null, 5]], ...size });
+    assert.equal(moves(series[0].line), 3);
+    assert.doesNotMatch(series[0].line, /NaN/);
+    assert.deepEqual(series[0].points.map(p => p.index), [0, 1, 3, 4, 6]);
+    assert.deepEqual(series[0].points.map(p => p.isolated), [false, false, false, false, true]);
+    const single = await layout('line', { series: [[5]], ...size });
+    assert.equal(single.series[0].points[0].isolated, true);
+});
+
+test('line: with negative data the area closes at the zero line', async () => {
+    const { yTicks, series } = await layout('line', { series: [[-20, -10, -40]], ...size });
+    const zero = yTicks.find(t => t.label === '0');
+    assert.equal(zero.pos, 8); // zero is the top of the plot
+    assert.match(series[0].area, new RegExp(`L[\\d.]+,${zero.pos}.*Z$`));
+});
+
+test('line: stacked series sit on the running total, missing values count as 0', async () => {
+    const { yTicks, series } = await layout('line', { series: [[20, 40], [30, 60]], stacked: true, ...size });
+    assert.equal(yTicks.at(-1).label, '100');
+    const y = v => yTicks.find(t => t.label === String(v))?.pos;
+    // B's points are drawn at A+B, its band runs back along A.
+    assert.deepEqual(series[1].points.map(p => p.y), [(y(40) + y(60)) / 2, y(100)]);
+    assert.equal(series[0].points[1].y, y(40));
+    const a = series[0].points.map(p => `${p.x},${p.y}`);
+    assert.ok(series[1].area.includes(a[1]) && series[1].area.includes(a[0]));
+
+    const gaps = await layout('line', { series: [[20, null], [40]], stacked: true, ...size });
+    assert.doesNotMatch(gaps.series[1].line, /NaN/);
+    assert.equal(moves(gaps.series[1].line), 1); // stacked lines have no gaps
+    assert.equal(gaps.series[0].points.length, 1); // but markers only where the series has a value
+});
+
+test('line: unstacked axis follows the largest single value; empty input is safe', async () => {
+    const { yTicks } = await layout('line', { series: [[20, 40], [30, 60]], ...size });
+    assert.equal(yTicks.at(-1).label, '60');
+    const empty = await layout('line', { series: [], ...size });
+    assert.deepEqual(empty.series, []);
+    assert.deepEqual(empty.yTicks.map(t => t.label), ['0', '0.2', '0.4', '0.6', '0.8', '1']);
+});
+
+test('bar: negative bars run down from the zero line', async () => {
+    const { bars, valueTicks } = await layout('bar', { categories: ['Up', 'Down'], series: [[10, -10]], ...size });
+    const zero = valueTicks.find(t => t.label === '0').pos;
+    assert.ok(Math.abs(bars[0].y + bars[0].height - zero) < 0.01);
+    assert.equal(bars[1].y, zero);
+    assert.equal(bars[0].height, bars[1].height);
+});
+
+test('bar: grouped bars share their category band, missing values draw nothing', async () => {
+    const { bars } = await layout('bar', { categories: ['Q1', 'Q2'], series: [[1, 2], [3, null]], ...size });
+    assert.equal(bars.length, 3);
+    const [a, b] = bars.filter(r => r.c === 0).sort((p, q) => p.s - q.s);
+    assert.ok(Math.abs(a.x + a.width - b.x) < 0.01);
+});
+
+test('bar: horizontal keeps long category labels whole and has no value row without the grid', async () => {
+    const out = await layout('bar', { categories: ['North America', 'Asia Pacific'], series: [[10, 5]], horizontal: true, ...size });
+    assert.deepEqual(out.categoryLabels.map(l => l.label), ['North America', 'Asia Pacific']);
+    assert.ok(out.plot.left > 'North America'.length * 6.6);
+
+    const bare = await layout('bar', { categories: ['A'], series: [[1]], horizontal: true, showGrid: false, ...size });
+    assert.deepEqual(bare.valueTicks, []);
+    assert.equal(bare.plot.bottom, 256 - 4);
+
+    const narrow = await layout('bar', { categories: ['A very long region name indeed'], series: [[1]], horizontal: true, width: 200, height: 100 });
+    assert.match(narrow.categoryLabels[0].label, /…$/);
+    assert.equal(narrow.categoryLabels[0].full, 'A very long region name indeed');
+});
+
+test('pie: slices clockwise from 12 o\'clock in input order, with percentages', async () => {
+    const { slices } = await layout('pie', { values: [30, null, -5, 10], size: 200 });
+    assert.deepEqual(slices.map(s => s.index), [0, 3]);
+    assert.deepEqual(slices.map(s => s.percent), [75, 25]);
+    assert.equal(slices[0].startAngle, 0);
+    assert.equal(slices[1].endAngle, 2 * Math.PI);
+    assert.match(slices[0].path, /L0,0Z$/); // a pie wedge closes at the centre
+});
+
+test('pie: a single slice is a full circle; a ring has a hole; no data gives no slices', async () => {
+    const full = await layout('pie', { values: [5], size: 200 });
+    assert.equal(full.slices.length, 1);
+    assert.doesNotMatch(full.slices[0].path, /NaN/);
+    const ring = await layout('pie', { values: [1, 1], size: 200, innerRatio: 0.5 });
+    assert.equal(ring.innerRadius, 47);
+    assert.doesNotMatch(ring.slices[0].path, /L0,0Z/);
+    assert.deepEqual((await layout('pie', { values: [0, null], size: 200 })).slices, []);
+});
+
+test('pie: the centre label shrinks to fit the hole', async () => {
+    const short = await layout('pie', { values: [1], size: 200, innerRatio: 0.6, centerLabel: '72%' });
+    const long = await layout('pie', { values: [1], size: 200, innerRatio: 0.35, centerLabel: '€12,480' });
+    assert.equal(short.centerFontSize, 22);
+    assert.ok(long.centerFontSize < 22);
+});
+
+test('spark: spans its own range, flat data is centred, NaN leaves a gap', async () => {
+    const rising = await layout('spark', { data: [1, 2, 3], pad: 2, width: 80, height: 24 });
+    assert.equal(rising.line, 'M2,22L40,12L78,2');
+    assert.deepEqual(rising.end, { x: 78, y: 2 });
+    assert.match(rising.area, /L78,22L40,22L2,22Z$/);
+
+    const flat = await layout('spark', { data: [3, 3, 3], pad: 2, width: 80, height: 24 });
+    assert.equal(flat.line, 'M2,12L40,12L78,12');
+
+    const gap = await layout('spark', { data: [5, 6, null, 7, 8], pad: 2, width: 80, height: 24 });
+    assert.equal(moves(gap.line), 2);
+    const lone = await layout('spark', { data: [5, null, 7, null, 8], pad: 2, width: 80, height: 24 });
+    assert.match(lone.line, /M40,\d+(\.\d+)?Z/); // a lone value is drawn as a dot
+    assert.deepEqual(await layout('spark', { data: [null], width: 80, height: 24 }), { line: '', area: '', end: null });
+});
+
+// Measured mode, against a stubbed ResizeObserver and element.
+const observers = [];
+globalThis.ResizeObserver = class {
+    constructor(callback) { this.callback = callback; this.targets = []; observers.push(this); }
+    observe(el) { this.targets.push(el); }
+    disconnect() { this.targets = []; this.disconnected = true; }
+};
+const dotnet = () => ({ calls: [], invokeMethodAsync(name, arg) { this.calls.push([name, arg]); return Promise.resolve(); } });
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+test('measured: lays out at the element size and again, debounced, when it is resized', async () => {
+    const el = { clientWidth: 300, clientHeight: 120 };
+    const ref = dotnet();
+    const first = await observe(el, 'spark', { data: [1, 2], pad: 2 }, ref);
+    assert.equal(first.width, 300);
+    assert.equal(first.height, 120);
+    assert.equal(first.line, 'M2,118L298,2');
+
+    const ro = observers.at(-1);
+    ro.callback(); // initial notification at the same size: nothing to do
+    el.clientWidth = 200;
+    ro.callback();
+    ro.callback();
+    await wait(150);
+    assert.equal(ref.calls.length, 1);
+    assert.equal(ref.calls[0][0], 'OnMeasuredLayout');
+    assert.equal(ref.calls[0][1].width, 200);
+
+    const next = await update(el, { data: [2, 1], pad: 2 });
+    assert.equal(next.line, 'M2,2L198,118');
+    unobserve(el);
+    assert.ok(ro.disconnected);
+    assert.equal(await update(el, { data: [1] }), null);
+});
+
+test('measured: a box without a size waits until it gets one', async () => {
+    const el = { clientWidth: 0, clientHeight: 0 };
+    const ref = dotnet();
+    assert.equal(await observe(el, 'spark', { data: [1, 2] }, ref), null);
+    el.clientWidth = 100;
+    el.clientHeight = 20;
+    observers.at(-1).callback();
+    await wait(150);
+    assert.equal(ref.calls.length, 1);
+    assert.equal(ref.calls[0][1].width, 100);
+    unobserve(el);
+});

@@ -1,0 +1,10 @@
+<BoxPlotChart Groups="_regions" AspectRatio="1.1" ShowOutliers="false" />
+
+@code {
+    private readonly ValueGroup[] _regions =
+    [
+        new("EU", DistributionSamples.Skewed(seed: 41, count: 200, median: 85)),
+        new("US", DistributionSamples.Skewed(seed: 42, count: 200, median: 70)),
+        new("APAC", DistributionSamples.Skewed(seed: 44, count: 200, median: 140, spread: 0.45)),
+    ];
+}

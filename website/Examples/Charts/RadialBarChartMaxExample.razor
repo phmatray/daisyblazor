@@ -1,0 +1,12 @@
+<div class="max-w-md">
+    <RadialBarChart Title="Onboarding steps done" Items="_teams" Max="8" ValueFormat="{0} of 8" />
+</div>
+
+@code {
+    private readonly ChartDataPoint[] _teams =
+    [
+        new("Platform", 8, ChartPalette.FromColor(Color.Success)),
+        new("Mobile", 6),
+        new("Data", 3),
+    ];
+}

@@ -1,0 +1,13 @@
+<DumbbellChart Title="p95 response time by region, before and after release 4.2" Items="_regions"
+               StartLabel="Before 4.2" EndLabel="After 4.2" ValueFormat="{0:N0} ms" />
+
+@code {
+    private readonly DumbbellItem[] _regions =
+    [
+        new("Europe West", 240, 180),
+        new("US East", 210, 170),
+        new("US West", 260, 205),
+        new("Asia Pacific", 310, 330),
+        new("South America", 380, 290),
+    ];
+}

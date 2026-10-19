@@ -1,0 +1,93 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<ChordLayout>
+
+@* Chord diagram: relations between named nodes around a circle. Each node is an arc as long as its
+   total, each relation a ribbon between two arcs. D3 (d3-chord) places them; this component draws
+   them in theme colours. *@
+
+<D3ChartFrame TLayout="ChordLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { } layout)
+    {
+        <g transform="@($"translate({N(layout.Cx)},{N(layout.Cy)})")">
+            @foreach (ChordLayoutRibbon ribbon in layout.Ribbons)
+            {
+                <path d="@ribbon.Path" fill="@_color(ribbon.Source, layout)" fill-opacity="0.55"
+                      stroke="@_color(ribbon.Source, layout)" stroke-opacity="0.8" stroke-width="0.5">
+                    <title>@_ribbonTitle(ribbon, layout)</title>
+                </path>
+            }
+
+            @for (int i = 0; i < layout.Groups.Count; i++)
+            {
+                ChordLayoutGroup group = layout.Groups[i];
+                <path d="@group.Path" fill="@_color(i, layout)">
+                    <title>@($"{group.Name}: {_format(group.Value)}")</title>
+                </path>
+                <SvgText X="@group.LabelX" Y="@group.LabelY" Dy="0.35em" Anchor="@group.Anchor" FontSize="12" FontWeight="600"
+                         Text="@(ShowValues ? $"{group.Name} {_format(group.Value)}" : group.Name)" />
+            }
+        </g>
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The relations. Node names come from Source and Target; links to the same node or without a positive Value are skipped.</summary>
+    [Parameter] public IReadOnlyList<GraphLink> Links { get; set; } = [];
+
+    /// <summary>When true, each ribbon is an arrow from Source to Target and a node's arc counts what it sends and receives; when false, a link is one two-way relation.</summary>
+    [Parameter] public bool Directed { get; set; }
+
+    /// <summary>Gap between neighbouring arcs, in radians.</summary>
+    [Parameter] public double PadAngle { get; set; } = 0.04;
+
+    /// <summary>Print each node's total after its name.</summary>
+    [Parameter] public bool ShowValues { get; set; }
+
+    /// <summary>Format string for values in labels and tooltips, e.g. "{0:N0} calls".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Optional colour per node name (any CSS colour); other nodes cycle through the theme palette.</summary>
+    [Parameter] public IReadOnlyDictionary<string, string>? NodeColors { get; set; }
+
+    /// <inheritdoc />
+    protected override string Kind => "chord";
+
+    // Labels sit around the ring, so the layout shrinks the ring to leave room for the widest one.
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Links = Links.Select(l => new { l.Source, l.Target, l.Value }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        Directed,
+        PadAngle,
+        LabelWidth = _labelWidth(),
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _color(int node, ChordLayout layout) =>
+        NodeColors is not null && NodeColors.TryGetValue(layout.Groups[node].Name, out string? c) ? c : ChartPalette.At(node);
+
+    private string _ribbonTitle(ChordLayoutRibbon r, ChordLayout layout) =>
+        $"{layout.Groups[r.Source].Name} {(Directed ? "→" : "–")} {layout.Groups[r.Target].Name}: {_format(r.SourceValue)}";
+
+    private IEnumerable<GraphLink> _valid => Links.Where(l => double.IsFinite(l.Value) && l.Value > 0 && l.Source != l.Target);
+
+    // Widest label in chart units, so the layout can size the ring to keep every label inside.
+    private double _labelWidth()
+    {
+        Dictionary<string, double> totals = [];
+        foreach (GraphLink l in _valid)
+        {
+            totals[l.Source] = totals.GetValueOrDefault(l.Source) + l.Value;
+            totals[l.Target] = totals.GetValueOrDefault(l.Target) + l.Value;
+        }
+
+        return totals.Count == 0 ? 0 : totals.Max(t => ChartInk.TextWidth(ShowValues ? $"{t.Key} {_format(t.Value)}" : t.Key, 12));
+    }
+
+    private string _label => Title ?? "Chord diagram";
+
+    private string _description => string.Join("; ", _valid.Select(l => $"{l.Source} {(Directed ? "to" : "and")} {l.Target}: {_format(l.Value)}"));
+}

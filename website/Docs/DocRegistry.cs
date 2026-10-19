@@ -6,7 +6,7 @@ public static partial class DocRegistry
     public static IReadOnlyList<ComponentDoc> All { get; } =
     [
         .. Actions(), .. DataDisplay(), .. Navigation(), .. Feedback(), .. DataInput(),
-        .. Layout(), .. Mockup(), .. Data(), .. Charts(),
+        .. Layout(), .. Mockup(), .. Data(), .. Charts(), .. ChartsHierarchy(), .. ChartsDistribution(), .. ChartsTime(), .. ChartsCompare(), .. ChartsProgress(),
     ];
 
     public static ComponentDoc? Find(string slug) =>
@@ -24,4 +24,9 @@ public static partial class DocRegistry
     private static partial IEnumerable<ComponentDoc> Mockup();
     private static partial IEnumerable<ComponentDoc> Data();
     private static partial IEnumerable<ComponentDoc> Charts();
+    private static partial IEnumerable<ComponentDoc> ChartsHierarchy();
+    private static partial IEnumerable<ComponentDoc> ChartsDistribution();
+    private static partial IEnumerable<ComponentDoc> ChartsTime();
+    private static partial IEnumerable<ComponentDoc> ChartsCompare();
+    private static partial IEnumerable<ComponentDoc> ChartsProgress();
 }

@@ -1,0 +1,15 @@
+<HeatmapChart Title="API requests by weekday and hour (thousands)" Cells="_cells" ValueFormat="{0:N0}k requests" />
+
+@code {
+    private static readonly string[] _days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+    // Traffic follows the working day, with a lunch dip and quiet weekends.
+    private static readonly HeatmapCell[] _cells = _days
+        .SelectMany((day, d) => Enumerable.Range(0, 24).Select(hour =>
+        {
+            double working = hour is >= 8 and <= 18 ? (hour == 12 ? 28 : 40) : hour is >= 6 and <= 21 ? 14 : 4;
+            double load = (d >= 5 ? working * 0.35 : working) + (hour * 7 + d * 3) % 6;
+            return new HeatmapCell(day, hour.ToString("00"), Math.Round(load));
+        }))
+        .ToArray();
+}

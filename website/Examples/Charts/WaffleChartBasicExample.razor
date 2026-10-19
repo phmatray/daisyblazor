@@ -1,0 +1,13 @@
+<div class="max-w-sm">
+    <WaffleChart Title="Seats by status" Items="_seats" ValueFormat="{0:N0} seats" />
+</div>
+
+@code {
+    private readonly ChartDataPoint[] _seats =
+    [
+        new("Active", 412),
+        new("Invited", 96),
+        new("Suspended", 22),
+        new("Unassigned", 70),
+    ];
+}

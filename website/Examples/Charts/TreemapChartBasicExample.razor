@@ -1,0 +1,11 @@
+<TreemapChart Title="Storage by team and project (GB)" Root="_storage" />
+
+@code {
+    private readonly HierarchyNode _storage = new("Storage", Children:
+    [
+        new("Platform", Children: [new("Logs", 420), new("Backups", 310), new("Images", 120)]),
+        new("Product", Children: [new("Uploads", 380), new("Thumbnails", 90), new("Exports", 60)]),
+        new("Data", Children: [new("Warehouse", 520), new("Snapshots", 210)]),
+        new("Support", Children: [new("Attachments", 70), new("Recordings", 45)]),
+    ]);
+}

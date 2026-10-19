@@ -1,0 +1,11 @@
+<div class="max-w-sm">
+    <GaugeChart Title="Uptime this month" Value="99.95" Min="99" Max="100" Marker="99.9" Bands="_bands" ValueFormat="{0:0.0#}%" />
+</div>
+
+@code {
+    private readonly GaugeBand[] _bands =
+    [
+        new(99, 99.9, ChartPalette.FromColor(Color.Error), "Below SLA"),
+        new(99.9, 100, ChartPalette.FromColor(Color.Success), "Meets SLA"),
+    ];
+}

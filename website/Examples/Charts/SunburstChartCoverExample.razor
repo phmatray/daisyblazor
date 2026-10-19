@@ -1,0 +1,11 @@
+<SunburstChart Root="_tickets" AspectRatio="1.1" ShowLegend="false" ShowValues="false" />
+
+@code {
+    private readonly HierarchyNode _tickets = new("Tickets", Children:
+    [
+        new("Billing", Children: [new("Invoices", 140), new("Plans", 95)]),
+        new("Deploys", Children: [new("Builds", 180), new("Rollback", 70)]),
+        new("Storage", Children: [new("Quota", 120), new("Backups", 60)]),
+        new("Access", Children: [new("SSO", 110), new("Invites", 75)]),
+    ]);
+}

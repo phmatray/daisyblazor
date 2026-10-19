@@ -1,0 +1,12 @@
+<BoxPlotChart Groups="_services" Horizontal="true" ValueTitle="Deployment duration (min)" ValueFormat="{0:N1} min" AspectRatio="2" />
+
+@code {
+    // Horizontal lists the groups down the side, which leaves room for longer names.
+    private readonly ValueGroup[] _services =
+    [
+        new("Web frontend", DistributionSamples.Skewed(seed: 46, count: 80, median: 6, spread: 0.3)),
+        new("Billing API", DistributionSamples.Skewed(seed: 47, count: 80, median: 11, spread: 0.25)),
+        new("Search indexer", DistributionSamples.Skewed(seed: 48, count: 60, median: 18, spread: 0.35)),
+        new("Data pipeline", DistributionSamples.Skewed(seed: 49, count: 50, median: 27, spread: 0.3), "var(--color-success)"),
+    ];
+}

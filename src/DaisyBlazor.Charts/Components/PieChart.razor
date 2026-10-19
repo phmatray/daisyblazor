@@ -1,55 +1,73 @@
 @namespace DaisyBlazor.Charts
+@inherits D3ChartBase<PieLayout>
 
-@* Dependency-free pie chart. Slice arcs are computed in C# from cumulative angles and emitted as
-   SVG 'A' arc paths. Colors follow the active daisyUI theme via the cycling ChartPalette. *@
+@* Pie chart (a ring when InnerRadiusRatio is above 0). D3 (d3.pie, d3.arc) computes the slice
+   angles, arcs and percentages in a fixed 200-unit square that the SVG scales to its CSS height.
+   Colors follow the active daisyUI theme via the cycling ChartPalette. *@
 
-<div class="@_cls" style="@_style" @attributes="UserAttributes">
+<div class="@CssClass.Merge("w-full", Class)" style="@(string.IsNullOrEmpty(Width) ? Style : $"width:{Width};{Style}")" @attributes="UserAttributes">
     @if (!string.IsNullOrEmpty(Title))
     {
         <div class="text-sm font-medium mb-2 text-base-content/80">@Title</div>
     }
 
     <div class="flex flex-wrap items-center gap-4">
-        <svg viewBox="0 0 @_size.ToString(_ci) @_size.ToString(_ci)"
-             role="img"
-             style="@($"height:{Height};max-width:100%;")"
-             aria-label="@_ariaLabel"
-             aria-describedby="@_descId">
-            <title>@_ariaLabel</title>
-            <desc id="@_descId">@_dataDescription</desc>
-
-            @if (_total <= 0)
-            {
-                <circle cx="@_cx.ToString(_ci)" cy="@_cy.ToString(_ci)" r="@_radius.ToString(_ci)"
-                        fill="none" stroke="var(--color-base-content)" stroke-opacity="0.15" stroke-width="2" />
-            }
-            else
-            {
-                @foreach (Slice slice in _slices)
-                {
-                    <path d="@slice.Path" fill="@slice.Color"
-                          stroke="var(--color-base-100)" stroke-width="1"><title>@_sliceTitle(slice)</title></path>
-                }
-            }
-
-            @if (_innerRadius > 0 && !string.IsNullOrEmpty(CenterLabel))
-            {
-                <SvgText X="@_cx" Y="@(_cy + _centerFontSize(CenterLabel) * 0.35)" Anchor="middle" FontSize="@_centerFontSize(CenterLabel)" FontWeight="600" Text="@CenterLabel" />
-            }
-        </svg>
-
-        @if (ShowLegend && _slices.Count > 0)
+        @if (Error is { } error)
         {
-            <ul class="flex flex-wrap gap-3 text-xs">
-                @foreach (Slice slice in _slices)
+            <div role="alert" class="flex items-center justify-center rounded-box border border-dashed border-error/50 text-error text-sm p-4 text-center" style="@_squareStyle">
+                The chart could not be drawn: @error
+            </div>
+        }
+        else if (Layout is not { } geo)
+        {
+            <div aria-busy="true" aria-label="@($"{_ariaLabel} (loading)")" class="rounded-box bg-base-200 animate-pulse motion-reduce:animate-none" style="@_squareStyle"></div>
+        }
+        else
+        {
+            // A layout still being replaced may name points the new Data no longer has.
+            IReadOnlyList<PieLayoutSlice> slices = [.. geo.Slices.Where(slice => slice.Index < _data.Count)];
+            <svg viewBox="0 0 @N(_size) @N(_size)" role="img" style="@($"height:{Height};max-width:100%;")"
+                 aria-label="@_ariaLabel" aria-describedby="@_descId">
+                <title>@_ariaLabel</title>
+                @* Screen-reader data description: the slice breakdown the legend conveys visually. *@
+                <desc id="@_descId">@_description(slices)</desc>
+
+                <g transform="@($"translate({N(geo.Cx)},{N(geo.Cy)})")">
+                    @if (slices.Count == 0)
+                    {
+                        <circle r="@N((geo.Radius + geo.InnerRadius) / 2)" fill="none"
+                                stroke="var(--color-base-content)" stroke-opacity="0.15"
+                                stroke-width="@N(geo.InnerRadius > 0 ? geo.Radius - geo.InnerRadius : 2)" />
+                    }
+
+                    @for (int k = 0; k < slices.Count; k++)
+                    {
+                        PieLayoutSlice slice = slices[k];
+                        <path d="@slice.Path" fill="@_color(slice, k)"
+                              stroke="var(--color-base-100)" stroke-width="1"><title>@_sliceTitle(slice)</title></path>
+                    }
+                </g>
+
+                @if (geo.InnerRadius > 0 && !string.IsNullOrEmpty(CenterLabel))
                 {
-                    <li class="flex items-center gap-1.5">
-                        <span class="inline-block w-3 h-3 rounded-sm" style="@($"background:{slice.Color};")"></span>
-                        <span class="text-base-content/80">@slice.Label</span>
-                        <span class="text-base-content/50">@slice.Percent.ToString("0.#", _ci)%</span>
-                    </li>
+                    <SvgText X="@geo.Cx" Y="@(geo.Cy + geo.CenterFontSize * 0.35)" Anchor="middle" FontSize="@geo.CenterFontSize" FontWeight="600" Text="@CenterLabel" />
                 }
-            </ul>
+            </svg>
+
+            @if (ShowLegend && slices.Count > 0)
+            {
+                <ul class="flex flex-wrap gap-3 text-xs">
+                    @for (int k = 0; k < slices.Count; k++)
+                    {
+                        PieLayoutSlice slice = slices[k];
+                        <li class="flex items-center gap-1.5">
+                            <span class="inline-block w-3 h-3 rounded-sm" style="@($"background:{_color(slice, k)};")"></span>
+                            <span class="text-base-content/80">@_data[slice.Index].Label</span>
+                            <span class="text-base-content/50">@_percent(slice)%</span>
+                        </li>
+                    }
+                </ul>
+            }
         }
     </div>
 </div>
@@ -82,108 +100,41 @@
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
+    /// <inheritdoc />
+    protected override string Kind => "pie";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Values = ChartText.Spec(_data.Select(p => p.Value).ToList()),
+        Size = _size,
+        InnerRatio = InnerRadiusRatio,
+        CenterLabel = CenterLabel ?? string.Empty,
+    };
+
     private const double _size = 200;
-    private const double _cx = 100;
-    private const double _cy = 100;
-    private double _radius => _size / 2 - 6;
-    private double _innerRadius => _radius * Math.Clamp(InnerRadiusRatio, 0, 0.95);
-
-    private static readonly CultureInfo _ci = CultureInfo.InvariantCulture;
-
-    private double _total;
-    private List<Slice> _slices = new();
 
     private readonly string _descId = "pie-desc-" + Guid.NewGuid().ToString("N")[..8];
 
-    // Centre label font: at most 22 units, shrunk so the text fits inside the hole for thin rings
-    // and long labels (about 0.6 em per character at weight 600).
-    private double _centerFontSize(string label) =>
-        Math.Max(4, Math.Min(22, Math.Min(_innerRadius * 0.6, 2 * _innerRadius * 0.85 / (0.6 * Math.Max(1, label.Length)))));
+    private IReadOnlyList<ChartDataPoint> _data => Data ?? new List<ChartDataPoint>();
 
-    private string _sliceTitle(Slice slice) =>
-        $"{slice.Label}: {SvgGeometry.FormatValue(slice.Value, _ci)} ({slice.Percent.ToString("0.#", _ci)}%)";
+    // The placeholder and error take the square the SVG will fill.
+    private string _squareStyle => $"height:{Height};aspect-ratio:1;max-width:100%;";
 
-    private string _dataDescription => _total <= 0
+    // The palette cycles over the drawn slices (k), so skipped values do not leave a colour out.
+    private string _color(PieLayoutSlice slice, int k) => ChartPalette.At(k, _data[slice.Index].Color);
+
+    private static string _percent(PieLayoutSlice slice) => slice.Percent.ToString("0.#", CultureInfo.InvariantCulture);
+
+    private string _sliceTitle(PieLayoutSlice slice) =>
+        $"{_data[slice.Index].Label}: {ChartText.Value(_data[slice.Index].Value)} ({_percent(slice)}%)";
+
+    private string _description(IReadOnlyList<PieLayoutSlice> slices) => slices.Count == 0
         ? "No data."
-        : string.Join("; ", _slices.Select(_sliceTitle));
+        : string.Join("; ", slices.Select(_sliceTitle));
 
     private string _ariaLabel =>
         string.IsNullOrEmpty(Title)
             ? (InnerRadiusRatio > 0 ? "Donut chart" : "Pie chart")
             : Title!;
-
-    protected override void OnParametersSet()
-    {
-        _slices = new List<Slice>();
-        IReadOnlyList<ChartDataPoint> data = Data ?? new List<ChartDataPoint>();
-
-        // Only positive magnitudes contribute; ignore NaN/Infinity/negatives.
-        double total = 0;
-        foreach (ChartDataPoint p in data)
-        {
-            double v = p.Value;
-            if (double.IsNaN(v) || double.IsInfinity(v) || v <= 0)
-            {
-                continue;
-            }
-
-            total += v;
-        }
-
-        _total = total;
-        if (total <= 0)
-        {
-            return;
-        }
-
-        double cursor = 0; // radians from 12 o'clock, clockwise
-        int index = 0;
-        for (int i = 0; i < data.Count; i++)
-        {
-            double v = data[i].Value;
-            if (double.IsNaN(v) || double.IsInfinity(v) || v <= 0)
-            {
-                continue;
-            }
-
-            double fraction = v / total;
-            double start = cursor;
-            double end = cursor + fraction * 2 * Math.PI;
-
-            // Full-circle single slice: nudge to avoid a zero-length degenerate arc.
-            if (data.Count == 1 || fraction >= 0.999999)
-            {
-                end = start + 2 * Math.PI - 0.0001;
-            }
-
-            string path = SvgGeometry.ArcPath(_cx, _cy, _radius, _innerRadius, start, end, _ci);
-            _slices.Add(new Slice(
-                data[i].Label,
-                ChartPalette.At(index, data[i].Color),
-                path,
-                fraction * 100,
-                v));
-
-            cursor = end;
-            index++;
-        }
-    }
-
-    private string _cls => CssClass.Merge("w-full", Class);
-
-    private string _style
-    {
-        get
-        {
-            string dim = string.Empty;
-            if (!string.IsNullOrEmpty(Width))
-            {
-                dim += $"width:{Width};";
-            }
-
-            return $"{dim}{Style}";
-        }
-    }
-
-    private sealed record Slice(string Label, string Color, string Path, double Percent, double Value);
 }

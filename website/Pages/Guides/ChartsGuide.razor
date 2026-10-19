@@ -2,16 +2,21 @@
 
 <DocShell Title="Charts" Tracks="G.Tracks" Trail="G.Trail" Portrait="Portrait" PortraitCaption="Plan mix">
     <Lede>
-        <code>DaisyBlazor.Charts</code> draws line, area, bar, pie, donut and sparkline charts as inline SVG computed in C#.
-        No ApexCharts, no Chart.js, no JS interop, and every colour is a daisyUI theme token.
+        <code>DaisyBlazor.Charts</code> draws 45 chart types as inline SVG laid out by a D3 module
+        bundled in the package. No ApexCharts, no Chart.js, nothing to install from npm, and every colour is a daisyUI theme token.
     </Lede>
     <ChildContent>
         <div class="prose-doc">
             <p>
-                Every chart is rendered as <strong>inline <code>&lt;svg&gt;</code></strong> whose geometry is computed in C#, and every colour is
+                Every chart is rendered as <strong>inline <code>&lt;svg&gt;</code></strong> whose geometry (scales, ticks, paths, arcs) is computed by the D3 module bundled in the package, and every colour is
                 emitted as a daisyUI theme token (<code>var(--color-primary)</code>, …), so charts <strong>follow the active
                 <code>data-theme</code> automatically</strong>, with no recompilation. The only dependency is <code>DaisyBlazor.Components</code>
                 (for the <code>Color</code> enum and the <code>CssClass</code> merge helper).
+            </p>
+            <p>
+                The charts need <strong>JavaScript</strong>: the module (<code>_content/DaisyBlazor.Charts/charts.mjs</code>) loads on first use.
+                Until it answers, each chart shows a placeholder of the same size, so nothing jumps. To send the finished chart in the
+                first HTML (prerendering, static server rendering), add the server package described at the end of this guide.
             </p>
 
             @H(0)
@@ -19,16 +24,14 @@
             <CodeBlock Title="_Imports.razor" Code="@@using DaisyBlazor.Charts" />
 
             @H(1)
+            <p>Each name opens the chart's page, with live examples, their code and the full parameter list.</p>
             <table>
-                <thead><tr><th>Component</th><th>Renders</th><th>Key parameters</th></tr></thead>
+                <thead><tr><th>Component</th><th>Shows</th></tr></thead>
                 <tbody>
-                    <tr><td><a href="components/linechart"><code>LineChart</code></a></td><td>One or more line series over a gridded, labelled axis</td><td><code>Series</code>, <code>Labels</code>, <code>Area</code>, <code>Stacked</code>, <code>Smooth</code>, <code>ShowGrid</code>, <code>ShowPoints</code>, <code>ShowLegend</code></td></tr>
-                    <tr><td><a href="components/areachart"><code>AreaChart</code></a></td><td>A filled line chart (a <code>LineChart</code> with <code>Area=true</code>, for discoverability)</td><td><code>Series</code>, <code>Labels</code>, <code>Stacked</code>, <code>Smooth</code>, <code>ShowGrid</code>, <code>ShowPoints</code>, <code>ShowLegend</code></td></tr>
-                    <tr><td><a href="components/barchart"><code>BarChart</code></a></td><td>Vertical or horizontal bars, flat (<code>Data</code>) or grouped (<code>Series</code>)</td><td><code>Data</code>, <code>Series</code>, <code>Labels</code>, <code>Horizontal</code>, <code>ShowGrid</code>, <code>ShowLegend</code></td></tr>
-                    <tr><td><a href="components/piechart"><code>PieChart</code></a></td><td>Pie slices with a legend and percentages</td><td><code>Data</code>, <code>ShowLegend</code>, <code>InnerRadiusRatio</code>, <code>CenterLabel</code></td></tr>
-                    <tr><td><a href="components/donutchart"><code>DonutChart</code></a></td><td>A donut (pie with a hole) and an optional center label</td><td><code>Data</code>, <code>ShowLegend</code>, <code>InnerRadiusRatio</code> (default <code>0.6</code>), <code>CenterLabel</code></td></tr>
-                    <tr><td><a href="components/sparkline"><code>Sparkline</code></a></td><td>A tiny, axis-less inline trend line (table cells, KPI tiles)</td><td><code>Data</code>, <code>Area</code>, <code>ShowEndDot</code>, <code>StrokeWidth</code>, <code>Color</code></td></tr>
-                    <tr><td><a href="components/sankeychart"><code>SankeyChart</code></a></td><td>Flows between named stages, each band as wide as its value (layout computed by the bundled D3 module)</td><td><code>Links</code>, <code>NodeColors</code>, <code>Align</code>, <code>ShowValues</code>, <code>AspectRatio</code></td></tr>
+                    @foreach (ComponentDoc doc in DocRegistry.All.Where(d => d.Category == Category.Charts))
+                    {
+                        <tr><td><a href="@($"components/{doc.Slug}")"><code>@doc.Name</code></a></td><td>@FirstSentence(doc.Summary)</td></tr>
+                    }
                 </tbody>
             </table>
             <p>
@@ -60,7 +63,7 @@
         </ol>
         <div class="prose-doc mt-5">
             <p>
-                Because the values are <code>var(--color-*)</code>, switching the daisyUI theme re-skins every chart instantly: no rebuild, no JS.
+                Because the values are <code>var(--color-*)</code>, switching the daisyUI theme re-skins every chart instantly, with no rebuild and no new layout.
                 Override the colour of an individual series or point by setting its <code>Color</code> to <strong>any CSS colour</strong>:
             </p>
             <CodeBlock Language="csharp" Code="@Overrides" />
@@ -86,22 +89,46 @@
 
             @H(5)
             <ul>
-                <li>Charts use a fixed user-space <code>viewBox</code> scaled responsively (<code>preserveAspectRatio</code>), so they stay crisp at any rendered size.</li>
-                <li>Value axes include a <strong>zero baseline</strong>; flat or empty data is handled without divide-by-zero.</li>
+                <li>
+                    Line, area, bar charts and sparklines are laid out at the real pixel size of their box (<code>Width</code> by <code>Height</code>)
+                    and again when it is resized, so text and strokes are drawn at true size. Pie and donut charts scale a square to their <code>Height</code>.
+                </li>
+                <li>Value axes include a <strong>zero baseline</strong> and round out to nice ticks (large values read <code>50k</code>); flat or empty data is handled without divide-by-zero, and a missing value leaves a gap.</li>
                 <li><code>BarChart</code> takes <code>Series</code> (grouped) over <code>Data</code> (flat) when both are supplied; <code>Horizontal</code> flips the axis.</li>
                 <li>
-                    Pie and donut arcs are built from cumulative angles (0 = 12 o'clock, clockwise) with SVG <code>A</code> arc commands; a single
-                    full-circle slice is nudged to avoid a degenerate zero-length arc. Only positive values contribute to the total.
+                    Pie and donut slices come from <code>d3.pie</code> and <code>d3.arc</code>, in data order from 12 o'clock, clockwise.
+                    Only positive values contribute to the total.
                 </li>
-                <li><code>Smooth</code> line mode uses a Catmull-Rom-to-Bézier conversion.</li>
+                <li><code>Smooth</code> line mode uses monotone cubic curves (<code>d3.curveMonotoneX</code>), which never overshoot the data.</li>
                 <li>Every chart sets <code>role="img"</code> and an accessible <code>&lt;title&gt;</code> (from <code>Title</code> when provided).</li>
             </ul>
+
+            @H(6)
+            <p>
+                <code>DaisyBlazor.Charts.Server</code> runs the same layout files on the server with <a href="https://github.com/sebastienros/jint">Jint</a>,
+                a JavaScript interpreter written in .NET, so no Node.js is needed. Register it once and every chart computes its layout before its first
+                render: prerendered and statically rendered pages contain the finished SVG instead of a placeholder. Interactive charts lay out again in
+                the browser, at the real size of their box.
+            </p>
+            <CodeBlock Language="bash" Code="dotnet add package DaisyBlazor.Charts.Server" />
+            <CodeBlock Title="Program.cs" Language="csharp" Code="builder.Services.AddDaisyBlazorChartsServerRendering();" />
+            <p>
+                The first layout parses the D3 bundle (about half a second); most layouts then take under 5 ms, force-directed networks and density
+                contours longer, and a chart with the same data is answered from a cache. The server and browser results are tested to match for every
+                chart type.
+            </p>
         </div>
     </ChildContent>
 </DocShell>
 
 @code {
     private static readonly GuideDoc G = Guides.Get("charts");
+
+    private static string FirstSentence(string text)
+    {
+        int end = text.IndexOf(". ", StringComparison.Ordinal);
+        return end < 0 ? text : text[..(end + 1)];
+    }
 
     private static RenderFragment H(int i) => __builder =>
     {

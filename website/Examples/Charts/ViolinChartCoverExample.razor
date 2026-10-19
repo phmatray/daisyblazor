@@ -1,0 +1,10 @@
+<ViolinChart Groups="_pipelines" AspectRatio="1.1" />
+
+@code {
+    private readonly ValueGroup[] _pipelines =
+    [
+        new("Std", DistributionSamples.Normal(seed: 51, count: 200, mean: 12, sd: 2.5, min: 1)),
+        new("Fix", DistributionSamples.Normal(seed: 52, count: 120, mean: 6, sd: 1.5, min: 1)),
+        new("Canary", [.. DistributionSamples.Normal(seed: 53, count: 140, mean: 14, sd: 2, min: 1), .. DistributionSamples.Normal(seed: 54, count: 80, mean: 26, sd: 3)]),
+    ];
+}

@@ -1,0 +1,14 @@
+<BumpChart Title="Most used features, quarterly survey" Series="_features" Labels="_quarters" ValuesAreRanks="true" ShowPoints="false" AspectRatio="2" />
+
+@code {
+    private readonly string[] _quarters = ["Q1", "Q2", "Q3", "Q4"];
+
+    // ValuesAreRanks: the data already holds each feature's place (1 = most used).
+    private readonly ChartSeries[] _features =
+    [
+        new("Dashboards", [1, 1, 2, 2]),
+        new("Alerts", [2, 3, 3, 4]),
+        new("API keys", [3, 2, 1, 1]),
+        new("Audit log", [4, 4, 4, 3]),
+    ];
+}

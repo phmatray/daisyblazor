@@ -156,6 +156,8 @@ public static class ApiReflector
             string s => s.Length == 0 ? "\"\"" : $"\"{s}\"",
             bool b => b ? "true" : "false",
             Enum e => $"{e.GetType().Name}.{e}",
+            // 16d / 9 reads better as 1.78 than 1.7777777777777777.
+            double d => Math.Round(d, 2).ToString(CultureInfo.InvariantCulture),
             IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
             System.Collections.IEnumerable items =>
                 $"[{string.Join(", ", items.Cast<object?>().Select(x => FormatValue(x, x?.GetType() ?? typeof(object))))}]",

@@ -1,0 +1,86 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<GraphLayout>
+
+@* Arc diagram: nodes in a row on one baseline, each link an arc above it, as thick as its value.
+   D3 (d3-scale) places the nodes and arcs; this component draws them in theme colours, one colour
+   per node group, with the names hanging below the baseline. *@
+
+<D3ChartFrame TLayout="GraphLayout" Chart="this" Label="@_label" Description="@_description">
+    <ChildContent>
+        @if (Layout is { } layout)
+        {
+            @foreach (GraphLayoutLink link in layout.Links)
+            {
+                <path d="@link.Path" fill="none" stroke="@_color(layout.Nodes[link.Source], layout)" stroke-opacity="0.5"
+                      stroke-width="@N(link.Width)" stroke-linecap="round">
+                    <title>@($"{layout.Nodes[link.Source].Name} – {layout.Nodes[link.Target].Name}: {_format(link.Value)}")</title>
+                </path>
+            }
+
+            @foreach (GraphLayoutNode node in layout.Nodes)
+            {
+                <circle cx="@N(node.X)" cy="@N(node.Y)" r="@N(node.R)" fill="@_color(node, layout)"
+                        stroke="var(--color-base-100)" stroke-width="1.5">
+                    <title>@($"{node.Name}{(node.Group is null ? "" : $" ({node.Group})")}: {node.Degree} link{(node.Degree == 1 ? "" : "s")}")</title>
+                </circle>
+                @if (ChartInk.Fit(node.Name, layout.LabelRoom - node.R - 10, 11) is { } name)
+                {
+                    double y = node.Y + node.R + 5;
+                    <g transform="@($"rotate(90 {N(node.X)} {N(y)})")">
+                        <SvgText X="@node.X" Y="@y" Dy="0.35em" FontSize="11" FontWeight="600" Text="@name" />
+                    </g>
+                }
+            }
+        }
+    </ChildContent>
+    <Legend>
+        @if (ShowLegend && Layout is { Groups: { Count: > 0 } groups })
+        {
+            <ChartLegend Items="@ChartInk.Legend(groups, GroupColors)" />
+        }
+    </Legend>
+</D3ChartFrame>
+
+@code {
+    /// <summary>The connections. Node names come from Source and Target; links to the same node or without a positive Value are skipped.</summary>
+    [Parameter] public IReadOnlyList<GraphLink> Links { get; set; } = [];
+
+    /// <summary>Optional node list: sets the order and each node's Group (its colour), and adds nodes that have no links.</summary>
+    [Parameter] public IReadOnlyList<GraphNode>? Nodes { get; set; }
+
+    /// <summary>How the nodes are ordered on the baseline.</summary>
+    [Parameter] public ArcDiagramSort Sort { get; set; } = ArcDiagramSort.Input;
+
+    /// <summary>Show a colour key for the node groups under the chart.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>Format string for link values in tooltips, e.g. "{0:N0} calls".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Optional colour per group name (any CSS colour); other groups cycle through the theme palette.</summary>
+    [Parameter] public IReadOnlyDictionary<string, string>? GroupColors { get; set; }
+
+    /// <inheritdoc />
+    protected override string Kind => "arc-diagram";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Links = Links.Select(l => new { l.Source, l.Target, l.Value }).ToArray(),
+        Nodes = (Nodes ?? []).Select(n => new { n.Name, n.Group }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        Sort = Sort.ToString().ToLowerInvariant(),
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    // Ungrouped nodes share the first palette colour.
+    private string _color(GraphLayoutNode node, GraphLayout layout) =>
+        node.GroupIndex < 0 ? ChartPalette.At(0) : ChartInk.GroupColor(node.GroupIndex, layout.Groups, GroupColors);
+
+    private string _label => Title ?? "Arc diagram";
+
+    private string _description => string.Join("; ", Links.Where(l => double.IsFinite(l.Value) && l.Value > 0 && l.Source != l.Target)
+        .Select(l => $"{l.Source} linked to {l.Target}: {_format(l.Value)}"));
+}

@@ -1,0 +1,10 @@
+<IcicleChart Root="_storage" AspectRatio="1.1" ShowValues="false" />
+
+@code {
+    private readonly HierarchyNode _storage = new("Storage", Children:
+    [
+        new("Platform", Children: [new("Logs", 420), new("Backups", 310)]),
+        new("Product", Children: [new("Uploads", 380), new("Exports", 90)]),
+        new("Data", Children: [new("Warehouse", 520), new("Snapshots", 210)]),
+    ]);
+}

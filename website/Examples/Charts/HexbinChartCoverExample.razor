@@ -1,0 +1,6 @@
+<HexbinChart Points="_requests" Radius="16" AspectRatio="1.1" ShowLegend="false" />
+
+@code {
+    private readonly ScatterPoint[] _requests =
+        DistributionSamples.Cloud(seed: 31, count: 1_200, xMean: 40, xSd: 14, intercept: 50, slope: 2, noise: 18);
+}

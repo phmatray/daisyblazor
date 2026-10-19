@@ -1,0 +1,19 @@
+<HeatmapChart Title="p95 response time by region and endpoint" Cells="_cells" Rows="_regions" Columns="_endpoints"
+              ShowValues="true" Color="var(--color-secondary)" AspectRatio="2.2" ValueFormat="{0:N0} ms" />
+
+@code {
+    private static readonly string[] _regions = ["eu-west", "us-east", "us-west", "ap-south"];
+    private static readonly string[] _endpoints = ["/auth", "/search", "/reports", "/upload", "/webhooks"];
+
+    private static readonly double[,] _p95 =
+    {
+        { 82, 140, 310, 520, 95 },
+        { 76, 128, 290, 480, 88 },
+        { 91, 152, 335, 560, 102 },
+        { 118, 205, 410, 690, 131 },
+    };
+
+    private static readonly HeatmapCell[] _cells = _regions
+        .SelectMany((region, r) => _endpoints.Select((endpoint, e) => new HeatmapCell(region, endpoint, _p95[r, e])))
+        .ToArray();
+}

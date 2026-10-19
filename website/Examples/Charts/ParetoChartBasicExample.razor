@@ -1,0 +1,14 @@
+<ParetoChart Title="Failed requests by cause" Items="_causes" ValueFormat="{0:N0}" />
+
+@code {
+    private readonly ChartDataPoint[] _causes =
+    [
+        new("DNS", 64),
+        new("Timeout", 412),
+        new("TLS", 22),
+        new("Auth expired", 268),
+        new("Bad payload", 41),
+        new("Rate limited", 155),
+        new("Other", 18),
+    ];
+}

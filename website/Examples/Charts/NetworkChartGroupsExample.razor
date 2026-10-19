@@ -1,0 +1,33 @@
+<NetworkChart Links="_dependencies" Nodes="_services" AspectRatio="1.6" />
+
+@code {
+    private readonly GraphNode[] _services =
+    [
+        new("Gateway", "Edge"),
+        new("CDN", "Edge"),
+        new("Auth", "Core"),
+        new("Projects", "Core"),
+        new("Deployments", "Core"),
+        new("Search", "Core"),
+        new("Database", "Data"),
+        new("Storage", "Data"),
+        new("Index", "Data"),
+        new("Queue", "Data"),
+    ];
+
+    // Value is the share of traffic; heavier links are drawn thicker.
+    private readonly GraphLink[] _dependencies =
+    [
+        new("CDN", "Gateway", 8),
+        new("Gateway", "Auth", 6),
+        new("Gateway", "Projects", 5),
+        new("Gateway", "Search", 3),
+        new("Gateway", "Deployments", 2),
+        new("Projects", "Database", 5),
+        new("Projects", "Storage", 3),
+        new("Auth", "Database", 4),
+        new("Search", "Index", 3),
+        new("Deployments", "Queue", 2),
+        new("Deployments", "Storage", 2),
+    ];
+}

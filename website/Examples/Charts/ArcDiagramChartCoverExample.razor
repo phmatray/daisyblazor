@@ -1,0 +1,14 @@
+<ArcDiagramChart Links="_shared" AspectRatio="1.1" />
+
+@code {
+    private readonly GraphLink[] _shared =
+    [
+        new("Support", "Billing", 34),
+        new("Support", "Platform", 21),
+        new("Support", "Product", 28),
+        new("Product", "Design", 40),
+        new("Product", "Platform", 18),
+        new("Platform", "Data", 12),
+        new("Data", "Billing", 9),
+    ];
+}

@@ -1,0 +1,10 @@
+<BulletChart Items="_goals" AspectRatio="1.1" />
+
+@code {
+    private readonly BulletItem[] _goals =
+    [
+        new("Seats", 8240, Target: 9000, Ranges: [6000, 8000, 10000]),
+        new("Deploys", 412, Target: 380, Ranges: [250, 350, 450]),
+        new("NPS", 46, Target: 50, Ranges: [20, 40, 60]),
+    ];
+}

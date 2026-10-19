@@ -1,0 +1,10 @@
+<ContourChart Title="Sessions by length and pages viewed" Points="_sessions" XTitle="Session length (min)" YTitle="Pages viewed" />
+
+@code {
+    // Two habits show up as two peaks: quick check-ins and long working sessions.
+    private readonly ScatterPoint[] _sessions =
+    [
+        .. DistributionSamples.Cloud(seed: 21, count: 300, xMean: 7, xSd: 2, intercept: 4, slope: 0.6, noise: 1.2),
+        .. DistributionSamples.Cloud(seed: 22, count: 300, xMean: 30, xSd: 5, intercept: 6, slope: 0.5, noise: 2.5),
+    ];
+}

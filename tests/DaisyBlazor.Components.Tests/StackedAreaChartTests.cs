@@ -3,7 +3,11 @@ using DaisyBlazor.Charts;
 
 namespace DaisyBlazor.Components.Tests;
 
-/// <summary>Stacked mode of AreaChart/LineChart: running totals, banded fills and the axis max.</summary>
+/// <summary>
+/// Stacked mode of AreaChart/LineChart. The running totals, banded fills, missing-as-zero and the
+/// axis max are computed by the line layout and asserted in tests/charts-core.test.mjs; these check
+/// the spec, the band fills and that tooltips keep each series' own value.
+/// </summary>
 public class StackedAreaChartTests : BunitContext
 {
     private static List<ChartSeries> Plans(double[] a, double[] b) => new()
@@ -12,8 +16,20 @@ public class StackedAreaChartTests : BunitContext
         new ChartSeries("B", b),
     };
 
-    private IRenderedComponent<AreaChart> RenderArea(List<ChartSeries> series, bool? stacked) =>
-        Render<AreaChart>(ps =>
+    // B drawn on the running total A+B (50, 100) at the top of the plot.
+    private static readonly LineLayout _stacked = ChartFakes.Line with
+    {
+        Series =
+        [
+            new("M181,139L483,93", "M181,139L483,93L483,231L181,231Z", [new(0, 181, 139, false), new(1, 483, 93, false)]),
+            new("M181,116L483,8", "M181,116L483,8L483,93L181,139Z", [new(0, 181, 116, false), new(1, 483, 8, false)]),
+        ],
+    };
+
+    private (IRenderedComponent<AreaChart> Cut, BunitJSModuleInterop Module) RenderArea(List<ChartSeries> series, bool? stacked)
+    {
+        BunitJSModuleInterop module = JSInterop.SetupCharts(line: _stacked);
+        IRenderedComponent<AreaChart> cut = Render<AreaChart>(ps =>
         {
             ps.Add(p => p.Series, series).Add(p => p.ShowPoints, true);
             if (stacked is not null)
@@ -21,55 +37,46 @@ public class StackedAreaChartTests : BunitContext
                 ps.Add(p => p.Stacked, stacked.Value);
             }
         });
-
-    private static string[] Paths(IRenderedComponent<AreaChart> cut) =>
-        cut.FindAll("svg path").Select(p => p.GetAttribute("d")!).ToArray();
+        return (cut, module);
+    }
 
     [Fact]
-    public void Stacked_draws_each_series_on_the_running_total()
+    public void Stacked_sends_the_flag_and_fills_each_band_near_opaque()
     {
-        // Totals: A = 20, 40; A+B = 50, 100 -> nice axis 0..100. Two slots: x = 25 and 75.
-        IRenderedComponent<AreaChart> cut = RenderArea(Plans([20, 40], [30, 60]), stacked: true);
+        (IRenderedComponent<AreaChart> cut, BunitJSModuleInterop module) = RenderArea(Plans([20, 40], [30, 60]), stacked: true);
 
-        string[] d = Paths(cut); // area A, line A, area B, line B
-        d[0].ShouldBe("M 25 80 L 75 60 L 75 100 L 25 100 Z");
-        d[1].ShouldBe("M 25 80 L 75 60");
-        d[2].ShouldBe("M 25 50 L 75 0 L 75 60 L 25 80 Z");
-        d[3].ShouldBe("M 25 50 L 75 0");
-        cut.Markup.ShouldContain(">100<");
+        module.Spec().ShouldBe("{\"series\":[[20,40],[30,60]],\"labels\":[],\"stacked\":true,\"smooth\":false,\"showGrid\":true}");
+        string[] d = cut.FindAll("svg path").Select(p => p.GetAttribute("d")!).ToArray(); // area A, line A, area B, line B
+        d[2].ShouldBe("M181,116L483,8L483,93L181,139Z");
+        cut.Find("svg path").GetAttribute("fill-opacity").ShouldBe("0.7");
     }
 
     [Fact]
     public void Stacked_tooltips_show_each_series_own_value()
     {
-        IRenderedComponent<AreaChart> cut = RenderArea(Plans([20, 40], [30, 60]), stacked: true);
+        (IRenderedComponent<AreaChart> cut, _) = RenderArea(Plans([20, 40], [30, 60]), stacked: true);
 
-        IElement marker = cut.FindAll("span[title]").Single(e => e.GetAttribute("title") == "B · 2: 60");
-        marker.GetAttribute("style")!.ShouldContain("top:0%");
+        IElement marker = cut.FindAll("circle").Single(e => e.QuerySelector("title")!.TextContent == "B · 2: 60");
+        marker.GetAttribute("cy").ShouldBe("8");
     }
 
     [Fact]
-    public void Stacked_treats_missing_values_as_zero()
+    public void Stacked_sends_missing_values_as_gaps_for_the_layout_to_count_as_zero()
     {
-        // A is NaN at index 1 and B is short: totals A = 20, 0; A+B = 60, 0 (axis 0..60).
-        IRenderedComponent<AreaChart> cut = RenderArea(Plans([20, double.NaN], [40]), stacked: true);
+        (IRenderedComponent<AreaChart> cut, BunitJSModuleInterop module) = RenderArea(Plans([20, double.NaN], [40]), stacked: true);
 
+        module.Spec().ShouldContain("\"series\":[[20,null],[40]]");
         cut.Markup.ShouldNotContain("NaN");
-        Paths(cut)[3].ShouldBe("M 25 0 L 75 100");
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData(false)]
-    public void Unstacked_output_is_unchanged(bool? stacked)
+    public void Unstacked_fills_stay_translucent(bool? stacked)
     {
-        // Axis follows the largest single value (60), and every fill closes at zero.
-        IRenderedComponent<AreaChart> cut = RenderArea(Plans([20, 40], [30, 60]), stacked);
+        (IRenderedComponent<AreaChart> cut, BunitJSModuleInterop module) = RenderArea(Plans([20, 40], [30, 60]), stacked);
 
-        string[] d = Paths(cut);
-        d[2].ShouldBe("M 25 50 L 75 0 L 75 100 L 25 100 Z");
-        d[3].ShouldBe("M 25 50 L 75 0");
-        cut.Markup.ShouldNotContain(">100<");
+        module.Spec().ShouldContain("\"stacked\":false");
         cut.Find("svg path").GetAttribute("fill-opacity").ShouldBe("0.15");
     }
 }

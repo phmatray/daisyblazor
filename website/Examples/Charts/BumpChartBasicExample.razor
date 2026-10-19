@@ -1,0 +1,15 @@
+<BumpChart Title="Plans ranked by new sign-ups" Series="_plans" Labels="_months" ValueFormat="{0:N0} sign-ups" />
+
+@code {
+    private readonly string[] _months = ["Apr", "May", "Jun", "Jul", "Aug", "Sep"];
+
+    // Values are ranked per month, highest first.
+    private readonly ChartSeries[] _plans =
+    [
+        new("Free", [820, 760, 700, 640, 610, 590]),
+        new("Starter", [540, 610, 720, 690, 650, 600]),
+        new("Pro", [380, 450, 520, 710, 760, 820]),
+        new("Team", [300, 280, 340, 420, 640, 700]),
+        new("Enterprise", [120, 150, 160, 190, 230, 260]),
+    ];
+}

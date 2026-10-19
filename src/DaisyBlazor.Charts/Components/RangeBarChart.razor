@@ -1,0 +1,90 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<RangeBarLayout>
+
+@* Range bar chart: one bar per category spanning from a low to a high value (a limit range, a
+   window, a min-to-max), optionally several groups side by side in each category. D3 computes the
+   scale, ticks and bands; this component draws them in theme colours. *@
+
+<D3ChartFrame TLayout="RangeBarLayout" Chart="this" Label="@_label" Description="@_description">
+    <ChildContent>
+        @if (Layout is { } layout)
+        {
+            <CompareAxis Ticks="layout.Ticks" Labels="layout.Categories" />
+
+            @foreach (RangeBarLayoutBar bar in layout.Bars)
+            {
+                <rect x="@N(bar.X)" y="@N(bar.Y)" width="@N(bar.Width)" height="@N(bar.Height)" rx="3" fill="@_color(bar.GroupIndex, layout)">
+                    <title>@_tip(bar)</title>
+                </rect>
+                @foreach (CompareText? text in new[] { bar.LowText, bar.HighText })
+                {
+                    @if (text is not null)
+                    {
+                        <SvgText X="@text.X" Y="@text.Y" Anchor="@text.Anchor" FontSize="11" FillOpacity="0.75" Text="@text.Text" />
+                    }
+                }
+            }
+        }
+    </ChildContent>
+    <Legend>
+        @if (ShowLegend && Layout is { Groups.Count: > 1 } groups)
+        {
+            <ChartLegend Items="@groups.Groups.Select((g, i) => (g, _color(i, groups))).ToList()" />
+        }
+    </Legend>
+</D3ChartFrame>
+
+@code {
+    /// <summary>The bars. Items with the same Label share a category; Group splits it into side-by-side slots. Items whose Low or High is not a finite number are skipped.</summary>
+    [Parameter] public IReadOnlyList<RangeBarItem> Items { get; set; } = [];
+
+    /// <summary>Stand the bars up as columns instead of rows.</summary>
+    [Parameter] public bool Vertical { get; set; }
+
+    /// <summary>Write the low and high values at the ends of each bar.</summary>
+    [Parameter] public bool ShowValues { get; set; }
+
+    /// <summary>Show a legend when there is more than one group.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>Optional colour per group name (any CSS colour); other groups cycle through the theme palette.</summary>
+    [Parameter] public IReadOnlyDictionary<string, string>? GroupColors { get; set; }
+
+    /// <summary>Format string for values in labels and tooltips, e.g. "{0:N0} GB".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <inheritdoc />
+    protected override string Kind => "rangebar";
+
+    // The formatted values travel with the data so the layout can leave room for them.
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Items = Items.Select(i => new
+        {
+            i.Label,
+            Low = CompareSpec.Finite(i.Low),
+            High = CompareSpec.Finite(i.High),
+            i.Group,
+            LowText = _format(i.Low),
+            HighText = _format(i.High),
+        }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        Vertical,
+        ShowValues,
+    };
+
+    private string _color(int group, RangeBarLayout layout) =>
+        GroupColors is not null && group < layout.Groups.Count && GroupColors.TryGetValue(layout.Groups[group], out string? c) ? c : ChartPalette.At(group);
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _tip(RangeBarLayoutBar bar) =>
+        $"{bar.Label}{(string.IsNullOrEmpty(bar.Group) ? "" : $", {bar.Group}")}: {_format(bar.Low)} to {_format(bar.High)}";
+
+    private string _label => Title ?? "Range bar chart";
+
+    private string _description => string.Join("; ", Items.Where(i => double.IsFinite(i.Low) && double.IsFinite(i.High)).Select(i =>
+        $"{i.Label}{(string.IsNullOrEmpty(i.Group) ? "" : $", {i.Group}")}: {_format(Math.Min(i.Low, i.High))} to {_format(Math.Max(i.Low, i.High))}"));
+}

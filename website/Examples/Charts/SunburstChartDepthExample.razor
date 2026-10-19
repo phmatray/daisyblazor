@@ -1,0 +1,25 @@
+<SunburstChart Root="_customers" GroupColors="_colors" ValueFormat="{0:N0} customers" AspectRatio="1.4" />
+
+@code {
+    // Three levels: plan, then region, then company size.
+    private readonly HierarchyNode _customers = new("Customers", Children:
+    [
+        new("Pro", Children:
+        [
+            new("Europe", Children: [new("Small", 320), new("Mid-size", 140)]),
+            new("Americas", Children: [new("Small", 280), new("Mid-size", 110)]),
+        ]),
+        new("Enterprise", Children:
+        [
+            new("Europe", Children: [new("Mid-size", 60), new("Large", 45)]),
+            new("Americas", Children: [new("Mid-size", 55), new("Large", 70)]),
+        ]),
+        new("Starter", Children: [new("Europe", 410), new("Americas", 380), new("Asia", 150)]),
+    ]);
+
+    private readonly Dictionary<string, string> _colors = new()
+    {
+        ["Enterprise"] = "var(--color-accent)",
+        ["Starter"] = "var(--color-info)",
+    };
+}

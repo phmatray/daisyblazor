@@ -1,0 +1,29 @@
+<ArcDiagramChart Links="_calls" Nodes="_services" Sort="ArcDiagramSort.Group" ValueFormat="{0:N0}M calls" AspectRatio="2" />
+
+@code {
+    // Listed out of order on purpose: Sort="Group" puts each layer side by side.
+    private readonly GraphNode[] _services =
+    [
+        new("Gateway", "Edge"),
+        new("Database", "Data"),
+        new("Auth", "Core"),
+        new("Storage", "Data"),
+        new("Projects", "Core"),
+        new("CDN", "Edge"),
+        new("Search", "Core"),
+        new("Queue", "Data"),
+    ];
+
+    private readonly GraphLink[] _calls =
+    [
+        new("CDN", "Gateway", 80),
+        new("Gateway", "Auth", 42),
+        new("Gateway", "Projects", 35),
+        new("Gateway", "Search", 18),
+        new("Projects", "Database", 30),
+        new("Projects", "Storage", 22),
+        new("Auth", "Database", 25),
+        new("Search", "Database", 10),
+        new("Projects", "Queue", 8),
+    ];
+}

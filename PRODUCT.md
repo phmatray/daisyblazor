@@ -16,7 +16,7 @@ DaisyBlazor is a NuGet component library (`DaisyBlazor.Components`, `DaisyBlazor
 
 ## Positioning
 
-daisyUI-native components for Blazor with a MudBlazor-compatible API surface: the only library that lets a MudBlazor app migrate to Tailwind/daisyUI incrementally. Ships the Tailwind build inside NuGet (no Node/npm), 35 daisyUI themes plus two DaisyBlazor themes through a cascading `ThemeProvider`, and dependency-free SVG charts that follow the active theme.
+daisyUI-native components for Blazor with a MudBlazor-compatible API surface: the only library that lets a MudBlazor app migrate to Tailwind/daisyUI incrementally. Ships the Tailwind build inside NuGet (no Node/npm), 35 daisyUI themes plus two DaisyBlazor themes through a cascading `ThemeProvider`, and 45 SVG chart types (D3 layouts bundled in the package, optional server rendering) that follow the active theme.
 
 ## Operating Context
 
@@ -24,7 +24,7 @@ Visitors read on desktop next to their IDE, often with a Blazor project open; se
 
 ## Capabilities and Constraints
 
-- 60+ components grouped by daisyUI taxonomy: Actions, Data display, Navigation, Feedback, Data input, Layout, Mockup; plus Charts (line, area, bar, pie, donut, sparkline).
+- 60+ components grouped by daisyUI taxonomy: Actions, Data display, Navigation, Feedback, Data input, Layout, Mockup; plus 45 chart types (core, hierarchy and flow, distribution, over time, compare, composition and progress).
 - Services: `IDialogService`, `ISnackbar`, `ThemeProvider`; `Icons.Material.*` (Material Symbols).
 - .NET 10, Tailwind v4, daisyUI v5. Static hosting only (no server).
 - Undecided: custom domain.

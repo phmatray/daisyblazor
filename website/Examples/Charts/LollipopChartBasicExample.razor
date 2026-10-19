@@ -1,0 +1,14 @@
+<LollipopChart Title="NPS by team" Data="_teams" />
+
+@code {
+    // Sorted largest first by default; a negative score hangs left of zero.
+    private readonly ChartDataPoint[] _teams =
+    [
+        new("Support", 52),
+        new("Billing", 41),
+        new("Platform", 39),
+        new("Mobile", 27),
+        new("Search", 35),
+        new("Onboarding", -8),
+    ];
+}

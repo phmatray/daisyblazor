@@ -1,0 +1,13 @@
+<WaterfallChart Title="Customers over the quarter" Steps="_steps" ValueFormat="{0:N0}" />
+
+@code {
+    private readonly WaterfallStep[] _steps =
+    [
+        new("July 1", 1_240, WaterfallStepKind.Start),
+        new("New signups", 310),
+        new("Reactivated", 42),
+        new("Churned", -96),
+        new("Merged", -12),
+        new("Sept 30", 0, WaterfallStepKind.End),
+    ];
+}

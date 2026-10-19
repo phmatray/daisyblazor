@@ -1,42 +1,44 @@
 @namespace DaisyBlazor.Charts
+@inherits D3ChartBase<SparkLayout>
 
-@* Tiny, axis-less trend line for inline use (table cells, KPI tiles). Renders a single double[]
-   as a normalized inline SVG polyline with an optional area fill and end-point dot. Color follows
-   the active daisyUI theme unless overridden. *@
+@* Tiny, axis-less trend line for inline use (table cells, KPI tiles). Renders a single list of
+   values as a line with an optional area fill and end-point dot. D3 computes the path at the box's
+   real pixel size (measured mode), so the stroke and the dot keep their shape at any size;
+   overflow:visible keeps the dot whole at the edges. Color follows the active daisyUI theme
+   unless overridden. *@
 
-@* The SVG stretches to any box (preserveAspectRatio="none"); strokes use non-scaling-stroke and
-   the end dot is a zero-length round-capped stroke, so both keep their CSS-pixel size and shape at
-   any aspect ratio. overflow:visible keeps the dot whole at the plot edges. *@
-<svg viewBox="0 0 @_w.ToString(_ci) @_h.ToString(_ci)"
-     preserveAspectRatio="none"
-     role="img"
-     class="@_cls"
-     style="@_style"
-     aria-label="@_ariaLabel"
-     aria-describedby="@_descId"
-     @attributes="UserAttributes">
-    <title>@_ariaLabel</title>
-    <desc id="@_descId">@_description</desc>
-
-    @if (_segments.Count > 0)
+<span @ref="MeasuredElement" class="@CssClass.Merge("inline-block align-middle", Class)" style="@_style" @attributes="UserAttributes">
+    @if (Layout is not { } geo)
     {
-        @if (Area)
-        {
-            <path d="@_areaPath" fill="@_color" fill-opacity="0.15" stroke="none" />
-        }
-
-        <path d="@_linePath" fill="none" stroke="@_color" stroke-width="@StrokeWidth.ToString(_ci)"
-              stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" />
-
-        @if (ShowEndDot)
-        {
-            (double X, double Y) last = _segments[^1][^1];
-            <path d="@($"M {last.X.ToString(_ci)} {last.Y.ToString(_ci)} Z")" fill="none" stroke="@_color"
-                  stroke-width="@((2 * (StrokeWidth + 1)).ToString(_ci))" stroke-linecap="round"
-                  vector-effect="non-scaling-stroke" />
-        }
+        <span aria-busy="@(Error is null ? "true" : null)" role="@(Error is null ? null : "img")"
+              aria-label="@(Error is null ? $"{_ariaLabel} (loading)" : $"{_ariaLabel}: {Error}")"
+              class="rounded-box bg-base-200 animate-pulse motion-reduce:animate-none" style="display:block;width:100%;height:100%;"></span>
     }
-</svg>
+    else
+    {
+        <svg viewBox="@($"0 0 {N(geo.Width)} {N(geo.Height)}")" role="img" aria-label="@_ariaLabel" aria-describedby="@_descId"
+             style="display:block;width:100%;height:100%;overflow:visible;">
+            <title>@_ariaLabel</title>
+            <desc id="@_descId">@_description</desc>
+
+            @if (geo.End is { } end)
+            {
+                @if (Area)
+                {
+                    <path d="@geo.Area" fill="@_color" fill-opacity="0.15" stroke="none" />
+                }
+
+                <path d="@geo.Line" fill="none" stroke="@_color" stroke-width="@N(StrokeWidth)"
+                      stroke-linejoin="round" stroke-linecap="round" />
+
+                @if (ShowEndDot)
+                {
+                    <circle cx="@N(end.X)" cy="@N(end.Y)" r="@N(StrokeWidth + 1)" fill="@_color" />
+                }
+            }
+        </svg>
+    }
+</span>
 
 @code {
     /// <summary>The values to plot, oldest-to-newest.</summary>
@@ -63,110 +65,39 @@
     /// <summary>Accessible description; defaults to a generic sparkline label.</summary>
     [Parameter] public string? Title { get; set; }
 
-    /// <summary>Extra CSS classes merged onto the <c>&lt;svg&gt;</c> element.</summary>
+    /// <summary>Extra CSS classes merged onto the sparkline's inline box.</summary>
     [Parameter] public string? Class { get; set; }
-    /// <summary>Inline CSS style appended after the <see cref="Width"/>/<see cref="Height"/> declarations on the <c>&lt;svg&gt;</c>.</summary>
+    /// <summary>Inline CSS style appended after the <see cref="Width"/>/<see cref="Height"/> declarations on the sparkline's inline box.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
-    private const double _w = 100;
-    private const double _h = 30;
-    private const double _pad = 2; // inset in user units; the dot may extend past it (overflow:visible)
+    /// <inheritdoc />
+    protected override string Kind => "spark";
 
-    private static readonly CultureInfo _ci = CultureInfo.InvariantCulture;
+    /// <inheritdoc />
+    protected override bool Measured => true;
+
+    // The inset keeps the stroke inside the box; the end dot may extend past it (overflow:visible).
+    /// <inheritdoc />
+    protected override object BuildSpec() => new { Data = ChartText.Spec(Data), Pad = StrokeWidth / 2 + 0.5 };
 
     private readonly string _descId = "spark-desc-" + Guid.NewGuid().ToString("N")[..8];
-
-    // Runs of finite values; NaN/Infinity leave a gap instead of being plotted as zero.
-    private List<List<(double X, double Y)>> _segments = new();
-    private List<double> _finiteValues = new();
 
     private string _color => string.IsNullOrWhiteSpace(Color) ? "var(--color-primary)" : Color!;
     private string _ariaLabel => string.IsNullOrEmpty(Title) ? "Sparkline trend" : Title!;
 
-    private string _description => _finiteValues.Count == 0
-        ? "No data."
-        : $"{_finiteValues.Count} values from {SvgGeometry.FormatValue(_finiteValues[0], _ci)} to {SvgGeometry.FormatValue(_finiteValues[^1], _ci)}; " +
-          $"low {SvgGeometry.FormatValue(_finiteValues.Min(), _ci)}, high {SvgGeometry.FormatValue(_finiteValues.Max(), _ci)}.";
-
-    private static bool _finite(double v) => !double.IsNaN(v) && !double.IsInfinity(v);
-
-    protected override void OnParametersSet()
-    {
-        _segments = new List<List<(double X, double Y)>>();
-        IReadOnlyList<double> data = Data ?? System.Array.Empty<double>();
-        _finiteValues = data.Where(_finite).ToList();
-
-        if (_finiteValues.Count == 0)
-        {
-            return;
-        }
-
-        double min = _finiteValues.Min();
-        double span = _finiteValues.Max() - min;
-        bool flat = Math.Abs(span) < double.Epsilon;
-
-        double plotW = _w - 2 * _pad;
-        double plotH = _h - 2 * _pad;
-
-        List<(double X, double Y)>? current = null;
-        for (int i = 0; i < data.Count; i++)
-        {
-            if (!_finite(data[i]))
-            {
-                current = null;
-                continue;
-            }
-
-            double x = data.Count == 1
-                ? _pad + plotW / 2
-                : _pad + plotW * i / (data.Count - 1);
-            double ratio = flat ? 0.5 : (data[i] - min) / span; // flat data -> centred line
-            double y = _pad + plotH * (1 - ratio);
-
-            if (current is null)
-            {
-                current = new List<(double X, double Y)>();
-                _segments.Add(current);
-            }
-
-            current.Add((x, y));
-        }
-    }
-
-    // A single-point run becomes a zero-length segment, which the round cap draws as a dot.
-    private string _linePath => string.Join(" ", _segments.Select(seg => seg.Count == 1
-        ? $"M {seg[0].X.ToString(_ci)} {seg[0].Y.ToString(_ci)} Z"
-        : SvgGeometry.PolyPath(seg, _ci)));
-
-    private string _areaPath
+    private string _description
     {
         get
         {
-            string baseY = (_h - _pad).ToString(_ci);
-            return string.Join(" ", _segments.Where(seg => seg.Count > 1).Select(seg =>
-                $"{SvgGeometry.PolyPath(seg, _ci)} L {seg[^1].X.ToString(_ci)} {baseY} L {seg[0].X.ToString(_ci)} {baseY} Z"));
+            List<double> values = (Data ?? []).Where(double.IsFinite).ToList();
+            return values.Count == 0
+                ? "No data."
+                : $"{values.Count} values from {ChartText.Value(values[0])} to {ChartText.Value(values[^1])}; " +
+                  $"low {ChartText.Value(values.Min())}, high {ChartText.Value(values.Max())}.";
         }
     }
 
-    private string _cls => CssClass.Merge("inline-block align-middle", Class);
-
-    private string _style
-    {
-        get
-        {
-            string dim = "overflow:visible;";
-            if (!string.IsNullOrEmpty(Width))
-            {
-                dim += $"width:{Width};";
-            }
-
-            if (!string.IsNullOrEmpty(Height))
-            {
-                dim += $"height:{Height};";
-            }
-
-            return $"{dim}{Style}";
-        }
-    }
+    private string _style =>
+        $"overflow:visible;width:{ChartText.Size(Width, "5rem")};height:{ChartText.Size(Height, "1.5rem")};{Style}";
 }

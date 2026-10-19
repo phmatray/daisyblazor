@@ -1,0 +1,123 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<CalendarHeatmapLayout>
+
+@* Calendar heatmap: one square per day, weeks as columns and weekdays as rows, shaded by level.
+   D3 builds the calendar grid (in UTC, so the machine's time zone never shifts a day) and
+   quantizes the values; this component shades each level from a theme colour. *@
+
+<D3ChartFrame TLayout="CalendarHeatmapLayout" Chart="this" Label="@_label" Description="@_description">
+    <ChildContent>
+        @if (Layout is { } geo)
+        {
+            @foreach (CalendarHeatmapLabel month in geo.Months)
+            {
+                <SvgText X="@month.X" Y="11" FontSize="10" FillOpacity="0.7" Text="@month.Label" />
+            }
+            @foreach (CalendarHeatmapLabel weekday in geo.Weekdays)
+            {
+                <SvgText X="26" Y="@weekday.Y" Dy="0.35em" Anchor="end" FontSize="10" FillOpacity="0.7" Text="@weekday.Label" />
+            }
+            @foreach (CalendarHeatmapCell cell in geo.Cells)
+            {
+                <rect x="@N(cell.X)" y="@N(cell.Y)" width="@N(cell.Size)" height="@N(cell.Size)" rx="2" fill="@_shade(cell.Level)">
+                    <title>@($"{cell.Label}: {_format(cell.Value)}")</title>
+                </rect>
+            }
+        }
+    </ChildContent>
+    <Legend>
+        @if (ShowLegend && Layout is { Cells.Count: > 0 } geo)
+        {
+            <div class="flex flex-wrap gap-3 mt-2 text-xs">
+                <span class="inline-flex items-center gap-1.5">
+                    <span class="text-base-content/80">@LessLabel</span>
+                    @for (int level = 0; level < _levels; level++)
+                    {
+                        <span class="inline-block w-3 h-3 rounded-sm" style="@($"background:{_shade(level)};")" title="@_range(level, geo)"></span>
+                    }
+                    <span class="text-base-content/80">@MoreLabel</span>
+                </span>
+            </div>
+        }
+    </Legend>
+</D3ChartFrame>
+
+@code {
+    /// <summary>The values by calendar date. Values on the same date are summed; days without a value are drawn empty.</summary>
+    [Parameter] public IReadOnlyList<CalendarDay> Days { get; set; } = [];
+
+    /// <summary>The first day shown. Defaults to the earliest date in Days.</summary>
+    [Parameter] public DateOnly? From { get; set; }
+
+    /// <summary>The last day shown. Defaults to the latest date in Days.</summary>
+    [Parameter] public DateOnly? To { get; set; }
+
+    /// <summary>The weekday in the top row of each week column.</summary>
+    [Parameter] public DayOfWeek FirstDayOfWeek { get; set; } = DayOfWeek.Monday;
+
+    /// <summary>Number of shades, including the empty one: positive values split evenly into Levels - 1 shades between 0 and the largest value.</summary>
+    [Parameter] public int Levels { get; set; } = 5;
+
+    /// <summary>CSS colour of the highest level; lower levels blend it into the page background. Defaults to the theme's primary colour.</summary>
+    [Parameter] public string? Color { get; set; }
+
+    /// <summary>Show the Less–More level key under the calendar.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>Text before the level key.</summary>
+    [Parameter] public string LessLabel { get; set; } = "Less";
+
+    /// <summary>Text after the level key.</summary>
+    [Parameter] public string MoreLabel { get; set; } = "More";
+
+    /// <summary>Format string for values in tooltips, e.g. "{0:N0} deployments".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>A calendar is wide: a year of weeks fits at this shape by default.</summary>
+    public CalendarHeatmap() => AspectRatio = 6.4;
+
+    /// <inheritdoc />
+    protected override string Kind => "calendar-heatmap";
+
+    // DateOnly travels as "yyyy-MM-dd", a calendar date with no time zone.
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Days = Days.Select(d => new { d.Date, Value = SpecValue.Finite(d.Value) }).ToArray(),
+        From,
+        To,
+        WeekStart = (int)FirstDayOfWeek,
+        Levels = _levels,
+        Width = ViewWidth,
+        Height = ViewHeight,
+    };
+
+    private int _levels => Math.Clamp(Levels, 2, 10);
+
+    private string _color => ChartPalette.At(0, Color);
+
+    // Level 0 is a faint neutral; levels 1 … n-1 step up to the full colour.
+    private string _shade(int level) => level <= 0
+        ? "color-mix(in oklab, var(--color-base-content) 8%, var(--color-base-100))"
+        : $"color-mix(in oklab, {_color} {Math.Round(100.0 * level / (_levels - 1)).ToString(Ci)}%, var(--color-base-100))";
+
+    private string _range(int level, CalendarHeatmapLayout geo)
+    {
+        if (level == 0)
+        {
+            return _format(0);
+        }
+
+        double low = level == 1 ? 0 : geo.Thresholds.ElementAtOrDefault(level - 2);
+        double high = level - 1 < geo.Thresholds.Count ? geo.Thresholds[level - 1] : geo.Max;
+        return $"{_format(low)}–{_format(high)}";
+    }
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _label => Title ?? "Calendar heatmap";
+
+    private string _description => Layout is { Cells.Count: > 0 } geo
+        ? $"{geo.Cells.Count} days from {geo.Cells[0].Label} to {geo.Cells[^1].Label}; {geo.Cells.Count(c => c.Value > 0)} with a value, total {_format(geo.Cells.Sum(c => c.Value))}, highest {_format(geo.Max)}."
+        : "No data.";
+}

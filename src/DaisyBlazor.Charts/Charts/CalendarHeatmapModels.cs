@@ -1,0 +1,19 @@
+namespace DaisyBlazor.Charts;
+
+/// <summary>One day of a <see cref="CalendarHeatmap"/>: the calendar <paramref name="Date"/> and its <paramref name="Value"/>.</summary>
+public sealed record CalendarDay(DateOnly Date, double Value);
+
+/// <summary>Geometry of a <see cref="CalendarHeatmap"/>, computed by D3: a cell per day, month and weekday labels, and the level thresholds.</summary>
+public sealed record CalendarHeatmapLayout(
+    IReadOnlyList<CalendarHeatmapCell> Cells,
+    IReadOnlyList<CalendarHeatmapLabel> Months,
+    IReadOnlyList<CalendarHeatmapLabel> Weekdays,
+    IReadOnlyList<double> Thresholds,
+    double Max,
+    double CellSize);
+
+/// <summary>A placed day: its ISO date, display label, value, level (0 = none) and square.</summary>
+public sealed record CalendarHeatmapCell(string Date, string Label, double Value, int Level, double X, double Y, double Size);
+
+/// <summary>A month label (placed at X, above the grid) or a weekday label (placed at Y, left of the grid).</summary>
+public sealed record CalendarHeatmapLabel(string Label, double X, double Y);

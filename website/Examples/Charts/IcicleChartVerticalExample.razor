@@ -1,0 +1,11 @@
+<IcicleChart Root="_requests" Orientation="IcicleOrientation.Vertical" ValueFormat="{0:N0}k" AspectRatio="2" />
+
+@code {
+    // Requests per region and service, in thousands.
+    private readonly HierarchyNode _requests = new("All requests", Children:
+    [
+        new("Europe", Children: [new("API", 840), new("Auth", 260), new("Search", 190)]),
+        new("Americas", Children: [new("API", 620), new("Auth", 210), new("Search", 130)]),
+        new("Asia", Children: [new("API", 310), new("Auth", 90)]),
+    ]);
+}

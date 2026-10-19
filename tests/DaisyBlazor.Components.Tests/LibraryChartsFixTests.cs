@@ -4,169 +4,236 @@ using DaisyBlazor.Charts;
 namespace DaisyBlazor.Components.Tests;
 
 /// <summary>
-/// Regression tests for the chart rendering fixes: nice axis ticks, aspect-ratio-safe text,
-/// zero-crossing bars, gaps for non-finite values, accessible descriptions and tooltips.
+/// Regression tests for the chart rendering fixes: nice axis ticks, true-size text, zero-crossing
+/// bars, gaps for non-finite values, accessible descriptions and tooltips. The geometry moved to the
+/// D3 layouts, so the numbers (tick values, compact format, gap and zero-line paths, slots, label
+/// fitting) are asserted in tests/charts-core.test.mjs; these check what the components send to the
+/// layouts and how they draw the answer.
 /// </summary>
 public class LibraryChartsFixTests : BunitContext
 {
     private static List<ChartSeries> One(params double[] data) => new() { new ChartSeries("S", data) };
 
     [Fact]
-    public void LineChart_rounds_the_axis_to_nice_ticks()
+    public void LineChart_draws_the_nice_ticks_of_its_layout()
     {
+        // charts-core.test.mjs: 12, 30, 44, 20 gives the ticks 0, 10, … 50.
+        BunitJSModuleInterop module = JSInterop.SetupCharts(line: ChartFakes.Line with
+        {
+            YTicks = [.. new[] { "0", "10", "20", "30", "40", "50" }.Select((t, i) => new AxisLabel(231 - i * 44.6, t))],
+        });
         IRenderedComponent<LineChart> cut = Render<LineChart>(ps => ps
             .Add(p => p.Series, One(12, 30, 44, 20)));
 
-        string text = cut.Markup;
         foreach (string tick in new[] { ">0<", ">10<", ">20<", ">30<", ">40<", ">50<" })
         {
-            text.ShouldContain(tick);
+            cut.Markup.ShouldContain(tick);
         }
 
-        text.ShouldNotContain(">11<");
-        text.ShouldNotContain(">44<");
+        cut.FindAll("svg > line").Count.ShouldBe(6);
+        module.Invocations["observe"].Single().Arguments[1].ShouldBe("line");
+        module.Spec().ShouldContain("\"series\":[[12,30,44,20]]");
     }
 
     [Fact]
-    public void BarChart_formats_large_ticks_compactly()
+    public void BarChart_draws_compact_ticks_from_its_layout()
     {
+        // charts-core.test.mjs: 48200 gives a top tick of "50k".
+        BunitJSModuleInterop module = JSInterop.SetupCharts();
         IRenderedComponent<BarChart> cut = Render<BarChart>(ps => ps
             .Add(p => p.Data, new List<ChartDataPoint> { new("Free", 48200), new("Pro", 12000) }));
 
         cut.Markup.ShouldContain(">50k<");
         cut.Markup.ShouldNotContain("12050");
+        module.Spec().ShouldContain("\"categories\":[\"Free\",\"Pro\"],\"series\":[[48200,12000]]");
     }
 
     [Fact]
-    public void Chart_text_is_not_inside_the_stretched_svg()
+    public void Chart_text_is_drawn_at_the_measured_size_not_stretched()
     {
+        JSInterop.SetupCharts();
         IRenderedComponent<LineChart> cut = Render<LineChart>(ps => ps
             .Add(p => p.Series, One(1, 2, 3))
             .Add(p => p.Labels, new[] { "Jan", "Feb", "Mar" }));
 
+        // The viewBox is the box's own pixel size, so a unit is a CSS pixel and text keeps its size.
         IElement svg = cut.Find("svg");
-        svg.GetAttribute("preserveAspectRatio").ShouldBe("none");
-        svg.QuerySelectorAll("text").Length.ShouldBe(0);
-        cut.Markup.ShouldContain("Jan");
-        foreach (IElement path in svg.QuerySelectorAll("path[stroke]"))
-        {
-            path.GetAttribute("vector-effect").ShouldBe("non-scaling-stroke");
-        }
+        svg.GetAttribute("viewBox").ShouldBe("0 0 640 256");
+        svg.HasAttribute("preserveAspectRatio").ShouldBeFalse();
+        svg.QuerySelectorAll("text").Select(t => t.TextContent).ShouldContain("Jan");
+        svg.QuerySelector("text")!.GetAttribute("font-size").ShouldBe("11");
+    }
+
+    [Fact]
+    public void Measured_charts_keep_their_CSS_height_while_loading()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupModule(ChartFakes.ModulePath);
+        JSRuntimeInvocationHandler<LineLayout> observe = module.Setup<LineLayout>("observe", _ => true);
+        IRenderedComponent<LineChart> cut = Render<LineChart>(ps => ps
+            .Add(p => p.Series, One(1, 2))
+            .Add(p => p.Height, "11rem"));
+
+        cut.Find("[aria-busy=true]").ParentElement!.GetAttribute("style")!.ShouldContain("height:11rem");
+        cut.FindAll("svg").Count.ShouldBe(0);
+
+        observe.SetResult(ChartFakes.Line);
+        cut.WaitForAssertion(() => cut.Find("svg").ParentElement!.GetAttribute("style")!.ShouldContain("height:11rem"));
+    }
+
+    [Fact]
+    public void Measured_charts_redraw_on_resize_and_update_on_new_data()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupCharts();
+        module.Setup<LineLayout>("update", _ => true).SetResult(ChartFakes.Line with { Width = 500 });
+        IRenderedComponent<LineChart> cut = Render<LineChart>(ps => ps.Add(p => p.Series, One(1, 2)));
+
+        // The module calls back after a resize.
+        cut.InvokeAsync(() => cut.Instance.OnMeasuredLayout(ChartFakes.Line with { Width = 320, Height = 200 }));
+        cut.WaitForAssertion(() => cut.Find("svg").GetAttribute("viewBox").ShouldBe("0 0 320 200"));
+
+        // New inputs go through update() on the observed box, not a second observer.
+        cut.Render(ps => ps.Add(p => p.Series, One(3, 4)));
+        cut.WaitForAssertion(() => cut.Find("svg").GetAttribute("viewBox").ShouldBe("0 0 500 256"));
+        module.Invocations["observe"].Count.ShouldBe(1);
+        module.Spec("update").ShouldContain("[[3,4]]");
+
+        // A title change does not lay out again.
+        cut.Render(ps => ps.Add(p => p.Title, "Signups"));
+        module.Invocations["update"].Count.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task Measured_charts_stop_observing_when_disposed()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupCharts();
+        Render<Sparkline>(ps => ps.Add(p => p.Data, new double[] { 1, 2 }));
+
+        await DisposeComponentsAsync();
+
+        module.Invocations["unobserve"].Count.ShouldBe(1);
     }
 
     [Fact]
     public void Horizontal_BarChart_keeps_long_category_labels_whole()
     {
+        // charts-core.test.mjs: the gutter fits "North America"; only names wider than 40% of the box are cut.
+        BunitJSModuleInterop module = JSInterop.SetupCharts(bar: ChartFakes.Bar with
+        {
+            CategoryLabels = [new(60, "North America", "North America"), new(180, "A very long reg…", "A very long region name")],
+        });
         IRenderedComponent<BarChart> cut = Render<BarChart>(ps => ps
             .Add(p => p.Horizontal, true)
-            .Add(p => p.Data, new List<ChartDataPoint> { new("North America", 10), new("Asia Pacific", 5) }));
+            .Add(p => p.Data, new List<ChartDataPoint> { new("North America", 10), new("A very long region name", 5) }));
 
-        cut.FindAll("span").Select(s => s.TextContent).ShouldContain("North America");
+        cut.FindAll("text").Select(s => s.TextContent).ShouldContain("North America");
+        cut.FindAll("g > title").Select(t => t.TextContent).ShouldBe(["A very long region name"]);
+        module.Spec().ShouldContain("\"horizontal\":true");
     }
 
     [Fact]
-    public void BarChart_draws_negative_bars_from_the_zero_line()
+    public void BarChart_draws_the_bars_of_its_layout()
     {
+        // charts-core.test.mjs: a negative bar runs down from the zero line.
+        JSInterop.SetupCharts(bar: ChartFakes.Bar with
+        {
+            Bars = [new(0, 0, 100, 8, 160, 111.5), new(1, 0, 400, 119.5, 160, 111.5)],
+        });
         IRenderedComponent<BarChart> cut = Render<BarChart>(ps => ps
             .Add(p => p.Data, new List<ChartDataPoint> { new("Up", 10), new("Down", -10) }));
 
-        // Axis -10..10: zero sits at y=50, both bars are half the plot tall.
         IReadOnlyList<IElement> rects = cut.FindAll("rect");
         rects.Count.ShouldBe(2);
-        rects[0].GetAttribute("y").ShouldBe("0");
-        rects[0].GetAttribute("height").ShouldBe("50");
-        rects[1].GetAttribute("y").ShouldBe("50");
-        rects[1].GetAttribute("height").ShouldBe("50");
+        rects[1].GetAttribute("y").ShouldBe("119.5");
+        rects[1].GetAttribute("height").ShouldBe("111.5");
+        rects[1].GetAttribute("fill").ShouldBe("var(--color-secondary)");
     }
 
     [Fact]
-    public void LineChart_with_negative_data_fills_to_zero()
+    public void LineChart_sends_NaN_as_a_gap_and_never_emits_it()
     {
+        // charts-core.test.mjs: a null breaks the line into separate runs.
+        BunitJSModuleInterop module = JSInterop.SetupCharts();
         IRenderedComponent<LineChart> cut = Render<LineChart>(ps => ps
-            .Add(p => p.Series, One(-20, -10, -40))
-            .Add(p => p.Area, true));
+            .Add(p => p.Series, One(1, 2, double.NaN, 3, double.PositiveInfinity)));
 
-        // Axis -40..0: zero is the top of the plot (y=0), so the area closes there.
-        string area = cut.FindAll("path")[0].GetAttribute("d")!;
-        area.ShouldEndWith(" 0 Z");
-        cut.Markup.ShouldContain(">0<");
-    }
-
-    [Fact]
-    public void LineChart_breaks_the_line_at_NaN_instead_of_emitting_it()
-    {
-        IRenderedComponent<LineChart> cut = Render<LineChart>(ps => ps
-            .Add(p => p.Series, One(1, 2, double.NaN, 3, 4)));
-
+        module.Spec().ShouldContain("[[1,2,null,3,null]]");
         cut.Markup.ShouldNotContain("NaN");
-        string line = cut.Find("path").GetAttribute("d")!;
-        line.Split('M', StringSplitOptions.RemoveEmptyEntries).Length.ShouldBe(2);
+        cut.Find("desc").TextContent.ShouldContain("3 no data");
     }
 
     [Fact]
-    public void Single_point_series_still_shows_a_marker_without_ShowPoints()
+    public void Isolated_points_still_get_a_marker_without_ShowPoints()
     {
-        IRenderedComponent<AreaChart> cut = Render<AreaChart>(ps => ps
-            .Add(p => p.Series, One(5)));
-
-        cut.FindAll("span[title]").Count.ShouldBe(1);
-    }
-
-    [Fact]
-    public void LineChart_has_a_slot_for_every_label()
-    {
-        IRenderedComponent<LineChart> cut = Render<LineChart>(ps => ps
-            .Add(p => p.Series, One(1, 2))
-            .Add(p => p.Labels, new[] { "A", "B", "C", "D" }));
-
-        // Four slots of 25%: the last label is centred at 87.5%, inside the plot.
-        cut.Markup.ShouldContain("left:87.5%");
-    }
-
-    [Fact]
-    public void Sparkline_flat_data_is_centred_and_NaN_leaves_a_gap()
-    {
-        IRenderedComponent<Sparkline> flat = Render<Sparkline>(ps => ps
-            .Add(p => p.Data, new double[] { 3, 3, 3 })
-            .Add(p => p.ShowEndDot, false));
-        flat.Find("path").GetAttribute("d")!.ShouldContain(" 15");
-
-        IRenderedComponent<Sparkline> gap = Render<Sparkline>(ps => ps
-            .Add(p => p.Data, new double[] { 5, 6, double.NaN, 7, 8 })
-            .Add(p => p.ShowEndDot, false));
-        string d = gap.Find("path").GetAttribute("d")!;
-        d.Split('M', StringSplitOptions.RemoveEmptyEntries).Length.ShouldBe(2);
-        // No value was plotted at the bottom edge (y=28) as a fake zero except the true minimum.
-        d.ShouldNotContain("NaN");
-    }
-
-    [Fact]
-    public void Sparkline_dot_is_not_distorted_or_clipped()
-    {
-        IRenderedComponent<Sparkline> cut = Render<Sparkline>(ps => ps
-            .Add(p => p.Data, new double[] { 1, 2, 3 }));
-
-        cut.FindAll("circle").Count.ShouldBe(0);
-        cut.Find("svg").GetAttribute("style")!.ShouldContain("overflow:visible");
-        foreach (IElement path in cut.FindAll("path"))
+        JSInterop.SetupCharts(line: ChartFakes.Line with
         {
-            path.GetAttribute("vector-effect").ShouldBe("non-scaling-stroke");
-        }
+            Series = [new("M181,100Z", "", [new(0, 181, 100, true)]), new("M181,50L483,40", "", [new(0, 181, 50, false), new(1, 483, 40, false)])],
+        });
+        IRenderedComponent<AreaChart> cut = Render<AreaChart>(ps => ps
+            .Add(p => p.Series, new List<ChartSeries> { new("A", [5]), new("B", [1, 2]) }));
+
+        cut.FindAll("circle").Count.ShouldBe(1);
+        cut.Find("circle > title").TextContent.ShouldBe("A · 1: 5");
+    }
+
+    [Fact]
+    public void Sparkline_sends_NaN_as_a_gap()
+    {
+        // charts-core.test.mjs: flat data runs through the middle; null leaves a gap.
+        BunitJSModuleInterop module = JSInterop.SetupCharts();
+        Render<Sparkline>(ps => ps
+            .Add(p => p.Data, new double[] { 5, 6, double.NaN, 7, 8 })
+            .Add(p => p.StrokeWidth, 3));
+
+        module.Spec().ShouldBe("{\"data\":[5,6,null,7,8],\"pad\":2}");
+    }
+
+    [Fact]
+    public void Sparkline_sits_inline_with_a_round_end_dot()
+    {
+        JSInterop.SetupCharts();
+        IRenderedComponent<Sparkline> cut = Render<Sparkline>(ps => ps
+            .Add(p => p.Data, new double[] { 1, 2, 3 })
+            .Add(p => p.Color, "var(--color-success)"));
+
+        IElement box = cut.Find("span");
+        box.ClassList.ShouldContain("inline-block");
+        box.GetAttribute("style")!.ShouldBe("overflow:visible;width:5rem;height:1.5rem;");
+        cut.Find("svg").GetAttribute("viewBox").ShouldBe("0 0 80 24");
+        IElement dot = cut.Find("circle");
+        dot.GetAttribute("cx").ShouldBe("78");
+        dot.GetAttribute("r").ShouldBe("3");
+        dot.GetAttribute("fill").ShouldBe("var(--color-success)");
+        cut.Find("desc").TextContent.ShouldBe("3 values from 1 to 3; low 1, high 3.");
+
+        IRenderedComponent<Sparkline> plain = Render<Sparkline>(ps => ps
+            .Add(p => p.Data, new double[] { 1, 2, 3 })
+            .Add(p => p.ShowEndDot, false)
+            .Add(p => p.Area, true));
+        plain.FindAll("circle").Count.ShouldBe(0);
+        plain.FindAll("path").Count.ShouldBe(2);
     }
 
     [Fact]
     public void Pie_legend_uses_flex_gap_not_space_y()
     {
+        JSInterop.SetupCharts();
         IRenderedComponent<PieChart> cut = Render<PieChart>(ps => ps
             .Add(p => p.Data, new List<ChartDataPoint> { new("A", 1), new("B", 2) }));
 
         cut.Find("ul").ClassList.ShouldContain("gap-3");
         cut.Find("ul").ClassList.ShouldNotContain("space-y-1");
+        cut.Find("ul").TextContent.ShouldContain("70%");
     }
 
     [Fact]
     public void PieChart_renders_CenterLabel_as_a_ring_and_describes_slices()
     {
+        BunitJSModuleInterop module = JSInterop.SetupCharts(pie: ChartFakes.Pie with
+        {
+            InnerRadius = 47,
+            CenterFontSize = 22,
+            Slices = [new(0, "M0,-94A94,94,0,1,1,-94,0L-47,0A47,47,0,1,0,0,-47Z", 75, 0, 4.71), new(1, "M-94,0A94,94,0,0,1,0,-94L0,-47A47,47,0,0,0,-47,0Z", 25, 4.71, 6.28)],
+        });
         IRenderedComponent<PieChart> cut = Render<PieChart>(ps => ps
             .Add(p => p.Data, new List<ChartDataPoint> { new("Free", 30), new("Pro", 10) })
             .Add(p => p.InnerRadiusRatio, 0.5)
@@ -177,16 +244,18 @@ public class LibraryChartsFixTests : BunitContext
         cut.Find("svg").GetAttribute("aria-describedby").ShouldBe(desc.Id);
         desc.TextContent.ShouldContain("Free: 30 (75%)");
         cut.FindAll("path > title").Count.ShouldBe(2);
+        module.Spec("layout").ShouldBe("{\"values\":[30,10],\"size\":200,\"innerRatio\":0.5,\"centerLabel\":\"40\"}");
     }
 
     [Fact]
     public void Line_and_bar_charts_expose_values_and_tooltips()
     {
+        JSInterop.SetupCharts();
         IRenderedComponent<LineChart> line = Render<LineChart>(ps => ps
             .Add(p => p.Series, One(120, 140))
             .Add(p => p.Labels, new[] { "Jan", "Feb" }));
         line.Find("desc").TextContent.ShouldContain("Jan 120");
-        line.FindAll("span[title]").Select(s => s.GetAttribute("title")).ShouldContain("Feb: 140");
+        line.FindAll("circle > title").Select(s => s.TextContent).ShouldContain("Feb: 140");
 
         IRenderedComponent<BarChart> bar = Render<BarChart>(ps => ps
             .Add(p => p.Data, new List<ChartDataPoint> { new("Free", 48200) }));
@@ -195,30 +264,29 @@ public class LibraryChartsFixTests : BunitContext
     }
 
     [Fact]
-    public void Donut_center_label_shrinks_for_long_text_and_ratio_zero_is_a_pie()
+    public void Donut_sends_its_hole_and_label_and_uses_the_fitted_font_size()
     {
+        // charts-core.test.mjs: a long label in a thick ring shrinks below 22; ratio 0 draws wedges from the centre.
+        BunitJSModuleInterop module = JSInterop.SetupCharts(pie: ChartFakes.Pie with { InnerRadius = 32.9, CenterFontSize = 13.3 });
         IRenderedComponent<DonutChart> cut = Render<DonutChart>(ps => ps
             .Add(p => p.Data, new List<ChartDataPoint> { new("A", 1), new("B", 1) })
             .Add(p => p.InnerRadiusRatio, 0.35)
             .Add(p => p.CenterLabel, "€12,480"));
-        double size = double.Parse(cut.Find("text").GetAttribute("font-size")!, System.Globalization.CultureInfo.InvariantCulture);
-        size.ShouldBeLessThan(22);
 
-        IRenderedComponent<DonutChart> pie = Render<DonutChart>(ps => ps
-            .Add(p => p.Data, new List<ChartDataPoint> { new("A", 1), new("B", 1) })
-            .Add(p => p.InnerRadiusRatio, 0));
-        // A pie wedge starts at the centre.
-        pie.Find("path").GetAttribute("d")!.ShouldStartWith("M 100 100");
+        cut.Find("text").GetAttribute("font-size").ShouldBe("13.3");
+        module.Spec("layout").ShouldContain("\"innerRatio\":0.35,\"centerLabel\":\"\\u20AC12,480\"");
+        cut.Find("svg").GetAttribute("aria-label").ShouldBe("Donut chart");
     }
 
     [Fact]
-    public void Horizontal_BarChart_without_grid_has_no_bottom_label_band()
+    public void Pie_without_positive_values_draws_an_empty_outline()
     {
-        IRenderedComponent<BarChart> cut = Render<BarChart>(ps => ps
-            .Add(p => p.Horizontal, true)
-            .Add(p => p.ShowGrid, false)
-            .Add(p => p.Data, new List<ChartDataPoint> { new("A", 1) }));
+        JSInterop.SetupCharts(pie: ChartFakes.Pie with { Slices = [] });
+        IRenderedComponent<PieChart> cut = Render<PieChart>(ps => ps
+            .Add(p => p.Data, new List<ChartDataPoint> { new("A", 0), new("B", double.NaN) }));
 
-        cut.Markup.ShouldNotContain("height:calc(1.2em + 6px)");
+        cut.FindAll("circle").Count.ShouldBe(1);
+        cut.Find("desc").TextContent.ShouldBe("No data.");
+        cut.FindAll("ul").Count.ShouldBe(0);
     }
 }

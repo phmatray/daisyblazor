@@ -1,0 +1,12 @@
+<ViolinChart Groups="_plans" Horizontal="true" Bandwidth="4" ShowQuartiles="false" AspectRatio="2.2"
+             ValueTitle="Session length (min)" ValueFormat="{0:N0} min" />
+
+@code {
+    // Horizontal violins with a fixed Bandwidth (in minutes) and no quartile marks.
+    private readonly ValueGroup[] _plans =
+    [
+        new("Starter", DistributionSamples.Skewed(seed: 55, count: 300, median: 9, spread: 0.6)),
+        new("Pro", DistributionSamples.Skewed(seed: 56, count: 300, median: 18, spread: 0.5)),
+        new("Enterprise", DistributionSamples.Skewed(seed: 57, count: 200, median: 31, spread: 0.4)),
+    ];
+}

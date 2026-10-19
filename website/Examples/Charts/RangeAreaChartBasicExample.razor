@@ -1,0 +1,12 @@
+<RangeAreaChart Title="API response time, last 30 days" Points="_points" BandLabel="p5–p95" CenterLabel="Median (p50)" ValueFormat="{0:N0} ms" />
+
+@code {
+    // One point per day: the fastest and slowest 5% bound the band, the median runs through it.
+    private static readonly RangePoint[] _points = Enumerable.Range(0, 30)
+        .Select(i =>
+        {
+            double median = 120 + 18 * Math.Sin(i / 4.0) + (i % 7 == 5 ? 25 : 0);
+            return new RangePoint(new DateTime(2026, 9, 20).AddDays(i), Math.Round(median * 0.45), Math.Round(median * 2.4 + (i * 13) % 40), Math.Round(median));
+        })
+        .ToArray();
+}

@@ -1,0 +1,24 @@
+<NetworkChart Links="_dependencies" Nodes="_services" AspectRatio="1.1" ShowLegend="false" />
+
+@code {
+    private readonly GraphNode[] _services =
+    [
+        new("Gateway", "Edge"),
+        new("Auth", "Core"),
+        new("Projects", "Core"),
+        new("Search", "Core"),
+        new("Database", "Data"),
+        new("Storage", "Data"),
+    ];
+
+    private readonly GraphLink[] _dependencies =
+    [
+        new("Gateway", "Auth"),
+        new("Gateway", "Projects"),
+        new("Gateway", "Search"),
+        new("Projects", "Database"),
+        new("Projects", "Storage"),
+        new("Auth", "Database"),
+        new("Search", "Database"),
+    ];
+}

@@ -1,0 +1,80 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<BulletLayout>
+
+@* Bullet chart: one row per measure, a thin value bar over shaded qualitative bands, with a line
+   at the target. Each row has its own scale, so measures in different units sit together. D3
+   computes the scales, ticks and boxes; this component draws them in theme colours. *@
+
+<D3ChartFrame TLayout="BulletLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { } layout)
+    {
+        @foreach (BulletLayoutRow row in layout.Rows)
+        {
+            @foreach (BulletLayoutRange band in row.Ranges)
+            {
+                <rect x="@N(band.X)" y="@N(band.Y)" width="@N(Math.Max(0, band.Width))" height="@N(Math.Max(0, band.Height))"
+                      fill="var(--color-base-content)" fill-opacity="@N(0.06 + 0.07 * (row.Ranges.Count - 1 - band.Level))" />
+            }
+
+            <rect x="@N(row.Bar.X)" y="@N(row.Bar.Y)" width="@N(Math.Max(1, row.Bar.Width))" height="@N(Math.Max(1, row.Bar.Height))" fill="@_barColor">
+                <title>@_tip(row)</title>
+            </rect>
+
+            @if (row.Marker is { } marker)
+            {
+                <line x1="@N(marker.X1)" y1="@N(marker.Y1)" x2="@N(marker.X2)" y2="@N(marker.Y2)" stroke="@TargetColor" stroke-width="3">
+                    <title>@_tip(row)</title>
+                </line>
+            }
+
+            <CompareAxis Ticks="row.Ticks" Labels="[row.Name]" LineOpacity="0.4" />
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The measures, one bullet each. Rows whose Value is not a finite number are skipped.</summary>
+    [Parameter] public IReadOnlyList<BulletItem> Items { get; set; } = [];
+
+    /// <summary>Stand the bullets up as columns instead of rows.</summary>
+    [Parameter] public bool Vertical { get; set; }
+
+    /// <summary>Colour of the value bar (any CSS colour). Defaults to the theme's primary colour.</summary>
+    [Parameter] public string? BarColor { get; set; }
+
+    /// <summary>Colour of the target line (any CSS colour).</summary>
+    [Parameter] public string TargetColor { get; set; } = "var(--color-base-content)";
+
+    /// <summary>Format string for values in tooltips and the description, e.g. "{0:N0} seats".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <inheritdoc />
+    protected override string Kind => "bullet";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Rows = Items.Select(i => new
+        {
+            i.Label,
+            Value = CompareSpec.Finite(i.Value),
+            Target = CompareSpec.Finite(i.Target),
+            Ranges = (i.Ranges ?? []).Where(double.IsFinite).ToArray(),
+        }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        Vertical,
+    };
+
+    private string _barColor => ChartPalette.At(0, BarColor);
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _tip(BulletLayoutRow row) =>
+        row.Target is { } target ? $"{row.Label}: {_format(row.Value)} (target {_format(target)})" : $"{row.Label}: {_format(row.Value)}";
+
+    private string _label => Title ?? "Bullet chart";
+
+    private string _description => string.Join("; ", Items.Where(i => double.IsFinite(i.Value)).Select(i =>
+        i.Target is { } t && double.IsFinite(t) ? $"{i.Label}: {_format(i.Value)} of a {_format(t)} target" : $"{i.Label}: {_format(i.Value)}"));
+}

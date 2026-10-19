@@ -1,0 +1,11 @@
+<RangeBarChart Title="Seats per plan, minimum to maximum" Items="_plans" ShowValues="true" ValueFormat="{0:N0}" />
+
+@code {
+    private readonly RangeBarItem[] _plans =
+    [
+        new("Starter", 1, 5),
+        new("Team", 5, 50),
+        new("Business", 25, 250),
+        new("Scale", 100, 1000),
+    ];
+}

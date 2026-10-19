@@ -1,0 +1,17 @@
+<WaterfallChart Steps="_steps" Horizontal="true" AspectRatio="1.3" ValueFormat="{0:N0}" />
+
+@code {
+    private readonly WaterfallStep[] _steps =
+    [
+        new("July 1", 1_240, WaterfallStepKind.Start),
+        new("July signups", 120),
+        new("July churn", -34),
+        new("August 1", 0, WaterfallStepKind.Subtotal),
+        new("August signups", 98),
+        new("August churn", -41),
+        new("September 1", 0, WaterfallStepKind.Subtotal),
+        new("Sept. signups", 92),
+        new("Sept. churn", -21),
+        new("Sept 30", 0, WaterfallStepKind.End),
+    ];
+}
