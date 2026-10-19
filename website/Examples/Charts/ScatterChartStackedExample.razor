@@ -1,0 +1,14 @@
+<ScatterChart Title="Storage used by tier, per week" Points="_usage" Stacked="true" ShowLine="true"
+              XTitle="Week" YTitle="Storage (TB)" />
+
+@code {
+    // Stacked draws each series on the running total of the ones before it at the same X; tooltips keep each point's own value.
+    private static readonly double[] _weeks = [1, 2, 3, 4, 5, 6, 7, 8];
+
+    private readonly ScatterPoint[] _usage =
+    [
+        .. _weeks.Zip([42d, 44, 47, 49, 52, 55, 57, 61]).Select(w => new ScatterPoint(w.First, w.Second, Series: "Hot")),
+        .. _weeks.Zip([30d, 31, 33, 36, 37, 39, 42, 44]).Select(w => new ScatterPoint(w.First, w.Second, Series: "Cool")),
+        .. _weeks.Zip([18d, 20, 21, 23, 26, 28, 29, 31]).Select(w => new ScatterPoint(w.First, w.Second, Series: "Archive")),
+    ];
+}

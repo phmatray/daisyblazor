@@ -1,0 +1,12 @@
+<ContourChart Title="Disk temperature across a rack row" Points="_sensors" Mode="ContourMode.Value" ShowLines="true" Levels="6"
+              Color="var(--color-warning)" ValueTitle="Temperature (°C)" XTitle="Position along the row (m)" YTitle="Height (U)" AspectRatio="2" />
+
+@code {
+    // ShowLines outlines each band and prints its value on the line, like isolines on a map.
+    private readonly ScatterPoint[] _sensors =
+    [
+        .. from x in new[] { 0d, 2, 4, 6, 8, 10, 12 }
+           from u in new[] { 2d, 12, 22, 32, 42 }
+           select new ScatterPoint(x, u) { Value = Math.Round(24 + 0.25 * u + 9 * Math.Exp(-Math.Pow(x - 8, 2) / 6), 1) },
+    ];
+}

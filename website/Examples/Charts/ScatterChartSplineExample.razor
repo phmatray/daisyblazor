@@ -1,0 +1,13 @@
+<ScatterChart Title="Load test: p95 response time by concurrent sessions" Points="_runs" ShowLine="true" Smooth="true"
+              XTitle="Concurrent sessions" YTitle="p95 response time (ms)" />
+
+@code {
+    // Smooth turns each region's line into a monotone spline: it passes through every point and never overshoots.
+    private static readonly double[] _sessions = [250, 500, 1_000, 2_000, 4_000, 6_000, 8_000];
+
+    private readonly ScatterPoint[] _runs =
+    [
+        .. _sessions.Zip([82d, 88, 97, 118, 164, 215, 290]).Select(s => new ScatterPoint(s.First, s.Second, Series: "eu-west")),
+        .. _sessions.Zip([95d, 101, 115, 142, 210, 290, 405]).Select(s => new ScatterPoint(s.First, s.Second, Series: "us-east")),
+    ];
+}

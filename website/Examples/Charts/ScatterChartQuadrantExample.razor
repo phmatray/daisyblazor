@@ -1,0 +1,20 @@
+<ScatterChart Title="Services by usage and error rate" Points="_services" XReference="50" YReference="1"
+              QuadrantLabels="_quadrants" XTitle="Weekly active projects (%)" YTitle="Error rate (%)" />
+
+@code {
+    // XReference and YReference split the plot into quadrants; QuadrantLabels go top right, top left, bottom left, bottom right.
+    private readonly string[] _quadrants = ["Fix first", "Review", "Leave as is", "Healthy core"];
+
+    private readonly ScatterPoint[] _services =
+    [
+        new(92, 0.4, Label: "Compute"),
+        new(81, 1.6, Label: "Object storage"),
+        new(74, 0.3, Label: "Load balancer"),
+        new(66, 1.9, Label: "Managed Postgres"),
+        new(58, 0.7, Label: "DNS"),
+        new(38, 1.4, Label: "Queues"),
+        new(27, 0.5, Label: "Edge functions"),
+        new(22, 2.3, Label: "GPU nodes"),
+        new(14, 0.8, Label: "Archive tier"),
+    ];
+}

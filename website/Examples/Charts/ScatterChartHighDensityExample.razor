@@ -1,0 +1,11 @@
+<ScatterChart Title="20 000 API requests by payload and response time" Points="_requests" HighDensity="true" CellSize="3"
+              CountFormat="{0:N0} requests" XTitle="Payload (KB)" YTitle="Response time (ms)" />
+
+@code {
+    // HighDensity counts the points on a 3-unit grid and shades each cell by count, instead of drawing 20 000 dots.
+    private readonly ScatterPoint[] _requests =
+    [
+        .. DistributionSamples.Cloud(seed: 41, count: 14_000, xMean: 40, xSd: 14, intercept: 60, slope: 1.6, noise: 18),
+        .. DistributionSamples.Cloud(seed: 42, count: 6_000, xMean: 120, xSd: 25, intercept: 140, slope: 2.4, noise: 45),
+    ];
+}
