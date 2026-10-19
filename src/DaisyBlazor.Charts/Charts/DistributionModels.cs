@@ -31,12 +31,6 @@ public enum AxisScale
     Log,
 }
 
-/// <summary>The plotting rectangle of a chart, inside the margins kept for tick labels and axis titles.</summary>
-public sealed record PlotArea(double Left, double Top, double Right, double Bottom);
-
-/// <summary>A labelled tick: its position along the axis (chart units) and its text.</summary>
-public sealed record AxisTick(double Pos, string Label);
-
 /// <summary>A value and its position along the value axis.</summary>
 public sealed record PositionedValue(double Value, double Pos);
 

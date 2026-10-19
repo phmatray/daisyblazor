@@ -1,7 +1,8 @@
-import { scaleLinear, scaleUtc } from '../d3.mjs';
-import { parseDate, labelOf, yAxis, timeTicks, finite, r2 } from './_time.mjs';
+import { scaleUtc } from '../d3.mjs';
+import { finite, r2, ticks, valueScale } from './_shared.mjs';
+import { parseDate, labelOf, yAxisWidth, timeTicks } from './_time.mjs';
 
-const EMPTY = { candles: [], xTicks: [], yTicks: [], plot: { x0: 0, y0: 0, x1: 0, y1: 0 } };
+const EMPTY = { candles: [], xTicks: [], yTicks: [], plot: { left: 0, top: 0, right: 0, bottom: 0 } };
 
 // spec: { candles: [{ time, open, high, low, close }], width, height }
 // Candles need a time and four finite values; they are sorted by time. Each one gets a slot as wide
@@ -18,28 +19,23 @@ export default function candlestick({ candles, width, height }) {
 
     const lows = valid.map(c => Math.min(c.low, c.high, c.open, c.close));
     const highs = valid.map(c => Math.max(c.low, c.high, c.open, c.close));
-    const y = scaleLinear().domain([Math.min(...lows), Math.max(...highs)]);
-    if (y.domain()[0] === y.domain()[1]) {
-        y.domain([y.domain()[0] - 1, y.domain()[1] + 1]);
-    }
-    y.nice();
+    const y = valueScale([...lows, ...highs]);
     const top = 10, bottom = height - 24;
-    const axis = yAxis(y, Math.max(2, Math.floor((bottom - top) / 40)));
-    const plot = { x0: axis.width, y0: top, x1: width - 24, y1: bottom };
-    y.range([plot.y1, plot.y0]);
+    const yCount = Math.max(2, Math.floor((bottom - top) / 40));
+    const plot = { left: yAxisWidth(y, yCount), top, right: width - 24, bottom };
+    y.range([plot.bottom, plot.top]);
 
     const gaps = valid.slice(1).map((c, i) => c.at - valid[i].at).filter(g => g > 0);
     const step = gaps.length ? Math.min(...gaps) : 3600000;
     const x = scaleUtc()
         .domain([new Date(+valid[0].at - step / 2), new Date(+valid[valid.length - 1].at + step / 2)])
-        .range([plot.x0, plot.x1]);
-    const slot = x(new Date(+x.domain()[0] + step)) - plot.x0;
+        .range([plot.left, plot.right]);
+    const slot = x(new Date(+x.domain()[0] + step)) - plot.left;
     const bodyWidth = Math.max(1, Math.min(24, slot * 0.7));
 
     // Tick labels sit under the plot; keep the ones that land inside it.
     const xTicks = timeTicks(x, valid.map(c => c.at))
-        .map(t => ({ position: r2(t.position), label: t.label }))
-        .filter(t => t.position >= plot.x0 + 12 && t.position <= plot.x1 - 12);
+        .filter(t => t.pos >= plot.left + 12 && t.pos <= plot.right - 12);
 
     return {
         candles: valid.map(c => ({
@@ -49,7 +45,7 @@ export default function candlestick({ candles, width, height }) {
             yHigh: r2(y(Math.max(c.high, c.low, c.open, c.close))), yLow: r2(y(Math.min(c.high, c.low, c.open, c.close))),
         })),
         xTicks,
-        yTicks: axis.ticks.map(t => ({ position: r2(y(t.value)), label: t.label })),
+        yTicks: ticks(y, yCount),
         plot,
     };
 }

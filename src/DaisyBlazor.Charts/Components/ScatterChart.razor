@@ -9,8 +9,8 @@
     @if (Layout is { } view)
     {
         <style>.dbc-cell{fill:transparent;cursor:crosshair}.dbc-cell:hover+circle{fill-opacity:1;stroke:var(--color-base-content);stroke-width:2}</style>
-        <DistributionAxes Plot="view.Plot" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
-                          XGrid="true" YGrid="true" Height="ViewHeight" />
+        <ChartAxes Plot="view.Plot" Baseline="true" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
+                   XGrid="true" YGrid="true" Height="ViewHeight" />
         @foreach (ScatterLayoutPoint p in view.Points)
         {
             string color = _color(p.Series, view);

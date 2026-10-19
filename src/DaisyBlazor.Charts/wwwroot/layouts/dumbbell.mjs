@@ -1,6 +1,7 @@
-import { categoryFrame, finite, frameOut, maxWidth, r2, valueScale, valueText } from './_compare.mjs';
+import { finite, maxWidth, r2, valueScale } from './_shared.mjs';
+import { categoryFrame, frameOut, valueText } from './_compare.mjs';
 
-const EMPTY = { plot: { x: 0, y: 0, width: 0, height: 0 }, ticks: [], categories: [], items: [] };
+const EMPTY = { plot: { left: 0, top: 0, right: 0, bottom: 0 }, xTicks: [], yTicks: [], xAxisAt: 0, yAxisAt: 0, labelAngle: 0, items: [] };
 
 // spec: { items: [{ label, start, end, startText, endText }], width, height, showValues }
 // One row per item: a dot at start, a dot at end, a line between. Value texts sit outside the pair,
@@ -11,11 +12,11 @@ export default function dumbbell({ items, width, height, showValues = true }) {
         return EMPTY;
     }
 
-    const textW = showValues ? maxWidth(rows.flatMap(d => [d.startText, d.endText]), 11) + 10 : 0;
+    const textW = showValues ? maxWidth(rows.flatMap(d => [d.startText, d.endText])) + 10 : 0;
     const f = categoryFrame({
         width, height,
         labels: rows.map(d => String(d.label ?? '')),
-        scale: valueScale(rows.flatMap(d => [d.start, d.end]), { zero: false }),
+        scale: valueScale(rows.flatMap(d => [d.start, d.end]), { count: 5 }),
         before: textW,
         after: textW,
         padding: 0.2,

@@ -1,4 +1,5 @@
 import { scaleLinear } from '../d3.mjs';
+import { r2 } from './_shared.mjs';
 
 const EMPTY = { track: null, fill: null, bands: [], pointer: null, marker: null, ticks: [], value: 0, fontSize: 12 };
 
@@ -39,7 +40,7 @@ export default function linearGauge({ min = 0, max = 100, value, bands, marker, 
         ? [edge + 16 * u, sv + 0.35 * fs]
         : [sv, edge - 16 * u];
     const pointer = {
-        path: `M${r(tip[0])},${r(tip[1])}L${r(b1[0])},${r(b1[1])}L${r(b2[0])},${r(b2[1])}Z`,
+        path: `M${r2(tip[0])},${r2(tip[1])}L${r2(b1[0])},${r2(b1[1])}L${r2(b2[0])},${r2(b2[1])}Z`,
         labelX: lx,
         labelY: ly,
         anchor: vertical ? 'start' : nearStart ? 'start' : nearEnd ? 'end' : 'middle',
@@ -72,5 +73,3 @@ export default function linearGauge({ min = 0, max = 100, value, bands, marker, 
         fontSize: fs,
     };
 }
-
-const r = v => Math.round(v * 100) / 100;

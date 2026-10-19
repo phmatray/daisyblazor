@@ -10,8 +10,8 @@ public sealed record BulletItem(string Label, double Value, double? Target = nul
 /// <summary>Geometry of a <see cref="BulletChart"/>, computed by D3.</summary>
 public sealed record BulletLayout(IReadOnlyList<BulletLayoutRow> Rows);
 
-/// <summary>A placed bullet: its name, bands, value bar, target line and own ticks.</summary>
-public sealed record BulletLayoutRow(string Label, double Value, double? Target, CompareText Name, IReadOnlyList<BulletLayoutRange> Ranges, CompareRect Bar, CompareLine? Marker, IReadOnlyList<CompareTick> Ticks);
+/// <summary>A placed bullet: its plot, bands, value bar, target line, and its own axes (value ticks along the bullet, its name across it).</summary>
+public sealed record BulletLayoutRow(string Label, double Value, double? Target, PlotArea Plot, IReadOnlyList<BulletLayoutRange> Ranges, ChartRect Bar, ChartLine? Marker, IReadOnlyList<AxisTick> XTicks, IReadOnlyList<AxisTick> YTicks);
 
 /// <summary>A qualitative band; Level 0 is the lowest range.</summary>
 public sealed record BulletLayoutRange(double X, double Y, double Width, double Height, int Level);

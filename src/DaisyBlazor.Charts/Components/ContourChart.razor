@@ -8,8 +8,8 @@
 <D3ChartFrame TLayout="ContourLayout" Chart="this" Label="@_label" Description="@_description">
     @if (Layout is { } view)
     {
-        <DistributionAxes Plot="view.Plot" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
-                          XGrid="true" YGrid="true" Height="ViewHeight" />
+        <ChartAxes Plot="view.Plot" Baseline="true" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
+                   XGrid="true" YGrid="true" Height="ViewHeight" />
         <g transform="@($"translate({N(view.Plot.Left)},{N(view.Plot.Top)})")">
             @for (int i = 0; i < view.Contours.Count; i++)
             {

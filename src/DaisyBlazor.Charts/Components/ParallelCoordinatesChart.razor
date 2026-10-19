@@ -27,7 +27,7 @@
             <g style="paint-order:stroke;stroke:var(--color-base-100);stroke-width:3px;stroke-linejoin:round;">
                 @foreach (ParallelLayoutAxis axis in layout.Axes)
                 {
-                    <CompareAxis Ticks="axis.Ticks" LineOpacity="0.35" />
+                    <ChartAxes Plot="new PlotArea(axis.X, axis.Y1, axis.X, axis.Y2)" YTicks="axis.Ticks" YTickMarks="true" />
                 }
             </g>
             @foreach (ParallelLayoutAxis axis in layout.Axes)
@@ -70,7 +70,7 @@
         Items = Items.Select(i => new
         {
             i.Label,
-            Values = Dimensions.Select((_, d) => d < i.Values.Count ? CompareSpec.Finite(i.Values[d]) : null).ToArray(),
+            Values = Dimensions.Select((_, d) => d < i.Values.Count ? i.Values[d] : (double?)null).ToArray(),
         }).ToArray(),
         Width = ViewWidth,
         Height = ViewHeight,

@@ -7,21 +7,10 @@
 <D3ChartFrame TLayout="WaterfallLayout" Chart="this" Label="@_label" Description="@_description">
     @if (Layout is { Plot: { } plot } geo)
     {
-        @foreach (WaterfallTick tick in geo.Ticks)
-        {
-            @if (Horizontal)
-            {
-                <line x1="@N(tick.Pos)" x2="@N(tick.Pos)" y1="@N(plot.Top)" y2="@N(plot.Bottom)"
-                      stroke="var(--color-base-content)" stroke-opacity="@(tick.Value == 0 ? "0.35" : "0.12")" vector-effect="non-scaling-stroke" />
-                <SvgText X="@tick.Pos" Y="@(plot.Bottom + 16)" Anchor="middle" FontSize="11" FillOpacity="0.6" Text="@_format(tick.Value)" />
-            }
-            else
-            {
-                <line x1="@N(plot.Left)" x2="@N(plot.Right)" y1="@N(tick.Pos)" y2="@N(tick.Pos)"
-                      stroke="var(--color-base-content)" stroke-opacity="@(tick.Value == 0 ? "0.35" : "0.12")" vector-effect="non-scaling-stroke" />
-                <SvgText X="@(plot.Left - 6)" Y="@tick.Pos" Dy="0.35em" Anchor="end" FontSize="11" FillOpacity="0.6" Text="@_format(tick.Value)" />
-            }
-        }
+        IReadOnlyList<AxisTick> values = geo.Ticks.Select(t => t with { Label = _format(t.Value ?? 0) }).ToList();
+        IReadOnlyList<AxisTick> categories = geo.Bars.Select(b => new AxisTick(Horizontal ? b.Y + b.Height / 2 : b.X + b.Width / 2, b.Label)).ToList();
+        <ChartAxes Plot="plot" XTicks="@(Horizontal ? values : categories)" YTicks="@(Horizontal ? categories : values)"
+                   XGrid="Horizontal" YGrid="!Horizontal" ZeroLine="true" XCategories="!Horizontal" YCategories="Horizontal" />
 
         @foreach (WaterfallConnector c in geo.Connectors)
         {
@@ -39,8 +28,6 @@
                 <SvgText X="@bar.LabelX" Y="@bar.LabelY" Dy="@(Horizontal ? "0.35em" : null)" Anchor="@bar.Anchor" FontSize="11" FontWeight="600"
                          Text="@_valueText(bar)" />
             }
-            <SvgText X="@bar.CategoryX" Y="@bar.CategoryY" Dy="@(Horizontal ? "0.35em" : null)" Anchor="@(Horizontal ? "end" : "middle")"
-                     FontSize="11" FillOpacity="0.8" Text="@bar.Label" />
         }
     }
 </D3ChartFrame>

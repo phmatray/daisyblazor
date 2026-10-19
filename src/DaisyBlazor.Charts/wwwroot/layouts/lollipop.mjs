@@ -1,6 +1,7 @@
-import { categoryFrame, finite, frameOut, maxWidth, r2, valueScale, valueText } from './_compare.mjs';
+import { finite, maxWidth, r2, valueScale } from './_shared.mjs';
+import { categoryFrame, frameOut, valueText } from './_compare.mjs';
 
-const EMPTY = { plot: { x: 0, y: 0, width: 0, height: 0 }, ticks: [], categories: [], items: [] };
+const EMPTY = { plot: { left: 0, top: 0, right: 0, bottom: 0 }, xTicks: [], yTicks: [], xAxisAt: 0, yAxisAt: 0, labelAngle: 0, items: [] };
 
 // spec: { items: [{ label, value, text }], width, height, vertical, sort: 'descending'|'ascending'|'none', showValues }
 // Each item is a stem from zero to its value with a dot at the end; `text` is the formatted value,
@@ -17,11 +18,11 @@ export default function lollipop({ items, width, height, vertical = false, sort 
     }
 
     const shown = showValues ? rows : [];
-    const space = list => list.length === 0 ? 0 : vertical ? 16 : maxWidth(list.map(d => d.text), 11) + 10;
+    const space = list => list.length === 0 ? 0 : vertical ? 16 : maxWidth(list.map(d => d.text)) + 10;
     const f = categoryFrame({
         width, height, vertical,
         labels: rows.map(d => String(d.label ?? '')),
-        scale: valueScale(rows.map(d => d.value)),
+        scale: valueScale(rows.map(d => d.value), { zero: true, count: 5 }),
         before: space(shown.filter(d => d.value < 0)),
         after: space(shown.filter(d => d.value >= 0)),
         padding: 0.2,

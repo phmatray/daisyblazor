@@ -1,5 +1,6 @@
-import { bin, max, median, scaleLinear, thresholdSturges } from '../d3.mjs';
-import { cartesian, sorted, valueScale, r2 } from './_distribution.mjs';
+import { bin, max, median, thresholdSturges } from '../d3.mjs';
+import { valueScale, r2 } from './_shared.mjs';
+import { cartesian, sorted } from './_distribution.mjs';
 
 // spec: { values, width, height, xTitle, yTitle, bins, showMedian }
 // Counts the values into bins with d3.bin. `bins` is a hint (d3 picks nice round edges near it);
@@ -9,7 +10,7 @@ export default function histogram({ values, width, height, xTitle, yTitle, bins 
     const x = valueScale(s);
     const hint = bins >= 1 ? Math.round(bins) : (s.length ? thresholdSturges(s) : 10);
     const counted = s.length ? bin().domain(x.domain()).thresholds(x.ticks(hint).filter(t => t < x.domain()[1]))(s) : [];
-    const y = scaleLinear().domain([0, max(counted, b => b.length) || 1]).nice();
+    const y = valueScale([max(counted, b => b.length)], { zero: true });
     // The median label sits in its own row above the plot.
     const { plot, xTicks, yTicks } = cartesian({ width, height, x, y, xTitle, yTitle, extraTop: showMedian ? 16 : 0 });
     if (s.length === 0) {

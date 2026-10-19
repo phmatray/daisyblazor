@@ -19,7 +19,7 @@
                       fill="@color" fill-opacity="0.12" stroke="@color" stroke-opacity="0.45">
                     <title>@($"{node.Path}: {_format(node.Value)}")</title>
                 </rect>
-                @if (node.Thickness >= 14 && ChartInk.Fit(_text(node), node.Room, 11) is { } header)
+                @if (node.Thickness >= 14 && ChartText.Fit(_text(node), node.Room, 11) is { } header)
                 {
                     <SvgText X="@node.LabelX" Y="@node.LabelY" Dy="0.35em" FontSize="11" FontWeight="600" Text="@header" />
                 }
@@ -29,14 +29,14 @@
                 <rect x="@N(node.X0)" y="@N(node.Y0)" width="@N(w)" height="@N(h)" rx="2" fill="@color" fill-opacity="0.9">
                     <title>@($"{node.Path}: {_format(node.Value)}")</title>
                 </rect>
-                @if (node.Thickness >= 20 && ChartInk.Fit(node.Name, node.Room, 12) is { } name)
+                @if (node.Thickness >= 20 && ChartText.Fit(node.Name, node.Room, 12) is { } name)
                 {
                     <SvgText X="@node.LabelX" Y="@node.LabelY" Dy="0.1em" FontSize="12" FontWeight="600"
-                             Fill="@ChartInk.ContentOn(color)" Text="@name" />
-                    @if (ShowValues && node.Thickness >= 36 && ChartInk.Fit(_format(node.Value), node.Room, 11) is { } value)
+                             Fill="@ChartPalette.ContentOf(color)" Text="@name" />
+                    @if (ShowValues && node.Thickness >= 36 && ChartText.Fit(_format(node.Value), node.Room, 11) is { } value)
                     {
                         <SvgText X="@node.LabelX" Y="@(node.LabelY + 15)" Dy="0.1em" FontSize="11"
-                                 Fill="@ChartInk.ContentOn(color)" FillOpacity="0.85" Text="@value" />
+                                 Fill="@ChartPalette.ContentOf(color)" FillOpacity="0.85" Text="@value" />
                     }
                 }
             }

@@ -1,4 +1,5 @@
 import { scaleLinear } from '../d3.mjs';
+import { dodge, r2 } from './_shared.mjs';
 
 // spec: { stages: [{ label, value }], width, height, shape: 'funnel' | 'pyramid', gap }
 // funnel: equal-height stages, each as wide as its value and narrowing to the next one.
@@ -41,26 +42,8 @@ export default function funnel({ stages, width, height, shape = 'funnel', gap = 
     }
 
     // Each label pair takes two lines; labels move apart where stages are thinner than that.
-    const ys = spread(out.map(s => (s.y0 + s.y1) / 2), 34, top + 14, bottom - 18);
+    const ys = dodge(out.map(s => (s.y0 + s.y1) / 2), 34, top + 14, bottom - 18);
     return { stages: out.map((s, i) => ({ ...s, labelY: ys[i], nameX: left - 10, valueX: right + 10 })) };
 }
 
-// Keeps sorted positions at least minGap apart inside [lo, hi], moving each as little as possible.
-function spread(ys, minGap, lo, hi) {
-    const order = ys.map((_, i) => i).sort((a, b) => ys[a] - ys[b]);
-    const out = [...ys];
-    let prev = -Infinity;
-    for (const i of order) {
-        out[i] = Math.max(out[i], prev + minGap, lo);
-        prev = out[i];
-    }
-    let next = Infinity;
-    for (const i of [...order].reverse()) {
-        out[i] = Math.min(out[i], next - minGap, hi);
-        next = out[i];
-    }
-    return out;
-}
-
-const poly = points => 'M' + points.map(([x, y]) => `${round(x)},${round(y)}`).join('L') + 'Z';
-const round = v => Math.round(v * 100) / 100;
+const poly = points => 'M' + points.map(([x, y]) => `${r2(x)},${r2(y)}`).join('L') + 'Z';

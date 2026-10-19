@@ -10,7 +10,7 @@ public sealed record ParallelItem(string Label, IReadOnlyList<double> Values, st
 public sealed record ParallelLayout(IReadOnlyList<ParallelLayoutAxis> Axes, IReadOnlyList<ParallelLayoutLine> Lines);
 
 /// <summary>A vertical axis: its position, name label and its own ticks.</summary>
-public sealed record ParallelLayoutAxis(string Name, double X, double Y1, double Y2, CompareText Label, IReadOnlyList<CompareTick> Ticks);
+public sealed record ParallelLayoutAxis(string Name, double X, double Y1, double Y2, ChartLabel Label, IReadOnlyList<AxisTick> Ticks);
 
 /// <summary>An item's polyline across the axes; Index is its position in the data.</summary>
 public sealed record ParallelLayoutLine(string Label, int Index, IReadOnlyList<double?> Values, string Path);

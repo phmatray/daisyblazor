@@ -82,6 +82,17 @@ public static class ChartPalette
     };
 
     /// <summary>
+    /// A readable text colour on top of <paramref name="color"/>: the matching <c>-content</c> token
+    /// for a daisyUI theme colour (<c>var(--color-primary)</c> → <c>var(--color-primary-content)</c>),
+    /// else <paramref name="fallback"/>, since the content colour of any other CSS colour is unknown.
+    /// </summary>
+    public static string ContentOf(string color, string fallback = "var(--color-base-content)") =>
+        color.StartsWith("var(--color-", StringComparison.Ordinal) && color.EndsWith(')')
+            && !color.StartsWith("var(--color-base", StringComparison.Ordinal) && !color.EndsWith("-content)", StringComparison.Ordinal)
+            ? color[..^1] + "-content)"
+            : fallback;
+
+    /// <summary>
     /// Returns <paramref name="overrideColor"/> when provided; otherwise the palette entry at
     /// <paramref name="index"/> (wrapping with modulo). Safe for any non-negative index.
     /// </summary>

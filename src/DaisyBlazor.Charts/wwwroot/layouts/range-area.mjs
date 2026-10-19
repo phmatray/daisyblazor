@@ -1,7 +1,8 @@
-import { area, line, scaleLinear, curveMonotoneX, curveLinear } from '../d3.mjs';
-import { xScale, yAxis, finite, r2, byDate } from './_time.mjs';
+import { area, line, curveMonotoneX, curveLinear } from '../d3.mjs';
+import { finite, r2, ticks, valueScale } from './_shared.mjs';
+import { xScale, yAxisWidth, byDate } from './_time.mjs';
 
-const EMPTY = { band: '', center: '', points: [], xTicks: [], yTicks: [], plot: { x0: 0, y0: 0, x1: 0, y1: 0 } };
+const EMPTY = { band: '', center: '', points: [], xTicks: [], yTicks: [], plot: { left: 0, top: 0, right: 0, bottom: 0 } };
 
 // spec: { points: [{ date, label, low, high, center }], width, height, smooth }
 // The x axis is a time axis when every point has a date, a category axis otherwise. Points
@@ -14,16 +15,16 @@ export default function rangeArea({ points, width, height, smooth = true }) {
     }
 
     const values = valid.flatMap(p => [p.low, p.high, ...(finite(p.center) ? [p.center] : [])]);
-    const y = scaleLinear().domain([Math.min(0, ...values), Math.max(...values)]).nice();
+    const y = valueScale(values, { zero: true });
     const top = 10, bottom = height - 24;
-    const axis = yAxis(y, Math.max(2, Math.floor((bottom - top) / 40)));
-    const plot = { x0: axis.width, y0: top, x1: width - 24, y1: bottom };
-    y.range([plot.y1, plot.y0]);
+    const count = Math.max(2, Math.floor((bottom - top) / 40));
+    const plot = { left: yAxisWidth(y, count), top, right: width - 24, bottom };
+    y.range([plot.bottom, plot.top]);
 
     const x = xScale({
         dates: valid.map(p => p.date),
         labels: valid.map(p => p.label),
-        count: valid.length, x0: plot.x0, x1: plot.x1, pad: 4,
+        count: valid.length, x0: plot.left, x1: plot.right, pad: 4,
     });
     const curve = smooth ? curveMonotoneX : curveLinear;
     const xs = valid.map((_, i) => x.at(i));
@@ -34,10 +35,10 @@ export default function rangeArea({ points, width, height, smooth = true }) {
         // x0/x1 bound each point's hover strip: halfway to its neighbours.
         points: valid.map((p, i) => ({
             label: x.label(i), low: p.low, high: p.high, center: finite(p.center) ? p.center : null,
-            x: r2(xs[i]), x0: r2(i === 0 ? plot.x0 : (xs[i - 1] + xs[i]) / 2), x1: r2(i === valid.length - 1 ? plot.x1 : (xs[i] + xs[i + 1]) / 2),
+            x: r2(xs[i]), x0: r2(i === 0 ? plot.left : (xs[i - 1] + xs[i]) / 2), x1: r2(i === valid.length - 1 ? plot.right : (xs[i] + xs[i + 1]) / 2),
         })),
-        xTicks: x.ticks.map(t => ({ position: r2(t.position), label: t.label })),
-        yTicks: axis.ticks.map(t => ({ position: r2(y(t.value)), label: t.label })),
+        xTicks: x.ticks,
+        yTicks: ticks(y, count),
         plot,
     };
 }

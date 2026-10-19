@@ -1,5 +1,6 @@
 import { area, curveBasis, max } from '../d3.mjs';
-import { frame, kde, sorted, steps, ticks, valueScale, r2 } from './_distribution.mjs';
+import { valueScale, r2 } from './_shared.mjs';
+import { frame, kde, sorted, steps, ticks } from './_distribution.mjs';
 
 const SAMPLES = 64;
 

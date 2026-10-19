@@ -24,12 +24,9 @@ public sealed record GaugeLayoutTick(double Value, double X, double Y, string An
 
 /// <summary>Geometry of a <see cref="LinearGaugeChart"/>.</summary>
 public sealed record LinearGaugeLayout(
-    LinearGaugeRect? Track, LinearGaugeRect? Fill, IReadOnlyList<LinearGaugeBand> Bands,
+    ChartRect? Track, ChartRect? Fill, IReadOnlyList<LinearGaugeBand> Bands,
     LinearGaugePointer? Pointer, GaugeLayoutMarker? Marker, IReadOnlyList<LinearGaugeTick> Ticks,
     double Value, double FontSize);
-
-/// <summary>A rectangle in chart units.</summary>
-public sealed record LinearGaugeRect(double X, double Y, double Width, double Height);
 
 /// <summary>A placed band: the index of the source <see cref="GaugeBand"/>, its clamped range and its rectangle.</summary>
 public sealed record LinearGaugeBand(int Index, double From, double To, double X, double Y, double Width, double Height);

@@ -30,12 +30,7 @@
                 <title>@_ariaLabel</title>
                 <desc id="@_descId">@_description</desc>
 
-                @foreach (AxisLabel tick in geo.YTicks)
-                {
-                    <line x1="@N(geo.Plot.Left)" y1="@N(tick.Pos)" x2="@N(geo.Plot.Right)" y2="@N(tick.Pos)"
-                          stroke="var(--color-base-content)" stroke-opacity="0.12" stroke-width="1" />
-                    <SvgText X="@(geo.Plot.Left - 6)" Y="@tick.Pos" Dy="0.35em" Anchor="end" FillOpacity="0.6" Text="@tick.Label" />
-                }
+                <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="geo.YTicks" YGrid="true" ViewWidth="geo.Width" />
 
                 @for (int s = 0; s < Math.Min(_series.Count, geo.Series.Count); s++)
                 {
@@ -63,17 +58,6 @@
                             </circle>
                         }
                     }
-                }
-
-                @foreach (AxisLabel label in geo.XLabels)
-                {
-                    <g>
-                        @if (label.Full != label.Label)
-                        {
-                            <title>@label.Full</title>
-                        }
-                        <SvgText X="@label.Pos" Y="@geo.LabelY" Anchor="middle" FillOpacity="0.6" Text="@label.Label" />
-                    </g>
                 }
             </svg>
         }
@@ -146,7 +130,7 @@
     /// <inheritdoc />
     protected override object BuildSpec() => new
     {
-        Series = _series.Select(s => ChartText.Spec(s.Data)).ToArray(),
+        Series = _series.Select(s => s.Data ?? []).ToArray(),
         Labels = Labels ?? [],
         Stacked,
         Smooth,

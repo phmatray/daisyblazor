@@ -1,7 +1,8 @@
 import { scaleUtc, scaleBand } from '../d3.mjs';
-import { parseDate, labelOf, textWidth, timeTicks, fit, r2 } from './_time.mjs';
+import { fit, maxWidth, r2 } from './_shared.mjs';
+import { parseDate, labelOf, timeTicks } from './_time.mjs';
 
-const EMPTY = { rows: [], groups: [], today: null, xTicks: [], plot: { x0: 0, y0: 0, x1: 0, y1: 0 } };
+const EMPTY = { rows: [], groups: [], today: null, xTicks: [], plot: { left: 0, top: 0, right: 0, bottom: 0 } };
 
 // spec: { tasks: [{ name, start, end, group, progress }], today, width, height }
 // Tasks need a name and a valid start; a missing or earlier end makes a milestone (start = end).
@@ -25,17 +26,16 @@ export default function gantt({ tasks, today, width, height }) {
         ...groups.flatMap(g => [{ header: g }, ...valid.filter(t => t.group === g).map(t => ({ task: t }))]),
     ];
 
-    const size = 11;
-    const widest = Math.max(...rows.map(r => textWidth(r.header ?? r.task.name, size)));
+    const widest = maxWidth(rows.map(r => r.header ?? r.task.name));
     const labelRoom = Math.min(widest, width * 0.35); // grouped tasks are indented 8 more units
-    const plot = { x0: labelRoom + 20, y0: 18, x1: width - 24, y1: height - 24 };
+    const plot = { left: labelRoom + 20, top: 18, right: width - 24, bottom: height - 24 };
 
     const first = new Date(Math.min(...valid.map(t => t.start)));
     const last = new Date(Math.max(...valid.map(t => t.end)));
     const x = scaleUtc()
         .domain([first, +last > +first ? last : new Date(+first + 86400000)])
-        .range([plot.x0, plot.x1]);
-    const band = scaleBand().domain(rows.map((_, i) => i)).range([plot.y0, plot.y1]).paddingInner(0.3).paddingOuter(0.15);
+        .range([plot.left, plot.right]);
+    const band = scaleBand().domain(rows.map((_, i) => i)).range([plot.top, plot.bottom]).paddingInner(0.3).paddingOuter(0.15);
     const now = parseDate(today);
 
     return {
@@ -43,22 +43,22 @@ export default function gantt({ tasks, today, width, height }) {
             const y = r2(band(i));
             const h = r2(band.bandwidth());
             if (r.header) {
-                return { header: true, name: r.header, label: fit(r.header, labelRoom, size), group: groups.indexOf(r.header), y, h };
+                return { header: true, name: r.header, label: fit(r.header, labelRoom), group: groups.indexOf(r.header), y, h };
             }
             const t = r.task;
             const x0 = x(t.start);
             const x1 = Math.max(x(t.end), x0 + 2);
             const progress = typeof t.progress === 'number' && Number.isFinite(t.progress) ? Math.min(1, Math.max(0, t.progress)) : null;
             return {
-                header: false, name: t.name, label: fit(t.name, labelRoom, size), group: t.group ? groups.indexOf(t.group) : -1,
+                header: false, name: t.name, label: fit(t.name, labelRoom), group: t.group ? groups.indexOf(t.group) : -1,
                 milestone: +t.start === +t.end, start: labelOf(t.start), end: labelOf(t.end), progress,
                 x0: r2(x0), x1: r2(x1), y, h,
             };
         }),
         groups,
-        today: now && now >= x.domain()[0] && now <= x.domain()[1] ? { position: r2(x(now)), label: labelOf(now) } : null,
+        today: now && now >= x.domain()[0] && now <= x.domain()[1] ? { pos: r2(x(now)), label: labelOf(now) } : null,
         // Every task boundary counts as a data point, so a long plan still gets enough ticks.
-        xTicks: timeTicks(x, valid.flatMap(t => [t.start, t.end])).map(t => ({ position: r2(t.position), label: t.label })),
+        xTicks: timeTicks(x, valid.flatMap(t => [t.start, t.end])),
         plot,
     };
 }

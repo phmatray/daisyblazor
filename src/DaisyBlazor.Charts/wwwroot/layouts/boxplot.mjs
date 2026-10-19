@@ -1,4 +1,5 @@
-import { boxStats, grouped, r2 } from './_distribution.mjs';
+import { r2 } from './_shared.mjs';
+import { boxStats, grouped } from './_distribution.mjs';
 
 // spec: { groups: [{ name, values }], width, height, horizontal, valueTitle }
 // One box per group from its raw values: quartiles, whiskers at the furthest values within 1.5 IQR of

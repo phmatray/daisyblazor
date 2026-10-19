@@ -43,13 +43,13 @@ public class ChartsProgressTests : BunitContext
 
         call.SetResult(new WaterfallLayout(
             [
-                new("Open", "total", 100, 100, 50, 100, 60, 200, 80, 94, "middle", 80, 330),
-                new("New", "increase", 40, 140, 150, 20, 60, 80, 180, 14, "middle", 180, 330),
-                new("Lost", "decrease", -25, 115, 250, 20, 60, 50, 280, 14, "middle", 280, 330),
-                new("Close", "total", 115, 115, 350, 70, 60, 230, 380, 64, "middle", 380, 330),
+                new("Open", "total", 100, 100, 50, 100, 60, 200, 80, 94, "middle"),
+                new("New", "increase", 40, 140, 150, 20, 60, 80, 180, 14, "middle"),
+                new("Lost", "decrease", -25, 115, 250, 20, 60, 50, 280, 14, "middle"),
+                new("Close", "total", 115, 115, 350, 70, 60, 230, 380, 64, "middle"),
             ],
             [new(110, 100, 150, 100)],
-            [new(0, 300), new(100, 100)],
+            [new(300, "0", 0), new(100, "100", 100)],
             new(48, 20, 632, 300),
             300));
 
@@ -207,7 +207,7 @@ public class ChartsProgressTests : BunitContext
                 new("DNS", 30, 0.3, 0.8, 260, 130, 100, 170, 310, 76),
                 new("Other", 20, 0.2, 1, 460, 190, 100, 110, 510, 12),
             ],
-            "M110,170L310,76L510,12", [new(0, 300), new(50, 12)], [new(0, 300), new(0.8, 76), new(1, 12)],
+            "M110,170L310,76L510,12", [new(300, "0", 0), new(12, "50", 50)], [new(300, "0", 0), new(76, "0.8", 0.8), new(12, "1", 1)],
             new(48, 12, 594, 300), 76, 2));
 
         cut.WaitForAssertion(() => cut.FindAll("svg rect").Count.ShouldBe(3));
@@ -236,7 +236,7 @@ public class ChartsProgressTests : BunitContext
                 new(0, 0, 30, 0.75, 44, 85, 232, 230), new(0, 1, 10, 0.25, 44, 6, 232, 77),
                 new(1, 0, 20, 1 / 3d, 278, 214, 356, 101), new(1, 1, 40, 2 / 3d, 278, 6, 356, 206),
             ],
-            ["Free", "Pro"], [new(0, 320), new(1, 6)], new(44, 6, 634, 320)));
+            ["Free", "Pro"], [new(320, "0", 0), new(6, "1", 1)], new(44, 6, 634, 320)));
 
         cut.WaitForAssertion(() => cut.FindAll("svg rect").Count.ShouldBe(4));
         cut.Markup.ShouldContain("75%");

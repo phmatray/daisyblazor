@@ -1,7 +1,7 @@
 import { line, scalePoint, curveBumpX } from '../d3.mjs';
-import { finite, textWidth, fit, r2 } from './_time.mjs';
+import { finite, maxWidth, fit, r2, stride } from './_shared.mjs';
 
-const EMPTY = { lines: [], xTicks: [], ranks: 0, plot: { x0: 0, y0: 0, x1: 0, y1: 0 } };
+const EMPTY = { lines: [], xTicks: [], ranks: 0, plot: { left: 0, top: 0, right: 0, bottom: 0 } };
 
 // spec: { series: [{ name, values }], labels, valuesAreRanks, width, height }
 // values[i] belongs to period labels[i]. By default the values are scores and the highest one in a
@@ -25,15 +25,15 @@ export default function bump({ series, labels, valuesAreRanks = false, width, he
 
     // Names sit at both ends of the lines, so the margins are as wide as the longest name.
     const size = 12;
-    const side = Math.min(width * 0.25, Math.max(...named.map(s => textWidth(s.name ?? '', size)))) + 14;
-    const plot = { x0: side, y0: 12, x1: width - side, y1: height - 26 };
+    const side = Math.min(width * 0.25, maxWidth(named.map(s => s.name ?? ''), size)) + 14;
+    const plot = { left: side, top: 12, right: width - side, bottom: height - 26 };
     const periods = Array.from({ length: count }, (_, i) => String(labels?.[i] ?? i + 1));
-    const x = scalePoint().domain(periods.map((_, i) => i)).range([plot.x0, plot.x1]);
-    const y = scalePoint().domain(Array.from({ length: depth }, (_, r) => r + 1)).range([plot.y0, plot.y1]).padding(0.5);
+    const x = scalePoint().domain(periods.map((_, i) => i)).range([plot.left, plot.right]);
+    const y = scalePoint().domain(Array.from({ length: depth }, (_, r) => r + 1)).range([plot.top, plot.bottom]).padding(0.5);
     const path = line().defined(d => d.rank !== null).x(d => d.x).y(d => d.y).curve(curveBumpX);
 
     // Period labels are thinned so neighbours never touch.
-    const every = Math.max(1, Math.ceil((Math.max(...periods.map(p => textWidth(p))) + 10) / Math.max(1, x.step())));
+    const every = stride(periods, x.step(), 10);
 
     return {
         lines: named.map((s, k) => {
@@ -50,7 +50,7 @@ export default function bump({ series, labels, valuesAreRanks = false, width, he
                 end: last && { x: last.x, y: last.y },
             };
         }),
-        xTicks: periods.flatMap((p, i) => (i % every === 0 ? [{ position: r2(x(i)), label: p }] : [])),
+        xTicks: periods.flatMap((p, i) => (i % every === 0 ? [{ pos: r2(x(i)), label: p }] : [])),
         ranks: depth,
         plot,
     };

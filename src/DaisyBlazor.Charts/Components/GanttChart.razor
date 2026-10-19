@@ -8,7 +8,7 @@
 <D3ChartFrame TLayout="GanttLayout" Chart="this" Label="@_label" Description="@_description">
     @if (Layout is { } geo)
     {
-        <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" XGrid="true" ViewWidth="ViewWidth" />
+        <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" XGrid="true" Baseline="true" XTickMarks="true" ViewWidth="ViewWidth" />
         @foreach (GanttRow row in geo.Rows)
         {
             double mid = row.Y + row.H / 2;
@@ -43,11 +43,11 @@
 
         @if (ShowToday && geo.Today is { } today)
         {
-            <line x1="@N(today.Position)" x2="@N(today.Position)" y1="@N(geo.Plot.Y0 - 4)" y2="@N(geo.Plot.Y1)"
+            <line x1="@N(today.Pos)" x2="@N(today.Pos)" y1="@N(geo.Plot.Top - 4)" y2="@N(geo.Plot.Bottom)"
                   stroke="var(--color-error)" stroke-width="1.5" stroke-dasharray="4 3">
                 <title>@($"{TodayLabel}: {today.Label}")</title>
             </line>
-            <SvgText X="@today.Position" Y="@(geo.Plot.Y0 - 7)" Anchor="@(today.Position + TodayLabel.Length * 3 > ViewWidth ? "end" : "middle")" FontSize="10" FontWeight="600"
+            <SvgText X="@today.Pos" Y="@(geo.Plot.Top - 7)" Anchor="@(today.Pos + ChartText.Width(TodayLabel, 10) / 2 > ViewWidth ? "end" : "middle")" FontSize="10" FontWeight="600"
                      Fill="var(--color-error)" Text="@TodayLabel" />
         }
     }
@@ -78,7 +78,7 @@
             t.Start,
             t.End,
             t.Group,
-            Progress = t.Progress is double p ? SpecValue.Finite(p) : null,
+            t.Progress,
         }).ToArray(),
         Today = ShowToday ? Today ?? DateTime.Today : (DateTime?)null,
         Width = ViewWidth,

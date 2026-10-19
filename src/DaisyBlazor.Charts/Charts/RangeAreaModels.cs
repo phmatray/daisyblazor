@@ -21,9 +21,9 @@ public sealed record RangeAreaLayout(
     string Band,
     string Center,
     IReadOnlyList<RangeAreaLayoutPoint> Points,
-    IReadOnlyList<TimeAxisTick> XTicks,
-    IReadOnlyList<TimeAxisTick> YTicks,
-    TimePlotArea Plot);
+    IReadOnlyList<AxisTick> XTicks,
+    IReadOnlyList<AxisTick> YTicks,
+    PlotArea Plot);
 
 /// <summary>A placed point: its label, values, x position and the hover strip from X0 to X1.</summary>
 public sealed record RangeAreaLayoutPoint(string Label, double Low, double High, double? Center, double X, double X0, double X1);

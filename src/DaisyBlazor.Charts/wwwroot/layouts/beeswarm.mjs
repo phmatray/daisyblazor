@@ -1,4 +1,5 @@
-import { grouped, sorted, r2 } from './_distribution.mjs';
+import { r2 } from './_shared.mjs';
+import { grouped, sorted } from './_distribution.mjs';
 
 // spec: { groups: [{ name, values }], width, height, valueTitle, radius }
 // Values run along the x axis, one row per group. Each dot is placed, in value order, at the

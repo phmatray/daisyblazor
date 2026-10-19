@@ -13,8 +13,8 @@
                 <rect x="@N(view.Plot.Left)" y="@N(view.Plot.Top)" width="@N(view.Plot.Right - view.Plot.Left)" height="@N(view.Plot.Bottom - view.Plot.Top)" />
             </clipPath>
         </defs>
-        <DistributionAxes Plot="view.Plot" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
-                          XGrid="true" YGrid="true" Height="ViewHeight" />
+        <ChartAxes Plot="view.Plot" Baseline="true" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
+                   XGrid="true" YGrid="true" Height="ViewHeight" />
         <g clip-path="@($"url(#{_clipId})")">
             @foreach (HexbinBin bin in view.Bins)
             {
