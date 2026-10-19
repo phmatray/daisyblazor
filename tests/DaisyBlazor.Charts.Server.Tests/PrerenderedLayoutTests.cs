@@ -22,7 +22,7 @@ public sealed class PrerenderedLayoutTests : IClassFixture<PrerenderedLayoutTest
     public PrerenderedLayoutTests(EngineFixture fixture) => _engine = fixture.Engine;
 
     [Fact]
-    public void The_prerendered_layout_is_restored_without_javascript()
+    public void The_prerendered_layout_is_restored_without_laying_out_again()
     {
         string key;
         string layout;
@@ -42,6 +42,9 @@ public sealed class PrerenderedLayoutTests : IClassFixture<PrerenderedLayoutTest
 
         using BunitContext browser = new();
         browser.JSInterop.Mode = JSRuntimeMode.Strict;
+        // The chart only measures its box, which is as wide as the frame or wider.
+        BunitJSModuleInterop module = browser.JSInterop.SetupModule("./_content/DaisyBlazor.Charts/charts.mjs");
+        module.Setup<double?>("observe", _ => true).SetResult(800);
         BunitPersistentComponentState restored = browser.AddBunitPersistentComponentState();
         restored.Persist(key, layout);
         browser.SetRendererInfo(new RendererInfo("WebAssembly", isInteractive: true));
@@ -50,7 +53,8 @@ public sealed class PrerenderedLayoutTests : IClassFixture<PrerenderedLayoutTest
 
         cut.FindAll("[aria-busy=true]").ShouldBeEmpty();
         cut.FindAll("svg rect").Count.ShouldBe(3);
-        browser.JSInterop.Invocations.ShouldBeEmpty();
+        module.Invocations["observe"].Count.ShouldBe(1);
+        module.Invocations["layout"].ShouldBeEmpty();
     }
 
     [Fact]
@@ -96,6 +100,24 @@ public sealed class PrerenderedLayoutTests : IClassFixture<PrerenderedLayoutTest
         state.TriggerOnPersisting();
 
         state.TryTake(D3ChartBase<SankeyLayout>.StateKey("sankey", prerendered.Instance.SpecJson!), out string? _).ShouldBeFalse();
+    }
+
+    [Fact]
+    public void An_interactive_server_chart_lays_out_a_narrow_box_on_the_server()
+    {
+        using BunitContext circuit = new();
+        circuit.Services.AddSingleton<IChartLayoutEngine>(_engine);
+        circuit.JSInterop.Mode = JSRuntimeMode.Strict;
+        BunitJSModuleInterop module = circuit.JSInterop.SetupModule("./_content/DaisyBlazor.Charts/charts.mjs");
+        module.Setup<double?>("observe", _ => true).SetResult(360);
+        circuit.SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+
+        IRenderedComponent<SankeyChart> cut = circuit.Render<SankeyChart>(ps => ps.Add(p => p.Links, _links));
+
+        cut.WaitForAssertion(() => cut.Find("svg").GetAttribute("viewBox").ShouldBe("0 0 360 202.5"));
+        cut.Instance.SpecJson!.ShouldContain("\"width\":360,\"height\":202.5");
+        cut.FindAll("svg rect").Count.ShouldBe(3);
+        module.Invocations["layout"].ShouldBeEmpty();
     }
 
     private BunitContext ServerContext(out BunitPersistentComponentState state)

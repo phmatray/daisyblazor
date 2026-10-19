@@ -1,9 +1,9 @@
 @page "/components"
 
-<DocShell Title="Components" PageTitle="All components" Tracks="_tracks" Portrait="Cover" PortraitCaption="Cover · the whole catalogue">
+<DocShell Title="Components" PageTitle="All components" Canonical="components/" Description="@($"{DocRegistry.ComponentCount} daisyUI components and {DocRegistry.ChartCount} SVG chart types for Blazor, each running live with its code, a playground and its API.")" Tracks="_tracks" Portrait="Cover" PortraitCaption="Cover · the whole catalogue">
     <Lede>
-        @DocRegistry.All.Count daisyUI-native components for Blazor, grouped by daisyUI's own taxonomy. Every tile below is
-        rendered live, in the active theme.
+        @DocRegistry.ComponentCount daisyUI-native components and @DocRegistry.ChartCount chart types for Blazor, grouped by daisyUI's own
+        taxonomy and the charts by family. Every tile below is rendered live, in the active theme.
     </Lede>
     <ChildContent>
         @foreach (IGrouping<Category, ComponentDoc> group in DocRegistry.ByCategory())
@@ -13,35 +13,31 @@
                     <h2 class="font-display text-[2rem] font-bold leading-tight">@group.Key.Title()</h2>
                     <p class="text-base-content/70">@group.Key.Blurb()</p>
                 </div>
-                <ul class="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
-                    @foreach (ComponentDoc d in group)
+                @if (group.Key == Category.Charts)
+                {
+                    foreach (ChartFamily family in DocRegistry.ChartFamilies)
                     {
-                        Type? cover = d.Portrait ?? d.Examples.FirstOrDefault()?.Component;
-                        <li>
-                            <a href="@d.Url" class="group flex h-full flex-col overflow-hidden rounded-2xl border-2 border-base-content transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-18px_rgb(0_0_0/0.5)]">
-                                @* Tall covers start at the top and fade out at the bottom instead of being cut through the middle. *@
-                                <div class="pointer-events-none grid h-56 overflow-hidden bg-base-100 p-4 [place-items:safe_center] [mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)]" inert>
-                                    <div class="w-full origin-top scale-[0.78]">
-                                        @if (cover is not null)
-                                        {
-                                            <DynamicComponent Type="cover" />
-                                        }
-                                    </div>
-                                </div>
-                                <div class="mt-auto border-t-2 border-base-content bg-base-200/60 px-4 py-3 transition group-hover:bg-primary group-hover:text-primary-content">
-                                    <span class="flex items-baseline justify-between gap-2">
-                                        <span class="font-display text-xl font-semibold">@d.Name</span>
-                                        @if (d.MudEquivalent is not null)
-                                        {
-                                            <span class="text-xs font-bold opacity-70">@d.MudEquivalent</span>
-                                        }
-                                    </span>
-                                    <span class="line-clamp-2 text-sm opacity-80">@d.Summary</span>
-                                </div>
-                            </a>
-                        </li>
+                        <div id="@family.Slug" class="mb-12 scroll-mt-6">
+                            <h3 class="mb-1 font-display text-2xl font-semibold">@family.Title <span class="text-base font-semibold tabular-nums text-base-content/75">@family.Docs.Count</span></h3>
+                            <p class="mb-5 text-base-content/80">@family.Blurb</p>
+                            <ul class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+                                @foreach (ComponentDoc d in family.Docs)
+                                {
+                                    <li><DocTile Doc="d" Compact /></li>
+                                }
+                            </ul>
+                        </div>
                     }
-                </ul>
+                }
+                else
+                {
+                    <ul class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                        @foreach (ComponentDoc d in group)
+                        {
+                            <li><DocTile Doc="d" /></li>
+                        }
+                    </ul>
+                }
             </section>
         }
     </ChildContent>
@@ -57,7 +53,7 @@
             {
                 <span class="flex aspect-square flex-col justify-between rounded-lg bg-base-200 p-2">
                     <span class="font-display text-2xl font-bold tabular-nums">@g.Count()</span>
-                    <span class="text-[0.65rem] font-bold leading-tight">@g.Key.Title()</span>
+                    <span class="text-xs font-bold leading-tight">@g.Key.Title()</span>
                 </span>
             }
         </div>

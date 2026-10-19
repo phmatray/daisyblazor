@@ -67,7 +67,7 @@ public class LibraryChartsFixTests : BunitContext
     [Fact]
     public void Measured_charts_keep_their_CSS_height_while_loading()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ChartFakes.ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         JSRuntimeInvocationHandler<LineLayout> observe = module.Setup<LineLayout>("observe", _ => true);
         IRenderedComponent<LineChart> cut = Render<LineChart>(ps => ps
             .Add(p => p.Series, One(1, 2))
@@ -172,8 +172,10 @@ public class LibraryChartsFixTests : BunitContext
         IRenderedComponent<AreaChart> cut = Render<AreaChart>(ps => ps
             .Add(p => p.Series, new List<ChartSeries> { new("A", [5]), new("B", [1, 2]) }));
 
-        cut.FindAll("circle").Count.ShouldBe(1);
-        cut.Find("circle > title").TextContent.ShouldBe("A · 1: 5");
+        // The other points only get transparent hover targets.
+        cut.FindAll("circle:not([fill='transparent'])").Count.ShouldBe(1);
+        cut.Find("circle:not([fill='transparent']) > title").TextContent.ShouldBe("A · 1: 5");
+        cut.FindAll("circle[fill='transparent']").Count.ShouldBe(2);
     }
 
     [Fact]

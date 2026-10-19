@@ -1,6 +1,6 @@
 namespace DaisyBlazor.Docs.Docs;
 
-public enum HitKind { Guide, Component, Parameter, Section }
+public enum HitKind { Guide, Component, Chart, Parameter, Section }
 
 public sealed record SearchHit(HitKind Kind, string Title, string Context, string Url);
 
@@ -12,13 +12,15 @@ public sealed class SearchIndex(XmlDocs docs)
     public IReadOnlyList<SearchHit> Query(string query, int max = 12)
     {
         query = query.Trim();
+        // "pie chart", "date-picker": names are written as one word (PieChart, DatePicker).
+        string compact = query.Replace(" ", "").Replace("-", "");
         if (query.Length == 0)
         {
             return [.. _items.Value.Where(i => i.Kind == HitKind.Guide).Take(max)];
         }
 
         return [.. _items.Value
-            .Select(i => (item: i, score: Score(i, query)))
+            .Select(i => (item: i, score: Score(i, query, compact)))
             .Where(x => x.score > 0)
             .OrderByDescending(x => x.score)
             .ThenBy(x => x.item.Title.Length)
@@ -26,9 +28,21 @@ public sealed class SearchIndex(XmlDocs docs)
             .Select(x => x.item)];
     }
 
+    private static int Score(SearchHit item, string q, string compact)
+    {
+        int score = Score(item, q);
+        if (score == 0 && compact != q) score = Score(item, compact);
+        // Several words match a description when each of them appears in it.
+        if (score == 0 && q.Contains(' ') && q.Split(' ', StringSplitOptions.RemoveEmptyEntries).All(w => item.Context.Contains(w, StringComparison.OrdinalIgnoreCase)))
+        {
+            score = 60;
+        }
+        return score;
+    }
+
     private static int Score(SearchHit item, string q)
     {
-        int kindBonus = item.Kind switch { HitKind.Component => 40, HitKind.Guide => 30, HitKind.Section => 10, _ => 0 };
+        int kindBonus = item.Kind switch { HitKind.Component or HitKind.Chart => 40, HitKind.Guide => 30, HitKind.Section => 10, _ => 0 };
         string t = item.Title;
         if (t.Equals(q, StringComparison.OrdinalIgnoreCase)) return 1000 + kindBonus;
         if (t.StartsWith(q, StringComparison.OrdinalIgnoreCase)) return 600 + kindBonus;
@@ -63,7 +77,9 @@ public sealed class SearchIndex(XmlDocs docs)
 
         foreach (ComponentDoc d in DocRegistry.All)
         {
-            list.Add(new(HitKind.Component, d.Name, $"{d.Category.Title()} · {d.Summary}", d.Url));
+            list.Add(DocRegistry.FamilyOf(d) is { } family
+                ? new(HitKind.Chart, d.Name, $"Charts · {family.Title} · {d.Summary}", d.Url)
+                : new(HitKind.Component, d.Name, $"{d.Category.Title()} · {d.Summary}", d.Url));
             if (d.MudEquivalent is not null)
             {
                 list.Add(new(HitKind.Component, d.MudEquivalent, $"MudBlazor → {d.Name}", d.Url + "#migration"));

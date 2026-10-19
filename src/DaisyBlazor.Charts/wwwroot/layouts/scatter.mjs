@@ -2,7 +2,7 @@ import { extent } from '../d3/d3-array.mjs';
 import { Delaunay } from '../d3/d3-delaunay.mjs';
 import { scaleSqrt } from '../d3/d3-scale.mjs';
 import { line, curveMonotoneX } from '../d3/d3-shape.mjs';
-import { finite, valueScale, r2, fitTrend, trendOf, referenceMarks, referenceValues } from './_shared.mjs';
+import { finite, valueScale, r2, fitTrend, trendOf, referenceRoom, referenceMarks, referenceValues } from './_shared.mjs';
 import { cartesian } from './_distribution.mjs';
 
 // spec: { points: [{ x, y, size, series, label, xError, yError }], width, height, xLog, yLog, xTitle, yTitle,
@@ -51,7 +51,8 @@ export default function scatter({ points, width, height, xLog = false, yLog = fa
     ys.push(...referenceValues(yRefs));
     const x = valueScale(xs, { log: xLog });
     const y = valueScale(ys, { log: yLog, zero: stacked });
-    const { plot, xTicks, yTicks } = cartesian({ width, height, x, y, xTitle, yTitle, inset });
+    const yRoom = referenceRoom(width, false, yRefs, yRanges);
+    const { plot, xTicks, yTicks } = cartesian({ width, height, x, y, xTitle, yTitle, inset, extraTop: referenceRoom(width, true, xRefs, xRanges).top, extraRight: yRoom.right });
     const extra = {};
     if (showLine) {
         extra.lines = [];
@@ -65,7 +66,7 @@ export default function scatter({ points, width, height, xLog = false, yLog = fa
         extra.density = [];
     }
     if (yRefs.length || yRanges.length) {
-        Object.assign(extra, referenceMarks(y, false, plot, yRefs, yRanges));
+        Object.assign(extra, referenceMarks(y, false, plot, yRefs, yRanges, yRoom.right));
     }
     if (xRefs.length || xRanges.length) {
         const marks = referenceMarks(x, true, plot, xRefs, xRanges);

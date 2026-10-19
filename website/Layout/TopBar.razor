@@ -13,9 +13,10 @@
         </a>
 
         <nav class="ml-2 hidden items-center gap-0.5 whitespace-nowrap font-bold md:flex lg:ml-6 lg:gap-1" aria-label="Primary">
-            <a class="@Pill(_inGuides)" href="getting-started" aria-current="@(_inGuides ? "page" : null)">Guides</a>
-            <NavLink class="@Pill(false)" href="components">Components</NavLink>
-            <NavLink class="@Pill(false)" href="themes">Themes</NavLink>
+            <a class="@Pill(_section == "guides")" href="getting-started" aria-current="@Current("guides")">Guides</a>
+            <a class="@Pill(_section == "components")" href="components" aria-current="@Current("components")">Components</a>
+            <a class="@Pill(_section == "charts")" href="charts" aria-current="@Current("charts")">Charts</a>
+            <a class="@Pill(_section == "themes")" href="themes" aria-current="@Current("themes")">Themes</a>
             <a class="@Pill(false)" href="https://github.com/phmatray/daisyblazor" target="_blank" rel="noopener">GitHub</a>
         </nav>
 
@@ -24,7 +25,7 @@
                     class="flex h-11 items-center gap-3 rounded-full bg-base-100 px-3 xl:pl-4 xl:pr-1.5 text-base-content/70 shadow-[0_1px_0_rgb(0_0_0/0.08)] transition hover:text-base-content xl:min-w-60"
                     aria-label="Search the docs (Ctrl K)">
                 <Icon Name="@Icons.Material.Filled.Search" Size="Size.Small" />
-                <span class="hidden whitespace-nowrap font-semibold xl:inline">Search components</span>
+                <span class="hidden whitespace-nowrap font-semibold xl:inline">Search the docs</span>
                 <span class="ml-auto hidden gap-1 xl:flex"><Kbd Size="Size.Small">Ctrl</Kbd><Kbd Size="Size.Small">K</Kbd></span>
             </button>
             <ThemeSwitcher />
@@ -47,27 +48,36 @@
     [Parameter] public EventCallback OnSearch { get; set; }
 
     private bool _menu;
-    private bool _inGuides;
+    private string? _section;
 
     private static string Pill(bool active) =>
         "rounded-full px-2.5 py-1.5 hover:bg-primary-content/10 lg:px-3.5 [&.active]:bg-primary-content [&.active]:text-primary" + (active ? " active" : "");
 
     protected override void OnInitialized()
     {
-        _inGuides = IsGuide(Nav.Uri);
+        _section = Section(Nav.Uri);
         Nav.LocationChanged += OnLocationChanged;
     }
 
-    // Every guide except Themes, which has its own tab.
-    private bool IsGuide(string uri)
+    private string? Current(string section) => _section == section ? "page" : null;
+
+    // The tab a page belongs to: a chart's page sits under Charts, every other component under Components.
+    private string? Section(string uri)
     {
-        string path = Nav.ToBaseRelativePath(uri).Split('?', '#')[0];
-        return Guides.All.Any(g => g.Url == path && g.Url != "themes");
+        string path = Nav.ToBaseRelativePath(uri).Split('?', '#')[0].TrimEnd('/');
+        if (path is "charts" or "themes") return path;
+        if (path == "components") return "components";
+        if (path.StartsWith("components/", StringComparison.Ordinal))
+        {
+            // An unknown page lights no tab.
+            return DocRegistry.Find(path["components/".Length..]) is { } doc ? doc.Category == Category.Charts ? "charts" : "components" : null;
+        }
+        return Guides.All.Any(g => g.Url == path) ? "guides" : null;
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        _inGuides = IsGuide(e.Location);
+        _section = Section(e.Location);
         InvokeAsync(StateHasChanged);
     }
 

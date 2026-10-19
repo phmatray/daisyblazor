@@ -2,7 +2,7 @@
 @implements IDisposable
 @inject DocsJs Js
 
-<DocShell Title="Theming" Tracks="G.Tracks" Trail="G.Trail" Portrait="Portrait" PortraitCaption="@($"Active theme · {Current}")">
+<DocShell Title="Theming" Description="@G.Summary" Tracks="G.Tracks" Trail="G.Trail" Portrait="Portrait" PortraitCaption="@($"Active theme · {Current}")">
     <Lede>
         DaisyBlazor uses daisyUI themes. Set <code>data-theme</code> on <code>&lt;html&gt;</code> and every semantic colour token swaps,
         so components re-skin automatically. <code>ThemeProvider</code> does it for you, with dark mode and persistence.

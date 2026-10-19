@@ -42,7 +42,7 @@ public class ChartsHierarchyTests : BunitContext
 
     private (BunitJSModuleInterop Module, JSRuntimeInvocationHandler<T> Call) _setup<T>()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         return (module, module.Setup<T>("layout", _ => true));
     }
 
@@ -91,7 +91,7 @@ public class ChartsHierarchyTests : BunitContext
         _hierarchyChart("icicle", () => Render<IcicleChart>(ps => ps.Add(p => p.Root, _root).Add(p => p.Horizontal, false)), "\"orientation\":\"vertical\"", cut =>
         {
             cut.FindAll("svg rect").Count.ShouldBe(5);
-            cut.Markup.ShouldContain("var(--color-neutral)");
+            cut.Markup.ShouldContain(ChartPalette.Neutral);
         });
 
     [Fact]
@@ -233,7 +233,7 @@ public class ChartsHierarchyTests : BunitContext
     private BunitJSModuleInterop _drillSetup()
     {
         SetRendererInfo(new RendererInfo("WebAssembly", isInteractive: true));
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         module.Setup<HierarchyLayout>("layout", i => !_lastSpec(i).Contains("\"focus\"")).SetResult(_hierarchy);
         module.Setup<HierarchyLayout>("layout", i => _lastSpec(i).Contains("\"focus\":[\"Platform\"]")).SetResult(_platform);
         return module;
@@ -370,7 +370,7 @@ public class ChartsHierarchyTests : BunitContext
     private BunitJSModuleInterop _slashSetup()
     {
         SetRendererInfo(new RendererInfo("WebAssembly", isInteractive: true));
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         HierarchyLayout whole = new(
             [
                 _rect("CI/CD", "CI/CD", 1, 0, false, 10, 0, 0, 640, 360, names: ["CI/CD"]),
@@ -496,4 +496,21 @@ public class ChartsHierarchyTests : BunitContext
     public void Treemap_strip_tiling_is_sent_to_the_layout() =>
         _hierarchyChart("treemap", () => Render<TreemapChart>(ps => ps.Add(p => p.Root, _root).Add(p => p.Tile, TreemapTile.Strip)), "\"tile\":\"strip\"", cut =>
             cut.FindAll("svg rect").Count.ShouldBe(5));
+
+    [Fact]
+    public void Sunburst_hides_a_label_its_arc_would_cut_to_three_letters()
+    {
+        // At tile size the docs cover showed "Bil…" and "Inv…": a stub that names nothing.
+        (_, JSRuntimeInvocationHandler<HierarchyLayout> call) = _setup<HierarchyLayout>();
+        HierarchyLayoutNode Arc(string name, double room) => new(name, name, 1, 0, true, 10, 0, 40, 1, 80, "M0,0Z", 0, -60, 0, room, 20) { Names = [name] };
+        call.SetResult(new HierarchyLayout([Arc("Billing", 30), Arc("Invoices", 60), Arc("Deployments", 45)], ["Billing"], 100, 100));
+
+        IRenderedComponent<SunburstChart> cut = Render<SunburstChart>(ps => ps.Add(p => p.Root, _root));
+        cut.WaitForAssertion(() => cut.FindAll("svg").Count.ShouldBe(1));
+
+        string[] labels = cut.FindAll("svg text").Select(t => t.TextContent).ToArray();
+        labels.ShouldNotContain("Bil…");
+        labels.ShouldContain("Invoices");
+        labels.ShouldContain("Deplo…", "four letters or more still make a cut label");
+    }
 }

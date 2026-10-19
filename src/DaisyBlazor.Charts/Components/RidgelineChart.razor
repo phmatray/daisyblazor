@@ -9,7 +9,7 @@
 <D3ChartFrame TLayout="RidgelineLayout" Chart="this" Label="@_label" Description="@_description">
     @if (Layout is { } view)
     {
-        <ChartAxes Plot="view.Plot" Baseline="true" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@ValueTitle" XGrid="true" YCategories="true" Height="ViewHeight" />
+        <ChartAxes Plot="view.Plot" Baseline="true" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@ValueTitle" XGrid="true" YCategories="true" Height="ViewHeight" ViewWidth="ViewWidth" />
         @foreach (RidgelineLayoutGroup g in view.Groups)
         {
             string color = _color(g);

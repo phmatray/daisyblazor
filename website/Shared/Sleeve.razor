@@ -10,7 +10,7 @@
             aria-label="Try the next theme: @Next" title="Try the next theme: @Next">
         <span class="disc absolute inset-0 shadow-[0_18px_40px_-18px_rgb(0_0_0/0.45)]">
             <span class="disc-label" aria-hidden="true">
-                <span class="hidden text-[0.65rem] font-semibold opacity-70 lg:block">Try theme</span>
+                <span class="hidden text-xs font-semibold lg:block">Try theme</span>
                 <span class="hidden max-w-[6.5rem] break-words text-xs font-bold leading-tight lg:block">@Next</span>
             </span>
         </span>
@@ -37,7 +37,7 @@
             }
 
             <h1 id="page-title" tabindex="-1"
-                class="font-display font-bold leading-[0.92] tracking-[-0.03em] outline-none @(Large ? "text-[clamp(3.5rem,9vw,7.5rem)]" : "text-[clamp(2.75rem,6.5vw,5.5rem)]")">
+                class="font-display font-bold leading-[0.92] tracking-[-0.03em] outline-none max-sm:pr-14 @(Large ? "text-[clamp(3rem,7.5vw,6rem)]" : "text-[clamp(2.75rem,6.5vw,5.5rem)]")">
                 @Title
             </h1>
 
@@ -53,7 +53,7 @@
 
             @if (Releases)
             {
-                <div class="mt-6 flex flex-wrap items-center gap-2" role="group" aria-label="Switch theme">
+                <div class="mt-6 flex flex-wrap items-center gap-2 max-lg:hidden" role="group" aria-label="Switch theme">
                     @foreach (string t in ThemeDeck.Themes.Take(8))
                     {
                         string theme = t;
@@ -68,7 +68,7 @@
 
             @if (Tracks is { Count: > 0 })
             {
-                <nav aria-label="On this page" class="mt-10 lg:mt-auto lg:pt-12">
+                <nav aria-label="On this page" class="mt-10 lg:mt-auto lg:pt-12 @(TracksBesideContent ? "xl:hidden" : "") @(Large ? "max-lg:hidden" : "")">
                     <span class="mb-2 block text-sm font-bold">On this page</span>
                     <ul class="flex max-w-2xl flex-wrap gap-2">
                         @foreach (Track t in Tracks)
@@ -82,7 +82,8 @@
 
         @if (Portrait is not null)
         {
-            <figure class="relative z-10 w-full max-w-[24rem] self-center justify-self-start xl:w-[22rem] xl:justify-self-end">
+            @* On a phone a docs page goes straight from its masthead to its examples, which show the same thing live. *@
+            <figure class="relative z-10 w-full max-w-[24rem] self-center justify-self-start xl:w-[22rem] xl:justify-self-end @(TracksBesideContent ? "max-sm:hidden" : "")">
                 <figcaption class="sr-only">@(PortraitCaption ?? "Cover")</figcaption>
                 <div class="grid place-items-center overflow-hidden rounded-md bg-base-100 p-6 text-base-content sm:aspect-square">
                     <div class="w-full">@Portrait</div>
@@ -104,8 +105,10 @@
     [Parameter] public IReadOnlyList<Track>? Tracks { get; set; }
     [Parameter] public IReadOnlyList<(string Label, string? Href)>? Trail { get; set; }
     [Parameter] public bool Large { get; set; }
+    /// <summary>The page lists its sections beside the content from xl, so the masthead pills give way there.</summary>
+    [Parameter] public bool TracksBesideContent { get; set; }
     /// <summary>Show the row of theme swatches under the lede.</summary>
-    [Parameter] public bool Releases { get; set; } = true;
+    [Parameter] public bool Releases { get; set; }
 
     private string Path => Nav.ToBaseRelativePath(Nav.Uri).Split('#')[0];
     private string Current => Provider?.Theme ?? ThemeDeck.Light;

@@ -31,7 +31,7 @@ public static class Guides
             "The Material Symbols webfont", "The heading font"),
         new("Charts", "charts",
             "54 theme-aware SVG chart types, laid out by a bundled D3 module, with optional server rendering.",
-            "Install", "All 54 charts", "Data models", "Colours follow the theme", "Usage", "Notes and geometry", "Server rendering"),
+            "All 54 charts", "Install", "Data models", "Colours follow the theme", "Usage", "Notes and geometry", "Server rendering"),
         new("Migrating from MudBlazor", "migration",
             "Move a MudBlazor app over incrementally, mostly by renaming MudX to X.",
             "The approach", "The shared enums", "Icons", "Dialogs", "Snackbar", "Setup deltas",

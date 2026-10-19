@@ -3,8 +3,8 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DaisyBlazor — daisyUI components for Blazor</title>
-    <meta name="description" content="A Tailwind CSS v4 + daisyUI v5 component library for Blazor: typed daisyUI components, a MudBlazor-compatible API, 37 live themes and dependency-free charts." />
+    <title>DaisyBlazor: daisyUI components and charts for Blazor</title>
+    <meta id="shell-description" name="description" content="Open-source daisyUI v5 and Tailwind CSS v4 components for Blazor, with 54 theme-aware SVG chart types laid out by D3, a MudBlazor-compatible API and 37 themes." />
     <base href="/" />
     <script src="js/theme-param.js"></script>
     <script src="_content/DaisyBlazor.Components/theme-init.js" data-light="daisyblazor" data-dark="daisyblazor-dark"
@@ -15,6 +15,13 @@
     <link rel="stylesheet" href="css/app.css" />
     <link rel="stylesheet" href="DaisyBlazor.Docs.styles.css" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <script type="application/ld+json">
+        {"@context":"https://schema.org","@type":"SoftwareSourceCode","name":"DaisyBlazor",
+         "description":"Open-source daisyUI v5 and Tailwind CSS v4 components for Blazor, with 54 theme-aware SVG chart types laid out by D3, a MudBlazor-compatible API and 37 themes.",
+         "url":"https://phmatray.github.io/daisyblazor/","codeRepository":"https://github.com/phmatray/daisyblazor",
+         "programmingLanguage":["C#","Razor"],"runtimePlatform":".NET 10","license":"https://opensource.org/licenses/MIT",
+         "author":{"@type":"Person","name":"Philippe Matray"}}
+    </script>
 </head>
 <body>
     <div id="app">
@@ -26,6 +33,10 @@
         Something went wrong while running the docs.
         <a href="." class="btn btn-sm">Reload</a>
     </div>
+    <script>
+        // Head tags baked in by the prerender, and the shell's own description, give way to the ones Blazor adds for each page.
+        document.querySelectorAll('head [data-prerendered], #shell-description').forEach(el => el.remove());
+    </script>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>
 </html>

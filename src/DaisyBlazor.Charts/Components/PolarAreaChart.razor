@@ -41,7 +41,7 @@
         @foreach (PolarAreaWedge wedge in geo.Wedges)
         {
             <SvgText X="@wedge.LabelX" Y="@wedge.LabelY" Anchor="@wedge.Anchor" FontSize="@Math.Round(geo.FontSize, 1)"
-                     Text="@(ShowValues ? $"{wedge.Label} {_format(wedge.Value)}" : wedge.Label)" />
+                     Text="@_text(wedge.Label, wedge.Value)" />
         }
     }
     </ChildContent>
@@ -93,13 +93,14 @@
         ? new
         {
             Labels = (Labels ?? []).ToArray(),
+            Texts = (Labels ?? []).Select((label, i) => _text(label, _stacked.Sum(s => i < s.Data.Count && double.IsFinite(s.Data[i]) && s.Data[i] > 0 ? s.Data[i] : 0))).ToArray(),
             Series = _stacked.Select(s => (Labels ?? []).Select((_, i) => i < s.Data.Count ? s.Data[i] : (double?)null).ToArray()).ToArray(),
             Width = ViewWidth,
             Height = ViewHeight,
         }
         : new
         {
-            Items = Data.Select(i => new { i.Label, i.Value }).ToArray(),
+            Items = Data.Select(i => new { i.Label, i.Value, Text = _text(i.Label, i.Value) }).ToArray(),
             Width = ViewWidth,
             Height = ViewHeight,
         };
@@ -111,6 +112,9 @@
     private string _seriesColor(int s) => ChartPalette.At(s, s < _stacked.Count ? _stacked[s].Color : null);
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    // A wedge's label as printed beside the rim; the layout keeps its width free.
+    private string _text(string label, double value) => ShowValues ? $"{label} {_format(value)}" : label;
 
     private string _color(int index) => ChartPalette.At(index, index < Data.Count ? Data[index].Color : null);
 

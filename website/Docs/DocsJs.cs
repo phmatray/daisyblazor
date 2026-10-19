@@ -29,6 +29,8 @@ public sealed class DocsJs(IJSRuntime js) : IAsyncDisposable
 
     public async Task ScrollIntoView(ElementReference el) => await (await Module).InvokeVoidAsync("scrollIntoView", el);
 
+    public async Task RevealActiveLink(ElementReference container) => await (await Module).InvokeVoidAsync("revealActiveLink", container);
+
     public async Task ScrollToTop() => await (await Module).InvokeVoidAsync("scrollToTop");
 
     public async ValueTask DisposeAsync()

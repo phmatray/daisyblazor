@@ -39,7 +39,8 @@ export function categoryFrame({ width, height, labels, scale, vertical = false, 
         x0 = Math.max(x0, labelW * 0.77 - step / 2 + 4);
     }
     const labelH = rotate ? labelW * 0.65 + 14 : 18;
-    const y0 = 4 + after;
+    // The top tick label is centred on the plot's top edge: leave it half a line and a gap.
+    const y0 = 10 + after;
     const y1 = height - labelH - before;
     scale.range([y1, y0]);
     const band = scaleBand(index, [x0, x1]).padding(padding);

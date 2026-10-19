@@ -4,7 +4,7 @@
 <section class="mb-12" aria-labelledby="@_id">
     <div class="mb-1 flex flex-wrap items-baseline gap-x-4">
         <h3 id="@_id" class="font-mono text-xl font-semibold">@(_component ? $"<{ApiReflector.ComponentName(Component)}>" : ApiReflector.ComponentName(Component))</h3>
-        <span class="text-sm text-base-content/65">@Component.Namespace</span>
+        <span class="text-sm text-base-content/75">@Component.Namespace</span>
     </div>
     @if (_summary is not null)
     {
@@ -21,7 +21,7 @@
                 <li class="py-3">
                     <div class="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
                         <span class="font-mono font-semibold">@p.Name</span>
-                        <span class="font-mono text-[0.8rem] text-base-content/75 [overflow-wrap:anywhere]">@p.TypeName</span>
+                        <span class="font-mono text-[0.8rem] text-base-content/75">@Breakable(p.TypeName)</span>
                     </div>
                     @if (showDefault && p.Default is not null)
                     {
@@ -56,7 +56,7 @@
                     {
                         <tr class="border-b border-base-300 align-top">
                             <td class="py-2.5 pr-4 font-mono font-semibold [overflow-wrap:anywhere]">@p.Name</td>
-                            <td class="py-2.5 pr-4 font-mono text-[0.85rem] text-base-content/80 [overflow-wrap:anywhere]">@p.TypeName</td>
+                            <td class="py-2.5 pr-4 font-mono text-[0.85rem] text-base-content/80">@Breakable(p.TypeName)</td>
                             @if (showDefault)
                             {
                                 <td class="py-2.5 pr-4 font-mono text-[0.85rem] text-base-content/80 [overflow-wrap:anywhere]">@(p.Default ?? "—")</td>
@@ -98,4 +98,8 @@
         ParamKind.Method => "Methods",
         _ => _component ? "Parameters" : "Properties",
     };
+
+    // A type name breaks only after "<", "," or "." (IReadOnlyList<|ChartBand>), never inside a word.
+    private static MarkupString Breakable(string type) => new(System.Net.WebUtility.HtmlEncode(type)
+        .Replace("&lt;", "&lt;<wbr>").Replace(",", ",<wbr>").Replace(".", ".<wbr>"));
 }

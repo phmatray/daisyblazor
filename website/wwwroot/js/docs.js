@@ -61,3 +61,11 @@ export function observeSections(dotnetRef, ids) {
 }
 
 export function scrollToTop() { window.scrollTo({ top: 0, behavior: 'instant' }); }
+
+/** Scrolls the side navigation (not the page) so the link of the current page sits in its middle. */
+export function revealActiveLink(container) {
+    const link = container?.querySelector('a.active[aria-current="page"], a.active');
+    if (!link) return;
+    // The sticky container is the offset parent, so offsetTop is measured from its top.
+    container.scrollTop = link.offsetTop - container.clientHeight / 2;
+}

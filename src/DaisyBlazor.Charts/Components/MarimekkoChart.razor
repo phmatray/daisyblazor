@@ -26,7 +26,7 @@
             @foreach (MarimekkoColumn column in geo.Columns.Where(c => c.X1 - c.X0 >= 48))
             {
                 <SvgText X="@column.LabelX" Y="@(plot.Bottom + 16)" Anchor="middle" FontSize="11" FontWeight="600" Text="@column.Label" />
-                <SvgText X="@column.LabelX" Y="@(plot.Bottom + 30)" Anchor="middle" FontSize="11" FillOpacity="0.6" Text="@_percent(column.Share)" />
+                <SvgText X="@column.LabelX" Y="@(plot.Bottom + 30)" Anchor="middle" FontSize="11" FillOpacity="0.7" Text="@_percent(column.Share)" />
             }
         }
     </ChildContent>

@@ -1,6 +1,6 @@
 @page "/getting-started"
 
-<DocShell Title="Getting started" Tracks="G.Tracks" Trail="G.Trail" Portrait="Portrait" PortraitCaption="Your first component">
+<DocShell Title="Getting started" Description="@G.Summary" Tracks="G.Tracks" Trail="G.Trail" Portrait="Portrait" PortraitCaption="Your first component">
     <Lede>
         DaisyBlazor is a Tailwind CSS v4 + daisyUI v5 component kit for Blazor, Server or WebAssembly.
         This guide adds it to an existing app in six steps; no Node or npm needed.
@@ -79,7 +79,7 @@
         <Card>
             <CardContent>
                 <h2 class="card-title">Hello DaisyBlazor</h2>
-                <p>@DocRegistry.All.Count daisyUI components with a MudBlazor-compatible API.</p>
+                <p>@DocRegistry.ComponentCount daisyUI components and @DocRegistry.ChartCount charts with a MudBlazor-compatible API.</p>
                 <Tabs>
                     <Tab Title="One">First panel</Tab>
                     <Tab Title="Two">Second panel</Tab>

@@ -9,6 +9,8 @@ on:
       - 'src/**'
       - 'Directory.*.props'
       - '.github/workflows/docs.yml'
+      - 'package.json'
+      - 'package-lock.json'
   workflow_dispatch:
 
 permissions:
@@ -38,11 +40,19 @@ jobs:
       - name: Publish
         run: dotnet publish website/DaisyBlazor.Docs.csproj -c Release -o publish
 
-      # Serve under /daisyblazor/, let GitHub Pages' 404 boot the SPA for deep links, skip Jekyll.
-      - name: Prepare for GitHub Pages
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      # Every page becomes static HTML with its own title, description, canonical URL and content
+      # (served with a 200 for /charts, /components/barchart…), plus 404.html for the SPA fallback,
+      # sitemap.xml and robots.txt; all under /daisyblazor/. Fails on a broken internal link.
+      - name: Prerender pages
         run: |
-          sed -i 's|<base href="/" />|<base href="/daisyblazor/" />|' publish/wwwroot/index.html
-          cp publish/wwwroot/index.html publish/wwwroot/404.html
+          npm ci
+          npx playwright install --with-deps chromium
+          node website/scripts/prerender.mjs publish/wwwroot /daisyblazor/
           touch publish/wwwroot/.nojekyll
 
       - name: Upload Pages artifact

@@ -15,6 +15,8 @@ export async function layout(kind, spec) {
 // text and strokes are drawn 1:1. observe() lays out now and again (debounced) whenever the box
 // is resized, handing the new layout to dotnetRef.OnMeasuredLayout; update() swaps the spec.
 // A box with no size yet (hidden, collapsed) gives null until it gets one.
+// A fixed-frame chart observes with no kind: it only gets its box's width (from observe(), then
+// through dotnetRef.OnFrameWidth when it changes) and lays out at that width itself.
 const observed = new Map();
 const RESIZE_DELAY = 100;
 
@@ -34,11 +36,14 @@ async function measure(state, force) {
         state.width = state.height = 0; // lay out again once it has a size, even the old one
         return undefined;
     }
-    if (!force && width === state.width && height === state.height) {
+    if (!force && width === state.width && (!state.kind || height === state.height)) {
         return undefined;
     }
     state.width = width;
     state.height = height;
+    if (!state.kind) {
+        return width;
+    }
     return { ...(await layout(state.kind, { ...state.spec, width, height })), width, height };
 }
 
@@ -50,7 +55,7 @@ export async function observe(element, kind, spec, dotnetRef) {
         state.timer = setTimeout(async () => {
             const result = await measure(state, false);
             if (result && observed.get(element) === state) {
-                state.dotnetRef.invokeMethodAsync('OnMeasuredLayout', result);
+                state.dotnetRef.invokeMethodAsync(state.kind ? 'OnMeasuredLayout' : 'OnFrameWidth', result);
             }
         }, RESIZE_DELAY);
     });

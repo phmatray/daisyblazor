@@ -53,6 +53,12 @@ public sealed record PlaygroundSpec(Type Component, params string[] Parameters)
 
     /// <summary>Text rendered as ChildContent (and editable), or null when the component takes none.</summary>
     public string? ChildText { get; init; }
+
+    /// <summary>Parameters bound to a field of <see cref="Code"/> (Series="@_signups"), by parameter name.</summary>
+    public IReadOnlyDictionary<string, string> Fields { get; init; } = new Dictionary<string, string>();
+
+    /// <summary>The @code block printed under the generated tag, so the snippet compiles when pasted.</summary>
+    public string? Code { get; init; }
 }
 
 public enum Category

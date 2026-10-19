@@ -61,10 +61,17 @@
                     @foreach (LineLayoutPoint point in geo.Series[s].Points)
                     {
                         @* Markers on every point when ShowPoints; otherwise only on isolated points (a
-                           single value or one between gaps), which a line alone cannot show. *@
+                           single value or one between gaps), which a line alone cannot show. The other
+                           points get a transparent hover target that still carries the tooltip. *@
                         @if (ShowPoints || point.Isolated)
                         {
                             <circle cx="@N(point.X)" cy="@N(point.Y)" r="3" fill="var(--color-base-100)" stroke="@color" stroke-width="2">
+                                <title>@_tooltip(s, point.Index)</title>
+                            </circle>
+                        }
+                        else
+                        {
+                            <circle cx="@N(point.X)" cy="@N(point.Y)" r="8" fill="transparent">
                                 <title>@_tooltip(s, point.Index)</title>
                             </circle>
                         }

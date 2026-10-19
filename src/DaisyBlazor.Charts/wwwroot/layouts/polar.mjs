@@ -49,8 +49,10 @@ export default function polar({ series = [], width, height, angleMax = 360, star
 
     return {
         cx: r2(cx), cy: r2(cy), radius: r2(radius),
+        // A ring's value sits just outside it on the start spoke, so a ring within a line of the rim
+        // would run into that spoke's label: it stays unlabelled.
         rings: ticks(scale, levels).filter(t => t.pos > 0).map(t => ({
-            value: t.value, label: t.label, r: t.pos,
+            value: t.value, label: t.pos > radius - FONT * 1.5 ? '' : t.label, r: t.pos,
             x: r2(cx + t.pos * Math.sin(t0) + 3), y: r2(cy - t.pos * Math.cos(t0) - 3),
         })),
         spokes: labels.map(({ value, label }) => {

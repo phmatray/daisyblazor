@@ -8,7 +8,7 @@
 <D3ChartFrame TLayout="BoxPlotLayout" Chart="this" Label="@_label" Description="@_description">
     @if (Layout is { } view)
     {
-        <ChartAxes Plot="view.Plot" Baseline="true" XTicks="view.XTicks" YTicks="view.YTicks" Height="ViewHeight"
+        <ChartAxes Plot="view.Plot" Baseline="true" XTicks="view.XTicks" YTicks="view.YTicks" Height="ViewHeight" ViewWidth="ViewWidth"
                    XTitle="@(view.Horizontal ? ValueTitle : null)" YTitle="@(view.Horizontal ? null : ValueTitle)"
                    XGrid="view.Horizontal" YGrid="!view.Horizontal"
                    XCategories="!view.Horizontal" YCategories="view.Horizontal" />

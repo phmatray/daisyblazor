@@ -24,7 +24,7 @@ public class ChartsD3Tests : BunitContext
     [Fact]
     public void Sankey_shows_a_placeholder_until_the_layout_arrives()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         JSRuntimeInvocationHandler<SankeyLayout> call = module.Setup<SankeyLayout>("layout", _ => true);
 
         IRenderedComponent<SankeyChart> cut = Render<SankeyChart>(ps => ps.Add(p => p.Links, _links));
@@ -44,7 +44,7 @@ public class ChartsD3Tests : BunitContext
     [Fact]
     public void Sankey_sends_its_links_and_size_to_the_sankey_layout()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         module.Setup<SankeyLayout>("layout", _ => true).SetResult(_layout);
 
         Render<SankeyChart>(ps => ps.Add(p => p.Links, _links).Add(p => p.AspectRatio, 2));
@@ -60,7 +60,7 @@ public class ChartsD3Tests : BunitContext
     [Fact]
     public void Sankey_asks_again_only_when_its_inputs_change()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         module.Setup<SankeyLayout>("layout", _ => true).SetResult(_layout);
 
         IRenderedComponent<SankeyChart> cut = Render<SankeyChart>(ps => ps.Add(p => p.Links, _links));
@@ -74,12 +74,49 @@ public class ChartsD3Tests : BunitContext
     [Fact]
     public void Sankey_shows_the_layout_error()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         module.Setup<SankeyLayout>("layout", _ => true).SetException(new JSException("circular link\n    at stack"));
 
         IRenderedComponent<SankeyChart> cut = Render<SankeyChart>(ps => ps.Add(p => p.Links, _links));
 
         cut.WaitForAssertion(() => cut.Find("[role=alert]").TextContent.ShouldContain("circular link"));
         cut.Find("[role=alert]").TextContent.ShouldNotContain("at stack");
+    }
+
+    [Fact]
+    public void Frame_charts_lay_out_at_the_width_of_a_narrow_box()
+    {
+        BunitJSModuleInterop module = this.SetupChartModule(frameWidth: 360);
+        module.Setup<SankeyLayout>("layout", _ => true).SetResult(_layout);
+
+        IRenderedComponent<SankeyChart> cut = Render<SankeyChart>(ps => ps.Add(p => p.Links, _links).Add(p => p.AspectRatio, 2));
+
+        // Measured before the first layout, so a phone gets one layout, at its own width.
+        cut.WaitForAssertion(() => cut.Find("svg").GetAttribute("viewBox").ShouldBe("0 0 360 180"));
+        module.Spec("layout").ShouldContain("\"width\":360,\"height\":180");
+        module.Invocations["layout"].Count.ShouldBe(1);
+
+        // A resize lays out again; a box wider than the frame keeps the 640 frame, and a tiny one stops at 280.
+        cut.InvokeAsync(() => cut.Instance.OnFrameWidth(1200));
+        cut.WaitForAssertion(() => cut.Find("svg").GetAttribute("viewBox").ShouldBe("0 0 640 320"));
+        cut.InvokeAsync(() => cut.Instance.OnFrameWidth(900));
+        cut.InvokeAsync(() => cut.Instance.OnFrameWidth(120));
+        cut.WaitForAssertion(() => cut.Find("svg").GetAttribute("viewBox").ShouldBe("0 0 280 140"));
+        module.Invocations["layout"].Count.ShouldBe(3);
+        module.Invocations["observe"].Count.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task Frame_charts_stop_observing_their_box_when_disposed()
+    {
+        BunitJSModuleInterop module = this.SetupChartModule();
+        module.Setup<SankeyLayout>("layout", _ => true).SetResult(_layout);
+        module.SetupVoid("unobserve");
+        IRenderedComponent<SankeyChart> cut = Render<SankeyChart>(ps => ps.Add(p => p.Links, _links));
+        cut.WaitForAssertion(() => cut.Find("svg").GetAttribute("viewBox").ShouldBe("0 0 640 360"));
+
+        await DisposeComponentsAsync();
+
+        module.Invocations["unobserve"].Count.ShouldBe(1);
     }
 }

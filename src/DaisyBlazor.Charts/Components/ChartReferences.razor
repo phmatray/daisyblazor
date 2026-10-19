@@ -27,12 +27,12 @@ else
     <g style="paint-order:stroke;stroke:var(--color-base-100);stroke-width:3px;stroke-linejoin:round;">
         @foreach (ReferenceBandLayout band in Bands.Where(b => b.Index < Ranges.Count && !string.IsNullOrEmpty(Ranges[b.Index].Label)))
         {
-            <SvgText X="@band.LabelX" Y="@band.LabelY" Anchor="@band.Anchor" FontSize="11" FillOpacity="0.7" Text="@Ranges[band.Index].Label" />
+            <SvgText X="@band.LabelX" Y="@band.LabelY" Anchor="@band.Anchor" FontSize="11" FillOpacity="0.7" Text="@(band.Label ?? Ranges[band.Index].Label)" />
         }
         @foreach (ReferenceLineLayout line in Lines.Where(l => l.Index < References.Count && !string.IsNullOrEmpty(References[l.Index].Label)))
         {
             <SvgText X="@line.LabelX" Y="@line.LabelY" Anchor="@line.Anchor" FontSize="11" FontWeight="600"
-                     Fill="@(References[line.Index].Color ?? Neutral)" Text="@References[line.Index].Label" />
+                     Fill="@(References[line.Index].Color ?? Neutral)" Text="@(line.Label ?? References[line.Index].Label)" />
         }
     </g>
 }

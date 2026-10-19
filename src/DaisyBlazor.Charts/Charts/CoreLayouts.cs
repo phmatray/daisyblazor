@@ -64,11 +64,17 @@ public enum SparklineKind
 /// <summary>Text helpers shared by the charts.</summary>
 internal static class ChartText
 {
-    // Charts cannot measure text while they render, so widths use the layouts' average glyph of 0.6 em.
+    // Charts cannot measure text while they render, so widths use the layouts' estimate (_shared.mjs):
+    // 0.6 em a glyph, 0.72 em a capital and 0.95 em the wide M, W, m, w, %, @ and em dash.
     private const double Em = 0.6;
+
+    private static double Glyph(char c) => "MWmw%@—".Contains(c) ? 0.95 : c is >= 'A' and <= 'Z' ? 0.72 : Em;
 
     /// <summary>A data value for tooltips and screen-reader descriptions: 48200 → "48,200".</summary>
     public static string Value(double value) => value.ToString("#,0.##", System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>A formatted number with a leading hyphen as the minus sign (U+2212) the D3 axis ticks print: "-8" → "−8".</summary>
+    public static string Minus(string text) => text.StartsWith('-') ? "\u2212" + text[1..] : text;
 
     /// <summary>A share in percent for tooltips: 33.333 → "33.3%".</summary>
     public static string Percent(double value) => value.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + "%";
@@ -77,9 +83,9 @@ internal static class ChartText
     public static string Size(string? size, string fallback) => string.IsNullOrWhiteSpace(size) ? fallback : size;
 
     /// <summary>Estimated width of a label at the given font size, as the layouts estimate it.</summary>
-    public static double Width(string text, double fontSize = 11) => text.Length * fontSize * Em;
+    public static double Width(string text, double fontSize = 11) => text.Sum(Glyph) * fontSize;
 
-    /// <summary>The text shortened with an ellipsis so it fits <paramref name="room"/>, or null when not even three letters fit.</summary>
+    /// <summary>The text shortened with an ellipsis so it fits <paramref name="room"/>, or null when not even four letters fit (a shorter stub such as "Bil…" names nothing).</summary>
     public static string? Fit(string text, double room, double fontSize = 11)
     {
         if (Width(text, fontSize) <= room)
@@ -87,8 +93,13 @@ internal static class ChartText
             return text;
         }
 
-        int keep = (int)(room / (fontSize * Em)) - 1;
-        return keep >= 3 ? text[..keep] + "…" : null;
+        int keep = 0;
+        while (keep < text.Length && Width(text[..(keep + 1)] + "…", fontSize) <= room)
+        {
+            keep++;
+        }
+
+        return keep >= 4 ? text[..keep] + "…" : null;
     }
 
     /// <summary>A trend kind in words: <see cref="ChartTrendline.MovingAverage"/> → "moving average".</summary>

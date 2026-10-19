@@ -17,7 +17,7 @@ export default function marimekko({ cells, width, height, gap = 2 }) {
     const grand = totals.reduce((s, v) => s + v, 0);
 
     // Room on the left for the 0–100 % ticks and two lines under the columns for name and share.
-    const plot = { left: 44, top: 6, right: width - 6, bottom: height - 40 };
+    const plot = { left: 44, top: 10, right: width - 6, bottom: height - 40 };
     const x = scaleLinear().domain([0, grand]).range([plot.left, plot.right]);
     const y = scaleLinear().domain([0, 1]).range([plot.bottom, plot.top]);
 

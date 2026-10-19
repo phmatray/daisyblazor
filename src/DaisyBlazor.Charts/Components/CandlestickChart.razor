@@ -85,7 +85,7 @@
                 PlotArea area = new(geo.Plot.Left, panel.Top, geo.Plot.Right, panel.Bottom);
                 <g>
                     <ChartAxes Plot="area" YTicks="panel.YTicks" YGrid="true" ViewWidth="ViewWidth" />
-                    <SvgText X="@(geo.Plot.Left + 4)" Y="@(panel.Top + 10)" FontSize="10" FontWeight="600" FillOpacity="0.6" Text="@_panelName(geo, p)" />
+                    <SvgText X="@(geo.Plot.Left + 4)" Y="@(panel.Top + 10)" FontSize="10" FontWeight="600" FillOpacity="0.7" Text="@_panelName(geo, p)" />
                     @foreach (double guide in panel.Guides)
                     {
                         <line x1="@N(geo.Plot.Left)" x2="@N(geo.Plot.Right)" y1="@N(guide)" y2="@N(guide)" stroke="var(--color-base-content)" stroke-opacity="0.35" stroke-dasharray="3 3" />

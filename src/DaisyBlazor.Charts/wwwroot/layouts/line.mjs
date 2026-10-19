@@ -1,6 +1,6 @@
 import { scalePoint } from '../d3/d3-scale.mjs';
 import { line as d3Line, area as d3Area, stack, stackOffsetExpand, curveMonotoneX, curveMonotoneY, curveLinear, curveStepAfter, curveStepBefore } from '../d3/d3-shape.mjs';
-import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, stride, compact, valueScale, ticks, referenceMarks, referenceValues, categoryTrends } from './_shared.mjs';
+import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, stride, compact, valueScale, ticks, referenceRoom, referenceMarks, referenceValues, categoryTrends } from './_shared.mjs';
 
 // Line and area charts. spec: { series: [[number|null]], labels: [string], stacked, smooth,
 // showGrid, width, height } (px). Points sit in the middle of equal slots, one per label or value.
@@ -35,7 +35,8 @@ export default function line({ trendline = 'none', trendlineOrder = 2, trendline
 
     const values = [...bands.flatMap(b => b.map(([, top]) => top)).filter(finite), ...referenceValues(references)];
     const tickText = percent ? v => `${compact(v)}%` : compact;
-    const top = 8;
+    const marginal = referenceRoom(width, horizontal, references, ranges);
+    const top = 8 + marginal.top;
     let plot;
     let xTicks;
     let yTicks;
@@ -63,7 +64,7 @@ export default function line({ trendline = 'none', trendlineOrder = 2, trendline
         value = valueScale(values, { zero: true, count: 5 }).range([bottom, top]);
         yTicks = showGrid ? ticks(value, 5, tickText) : [];
         const left = yTicks.length > 0 ? Math.max(...yTicks.map(t => textWidth(t.label))) + 6 : 0;
-        const right = width - 6;
+        const right = width - Math.max(6, marginal.right);
 
         place = scalePoint().domain([...Array(count).keys()]).range([left, right]).padding(0.5);
         const slot = count > 0 ? (right - left) / count : 0;
@@ -107,5 +108,5 @@ export default function line({ trendline = 'none', trendlineOrder = 2, trendline
     if (trendline && trendline !== 'none' && !stacked) {
         out.trends = categoryTrends(series, place, value, horizontal, plot, { kind: trendline, order: trendlineOrder, period: trendlinePeriod });
     }
-    return references?.length || ranges?.length ? { ...out, ...referenceMarks(value, horizontal, plot, references, ranges) } : out;
+    return references?.length || ranges?.length ? { ...out, ...referenceMarks(value, horizontal, plot, references, ranges, marginal.right) } : out;
 }
