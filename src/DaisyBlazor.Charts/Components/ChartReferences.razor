@@ -1,0 +1,59 @@
+@namespace DaisyBlazor.Charts
+
+@* Reference lines and value bands placed by a layout (see referenceMarks in layouts/_shared.mjs).
+   Drawn twice by a chart: once Behind its data for the shaded bands, once in front for the lines
+   and every label, haloed in the background colour so they stay readable over the marks. *@
+
+@if (Behind)
+{
+    @foreach (ReferenceBandLayout band in Bands.Where(b => b.Index < Ranges.Count))
+    {
+        ChartBand input = Ranges[band.Index];
+        <rect x="@N(band.X)" y="@N(band.Y)" width="@N(band.Width)" height="@N(band.Height)" fill="@(input.Color ?? Neutral)" fill-opacity="0.12">
+            <title>@($"{(string.IsNullOrEmpty(input.Label) ? "Band" : input.Label)}: {ChartText.Value(Math.Min(input.From, input.To))} to {ChartText.Value(Math.Max(input.From, input.To))}")</title>
+        </rect>
+    }
+}
+else
+{
+    @foreach (ReferenceLineLayout line in Lines.Where(l => l.Index < References.Count))
+    {
+        ChartReference input = References[line.Index];
+        <line x1="@N(line.X1)" y1="@N(line.Y1)" x2="@N(line.X2)" y2="@N(line.Y2)" stroke="@(input.Color ?? Neutral)" stroke-width="1.5"
+              stroke-dasharray="@(input.Dashed ? "5 4" : null)">
+            <title>@($"{(string.IsNullOrEmpty(input.Label) ? "Reference" : input.Label)}: {ChartText.Value(input.Value)}")</title>
+        </line>
+    }
+    <g style="paint-order:stroke;stroke:var(--color-base-100);stroke-width:3px;stroke-linejoin:round;">
+        @foreach (ReferenceBandLayout band in Bands.Where(b => b.Index < Ranges.Count && !string.IsNullOrEmpty(Ranges[b.Index].Label)))
+        {
+            <SvgText X="@band.LabelX" Y="@band.LabelY" Anchor="@band.Anchor" FontSize="11" FillOpacity="0.7" Text="@Ranges[band.Index].Label" />
+        }
+        @foreach (ReferenceLineLayout line in Lines.Where(l => l.Index < References.Count && !string.IsNullOrEmpty(References[l.Index].Label)))
+        {
+            <SvgText X="@line.LabelX" Y="@line.LabelY" Anchor="@line.Anchor" FontSize="11" FontWeight="600"
+                     Fill="@(References[line.Index].Color ?? Neutral)" Text="@References[line.Index].Label" />
+        }
+    </g>
+}
+
+@code {
+    private const string Neutral = "var(--color-base-content)";
+
+    /// <summary>The chart's reference lines, as given; <see cref="Lines"/> index into this list.</summary>
+    [Parameter] public IReadOnlyList<ChartReference> References { get; set; } = [];
+
+    /// <summary>The chart's value bands, as given; <see cref="Bands"/> index into this list.</summary>
+    [Parameter] public IReadOnlyList<ChartBand> Ranges { get; set; } = [];
+
+    /// <summary>The placed reference lines from the layout.</summary>
+    [Parameter] public IReadOnlyList<ReferenceLineLayout> Lines { get; set; } = [];
+
+    /// <summary>The placed bands from the layout.</summary>
+    [Parameter] public IReadOnlyList<ReferenceBandLayout> Bands { get; set; } = [];
+
+    /// <summary>True to draw the shaded bands (behind the data); false to draw the lines and all labels (in front).</summary>
+    [Parameter] public bool Behind { get; set; }
+
+    private static string N(double value) => Math.Round(value, 2).ToString(CultureInfo.InvariantCulture);
+}

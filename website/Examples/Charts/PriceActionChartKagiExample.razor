@@ -1,0 +1,18 @@
+<div class="space-y-6">
+    <PriceActionChart Title="Job queue depth: Kagi, 40-job reversal" Prices="_depth" ChartKind="PriceActionKind.Kagi" Reversal="40" ValueFormat="{0:N0} jobs" AspectRatio="2.4" />
+    <PriceActionChart Title="Same depth, 15 % reversal" Prices="_depth" ChartKind="PriceActionKind.Kagi" Reversal="15" ReversalPercent="true" ValueFormat="{0:N0} jobs" AspectRatio="2.4" />
+</div>
+
+@code {
+    // A line goes on while the depth extends it and turns when it comes back by the reversal. It turns
+    // thick (yang) above the previous shoulder and thin (yin) below the previous waist.
+    private static readonly Candle[] _depth = Enumerable.Range(0, 120)
+        .Select(i =>
+        {
+            double v = Depth(i);
+            return new Candle(new DateTime(2026, 10, 18, 0, 0, 0).AddMinutes(30 * i), v, v, v, v);
+        })
+        .ToArray();
+
+    private static double Depth(int i) => Math.Round(240 + 120 * Math.Sin(i / 9.0) + 50 * Math.Sin(i / 2.3) + 0.8 * i);
+}

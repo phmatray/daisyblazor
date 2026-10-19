@@ -29,7 +29,23 @@
         }
     </ChildContent>
     <Legend>
-        @if (ShowLegend && Layout is { Cells.Count: > 0 } geo)
+        @if (ShowLegend && Layout is { Cells.Count: > 0, Thresholds: { } thresholds } stepped)
+        {
+            @* Discrete levels: one swatch per step, with the range of values it covers. *@
+            <div class="flex flex-wrap gap-3 mt-2 text-xs">
+                @* A flat domain is one step, named by its value. *@
+                @for (int level = 0; level <= thresholds.Count; level++)
+                {
+                    double low = level == 0 ? stepped.Min : thresholds[level - 1];
+                    double high = level < thresholds.Count ? thresholds[level] : stepped.Max;
+                    <span class="inline-flex items-center gap-1.5">
+                        <span class="inline-block w-3 h-3 rounded-sm" style="@($"background:{_shade(thresholds.Count == 0 ? 1 : (double)level / thresholds.Count)};")"></span>
+                        <span class="text-base-content/80">@(thresholds.Count == 0 ? _step(low, stepped) : $"{_step(low, stepped)} – {_step(high, stepped)}")</span>
+                    </span>
+                }
+            </div>
+        }
+        else if (ShowLegend && Layout is { Cells.Count: > 0 } geo)
         {
             <div class="flex flex-wrap gap-3 mt-2 text-xs" aria-hidden="true">
                 <span class="inline-flex items-center gap-1.5">
@@ -61,21 +77,34 @@
     /// <summary>Show the colour scale, from the smallest to the largest value, under the chart.</summary>
     [Parameter] public bool ShowLegend { get; set; } = true;
 
-    /// <summary>Format string for values in cells, tooltips and the legend, e.g. "{0:N0} requests".</summary>
-    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+    /// <summary>
+    /// Number of discrete colour steps (2 to 10). When set, the values are split into that many equal
+    /// ranges between the smallest and the largest value, each drawn in one shade, and the legend
+    /// shows one swatch per range. When null (the default) the shading is continuous.
+    /// </summary>
+    [Parameter] public int? Levels { get; set; }
+
+    /// <summary>
+    /// Format string for values in cells, tooltips and the legend, e.g. "{0:N0} requests". With the
+    /// default and <see cref="Levels"/>, the legend shows as many decimals as the step size needs.
+    /// </summary>
+    [Parameter] public string ValueFormat { get; set; } = DefaultFormat;
+
+    private const string DefaultFormat = "{0:#,0.##}";
 
     /// <inheritdoc />
     protected override string Kind => "heatmap";
 
     /// <inheritdoc />
-    protected override object BuildSpec() => new
+    protected override object BuildSpec()
     {
-        Cells = Cells.Select(c => new { c.Row, c.Column, c.Value }).ToArray(),
-        Rows,
-        Columns,
-        Width = ViewWidth,
-        Height = ViewHeight,
-    };
+        object[] cells = Cells.Select(c => (object)new { c.Row, c.Column, c.Value }).ToArray();
+
+        // Levels only when set, so the spec (and the layout cache key) of an existing chart stays as it was.
+        return Levels is { } levels
+            ? new { Cells = cells, Rows, Columns, Width = ViewWidth, Height = ViewHeight, Levels = Math.Clamp(levels, 2, 10) }
+            : new { Cells = cells, Rows, Columns, Width = ViewWidth, Height = ViewHeight };
+    }
 
     private string _color => ChartPalette.At(0, Color);
 
@@ -84,6 +113,19 @@
         $"color-mix(in oklab, {_color} {Math.Round(8 + 92 * t).ToString(Ci)}%, var(--color-base-100))";
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    // A legend bound: the default format keeps two decimals, or one more than the step's first significant digit.
+    private string _step(double value, HeatmapLayout geo)
+    {
+        double step = (geo.Max - geo.Min) / ((geo.Thresholds?.Count ?? 0) + 1);
+        if (ValueFormat != DefaultFormat || step <= 0)
+        {
+            return _format(value);
+        }
+
+        int decimals = Math.Clamp((int)Math.Ceiling(-Math.Log10(step)) + 1, 2, 15);
+        return value.ToString("#,0." + new string('#', decimals), CultureInfo.CurrentCulture);
+    }
 
     private string _label => Title ?? "Heatmap";
 

@@ -1,3 +1,4 @@
+using AngleSharp.Dom;
 using System.Text.Json;
 using DaisyBlazor.Charts;
 using Microsoft.JSInterop;
@@ -227,5 +228,215 @@ public class ChartsSpecialTests : BunitContext
 
         cut.WaitForAssertion(() => cut.FindAll("svg path").Count.ShouldBe(1));
         cut.Markup.ShouldNotContain("linear-gradient");
+    }
+
+    [Fact]
+    public void Polar_sends_angles_radii_and_formatted_spokes_and_draws_markers_with_tooltips()
+    {
+        (BunitJSModuleInterop module, JSRuntimeInvocationHandler<PolarLayout> call) = Setup<PolarLayout>();
+        PolarSeries[] series =
+        [
+            new("p95 latency", [new(0, 120), new(12, 180, "Peak")]),
+            new("p50 latency", [new(0, 40), new(12, 60)], "var(--color-info)"),
+        ];
+
+        IRenderedComponent<PolarChart> cut = Render<PolarChart>(ps => ps
+            .Add(p => p.Series, series)
+            .Add(p => p.AngleMax, 24)
+            .Add(p => p.AngleStep, 6)
+            .Add(p => p.AngleFormat, "{0:00}:00")
+            .Add(p => p.ValueFormat, "{0} ms")
+            .Add(p => p.Mode, PolarChartMode.Area)
+            .Add(p => p.Smooth, true));
+        cut.Find("[aria-busy=true]").ShouldNotBeNull();
+
+        (string kind, string spec) = Sent(module);
+        kind.ShouldBe("polar");
+        spec.ShouldContain("\"points\":[{\"a\":0,\"r\":120},{\"a\":12,\"r\":180}]");
+        spec.ShouldContain("\"angleMax\":24");
+        spec.ShouldContain("\"angleTicks\":[{\"value\":0,\"label\":\"00:00\"},{\"value\":6,\"label\":\"06:00\"},{\"value\":12,\"label\":\"12:00\"},{\"value\":18,\"label\":\"18:00\"}]");
+        spec.ShouldContain("\"mode\":\"area\",\"smooth\":true,\"closed\":false");
+
+        call.SetResult(new PolarLayout(320, 320, 290,
+            [new(100, "100", 145, 323, 172), new(200, "200", 290, 323, 27)],
+            [new(0, "00:00", 320, 30, 320, 22, "middle"), new(12, "12:00", 320, 610, 320, 627, "middle")],
+            [new("M320,146Z", [new(0, 320, 146), new(1, 320, 581)]), new("M320,262Z", [new(0, 320, 262), new(1, 320, 407)])]));
+
+        cut.WaitForAssertion(() => cut.FindAll("svg circle[r='3']").Count.ShouldBe(4));
+        cut.FindAll("svg path[fill='var(--color-info)']").Count.ShouldBe(1);
+        cut.Markup.ShouldContain("p95 latency · Peak, 12:00: 180 ms");
+        cut.Markup.ShouldContain("12:00");
+        cut.Find("svg").GetAttribute("viewBox").ShouldBe("0 0 640 640");
+        cut.FindAll("span.inline-flex").Count.ShouldBe(2);
+    }
+
+    [Fact]
+    public void Polar_marker_mode_draws_no_path()
+    {
+        (BunitJSModuleInterop module, JSRuntimeInvocationHandler<PolarLayout> call) = Setup<PolarLayout>();
+        IRenderedComponent<PolarChart> cut = Render<PolarChart>(ps => ps
+            .Add(p => p.Series, [new PolarSeries("Regions", [new(45, 3), new(90, double.NaN)])])
+            .Add(p => p.Mode, PolarChartMode.Marker));
+
+        string spec = Sent(module).Spec;
+        spec.ShouldContain("{\"a\":90,\"r\":null}");
+        spec.ShouldContain("\"angleTicks\":[{\"value\":0,\"label\":\"0\"},{\"value\":30,");
+        call.SetResult(new PolarLayout(320, 320, 290, [], [], [new(string.Empty, [new(0, 400, 240)])]));
+
+        cut.WaitForAssertion(() => cut.FindAll("svg circle[r='4.5']").Count.ShouldBe(1));
+        cut.FindAll("svg path").Count.ShouldBe(0);
+        cut.FindAll("span.inline-flex").Count.ShouldBe(0);
+    }
+
+    [Fact]
+    public void Polar_stacked_sends_the_flags_and_adds_the_total_and_share_to_tooltips()
+    {
+        (BunitJSModuleInterop module, JSRuntimeInvocationHandler<PolarLayout> call) = Setup<PolarLayout>();
+        PolarSeries[] series =
+        [
+            new("Free", [new(0, 30), new(90, 10)]),
+            new("Pro", [new(0, 10), new(90, 30)]),
+        ];
+
+        IRenderedComponent<PolarChart> cut = Render<PolarChart>(ps => ps
+            .Add(p => p.Series, series)
+            .Add(p => p.Percent, true)
+            .Add(p => p.Mode, PolarChartMode.Area));
+
+        Sent(module).Spec.ShouldEndWith("\"levels\":4,\"stacked\":true,\"percent\":true}");
+        call.SetResult(new PolarLayout(320, 320, 290, [], [],
+            [new("M0,0Z", [new(0, 320, 100), new(1, 400, 320)]), new("M0,0ZM1,1Z", [new(0, 320, 30), new(1, 610, 320)])]));
+
+        cut.WaitForAssertion(() => cut.FindAll("svg circle[r='3']").Count.ShouldBe(4));
+        cut.Markup.ShouldContain("Free, 0: 30 (total 40, 75%)");
+        cut.Markup.ShouldContain("Pro, 90: 30 (total 40, 75%)");
+    }
+
+    [Fact]
+    public void Polar_unstacked_sends_no_stack_flags()
+    {
+        (BunitJSModuleInterop module, JSRuntimeInvocationHandler<PolarLayout> _) = Setup<PolarLayout>();
+        Render<PolarChart>(ps => ps.Add(p => p.Series, [new PolarSeries("Free", [new(0, 30)])]));
+
+        string spec = Sent(module).Spec;
+        spec.ShouldEndWith("\"levels\":4}");
+        spec.ShouldNotContain("stacked");
+    }
+
+    [Fact]
+    public void MultiPie_draws_one_titled_pie_per_group_with_shared_colours_and_one_legend()
+    {
+        JSInterop.SetupCharts();
+        PieGroup[] groups =
+        [
+            new("Europe", [new("Free", 50), new("Pro", 30), new("Team", 20)]),
+            new("Americas", [new("Pro", 40), new("Free", 45), new("Enterprise", 15, "var(--color-accent)")]),
+            new("Asia Pacific", [new("Team", 25), new("Free", 75)]),
+        ];
+
+        IRenderedComponent<MultiPieChart> cut = Render<MultiPieChart>(ps => ps
+            .Add(p => p.Groups, groups)
+            .Add(p => p.Title, "Plan mix by region")
+            .Add(p => p.Columns, 3)
+            .Add(p => p.InnerRadiusRatio, 0.5)
+            .Add(p => p.ShowPercent, false));
+
+        IReadOnlyList<IRenderedComponent<PieChart>> pies = cut.FindComponents<PieChart>();
+        pies.Count.ShouldBe(3);
+        cut.FindAll("svg").Select(s => s.GetAttribute("aria-label")).ShouldBe(["Europe", "Americas", "Asia Pacific"]);
+        cut.FindAll("svg desc").Select(d => d.Id).Distinct().Count().ShouldBe(3);
+        cut.Find("[role=group]").GetAttribute("aria-label").ShouldBe("Plan mix by region");
+        cut.Find(".grid").GetAttribute("style").ShouldBe("grid-template-columns:repeat(3,minmax(0,1fr));");
+
+        // "Free" is the first label everywhere it appears, whatever its place in the group.
+        string Color(int pie, string label) => pies[pie].Instance.Data.Single(d => d.Label == label).Color!;
+        Color(0, "Free").ShouldBe(Color(1, "Free"));
+        Color(0, "Free").ShouldBe(Color(2, "Free"));
+        Color(0, "Pro").ShouldBe(Color(1, "Pro"));
+        Color(0, "Team").ShouldBe(Color(2, "Team"));
+        Color(1, "Enterprise").ShouldBe("var(--color-accent)");
+        pies.ShouldAllBe(p => p.Instance.InnerRadiusRatio == 0.5 && !p.Instance.ShowPercent && !p.Instance.ShowLegend);
+
+        cut.FindAll("ul").Count.ShouldBe(0);
+        cut.FindAll("span.inline-flex").Select(s => s.TextContent.Trim()).ShouldBe(["Free", "Pro", "Team", "Enterprise"]);
+        cut.FindAll("path title")[0].TextContent.ShouldBe("Free: 50");
+    }
+
+    [Fact]
+    public void MultiPie_fills_the_width_when_no_columns_are_given()
+    {
+        JSInterop.SetupCharts();
+        IRenderedComponent<MultiPieChart> cut = Render<MultiPieChart>(ps => ps
+            .Add(p => p.Groups, [new PieGroup("Europe", [new("Free", 1)])])
+            .Add(p => p.ShowLegend, false));
+
+        cut.Find(".grid").GetAttribute("style").ShouldBe("grid-template-columns:repeat(auto-fill,minmax(min(12rem,100%),1fr));");
+        cut.FindAll("span.inline-flex").Count.ShouldBe(0);
+        cut.Find("[role=group]").GetAttribute("aria-label").ShouldBe("Pie charts");
+    }
+
+    [Fact]
+    public void Shape_sends_rings_and_colours_shapes_by_group()
+    {
+        (BunitJSModuleInterop module, JSRuntimeInvocationHandler<ShapeLayout> call) = Setup<ShapeLayout>();
+        ShapePoint[] rack = [new(0, 0), new(2, 0), new(2, 1), new(0, 1)];
+        ChartShape[] shapes =
+        [
+            new("Rack A1", [rack], Group: "Full"),
+            new("Rack A2", [rack], Group: "Free"),
+            new("Rack A3", [rack], Group: "Full"),
+            new("Fibre run", [[new(0, 2), new(6, 2)]], Closed: false, Color: "var(--color-accent)"),
+        ];
+
+        IRenderedComponent<ShapeChart> cut = Render<ShapeChart>(ps => ps
+            .Add(p => p.Shapes, shapes)
+            .Add(p => p.KeepAspect, true)
+            .Add(p => p.XTitle, "Metres"));
+
+        (string kind, string spec) = Sent(module);
+        kind.ShouldBe("shape");
+        spec.ShouldContain("\"rings\":[[{\"x\":0,\"y\":0},{\"x\":2,\"y\":0},{\"x\":2,\"y\":1},{\"x\":0,\"y\":1}]],\"closed\":true");
+        spec.ShouldContain("\"closed\":false");
+        spec.ShouldContain("\"keepAspect\":true");
+
+        call.SetResult(new ShapeLayout(new PlotArea(30, 10, 634, 330),
+            [new(30, "0", 0), new(634, "6", 6)], [new(330, "0", 0), new(10, "2", 2)],
+            ["M30,330L230,330Z", "M30,300L230,300Z", "M30,270L230,270Z", "M30,10L634,10"]));
+
+        cut.WaitForAssertion(() => cut.FindAll("path.dbc-shape").Count.ShouldBe(3));
+        IReadOnlyList<AngleSharp.Dom.IElement> polygons = cut.FindAll("path.dbc-shape");
+        polygons[0].GetAttribute("fill").ShouldBe("var(--color-primary)");
+        polygons[1].GetAttribute("fill").ShouldBe("var(--color-secondary)");
+        polygons[2].GetAttribute("fill").ShouldBe("var(--color-primary)");
+        polygons[0].GetAttribute("fill-rule").ShouldBe("evenodd");
+        AngleSharp.Dom.IElement cable = cut.Find("path.dbc-line");
+        cable.GetAttribute("fill").ShouldBe("none");
+        cable.GetAttribute("stroke").ShouldBe("var(--color-accent)");
+        cut.Markup.ShouldContain("Rack A2 (Free)");
+        cut.Markup.ShouldContain("Metres");
+        cut.FindAll("span.inline-flex").Count.ShouldBe(3);
+
+        // The group colours are worked out per parameters set: regrouping (same geometry, same layout) recolours.
+        ChartShape[] regrouped = [shapes[0] with { Group = "Free" }, shapes[1] with { Group = "Full" }, shapes[2], shapes[3]];
+        cut.Render(ps => ps.Add(p => p.Shapes, regrouped));
+        polygons = cut.FindAll("path.dbc-shape");
+        polygons[0].GetAttribute("fill").ShouldBe("var(--color-primary)");
+        polygons[1].GetAttribute("fill").ShouldBe("var(--color-secondary)");
+        polygons[2].GetAttribute("fill").ShouldBe("var(--color-secondary)");
+        cut.Find("span.inline-flex").TextContent.ShouldContain("Free");
+    }
+
+    [Fact]
+    public void Shape_without_shapes_draws_axes_only()
+    {
+        (BunitJSModuleInterop module, JSRuntimeInvocationHandler<ShapeLayout> call) = Setup<ShapeLayout>();
+        IRenderedComponent<ShapeChart> cut = Render<ShapeChart>();
+
+        Sent(module).Spec.ShouldContain("\"shapes\":[]");
+        call.SetResult(new ShapeLayout(new PlotArea(30, 10, 634, 330), [], [], []));
+
+        cut.WaitForAssertion(() => cut.FindAll("svg").Count.ShouldBe(1));
+        cut.FindAll("svg path").Count.ShouldBe(0);
+        cut.Find("desc").TextContent.ShouldBe("No shapes.");
     }
 }

@@ -1,0 +1,15 @@
+<div class="max-w-lg">
+    <PolarAreaChart Title="Edge traffic by direction and protocol (millions of requests)" Labels="_directions" Series="_protocols" ShowValues="false" />
+</div>
+
+@code {
+    // A wind rose: one wedge per direction, the protocols stacked outward in it.
+    private readonly string[] _directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+
+    private readonly ChartSeries[] _protocols =
+    [
+        new("HTTP/3", [4, 6, 9, 5, 3, 2, 3, 4]),
+        new("HTTP/2", [6, 8, 12, 7, 5, 3, 4, 5]),
+        new("HTTP/1.1", [2, 3, 4, 3, 2, 1, 2, 2]),
+    ];
+}

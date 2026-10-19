@@ -7,6 +7,39 @@ public static partial class DocRegistry
 {
     private static partial IEnumerable<ComponentDoc> ChartsSpecial() =>
     [
+        new("PolarChart", Category.Charts,
+            "Points at a numeric angle and radius, drawn as lines, splines, filled areas or markers over circular radius gridlines and angle spokes. The angle axis is any full turn: degrees, the 24 hours of a day, the months of a year. Tooltips give each point's angle and radius.",
+            [typeof(PolarChart)],
+            [
+                new("Basic", "Each PolarSeries holds PolarPoint values (angle, radius). AngleMax=\"24\" makes a full turn a day, AngleStep spaces the spokes and AngleFormat writes their labels; Closed joins the last point back to the first.", typeof(PolarChartBasicExample)),
+                new("Areas and splines", "Mode=\"PolarChartMode.Area\" fills each series (Marker draws dots only) and Smooth turns the lines into splines. StartAngle and Clockwise move and turn the angle axis.", typeof(PolarChartAreaExample)),
+                new("Stacked", "Stacked=\"true\" draws each series on top of the running total of the series before it at the same angle; with Mode=\"PolarChartMode.Area\" each fills the band between the two totals. Percent=\"true\" makes each angle's total 100%. Tooltips keep each point's own value and add the total and its share.", typeof(PolarChartStackedExample)),
+            ])
+        {
+            Portrait = typeof(PolarChartCoverExample),
+        },
+
+        new("MultiPieChart", Category.Charts,
+            "One pie (or donut) per group, side by side in a responsive grid, each titled with its group's name: the same breakdown compared across regions, years or teams. A label keeps one colour in every pie and a single legend lists each label once. Each pie is a PieChart with its own accessible name and description.",
+            [typeof(MultiPieChart)],
+            [
+                new("Basic", "Groups takes PieGroup values (a name and its ChartDataPoint data). Columns fixes the pies per row (by default as many as fit at MinPieWidth), InnerRadiusRatio turns them into donuts and ShowPercent=\"false\" leaves the shares out of the tooltips.", typeof(MultiPieChartBasicExample)),
+            ])
+        {
+            Portrait = typeof(MultiPieChartCoverExample),
+        },
+
+        new("ShapeChart", Category.Charts,
+            "Polygons and polylines given in data coordinates on shared X and Y axes: a floor plan, a site map, zones on a diagram. Closed shapes are filled (an inner ring is a hole), open ones are drawn as lines; shapes of the same Group share a colour and a legend entry.",
+            [typeof(ShapeChart)],
+            [
+                new("Basic", "Each ChartShape has a Name, its Rings of ShapePoint and an optional Group, here the rack's occupancy. KeepAspect makes a metre as long across as up.", typeof(ShapeChartBasicExample)),
+                new("Holes and polylines", "A second ring inside a closed shape cuts a hole; Closed: false draws each ring as an open line, such as a cable run. Color takes any CSS colour and ShowGrid=\"false\" hides the grid.", typeof(ShapeChartCablesExample)),
+            ])
+        {
+            Portrait = typeof(ShapeChartCoverExample),
+        },
+
         new("SmithChart", Category.Charts,
             "The RF engineer's chart of impedance: each normalized impedance r + jx sits at its reflection coefficient Γ inside the unit circle, over a grid of constant-resistance circles and constant-reactance arcs. The centre is a perfect match, the right edge an open circuit, the left a short. Tooltips give z, |Γ| and its angle.",
             [typeof(SmithChart)],

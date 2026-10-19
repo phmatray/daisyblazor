@@ -21,14 +21,15 @@ enum and the `CssClass` class-merge helper).
 | `BarChart` | Vertical or horizontal bars (flat or grouped) | `Data`, `Series`, `Labels`, `Horizontal`, `ShowGrid`, `ShowLegend` |
 | `PieChart` | Pie slices with legend + percentages | `Data`, `ShowLegend`, `InnerRadiusRatio`, `CenterLabel` |
 | `DonutChart` | Donut (pie with a hole) + optional center label | `Data`, `ShowLegend`, `InnerRadiusRatio`, `CenterLabel` |
-| `Sparkline` | Tiny axis-less inline trend line | `Data`, `Area`, `ShowEndDot`, `StrokeWidth`, `Color` |
+| `Sparkline` | Tiny axis-less inline trend line, columns or win/loss bars | `Data`, `Type`, `Area`, `ShowEndDot`, `StrokeWidth`, `Color` |
 
 The other 39 types, by family (each has a docs page with live examples and its parameters):
 
 - **Hierarchy and flow:** `TreemapChart`, `SunburstChart`, `CirclePackingChart`, `IcicleChart`, `SankeyChart`, `ChordChart`, `NetworkChart`, `ArcDiagramChart`
 - **Distribution:** `ScatterChart` (bubbles, connected points, trend lines), `ContourChart`, `HexbinChart`, `BoxPlotChart`, `ViolinChart`, `HistogramChart`, `BeeswarmChart`, `RidgelineChart`
-- **Over time:** `CalendarHeatmap`, `HeatmapChart`, `RangeAreaChart`, `StreamChart`, `CandlestickChart` (candle, OHLC, high-low; SMA, EMA, Bollinger, RSI, MACD; volume), `GanttChart`, `BumpChart`, `RangeSelector` (pick a window of time for a chart)
+- **Over time:** `CalendarHeatmap`, `HeatmapChart`, `RangeAreaChart`, `StreamChart`, `CandlestickChart` (candle, OHLC, high-low, close line or area, Heikin-Ashi, EquiVolume, CandleVolume; SMA, EMA, Bollinger, price channel, RSI, MACD; volume), `PriceActionChart` (Renko, Kagi, line break, point and figure), `GanttChart`, `BumpChart`, `RangeSelector` (pick a window of time for a chart)
 - **Compare:** `RadarChart`, `BulletChart`, `DumbbellChart`, `SlopeChart`, `LollipopChart`, `ParallelCoordinatesChart`, `RangeBarChart`, `ComboChart` (bars and lines, optional right axis)
+- **Special:** `PolarChart` (numeric angle and radius: lines, splines, areas, markers), `ShapeChart` (polygons and polylines in data coordinates)
 - **Composition and progress:** `WaterfallChart`, `FunnelChart` (and pyramid), `GaugeChart`, `LinearGaugeChart`, `RadialBarChart`, `PolarAreaChart`, `ParetoChart`, `MarimekkoChart`, `WaffleChart`
 
 The core charts (line, area, bar, pie, donut, sparkline) take a CSS `Width` (default `"100%"`;

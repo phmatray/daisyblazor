@@ -15,6 +15,8 @@ public static partial class DocRegistry
                 new("Several series, smoothed", "Each series takes the next palette colour and appears in the legend; Smooth draws curves.", typeof(LineChartSeriesExample)),
                 new("Minimal", "Turn off ShowGrid and ShowLegend, set a Height, and give a series its own Color.", typeof(LineChartMinimalExample)),
                 new("Step", "Step draws each value as a step that holds until the next one (step-after), for counts that change in jumps; it wins over Smooth.", typeof(LineChartStepExample)),
+                new("Rotated", "Horizontal puts the labels down the side and the values along the bottom, each line reading top to bottom; it works with Smooth, Step, Stacked, Percent and Area.", typeof(LineChartRotatedExample)),
+                new("Reference lines and bands", "References draws a ChartReference line across the plot at a value (dashed unless Dashed is false) and Bands shades a ChartBand range behind the data; labels sit inside the plot, and the axis grows to show every line.", typeof(LineChartReferencesExample)),
             ])
         {
             Portrait = typeof(LineChartCoverExample),
@@ -28,6 +30,7 @@ public static partial class DocRegistry
                 new("Several series", "Fills are translucent so overlapping series stay readable; turn ShowPoints on to mark each value.", typeof(AreaChartSeriesExample)),
                 new("Stacked", "Stacked draws each series on top of the running total, so the bands add up to the whole and the fills never mix; tooltips still show each series' own value.", typeof(AreaChartStackedExample)),
                 new("100% stacked", "Percent stacks the series to 100% at every label, so the fills show each one's share; tooltips show the value and the share.", typeof(AreaChartPercentExample)),
+                new("Rotated", "Horizontal turns the chart so the labels run down the side and the areas fill from the left; here also Stacked and Step. References and Bands work as on LineChart.", typeof(AreaChartRotatedExample)),
             ])
         {
             Portrait = typeof(AreaChartCoverExample),
@@ -44,6 +47,7 @@ public static partial class DocRegistry
                 new("100% stacked", "Percent stacks each bar to 100% of its total, here horizontal; tooltips show the value and the share.", typeof(BarChartPercentExample)),
                 new("Side-by-side stacks", "Give each ChartSeries a Stack name: series with the same name stack together and the stacks stand side by side in each label.", typeof(BarChartStackGroupsExample)),
                 new("Per-bar colours", "Give a point any CSS colour; ChartPalette.FromColor maps a Color value to its theme token.", typeof(BarChartColorsExample)),
+                new("Reference lines and bands", "References draws a line across the bars at a value (a target, a limit) and Bands shades a value range behind them; on a Horizontal chart both run down the plot.", typeof(BarChartReferencesExample)),
             ])
         {
             Portrait = typeof(BarChartCoverExample),
@@ -55,6 +59,8 @@ public static partial class DocRegistry
             [
                 new("Basic", "Slices start at 12 o'clock and run clockwise, coloured from the theme palette.", typeof(PieChartBasicExample)),
                 new("Colours and legend", "Set a Color per point and hide the legend with ShowLegend=\"false\".", typeof(PieChartColorsExample)),
+                new("Others slice", "OthersThreshold (a fraction: 0.05 is 5 %) merges the slices below it into one slice named OthersLabel, drawn last; its tooltip lists what it holds. A single small slice is kept as it is.", typeof(PieChartOthersExample)),
+                new("Exploded slice", "Exploded lists the labels of the slices to pull out along their bisector, by ExplodeOffset times the radius (default 0.08); the pie shrinks so they stay in the box.", typeof(PieChartExplodedExample)),
             ])
         {
             Portrait = typeof(PieChartCoverExample),
@@ -66,17 +72,20 @@ public static partial class DocRegistry
             [
                 new("With a center label", "CenterLabel prints a headline figure inside the ring.", typeof(DonutChartBasicExample)),
                 new("Ring thickness", "InnerRadiusRatio (default 0.6) sets the hole size: higher is a thinner ring, which makes a neat progress gauge.", typeof(DonutChartRingExample)),
+                new("Several rings", "Rings takes a list of DonutRing (a name and its data), drawn as concentric rings sharing the hole, outermost first. A label keeps one colour in every ring, the legend lists each label once, and tooltips name the ring.", typeof(DonutChartRingsExample)),
             ])
         {
             Portrait = typeof(DonutChartCoverExample),
         },
 
         new("Sparkline", Category.Charts,
-            "A tiny trend line with no axes, sized to sit inline in text, table cells or KPI tiles. Takes a plain list of numbers. D3 draws the line at the box's real size.",
+            "A tiny trend line, column or win/loss chart with no axes, sized to sit inline in text, table cells or KPI tiles. Takes a plain list of numbers. D3 draws it at the box's real size.",
             [typeof(Sparkline)],
             [
                 new("Basic", "Area fills under the line, ShowEndDot marks the latest value, StrokeWidth sets the weight.", typeof(SparklineBasicExample)),
                 new("In a table", "Width and Color (any CSS colour) let each row show its own trend.", typeof(SparklineTableExample)),
+                new("Column and win/loss", "Type=\"SparklineKind.Column\" draws one bar per value from zero, negative ones down in NegativeColor (the error colour by default); SparklineKind.WinLoss draws equal bars up or down by sign, with a gap for zero.", typeof(SparklineKindsExample)),
+                new("Trend line and normal range", "ShowTrendline adds the dashed least-squares line across the values; NormalMin and NormalMax shade the expected range behind them. Both work on lines and columns.", typeof(SparklineTrendExample)),
             ])
         {
             Portrait = typeof(SparklineCoverExample),

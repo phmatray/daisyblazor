@@ -1,0 +1,13 @@
+<RadarChart Title="Share of requests by client" Labels="_regions" Series="_clients" Percent="true" ShowPoints="false" />
+
+@code {
+    private readonly string[] _regions = ["Europe", "Americas", "Asia", "Africa", "Oceania"];
+
+    // Percent: every spoke adds up to 100%, so the bands show each client's share in that region.
+    private readonly ChartSeries[] _clients =
+    [
+        new("Web app", [52, 48, 35, 40, 50]),
+        new("Mobile", [30, 34, 50, 45, 32]),
+        new("CLI", [18, 18, 15, 15, 18]),
+    ];
+}

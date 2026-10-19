@@ -2,9 +2,11 @@
 @inherits D3Chart<PolarAreaLayout>
 
 @* Polar area (rose, Nightingale) chart: equal angles, each wedge's area proportional to its value.
-   D3 computes the wedges on a radial scale; grid circles mark its ticks. *@
+   D3 computes the wedges on a radial scale; grid circles mark its ticks. With stacked Series it is
+   a wind rose: the series stack outward in every wedge. *@
 
 <D3ChartFrame TLayout="PolarAreaLayout" Chart="this" Label="@_label" Description="@_description">
+    <ChildContent>
     @if (Layout is { } geo)
     {
         <g transform="@($"translate({N(geo.Cx)},{N(geo.Cy)})")">
@@ -14,12 +16,26 @@
                     <title>@_format(ring.Value)</title>
                 </circle>
             }
-            @foreach (PolarAreaWedge wedge in geo.Wedges)
+            @if (geo.Segments is { } segments)
             {
-                <path d="@wedge.Path" fill="@_color(wedge.Index)" fill-opacity="0.85" stroke="var(--color-base-100)" stroke-width="1"
-                      vector-effect="non-scaling-stroke">
-                    <title>@($"{wedge.Label}: {_format(wedge.Value)}")</title>
-                </path>
+                @* Wind rose: every series' part of a wedge, stacked outward. *@
+                @foreach (PolarAreaSegment segment in segments.Where(g => g.Series < _stacked.Count && g.Index < geo.Wedges.Count))
+                {
+                    <path d="@segment.Path" fill="@_seriesColor(segment.Series)" fill-opacity="0.85" stroke="var(--color-base-100)" stroke-width="1"
+                          vector-effect="non-scaling-stroke">
+                        <title>@($"{geo.Wedges[segment.Index].Label}, {_seriesName(segment.Series)}: {_format(segment.Value)}")</title>
+                    </path>
+                }
+            }
+            else
+            {
+                @foreach (PolarAreaWedge wedge in geo.Wedges)
+                {
+                    <path d="@wedge.Path" fill="@_color(wedge.Index)" fill-opacity="0.85" stroke="var(--color-base-100)" stroke-width="1"
+                          vector-effect="non-scaling-stroke">
+                        <title>@($"{wedge.Label}: {_format(wedge.Value)}")</title>
+                    </path>
+                }
             }
         </g>
         @foreach (PolarAreaWedge wedge in geo.Wedges)
@@ -28,13 +44,36 @@
                      Text="@(ShowValues ? $"{wedge.Label} {_format(wedge.Value)}" : wedge.Label)" />
         }
     }
+    </ChildContent>
+    <Legend>
+        @if (ShowLegend && _stacked.Count > 1)
+        {
+            <ChartLegend Items="@_stacked.Select((_, i) => (_seriesName(i), _seriesColor(i))).ToList()" />
+        }
+    </Legend>
 </D3ChartFrame>
 
 @code {
     /// <summary>One wedge per point, clockwise from 12 o'clock. Points without a finite, non-negative Value are skipped; a point's Color overrides the palette.</summary>
     [Parameter] public IReadOnlyList<ChartDataPoint> Data { get; set; } = [];
 
-    /// <summary>Print each item's value after its name.</summary>
+    /// <summary>
+    /// Wedge names, clockwise from 12 o'clock, for stacked <see cref="Series"/> (a wind rose); every
+    /// name gets a wedge, even an empty one.
+    /// </summary>
+    [Parameter] public IReadOnlyList<string>? Labels { get; set; }
+
+    /// <summary>
+    /// Stacked series instead of <see cref="Data"/> (a wind rose): value <c>i</c> of each series lines
+    /// up with <see cref="Labels"/>[i], and the series stack outward in that wedge, the wedge's area
+    /// following its total. Missing or negative values count as 0. Takes precedence over Data when it has series.
+    /// </summary>
+    [Parameter] public IReadOnlyList<ChartSeries>? Series { get; set; }
+
+    /// <summary>Show a legend of the <see cref="Series"/> when there is more than one.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>Print each item's value (a wedge's total, when stacked) after its name.</summary>
     [Parameter] public bool ShowValues { get; set; } = true;
 
     /// <summary>Format string for values in labels and tooltips.</summary>
@@ -50,12 +89,26 @@
     protected override string Kind => "polar-area";
 
     /// <inheritdoc />
-    protected override object BuildSpec() => new
-    {
-        Items = Data.Select(i => new { i.Label, i.Value }).ToArray(),
-        Width = ViewWidth,
-        Height = ViewHeight,
-    };
+    protected override object BuildSpec() => _stacked.Count > 0
+        ? new
+        {
+            Labels = (Labels ?? []).ToArray(),
+            Series = _stacked.Select(s => (Labels ?? []).Select((_, i) => i < s.Data.Count ? s.Data[i] : (double?)null).ToArray()).ToArray(),
+            Width = ViewWidth,
+            Height = ViewHeight,
+        }
+        : new
+        {
+            Items = Data.Select(i => new { i.Label, i.Value }).ToArray(),
+            Width = ViewWidth,
+            Height = ViewHeight,
+        };
+
+    private IReadOnlyList<ChartSeries> _stacked => Series ?? [];
+
+    private string _seriesName(int s) => s < _stacked.Count && !string.IsNullOrEmpty(_stacked[s].Name) ? _stacked[s].Name : $"Series {s + 1}";
+
+    private string _seriesColor(int s) => ChartPalette.At(s, s < _stacked.Count ? _stacked[s].Color : null);
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
 
@@ -63,5 +116,8 @@
 
     private string _label => Title ?? "Polar area chart";
 
-    private string _description => string.Join("; ", Data.Where(i => i.Value >= 0).Select(i => $"{i.Label}: {_format(i.Value)}"));
+    private string _description => _stacked.Count > 0
+        ? string.Join("; ", (Labels ?? []).Select((label, i) => $"{label}: " + string.Join(", ", _stacked.Select((s, j) =>
+            $"{_seriesName(j)} {(i < s.Data.Count && double.IsFinite(s.Data[i]) ? _format(s.Data[i]) : "no value")}"))))
+        : string.Join("; ", Data.Where(i => i.Value >= 0).Select(i => $"{i.Label}: {_format(i.Value)}"));
 }

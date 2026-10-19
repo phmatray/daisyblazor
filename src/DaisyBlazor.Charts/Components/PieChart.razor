@@ -3,7 +3,8 @@
 
 @* Pie chart (a ring when InnerRadiusRatio is above 0). D3 (d3.pie, d3.arc) computes the slice
    angles, arcs and percentages in a fixed 200-unit square that the SVG scales to its CSS height.
-   Colors follow the active daisyUI theme via the cycling ChartPalette. *@
+   Colors follow the active daisyUI theme via the cycling ChartPalette. Small slices can be merged
+   into one "Other" slice, chosen slices pulled out, and Rings draws several concentric rings. *@
 
 <div class="@CssClass.Merge("w-full", Class)" style="@(string.IsNullOrEmpty(Width) ? Style : $"width:{Width};{Style}")" @attributes="UserAttributes">
     @if (!string.IsNullOrEmpty(Title))
@@ -25,7 +26,7 @@
         else
         {
             // A layout still being replaced may name points the new Data no longer has.
-            IReadOnlyList<PieLayoutSlice> slices = [.. geo.Slices.Where(slice => slice.Index < _data.Count)];
+            IReadOnlyList<PieLayoutSlice> slices = [.. geo.Slices.Where(slice => slice.Ring < _rings.Count && slice.Index < _rings[slice.Ring].Items.Count)];
             <svg viewBox="0 0 @N(_size) @N(_size)" role="img" style="@($"height:{Height};max-width:100%;")"
                  aria-label="@_ariaLabel" aria-describedby="@_descId">
                 <title>@_ariaLabel</title>
@@ -43,7 +44,7 @@
                     @for (int k = 0; k < slices.Count; k++)
                     {
                         PieLayoutSlice slice = slices[k];
-                        <path d="@slice.Path" fill="@_color(slice, k)"
+                        <path d="@slice.Path" fill="@_color(slice, k)" transform="@(slice.Dx != 0 || slice.Dy != 0 ? $"translate({N(slice.Dx)},{N(slice.Dy)})" : null)"
                               stroke="var(--color-base-100)" stroke-width="1"><title>@_sliceTitle(slice)</title></path>
                     }
                 </g>
@@ -54,7 +55,19 @@
                 }
             </svg>
 
-            @if (ShowLegend && slices.Count > 0)
+            @if (ShowLegend && slices.Count > 0 && _multi)
+            {
+                <ul class="flex flex-wrap gap-3 text-xs">
+                    @foreach (string label in _labelOrder)
+                    {
+                        <li class="flex items-center gap-1.5">
+                            <span class="inline-block w-3 h-3 rounded-sm" style="@($"background:{_labelColor(label)};")"></span>
+                            <span class="text-base-content/80">@label</span>
+                        </li>
+                    }
+                </ul>
+            }
+            else if (ShowLegend && slices.Count > 0)
             {
                 <ul class="flex flex-wrap gap-3 text-xs">
                     @for (int k = 0; k < slices.Count; k++)
@@ -62,7 +75,7 @@
                         PieLayoutSlice slice = slices[k];
                         <li class="flex items-center gap-1.5">
                             <span class="inline-block w-3 h-3 rounded-sm" style="@($"background:{_color(slice, k)};")"></span>
-                            <span class="text-base-content/80">@_data[slice.Index].Label</span>
+                            <span class="text-base-content/80">@_point(slice).Label</span>
                             <span class="text-base-content/50">@_percent(slice)%</span>
                         </li>
                     }
@@ -94,6 +107,32 @@
     /// <summary>Optional label rendered in the centre of the hole; shown only when <see cref="InnerRadiusRatio"/> is above 0.</summary>
     [Parameter] public string? CenterLabel { get; set; }
 
+    /// <summary>
+    /// Merge the slices whose share of the whole is below this fraction (0.05 = 5 %) into one slice
+    /// named <see cref="OthersLabel"/>, drawn last; its tooltip lists what it holds. 0 (default) keeps
+    /// every slice, and a single small slice is never merged on its own.
+    /// </summary>
+    [Parameter] public double OthersThreshold { get; set; }
+
+    /// <summary>Label of the slice that gathers the slices below <see cref="OthersThreshold"/>.</summary>
+    [Parameter] public string OthersLabel { get; set; } = "Other";
+
+    /// <summary>Labels of the slices to pull out of the pie; the merged slice is named by <see cref="OthersLabel"/>.</summary>
+    [Parameter] public IReadOnlyList<string>? Exploded { get; set; }
+
+    /// <summary>How far exploded slices move out along their bisector, as a fraction of the radius (0 to 0.5).</summary>
+    [Parameter] public double ExplodeOffset { get; set; } = 0.08;
+
+    /// <summary>
+    /// Concentric rings instead of <see cref="Data"/>, outermost first, sharing the hole; each ring's
+    /// slices make up its own whole. A label keeps one colour in every ring and the legend lists each
+    /// label once. <see cref="OthersThreshold"/> applies to each ring, <see cref="Exploded"/> only to <see cref="Data"/>.
+    /// </summary>
+    [Parameter] public IReadOnlyList<DonutRing>? Rings { get; set; }
+
+    /// <summary>Show each slice's share of the whole in its tooltip and the description (default true).</summary>
+    [Parameter] public bool ShowPercent { get; set; } = true;
+
     /// <summary>Additional CSS classes merged onto the <c>w-full</c> wrapper.</summary>
     [Parameter] public string? Class { get; set; }
     /// <summary>Inline styles appended after the width on the wrapper.</summary>
@@ -104,30 +143,96 @@
     protected override string Kind => "pie";
 
     /// <inheritdoc />
-    protected override object BuildSpec() => new
+    protected override void OnParametersSet()
     {
-        Values = _data.Select(p => p.Value).ToArray(),
-        Size = _size,
-        InnerRatio = InnerRadiusRatio,
-        CenterLabel = CenterLabel ?? string.Empty,
-    };
+        _multi = Rings is { Count: > 0 };
+        _rings = _multi
+            ? [.. Rings!.Select(r => _merge(r.Name, r.Data ?? []))]
+            : [_merge(null, Data ?? new List<ChartDataPoint>())];
+        _labelOrder = [.. _rings.SelectMany(r => r.Items).Select(p => p.Label).Distinct()];
+
+        // A label takes the first colour any of its points gives, else its palette slot.
+        Dictionary<string, string> custom = [];
+        foreach (ChartDataPoint point in _rings.SelectMany(r => r.Items).Where(p => p.Color is not null))
+        {
+            custom.TryAdd(point.Label, point.Color!);
+        }
+
+        _labelColors = _labelOrder.Select((label, i) => (Label: label, Color: ChartPalette.At(i, custom.GetValueOrDefault(label))))
+            .ToDictionary(x => x.Label, x => x.Color);
+        base.OnParametersSet();
+    }
+
+    // Defaults send the original spec, so existing charts lay out exactly as before.
+    /// <inheritdoc />
+    protected override object BuildSpec()
+    {
+        string center = CenterLabel ?? string.Empty;
+        if (_multi)
+        {
+            double[][] rings = [.. _rings.Select(r => r.Items.Select(p => p.Value).ToArray())];
+            return new { Values = Array.Empty<double>(), Size = _size, InnerRatio = InnerRadiusRatio, CenterLabel = center, Rings = rings };
+        }
+
+        double[] values = [.. _rings[0].Items.Select(p => p.Value)];
+        int[] explode = Exploded is { Count: > 0 } labels
+            ? [.. _rings[0].Items.Select((p, i) => (p.Label, i)).Where(x => labels.Contains(x.Label)).Select(x => x.i)]
+            : [];
+        return explode.Length == 0
+            ? new { Values = values, Size = _size, InnerRatio = InnerRadiusRatio, CenterLabel = center }
+            : new { Values = values, Size = _size, InnerRatio = InnerRadiusRatio, CenterLabel = center, Explode = explode, ExplodeOffset };
+    }
 
     private const double _size = 200;
 
     private readonly string _descId = "pie-desc-" + Guid.NewGuid().ToString("N")[..8];
 
-    private IReadOnlyList<ChartDataPoint> _data => Data ?? new List<ChartDataPoint>();
+    private sealed record Ring(string? Name, IReadOnlyList<ChartDataPoint> Items, IReadOnlyList<ChartDataPoint> Merged);
+
+    private List<Ring> _rings = [];
+    private List<string> _labelOrder = [];
+    private Dictionary<string, string> _labelColors = [];
+    private bool _multi;
+
+    // Two or more slices below the threshold become one slice at the end; the rest keep their order.
+    private Ring _merge(string? name, IReadOnlyList<ChartDataPoint> data)
+    {
+        double total = data.Where(p => double.IsFinite(p.Value) && p.Value > 0).Sum(p => p.Value);
+        List<ChartDataPoint> small = OthersThreshold > 0 && total > 0
+            ? [.. data.Where(p => double.IsFinite(p.Value) && p.Value > 0 && p.Value / total < OthersThreshold)]
+            : [];
+        if (small.Count < 2)
+        {
+            return new Ring(name, data, []);
+        }
+
+        List<ChartDataPoint> items = [.. data.Where(p => !small.Contains(p)), new ChartDataPoint(OthersLabel, small.Sum(p => p.Value))];
+        return new Ring(name, items, small);
+    }
+
+    private ChartDataPoint _point(PieLayoutSlice slice) => _rings[slice.Ring].Items[slice.Index];
 
     // The placeholder and error take the square the SVG will fill.
     private string _squareStyle => $"height:{Height};aspect-ratio:1;max-width:100%;";
 
-    // The palette cycles over the drawn slices (k), so skipped values do not leave a colour out.
-    private string _color(PieLayoutSlice slice, int k) => ChartPalette.At(k, _data[slice.Index].Color);
+    // The palette cycles over the drawn slices (k), so skipped values do not leave a colour out. With
+    // rings it cycles over the labels instead, so a label keeps its colour in every ring.
+    private string _color(PieLayoutSlice slice, int k) =>
+        _multi ? _labelColor(_point(slice).Label) : ChartPalette.At(k, _point(slice).Color);
+
+    private string _labelColor(string label) => _labelColors[label];
 
     private static string _percent(PieLayoutSlice slice) => slice.Percent.ToString("0.#", CultureInfo.InvariantCulture);
 
-    private string _sliceTitle(PieLayoutSlice slice) =>
-        $"{_data[slice.Index].Label}: {ChartText.Value(_data[slice.Index].Value)} ({_percent(slice)}%)";
+    private string _sliceTitle(PieLayoutSlice slice)
+    {
+        Ring ring = _rings[slice.Ring];
+        ChartDataPoint point = ring.Items[slice.Index];
+        string title = $"{(ring.Name is null ? string.Empty : ring.Name + ", ")}{point.Label}: {ChartText.Value(point.Value)}{(ShowPercent ? $" ({_percent(slice)}%)" : string.Empty)}";
+        return ring.Merged.Count > 0 && slice.Index == ring.Items.Count - 1
+            ? $"{title}: {string.Join(", ", ring.Merged.Select(p => $"{p.Label} {ChartText.Value(p.Value)}"))}"
+            : title;
+    }
 
     private string _description(IReadOnlyList<PieLayoutSlice> slices) => slices.Count == 0
         ? "No data."

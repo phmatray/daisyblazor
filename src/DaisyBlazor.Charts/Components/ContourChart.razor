@@ -3,27 +3,46 @@
 
 @* Density contours: where many points crowd together, the bands get darker. D3 (d3-contour) estimates
    the density on the plot's grid and traces one band per level; this component fills them with one
-   theme colour, deeper for denser levels. *@
+   theme colour, deeper for denser levels. In value mode the points carry a measurement instead: the
+   layout interpolates it over the plot and this component fills each value band on a sequential
+   scale, optionally with labelled contour lines. *@
 
-<D3ChartFrame TLayout="ContourLayout" Chart="this" Label="@_label" Description="@_description">
+<D3ChartFrame TLayout="ContourLayout" Chart="this" Label="@_label" Description="@_description" Legend="@_legend">
     @if (Layout is { } view)
     {
         <ChartAxes Plot="view.Plot" Baseline="true" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
                    XGrid="true" YGrid="true" Height="ViewHeight" />
         <g transform="@($"translate({N(view.Plot.Left)},{N(view.Plot.Top)})")">
-            @for (int i = 0; i < view.Contours.Count; i++)
+            @if (Mode == ContourMode.Value)
             {
-                double level = (i + 1d) / view.Contours.Count;
-                <path d="@view.Contours[i].Path" fill="@Color" fill-opacity="@N(0.05 + 0.55 * level)"
-                      stroke="@Color" stroke-opacity="0.6" stroke-width="0.75" stroke-linejoin="round">
-                    <title>@($"Density level {i + 1} of {view.Contours.Count}")</title>
-                </path>
+                @for (int i = 0; i < view.Contours.Count; i++)
+                {
+                    <path d="@view.Contours[i].Path" fill="@_shade(i, view.Contours.Count)"
+                          stroke="@(ShowLines && i > 0 ? "var(--color-base-content)" : "none")" stroke-opacity="0.45" stroke-width="0.75" stroke-linejoin="round">
+                        <title>@_bandText(view, i)</title>
+                    </path>
+                }
+                @foreach (ContourLabel label in view.Labels ?? [])
+                {
+                    <SvgText X="label.X" Y="label.Y" Dy="0.35em" Anchor="middle" FontSize="10" FontWeight="600" Text="@_format(label.Value)" />
+                }
+            }
+            else
+            {
+                @for (int i = 0; i < view.Contours.Count; i++)
+                {
+                    double level = (i + 1d) / view.Contours.Count;
+                    <path d="@view.Contours[i].Path" fill="@Color" fill-opacity="@N(0.05 + 0.55 * level)"
+                          stroke="@Color" stroke-opacity="0.6" stroke-width="0.75" stroke-linejoin="round">
+                        <title>@($"Density level {i + 1} of {view.Contours.Count}")</title>
+                    </path>
+                }
             }
         </g>
         @foreach (ContourLayoutPoint p in view.Points)
         {
-            <circle cx="@N(p.Cx)" cy="@N(p.Cy)" r="1.75" fill="var(--color-base-content)" fill-opacity="0.55">
-                <title>@($"{XTitle ?? "x"} {_format(p.X)}, {YTitle ?? "y"} {_format(p.Y)}")</title>
+            <circle cx="@N(p.Cx)" cy="@N(p.Cy)" r="@(p.Value is null ? "1.75" : "2.5")" fill="var(--color-base-content)" fill-opacity="@(p.Value is null ? "0.55" : "0.8")">
+                <title>@($"{XTitle ?? "x"} {_format(p.X)}, {YTitle ?? "y"} {_format(p.Y)}" + (p.Value is { } v ? $": {ValueTitle ?? "value"} {_format(v)}" : string.Empty))</title>
             </circle>
         }
     }
@@ -51,14 +70,45 @@
     /// <summary>Colour of the bands (any CSS colour); deeper levels are more opaque.</summary>
     [Parameter] public string Color { get; set; } = "var(--color-primary)";
 
-    /// <summary>Format string for X and Y in point tooltips.</summary>
+    /// <summary>Format string for X and Y in point tooltips, and for values in value mode.</summary>
     [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>
+    /// What to draw: the density of the points (the default), or in <see cref="ContourMode.Value"/> a
+    /// surface of each point's <see cref="ScatterPoint.Value"/>, interpolated linearly on the points'
+    /// Delaunay triangles (and, outside them, taken from the nearest edge of their hull), so it is exact
+    /// at each point and never beyond the smallest and largest value, and filled in bands of equal value from light to <see cref="Color"/>, with a legend. Points
+    /// without a finite Value are skipped in value mode; <see cref="Bandwidth"/> only applies to density.
+    /// </summary>
+    [Parameter] public ContourMode Mode { get; set; } = ContourMode.Density;
+
+    /// <summary>In value mode, outline each band and print its value on the line (a scatter contour).</summary>
+    [Parameter] public bool ShowLines { get; set; }
+
+    /// <summary>Name of the measured value in value mode, used in tooltips and the description, e.g. "Latency (ms)".</summary>
+    [Parameter] public string? ValueTitle { get; set; }
+
+    /// <summary>Show the colour key of the value bands under the chart (value mode only).</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
 
     /// <inheritdoc />
     protected override string Kind => "contour";
 
     /// <inheritdoc />
-    protected override object BuildSpec() => new
+    protected override object BuildSpec() => Mode == ContourMode.Value
+        ? new
+        {
+            Points = Points.Where(p => double.IsFinite(p.X) && double.IsFinite(p.Y) && p.Value is { } v && double.IsFinite(v)).Select(p => new { p.X, p.Y, p.Value }).ToArray(),
+            Width = ViewWidth,
+            Height = ViewHeight,
+            XTitle,
+            YTitle,
+            Thresholds = Levels,
+            ShowPoints,
+            Mode = "value",
+            ShowLines,
+        }
+        : new
     {
         Points = Points.Where(p => double.IsFinite(p.X) && double.IsFinite(p.Y)).Select(p => new { p.X, p.Y }).ToArray(),
         Width = ViewWidth,
@@ -72,9 +122,38 @@
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
 
-    private string _label => Title ?? "Density contour chart";
+    // The value bands run from a faint tint (lowest) to the full colour (highest).
+    private string _shade(int band, int count) =>
+        $"color-mix(in oklab, {Color} {Math.Round(10 + 90.0 * band / Math.Max(1, count - 1)).ToString(Ci)}%, var(--color-base-100))";
 
-    private string _description => $"Density of {Points.Count} points"
-        + (XTitle is not null && YTitle is not null ? $", {YTitle} against {XTitle}" : string.Empty)
-        + "; darker bands mark where points are most concentrated.";
+    // A band's range, "40–50" (or just "40" for a flat surface).
+    private string _bandRange(ContourLayout view, int band)
+    {
+        double from = view.Contours[band].Value;
+        double? to = band + 1 < view.Contours.Count ? view.Contours[band + 1].Value : view.Max;
+        return _format(from) + (to is { } t && t > from ? $"–{_format(t)}" : string.Empty);
+    }
+
+    private string _bandText(ContourLayout view, int band) => $"{ValueTitle ?? "Value"} {_bandRange(view, band)}";
+
+    // The legend keeps the swatches short; the value's name is given once, first.
+    private RenderFragment? _legend => Mode == ContourMode.Value && ShowLegend && Layout is { Contours.Count: > 0 } view
+        ? @<div class="flex flex-wrap items-center gap-x-3">
+              @if (ValueTitle is not null)
+              {
+                  <span class="mt-2 text-xs font-semibold text-base-content/80">@ValueTitle</span>
+              }
+              <ChartLegend Items="@(view.Contours.Select((c, i) => (_bandRange(view, i), _shade(i, view.Contours.Count))).ToList())" />
+          </div>
+        : null;
+
+    private string _label => Title ?? (Mode == ContourMode.Value ? "Value contour chart" : "Density contour chart");
+
+    private string _description => Mode == ContourMode.Value
+        ? $"{ValueTitle ?? "Value"} measured at {Points.Count(p => p.Value is not null)} points"
+            + (XTitle is not null && YTitle is not null ? $" over {XTitle} and {YTitle}" : string.Empty)
+            + ", interpolated between them; darker bands mark higher values."
+        : $"Density of {Points.Count} points"
+            + (XTitle is not null && YTitle is not null ? $", {YTitle} against {XTitle}" : string.Empty)
+            + "; darker bands mark where points are most concentrated.";
 }

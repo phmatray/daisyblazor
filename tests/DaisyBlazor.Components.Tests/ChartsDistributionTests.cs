@@ -251,4 +251,146 @@ public class ChartsDistributionTests : BunitContext
         s.WaitForAssertion(() => s.FindAll("svg").Count.ShouldBe(1));
         s.FindAll(".rounded-sm").Count.ShouldBe(0);
     }
+
+    [Fact]
+    public void Scatter_sends_smooth_and_draws_error_bars_with_their_tooltip()
+    {
+        JSRuntimeInvocationHandler<ScatterLayout> call = Setup<ScatterLayout>();
+        IRenderedComponent<ScatterChart> cut = Render<ScatterChart>(ps => ps
+            .Add(p => p.Points, [new ScatterPoint(2, 10) { XError = 0.5, YError = 3 }, new ScatterPoint(4, 20)])
+            .Add(p => p.ShowLine, true).Add(p => p.Smooth, true).Add(p => p.YTitle, "Latency"));
+
+        string spec = Spec("scatter");
+        spec.ShouldContain("\"smooth\":true");
+        spec.ShouldContain("\"xError\":0.5,\"yError\":3");
+        spec.ShouldContain("\"highDensity\":false");
+
+        call.SetResult(new ScatterLayout(_plot, _xTicks, _yTicks, [""],
+        [
+            new(2, 10, null, null, 0, 100, 200, 4, "M0,0Z", XWhisker: new(0.5, 90, 110), YWhisker: new(3, 230, 170)),
+            new(4, 20, null, null, 0, 300, 100, 4, "M1,1Z"),
+        ]));
+        cut.WaitForAssertion(() => cut.FindAll("svg path[fill=none][stroke-width='1.25']").Count.ShouldBe(2));
+        cut.Markup.ShouldContain("M90,200H110M90,196v8M110,196v8");
+        cut.Markup.ShouldContain("M100,230V170M96,230h8M96,170h8");
+        cut.Markup.ShouldContain("x 2 ± 0.5, Latency 10 ± 3");
+        cut.Find("svg").QuerySelector("desc")!.TextContent.ShouldContain("with error bars");
+    }
+
+    [Fact]
+    public void Scatter_high_density_draws_one_path_per_count_level_with_a_count_legend()
+    {
+        JSRuntimeInvocationHandler<ScatterLayout> call = Setup<ScatterLayout>();
+        IRenderedComponent<ScatterChart> cut = Render<ScatterChart>(ps => ps
+            .Add(p => p.Points, [new ScatterPoint(1, 2, Label: "dropped"), new ScatterPoint(3, 4)])
+            .Add(p => p.HighDensity, true).Add(p => p.CellSize, 4).Add(p => p.CountFormat, "{0:N0} requests"));
+
+        string spec = Spec("scatter");
+        spec.ShouldContain("\"highDensity\":true");
+        spec.ShouldContain("\"cellSize\":4");
+        spec.ShouldNotContain("dropped", customMessage: "only X, Y and Series are sent");
+
+        // Counts 1, 1 and 36 (max): levels 1 (1 point) and 6 (26–36).
+        call.SetResult(new ScatterLayout(_plot, _xTicks, _yTicks, [""], [], Density: [new(0, [0, 0, 1, 2, 1, 1, 10, 5, 36])], CellSize: 4));
+        cut.WaitForAssertion(() => cut.FindAll("svg path[fill^='color-mix']").Count.ShouldBe(2));
+        cut.FindAll("svg circle").Count.ShouldBe(0);
+        cut.Markup.ShouldContain("M40,26h4v4h-4zM48,30h4v4h-4z");
+        cut.Markup.ShouldContain("M80,46h4v4h-4z");
+        cut.Markup.ShouldContain("26–36 requests per cell");
+        cut.FindAll(".rounded-sm").Count.ShouldBe(6, "one legend key per count level");
+        cut.Find("svg").QuerySelector("desc")!.TextContent.ShouldContain("small cell");
+
+        // The level paths are kept per layout; a colour change keeps the layout but redraws them.
+        cut.Render(ps => ps.Add(p => p.SeriesColors, new Dictionary<string, string> { [""] = "red" }));
+        cut.FindAll("svg path[fill^='color-mix(in oklab, red']").Count.ShouldBe(2);
+        _module.Invocations["layout"].Count.ShouldBe(1, "same spec, same layout");
+    }
+
+    [Fact]
+    public void Scatter_stacked_quadrants_draw_reference_lines_bands_labels_and_totals()
+    {
+        JSRuntimeInvocationHandler<ScatterLayout> call = Setup<ScatterLayout>();
+        IRenderedComponent<ScatterChart> cut = Render<ScatterChart>(ps => ps
+            .Add(p => p.Points, [new ScatterPoint(1, 2, Series: "Compute"), new ScatterPoint(1, 3, Series: "Storage")])
+            .Add(p => p.Stacked, true).Add(p => p.Trendline, ChartTrendline.Linear)
+            .Add(p => p.XReferences, [new ChartReference(50, "Median usage")]).Add(p => p.References, [new ChartReference(25, Color: "red")])
+            .Add(p => p.XBands, [new ChartBand(0, 10, "Pilot")])
+            .Add(p => p.QuadrantLabels, ["Grow", "Fix", "Retire", "Keep"]));
+
+        string spec = Spec("scatter");
+        spec.ShouldContain("\"stacked\":true");
+        spec.ShouldContain("\"references\":[{\"value\":25,\"label\":null}],\"bands\":[],\"xReferences\":[{\"value\":50,\"label\":\"Median usage\"}],\"xBands\":[{\"from\":0,\"to\":10,\"label\":\"Pilot\"}]");
+
+        call.SetResult(new ScatterLayout(_plot, _xTicks, _yTicks, ["Compute", "Storage"],
+            [new(1, 2, null, null, 0, 100, 200, 4, "M0,0Z", Total: 2), new(1, 3, null, null, 1, 100, 150, 4, "M1,1Z", Total: 5)],
+            References: [new(0, 40, 172, 624, 172, 620, 168, "end")],
+            XReferences: [new(0, 332, 26, 332, 318, 336, 37, "start")],
+            XBands: [new(0, 40, 26, 60, 292, 44, 312, "start")]));
+        cut.WaitForAssertion(() => cut.FindAll("svg line").Count(l => l.GetAttribute("stroke-dasharray") == "5 4").ShouldBe(2));
+        cut.Find("svg line[x1='332']").GetAttribute("y2").ShouldBe("318");
+        cut.Find("svg line[y1='172']").GetAttribute("stroke").ShouldBe("red");
+        cut.Find("svg rect[fill-opacity='0.12']").GetAttribute("width").ShouldBe("60");
+        string[] labels = cut.FindAll("svg text").Select(t => t.TextContent).ToArray();
+        labels.ShouldContain("Grow");
+        labels.ShouldContain("Retire");
+        labels.ShouldContain("Median usage");
+        labels.ShouldContain("Pilot");
+        cut.Markup.ShouldContain("Storage: x 1, y 3 (total 5)");
+        string desc = cut.Find("svg").QuerySelector("desc")!.TextContent;
+        desc.ShouldContain("series stacked");
+        desc.ShouldContain("with reference lines, with shaded ranges");
+        desc.ShouldNotContain("trend", customMessage: "Trendline is ignored while stacked");
+    }
+
+    [Fact]
+    public void Scatter_defaults_send_no_new_options()
+    {
+        Setup<ScatterLayout>();
+        Render<ScatterChart>(ps => ps.Add(p => p.Points, [new ScatterPoint(1, 2)]));
+
+        string spec = Spec("scatter");
+        spec.ShouldContain("\"smooth\":false,\"highDensity\":false");
+        spec.ShouldContain("\"stacked\":false,\"references\":[],\"bands\":[],\"xReferences\":[],\"xBands\":[]");
+        spec.ShouldContain("\"xError\":null,\"yError\":null");
+    }
+
+    [Fact]
+    public void Contour_value_mode_fills_value_bands_with_lines_labels_and_a_legend()
+    {
+        JSRuntimeInvocationHandler<ContourLayout> call = Setup<ContourLayout>();
+        IRenderedComponent<ContourChart> cut = Render<ContourChart>(ps => ps
+            .Add(p => p.Points, [new ScatterPoint(1, 2) { Value = 40 }, new ScatterPoint(2, 3) { Value = 60 }, new ScatterPoint(3, 3)])
+            .Add(p => p.Mode, ContourMode.Value).Add(p => p.ShowLines, true).Add(p => p.ShowPoints, true).Add(p => p.ValueTitle, "Latency (ms)"));
+
+        string spec = Spec("contour");
+        spec.ShouldContain("\"mode\":\"value\"");
+        spec.ShouldContain("\"showLines\":true");
+        spec.ShouldContain("{\"x\":2,\"y\":3,\"value\":60}");
+        spec.ShouldNotContain("\"x\":3", customMessage: "points without a value are skipped");
+
+        call.SetResult(new ContourLayout(_plot, _xTicks, _yTicks, [new(40, "M0,0L5,5Z"), new(50, "M1,1L4,4Z")],
+            [new(1, 2, 100, 200, 40)], Max: 60, Labels: [new(50, 30, 40)]));
+        cut.WaitForAssertion(() => cut.FindAll("svg g[transform] path").Count.ShouldBe(2));
+        IReadOnlyList<AngleSharp.Dom.IElement> bands = cut.FindAll("svg g[transform] path");
+        bands[0].GetAttribute("fill")!.ShouldContain("10%");
+        bands[1].GetAttribute("fill")!.ShouldContain("100%");
+        bands[0].GetAttribute("stroke").ShouldBe("none");
+        bands[1].GetAttribute("stroke").ShouldBe("var(--color-base-content)");
+        cut.Markup.ShouldContain("Latency (ms) 40–50");
+        cut.Markup.ShouldContain("Latency (ms) 50–60");
+        cut.Markup.ShouldContain(">40–50</span>", customMessage: "short legend keys");
+        cut.FindAll("svg g[transform] text").Single().TextContent.ShouldBe("50");
+        cut.Markup.ShouldContain("x 1, y 2: Latency (ms) 40");
+        cut.FindAll(".rounded-sm").Count.ShouldBe(2);
+        cut.Find("svg").GetAttribute("aria-label").ShouldBe("Value contour chart");
+    }
+
+    [Fact]
+    public void Contour_density_spec_is_unchanged_by_value_mode()
+    {
+        Setup<ContourLayout>();
+        Render<ContourChart>(ps => ps.Add(p => p.Points, [new ScatterPoint(1, 2) { Value = 9 }]));
+
+        Spec("contour").ShouldBe("{\"points\":[{\"x\":1,\"y\":2}],\"width\":640,\"height\":360,\"xTitle\":null,\"yTitle\":null,\"bandwidth\":20,\"thresholds\":10,\"showPoints\":false}");
+    }
 }

@@ -27,6 +27,9 @@ public enum TreemapTile
 
     /// <summary>Alternates Slice and Dice by depth.</summary>
     SliceDice,
+
+    /// <summary>Ordered strips: the children keep their order and fill rows from top to bottom, each row growing while its tiles get closer to square.</summary>
+    Strip,
 }
 
 

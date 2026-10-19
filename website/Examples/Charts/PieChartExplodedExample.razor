@@ -1,0 +1,14 @@
+<PieChart Title="Plan mix, Enterprise highlighted" Data="_plans" Exploded="_highlight" ExplodeOffset="0.12" Height="13rem" />
+
+@code {
+    // Exploded names the slices to pull out; ExplodeOffset is how far, as a share of the radius.
+    private readonly ChartDataPoint[] _plans =
+    [
+        new("Free", 41),
+        new("Pro", 34),
+        new("Team", 18),
+        new("Enterprise", 7),
+    ];
+
+    private readonly string[] _highlight = ["Enterprise"];
+}

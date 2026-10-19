@@ -250,3 +250,26 @@ test('arc-diagram: nodes on one baseline, arcs above it and inside the chart', a
     assert.ok(dx.Auth < dx.Gateway && dx.Gateway < dx.X);
     assert.deepEqual(await layout('arc-diagram', { links: null, width: W, height: H }), { nodes: [], links: [], groups: [], labelRoom: 0 });
 });
+
+test('treemap: strip tiling fills rows in order while they get closer to square', async () => {
+    const values = [6, 6, 4, 3, 2, 2, 1];
+    const flat = { name: 'r', children: values.map((value, i) => ({ name: 'abcdefg'[i], value })) };
+    const { nodes } = await layout('treemap', { root: flat, width: 600, height: 400, tile: 'strip', padding: 0 });
+    const rect = n => [n.x0, n.y0, n.x1, n.y1].map(v => Math.round(v * 100) / 100);
+    // 24 units on 240 000 px²: a, b, c fill the first strip (adding d would worsen it), d to g the second.
+    assert.deepEqual(nodes.map(rect), [
+        [0, 0, 225, 266.67], [225, 0, 450, 266.67], [450, 0, 600, 266.67],
+        [0, 266.67, 225, 400], [225, 266.67, 375, 400], [375, 266.67, 525, 400], [525, 266.67, 600, 400],
+    ]);
+});
+
+test('treemap: strip tiling keeps the input order, not largest first', async () => {
+    const flat = { name: 'r', children: [['small', 1], ['large', 6], ['mid', 3]].map(([name, value]) => ({ name, value })) };
+    const { nodes } = await layout('treemap', { root: flat, width: 600, height: 400, tile: 'strip', padding: 0 });
+    assert.deepEqual(nodes.map(n => n.name), ['small', 'large', 'mid']);
+    assert.equal(nodes[0].x0, 0);
+    assert.equal(nodes[0].y0, 0);
+    // Other tilings still place the largest first.
+    const squarified = await layout('treemap', { root: flat, width: 600, height: 400, tile: 'squarify', padding: 0 });
+    assert.equal(squarified.nodes[0].name, 'large');
+});

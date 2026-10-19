@@ -80,10 +80,32 @@ export function macd(values, fast, slow, signal) {
     return { main, signal: sig, histogram: main.map((m, i) => m === null || sig[i] === null ? null : m - sig[i]) };
 }
 
-const DEFAULT_PERIOD = { sma: 20, ema: 20, bollinger: 20, rsi: 14, macd: 12 };
+/** Price channel: the highest high and lowest low of the last `n` periods (the current one included) and their midpoint. */
+export function priceChannel(highs, lows, n) {
+    const window = (values, i, pick) => (i < n - 1 ? null : pick(...values.slice(i - n + 1, i + 1)));
+    const upper = highs.map((_, i) => window(highs, i, Math.max));
+    const lower = lows.map((_, i) => window(lows, i, Math.min));
+    return { upper, lower, middle: upper.map((u, i) => (u === null ? null : (u + lower[i]) / 2)) };
+}
+
+/**
+ * Heikin-Ashi candles: close = (O + H + L + C) / 4; open = (previous HA open + previous HA close) / 2,
+ * the first one (O + C) / 2; high and low = the max and min of the period's high or low and the HA open and close.
+ */
+export function heikinAshi(candles) {
+    let prev = null;
+    return candles.map(c => {
+        const close = (c.open + c.high + c.low + c.close) / 4;
+        const open = prev ? (prev.open + prev.close) / 2 : (c.open + c.close) / 2;
+        prev = { open, high: Math.max(c.high, open, close), low: Math.min(c.low, open, close), close };
+        return prev;
+    });
+}
+
+const DEFAULT_PERIOD = { sma: 20, ema: 20, bollinger: 20, rsi: 14, macd: 12, pricechannel: 20 };
 const whole = (v, fallback) => (finite(v) && v >= 1 ? Math.floor(v) : fallback);
 
-function study(spec, closes, index) {
+function study(spec, closes, index, candles) {
     const kind = String(spec?.kind ?? '').toLowerCase();
     if (!(kind in DEFAULT_PERIOD)) {
         return null;
@@ -95,6 +117,10 @@ function study(spec, closes, index) {
         case 'bollinger': {
             const b = bollinger(closes, n, finite(spec.stdDev) ? spec.stdDev : 2);
             return { index, kind, main: b.middle, upper: b.upper, lower: b.lower };
+        }
+        case 'pricechannel': {
+            const p = priceChannel(candles.map(c => c.high), candles.map(c => c.low), n);
+            return { index, kind, main: p.middle, upper: p.upper, lower: p.lower };
         }
         case 'rsi': return { index, kind, main: rsi(closes, n), oscillator: true };
         default: {
@@ -114,7 +140,15 @@ const present = list => list.filter(v => v !== null);
 // are computed over the closes. SMA, EMA and Bollinger bands are drawn on the price panel; RSI and
 // MACD each get a panel under it; with showVolume a volume panel comes last. All panels share the
 // time axis, labelled under the bottom one.
-export default function candlestick({ candles, width, height, indicators, showVolume }) {
+// style (only for the styles that change the geometry; candle, OHLC and high–low leave it out):
+//   'line' | 'area': the closes as a line (or an area down to the bottom of the plot), the price
+//     scale fitted to the closes; candles keep their values for the tooltips.
+//   'heikinashi': the candles are replaced by Heikin-Ashi candles (heikinAshi()); indicators still
+//     use the real closes, highs and lows.
+//   'equivolume' | 'candlevolume': each body's width is proportional to its volume (the largest
+//     takes 90% of a slot, at most 48), still centred on its time so the time axis reads as usual.
+//     When any candle has no positive volume, every candle falls back to the usual equal width.
+export default function candlestick({ candles, width, height, indicators, showVolume, style }) {
     const valid = (candles ?? [])
         .map(c => ({ ...c, at: parseDate(c?.time) }))
         .filter(c => c.at && [c.open, c.high, c.low, c.close].every(finite))
@@ -124,13 +158,17 @@ export default function candlestick({ candles, width, height, indicators, showVo
     }
 
     const closes = valid.map(c => c.close);
-    const studies = (Array.isArray(indicators) ? indicators : []).map((s, i) => study(s, closes, i)).filter(Boolean);
+    const look = String(style ?? '').toLowerCase();
+    const ha = look === 'heikinashi' ? heikinAshi(valid) : null;
+    const drawn = ha ? valid.map((c, i) => ({ ...c, ...ha[i] })) : valid;
+    const closeOnly = look === 'line' || look === 'area';
+    const studies = (Array.isArray(indicators) ? indicators : []).map((s, i) => study(s, closes, i, valid)).filter(Boolean);
     const overlays = studies.filter(s => !s.oscillator);
     const volumes = showVolume ? valid.map(c => (finite(c.volume) ? Math.max(0, c.volume) : null)) : [];
     const hasVolume = volumes.some(v => v !== null);
 
-    const lows = valid.map(c => Math.min(c.low, c.high, c.open, c.close));
-    const highs = valid.map(c => Math.max(c.low, c.high, c.open, c.close));
+    const lows = closeOnly ? closes : drawn.map(c => Math.min(c.low, c.high, c.open, c.close));
+    const highs = closeOnly ? closes : drawn.map(c => Math.max(c.low, c.high, c.open, c.close));
     const y = valueScale([...lows, ...highs, ...overlays.flatMap(s => present([...s.main, ...(s.upper ?? []), ...(s.lower ?? [])]))]);
     const top = 10, bottom = height - 24;
 
@@ -164,15 +202,18 @@ export default function candlestick({ candles, width, height, indicators, showVo
         .range([plot.left, plot.right]);
     const slot = x(new Date(+x.domain()[0] + step)) - plot.left;
     const bodyWidth = Math.max(1, Math.min(24, slot * 0.7));
+    const byVolume = (look === 'equivolume' || look === 'candlevolume') && valid.every(c => finite(c.volume) && c.volume > 0);
+    const maxVolume = byVolume ? Math.max(...valid.map(c => c.volume)) : 0;
+    const widthOf = c => (byVolume ? Math.max(1, Math.min(48, slot * 0.9) * c.volume / maxVolume) : bodyWidth);
 
     // Tick labels sit under the plot; keep the ones that land inside it.
     const xTicks = timeTicks(x, valid.map(c => c.at))
         .filter(t => t.pos >= plot.left + 12 && t.pos <= plot.right - 12);
 
     const out = {
-        candles: valid.map((c, i) => ({
+        candles: drawn.map((c, i) => ({
             label: labelOf(c.at), open: c.open, high: c.high, low: c.low, close: c.close,
-            up: c.close >= c.open, x: r2(x(c.at)), width: r2(bodyWidth),
+            up: c.close >= c.open, x: r2(x(c.at)), width: r2(widthOf(c)),
             yOpen: r2(y(c.open)), yClose: r2(y(c.close)),
             yHigh: r2(y(Math.max(c.high, c.low, c.open, c.close))), yLow: r2(y(Math.min(c.high, c.low, c.open, c.close))),
             ...(hasVolume ? { volume: volumes[i] } : {}),
@@ -181,11 +222,15 @@ export default function candlestick({ candles, width, height, indicators, showVo
         yTicks: ticks(y, yCount),
         plot,
     };
+    const xs = valid.map(c => x(c.at));
+    if (closeOnly) {
+        out.priceLine = line().x((_, i) => xs[i]).y(v => y(v))(closes) ?? '';
+        out.priceArea = look === 'area' ? area().x((_, i) => xs[i]).y0(plot.bottom).y1(v => y(v))(closes) ?? '' : '';
+    }
     if (studies.length === 0 && !hasVolume) {
         return out;
     }
 
-    const xs = valid.map(c => x(c.at));
     const path = (values, scale) => line().defined(v => v !== null).x((_, i) => xs[i]).y(v => scale(v))(values) ?? '';
     // A bar from zero to each value; `up` colours it (a rising value, or a rising candle for volume).
     const bars = (values, scale, upOf) => values.flatMap((v, i) => (v === null ? [] : [{
@@ -216,7 +261,7 @@ export default function candlestick({ candles, width, height, indicators, showVo
             yTicks: kind === 'rsi' ? [30, 70].map(v => ({ value: v, pos: r2(p.scale(v)), label: String(v) })) : ticks(p.scale, 2, panelFormat(p)),
             // The 30 and 70 lines of an RSI, the zero line of a MACD.
             guides: kind === 'rsi' ? [r2(p.scale(30)), r2(p.scale(70))] : kind === 'macd' ? [r2(p.scale(0))] : [],
-            bars: kind === 'volume' ? bars(volumes, p.scale, (_, i) => valid[i].close >= valid[i].open) : [],
+            bars: kind === 'volume' ? bars(volumes, p.scale, (_, i) => drawn[i].close >= drawn[i].open) : [],
         };
     });
     return out;

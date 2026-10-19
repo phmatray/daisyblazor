@@ -1,6 +1,6 @@
 # Charts
 
-`DaisyBlazor.Charts` ships **50 chart types**. Every chart is rendered as **inline `<svg>`** by its
+`DaisyBlazor.Charts` ships **54 chart types**. Every chart is rendered as **inline `<svg>`** by its
 Razor component, and every color is emitted as a daisyUI theme token (`var(--color-primary)`, …), so
 charts **follow the active `data-theme` automatically**. The geometry (scales, ticks, layouts, paths)
 is computed by D3 modules bundled in the package (`_content/DaisyBlazor.Charts/d3/`, trimmed to the D3 code the charts use, plus one small
@@ -36,7 +36,7 @@ dotnet add package DaisyBlazor.Charts
 | `BarChart` | Vertical or horizontal bars — flat (`Data`) or grouped (`Series`) | `Data`, `Series`, `Labels`, `Horizontal`, `ShowGrid`, `ShowLegend` |
 | `PieChart` | Pie slices with a legend + percentages | `Data`, `ShowLegend`, `InnerRadiusRatio`, `CenterLabel` |
 | `DonutChart` | A donut (pie with a hole) + optional center label | `Data`, `ShowLegend`, `InnerRadiusRatio` (default `0.6`), `CenterLabel` |
-| `Sparkline` | A tiny, axis-less inline trend line (table cells, KPI tiles) | `Data`, `Area`, `ShowEndDot`, `StrokeWidth`, `Color` |
+| `Sparkline` | A tiny, axis-less inline trend line, columns or win/loss bars (table cells, KPI tiles) | `Data`, `Type`, `Area`, `ShowEndDot`, `StrokeWidth`, `Color` |
 
 Every chart also accepts `Title` (heading above the chart; also the accessible label), `Width`
 (default `"100%"`), `Height` (default `"16rem"`; `Sparkline` `"1.5rem"`, `Width` `"5rem"`), and the

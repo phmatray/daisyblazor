@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { layout, observe, update, unobserve } from '../src/DaisyBlazor.Charts/wwwroot/charts.mjs';
-import { compact } from '../src/DaisyBlazor.Charts/wwwroot/layouts/_shared.mjs';
+import { compact, fitTrend } from '../src/DaisyBlazor.Charts/wwwroot/layouts/_shared.mjs';
 // Sweeps call the layouts directly, so the replay fixture does not record thousands of specs.
 import barLayout from '../src/DaisyBlazor.Charts/wwwroot/layouts/bar.mjs';
 import lineLayout from '../src/DaisyBlazor.Charts/wwwroot/layouts/line.mjs';
@@ -234,6 +234,76 @@ test('spark: spans its own range, flat data is centred, NaN leaves a gap', async
     assert.deepEqual(await layout('spark', { data: [null], width: 80, height: 24 }), { line: '', area: '', end: null });
 });
 
+const near = (a, b, eps = 1e-6) => assert.ok(Math.abs(a - b) < eps, `${a} is not near ${b}`);
+
+test('pie: exploded slices move out along their bisector and the radius shrinks to fit', async () => {
+    const plain = await layout('pie', { values: [1, 1, 2], size: 200 });
+    const geo = await layout('pie', { values: [1, 1, 2], size: 200, explode: [0, 2], explodeOffset: 0.1 });
+    near(geo.radius, 94 / 1.1);
+    assert.equal(plain.slices[0].dx, undefined, 'without explode no slice has an offset');
+    const [first, second, third] = geo.slices;
+    // The first slice spans 12 to 3 o'clock: it moves up and right, by a tenth of the radius.
+    assert.ok(first.dx > 0 && first.dy < 0);
+    near(Math.hypot(first.dx, first.dy), geo.radius * 0.1, 0.01);
+    assert.equal(second.dx, undefined);
+    // The half-pie third slice spans 6 to 12 o'clock through 9: it moves left.
+    near(third.dy, 0, 0.01);
+    assert.ok(third.dx < 0);
+});
+
+test('pie: rings are concentric, outermost first, sharing the hole, each its own whole', async () => {
+    const geo = await layout('pie', { values: [], size: 200, innerRatio: 0.5, rings: [[1, 1], [2, 1, 1, null]] });
+    assert.equal(geo.innerRadius, 47);
+    assert.deepEqual(geo.slices.map(s => [s.ring, s.index, s.percent]), [[0, 0, 50], [0, 1, 50], [1, 0, 50], [1, 1, 25], [1, 2, 25]]);
+    assert.match(geo.slices[0].path, /^M0,-94A94,94/);
+    assert.match(geo.slices[0].path, /A70\.5,70\.5/);
+    assert.match(geo.slices[2].path, /^M0,-70\.5A70\.5,70\.5/);
+    assert.match(geo.slices[2].path, /A47,47/);
+});
+
+test('spark column: bars from zero, negatives hang down, nulls leave a gap', async () => {
+    const geo = await layout('spark', { data: [3, -1, null, 0, 1], pad: 2, width: 100, height: 24, kind: 'column' });
+    assert.deepEqual([geo.line, geo.area, geo.end], ['', '', null]);
+    assert.deepEqual(geo.bars.map(b => b.i), [0, 1, 3, 4]);
+    const zero = 2 + (20 * 3) / 4; // y of 0 over [-1, 3] in [2, 22]
+    const [up, down, flat, small] = geo.bars;
+    assert.deepEqual([up.x, up.width, up.y, up.height], [2.5, 15, 2, zero - 2]);
+    assert.deepEqual([down.y, down.height], [zero, 22 - zero]);
+    assert.equal(flat.height, 0);
+    near(small.y + small.height, zero, 0.01);
+    assert.equal(geo.band, undefined);
+    assert.equal(geo.trend, undefined);
+});
+
+test('spark win/loss: equal bars by sign, zero is a gap; trend and range are ignored', async () => {
+    const geo = await layout('spark', { data: [5, -0.1, 0, 2], pad: 1, width: 40, height: 20, kind: 'winloss', trend: true, normal: [0, 1] });
+    assert.deepEqual(geo.bars.map(b => [b.i, b.y, b.height]), [[0, 1, 8.5], [1, 10.5, 8.5], [3, 1, 8.5]]);
+    assert.equal(geo.band, undefined);
+    assert.equal(geo.trend, undefined);
+});
+
+test('spark trend line and normal range on lines and columns', async () => {
+    const line = await layout('spark', { data: [1, 2, 3], pad: 2, width: 80, height: 24, trend: true, normal: [2, 5] });
+    // The range widens the scale to [1, 5]; the band runs from 5 (top) to 2.
+    assert.deepEqual(line.band, { y: 2, height: 15 });
+    assert.deepEqual(line.trend, { x1: 2, y1: 22, x2: 78, y2: 12 });
+    assert.equal(line.line, 'M2,22L40,17L78,12');
+    const column = await layout('spark', { data: [2, 4, null, 8], pad: 2, width: 80, height: 24, kind: 'column', trend: true });
+    assert.equal(column.trend.x1, 10);
+    assert.equal(column.trend.x2, 70);
+    assert.ok(column.trend.y2 < column.trend.y1, 'a rising trend');
+    assert.equal((await layout('spark', { data: [4, null], pad: 2, width: 80, height: 24, trend: true })).trend, null, 'one value has no trend');
+});
+
+test('spark trend is the shared linear fit over the indices, skipping gaps', async () => {
+    const data = [1, null, 5, 4, 9];
+    const geo = await layout('spark', { data, pad: 2, width: 82, height: 24, trend: true });
+    const fit = fitTrend('linear', [0, 2, 3, 4], [1, 5, 4, 9]);
+    // Values 1..9 span y 22..2, indices 0..4 span x 2..80.
+    const y = v => 22 - (v - 1) * 20 / 8;
+    assert.deepEqual(geo.trend, { x1: 2, y1: Math.round(y(fit.f(0)) * 100) / 100, x2: 80, y2: Math.round(y(fit.f(4)) * 100) / 100 });
+});
+
 // Measured mode, against a stubbed ResizeObserver and element.
 const observers = [];
 globalThis.ResizeObserver = class {
@@ -302,4 +372,65 @@ test('measured: arrow keys on a slider inside the chart do not scroll the page; 
     assert.equal(key('ArrowLeft', false), false);
     unobserve(el);
     assert.equal(listeners.keydown, undefined);
+});
+
+test('line: horizontal rotates the chart, labels down the side, values along x; step and smooth follow y', async () => {
+    const out = await layout('line', { series: [[1, 3, 2]], labels: ['Mon', 'Tue', 'Wed'], horizontal: true, ...size });
+    assert.deepEqual(out.yTicks.map(t => t.label), ['Mon', 'Tue', 'Wed']);
+    assert.ok(out.plot.left >= 'Mon'.length * 6.6);
+    assert.equal(out.xTicks[0].label, '0');
+    const x = v => out.xTicks.find(t => t.label === String(v)).pos;
+    const [p0, p1, p2] = out.series[0].points;
+    assert.deepEqual([p0.x, p1.x, p2.x], [x(1), x(3), x(2)]);
+    assert.deepEqual([p0.y, p1.y, p2.y], out.yTicks.map(t => t.pos));
+    assert.ok(p0.y < p1.y && p1.y < p2.y, 'categories run top to bottom');
+    // The area fills from the zero line on the left.
+    assert.match(out.series[0].area, new RegExp(`L${x(0)},${p0.y}Z$`));
+
+    const step = await layout('line', { series: [[1, 3, 2]], labels: ['Mon', 'Tue', 'Wed'], horizontal: true, step: true, ...size });
+    const [s0, s1] = step.series[0].points;
+    // A step holds its value down to the next label, then moves across.
+    assert.match(step.series[0].line, new RegExp(`^M${s0.x},${s0.y}L${s0.x},${s1.y}L${s1.x},${s1.y}`));
+
+    const smooth = await layout('line', { series: [[1, 3, 2], [2, 1, 2]], horizontal: true, smooth: true, stacked: true, area: true, ...size });
+    assert.match(smooth.series[0].line, /C/);
+    assert.equal(smooth.series[1].points[0].x, smooth.xTicks.find(t => t.label === '3').pos); // stacked on the running total
+});
+
+test('line: horizontal percent stacks reach exactly 100% on the x axis', async () => {
+    const { xTicks, series, plot } = await layout('line', { series: [[1, 3], [3, 1]], percent: true, horizontal: true, showGrid: true, ...size });
+    assert.equal(xTicks.at(-1).label, '100%');
+    assert.ok(series[1].points.every(p => p.x === plot.right));
+});
+
+test('line and bar: references and bands sit at their values, labels inside the plot', async () => {
+    const out = await layout('line', {
+        series: [[20, 35, 30]], labels: ['A', 'B', 'C'],
+        references: [{ value: 60, label: 'Quota' }, { value: 25, label: 'Target' }], bands: [{ from: 10, to: 30, label: 'Normal' }, { from: 500, to: 900 }],
+        ...size,
+    });
+    const y = v => out.yTicks.find(t => t.label === String(v))?.pos;
+    assert.equal(out.yTicks.at(-1).label, '60', 'the axis grows to show the reference');
+    const [quota, target] = out.references;
+    assert.deepEqual([quota.y1, quota.y2, quota.x1, quota.x2], [y(60), y(60), out.plot.left, out.plot.right]);
+    assert.ok(quota.labelY > quota.y1 && quota.labelY - 11 >= out.plot.top, 'a line at the top is labelled below it');
+    assert.ok(target.labelY < target.y1 && target.anchor === 'end' && target.labelX < out.plot.right);
+    assert.equal(out.bands.length, 1, 'a band outside the axis is dropped');
+    const [normal] = out.bands;
+    assert.deepEqual([normal.y, normal.y + normal.height].map(Math.round), [y(30), y(10)].map(Math.round));
+    assert.ok(normal.labelX > out.plot.left && normal.labelY > normal.y);
+
+    const bar = await layout('bar', { categories: ['A', 'B'], series: [[10, 40]], horizontal: true, references: [{ value: 50, label: 'Limit' }], bands: [{ from: 30, to: 0 }], ...size });
+    const x = v => bar.xTicks.find(t => t.label === String(v))?.pos;
+    const [limit] = bar.references;
+    assert.deepEqual([limit.x1, limit.x2, limit.y1, limit.y2], [x(50), x(50), bar.plot.top, bar.plot.bottom]);
+    assert.equal(limit.anchor, 'end', 'a label that would leave the plot turns back');
+    assert.ok(limit.labelX - 'Limit'.length * 6.6 >= bar.plot.left);
+    assert.deepEqual([bar.bands[0].x, Math.round(bar.bands[0].x + bar.bands[0].width)], [x(0), Math.round(x(30))]);
+
+    const vertical = await layout('bar', { categories: ['A'], series: [[10]], references: [{ value: 4 }], ...size });
+    assert.equal(vertical.references[0].y1, vertical.yTicks.find(t => t.label === '4').pos);
+    assert.deepEqual(vertical.bands, []);
+    // Without references or bands, the result has neither key.
+    assert.ok(!('references' in await layout('bar', { categories: ['A'], series: [[10]], ...size })));
 });

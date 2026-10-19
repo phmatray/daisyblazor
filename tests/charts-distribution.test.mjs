@@ -5,7 +5,9 @@ import { layout } from '../src/DaisyBlazor.Charts/wwwroot/charts.mjs';
 import { boxStats, kde } from '../src/DaisyBlazor.Charts/wwwroot/layouts/_distribution.mjs';
 import { binOf } from '../src/DaisyBlazor.Charts/wwwroot/layouts/hexbin.mjs';
 import { dodge } from '../src/DaisyBlazor.Charts/wwwroot/layouts/beeswarm.mjs';
-import { fitTrend } from '../src/DaisyBlazor.Charts/wwwroot/layouts/scatter.mjs';
+import scatter from '../src/DaisyBlazor.Charts/wwwroot/layouts/scatter.mjs';
+import { fitTrend } from '../src/DaisyBlazor.Charts/wwwroot/layouts/_shared.mjs';
+import { idw, surface } from '../src/DaisyBlazor.Charts/wwwroot/layouts/contour.mjs';
 
 const size = { width: 640, height: 360 };
 
@@ -261,4 +263,189 @@ test('scatter: showLine joins each series in x order, trendline draws through th
     const bent = (await layout('scatter', { points: [1, 10, 100, 1000].map(x => ({ x, y: x })), ...size, xLog: true, trendline: 'linear' })).trends[0];
     assert.ok(bent.path.split('L').length > 10);
     assert.deepEqual((await layout('scatter', { ...size, showLine: true, trendline: 'exponential' })).trends, []);
+});
+
+test('scatter: smooth draws each series line as a monotone spline through the same points', async () => {
+    const points = [{ x: 3, y: 5 }, { x: 1, y: 2 }, { x: 2, y: 3 }, { x: 4, y: 4.5 }];
+    const out = await layout('scatter', { points, ...size, showLine: true, smooth: true });
+    const path = out.lines[0].path;
+    const sorted = out.points.slice().sort((a, b) => a.x - b.x);
+    assert.ok(path.startsWith(`M${sorted[0].cx},${sorted[0].cy}C`), path);
+    assert.ok(path.endsWith(`${sorted.at(-1).cx},${sorted.at(-1).cy}`));
+    assert.equal(path.split('C').length - 1, points.length - 1, 'one curve per gap');
+    // Without smooth, straight segments as before.
+    assert.doesNotMatch((await layout('scatter', { points, ...size, showLine: true })).lines[0].path, /C/);
+});
+
+test('scatter: high density counts every point on a bounded grid, without per-point marks', async () => {
+    const rnd = lcg(5);
+    const points = Array.from({ length: 200 }, (_, i) => ({ x: rnd() * 50, y: rnd() * rnd() * 20, series: i % 4 === 3 ? 'Web' : 'API' }));
+    const out = await layout('scatter', { points, ...size, highDensity: true, cellSize: 4 });
+    assert.deepEqual(out.points, []);
+    assert.equal(out.cellSize, 4);
+    assert.deepEqual(out.series, ['API', 'Web']);
+    const counts = out.density.flatMap(d => d.cells.filter((_, i) => i % 3 === 2));
+    assert.equal(counts.reduce((a, b) => a + b, 0), points.length, 'cell counts sum to the point count');
+    assert.equal(out.density[1].cells.filter((_, i) => i % 3 === 2).reduce((a, b) => a + b, 0), 50);
+    const cols = Math.ceil((out.plot.right - out.plot.left) / 4), rows = Math.ceil((out.plot.bottom - out.plot.top) / 4);
+    for (const d of out.density) {
+        for (let i = 0; i < d.cells.length; i += 3) {
+            assert.ok(d.cells[i] >= 0 && d.cells[i] < cols && d.cells[i + 1] >= 0 && d.cells[i + 1] < rows && d.cells[i + 2] > 0);
+        }
+    }
+    assert.equal((await layout('scatter', { points: points.slice(0, 3), ...size })).density, undefined, 'not returned unless asked');
+});
+
+test('scatter: 100k points in high density stay fast and bounded', () => {
+    // Called directly, not through layout(), to keep the recorded server fixture small.
+    const rnd = lcg(11);
+    const points = Array.from({ length: 100_000 }, () => ({ x: rnd() * 100 + rnd() * 30, y: rnd() * rnd() * 80, series: null }));
+    const start = performance.now();
+    const out = scatter({ points, ...size, highDensity: true });
+    const ms = performance.now() - start;
+    assert.ok(ms < 2000, `took ${ms} ms`);
+    const cells = out.density[0].cells.length / 3;
+    const bound = Math.ceil((out.plot.right - out.plot.left) / 3) * Math.ceil((out.plot.bottom - out.plot.top) / 3);
+    assert.ok(cells <= bound, `${cells} cells`);
+    assert.equal(out.density[0].cells.filter((_, i) => i % 3 === 2).reduce((a, b) => a + b, 0), 100_000);
+    assert.ok(JSON.stringify(out).length < 300_000, 'the result stays small');
+});
+
+test('scatter: error bars span ±error on each axis, clamped to the plot', async () => {
+    const points = [{ x: 2, y: 10, xError: 0.5, yError: 3 }, { x: 4, y: 20 }, { x: 6, y: 15, yError: 2 }];
+    const out = await layout('scatter', { points, ...size });
+    const [a, b, c] = out.points;
+    const [x0, x1] = out.xTicks, [y0, y1] = out.yTicks;
+    const xAt = v => x0.pos + (v - x0.value) * (x1.pos - x0.pos) / (x1.value - x0.value);
+    const yAt = v => y0.pos + (v - y0.value) * (y1.pos - y0.pos) / (y1.value - y0.value);
+    assert.equal(a.xWhisker.error, 0.5);
+    assert.ok(Math.abs(a.xWhisker.from - xAt(1.5)) < 0.02 && Math.abs(a.xWhisker.to - xAt(2.5)) < 0.02);
+    assert.ok(Math.abs(a.yWhisker.from - yAt(7)) < 0.02 && Math.abs(a.yWhisker.to - yAt(13)) < 0.02);
+    assert.ok(Math.abs((a.yWhisker.from + a.yWhisker.to) / 2 - a.cy) < 0.02, 'centred on the point');
+    assert.equal(b.xWhisker, undefined);
+    assert.equal(b.yWhisker, undefined);
+    assert.equal(c.xWhisker, undefined);
+    assert.equal(c.yWhisker.error, 2);
+    for (const p of [a, c]) {
+        assert.ok(inside(out.plot, p.cx, p.yWhisker.from) && inside(out.plot, p.cx, p.yWhisker.to), 'the scale takes the bars in');
+    }
+    // On a log axis, a bar reaching zero or below runs to the axis' start (the plot's bottom, less the dot inset).
+    const log = await layout('scatter', { points: [{ x: 1, y: 10, yError: 20 }, { x: 2, y: 100 }], ...size, yLog: true });
+    assert.equal(log.points[0].yWhisker.from, log.plot.bottom - 4);
+});
+
+test('scatter: stacked series sit on the running total at the same x', async () => {
+    const points = [
+        { x: 1, y: 2, series: 'Compute' }, { x: 2, y: 3, series: 'Compute' },
+        { x: 1, y: 5, series: 'Storage' }, { x: 3, y: 4, series: 'Storage' },
+        { x: 1, y: 1, series: 'Network' }, { x: 2, y: 2, series: 'Network' },
+    ];
+    const out = await layout('scatter', { points, ...size, stacked: true, showLine: true });
+    const [y0, y1] = out.yTicks;
+    const yAt = v => y0.pos + (v - y0.value) * (y1.pos - y0.pos) / (y1.value - y0.value);
+    assert.deepEqual(out.points.map(p => [p.y, p.total]), [[2, 2], [3, 3], [5, 7], [4, 4], [1, 8], [2, 5]], 'own y kept, totals stacked; x = 3 starts from 0');
+    for (const p of out.points) {
+        assert.ok(Math.abs(p.cy - yAt(p.total)) < 0.02);
+    }
+    assert.equal((await layout('scatter', { points, ...size })).points[0].total, undefined);
+});
+
+test('scatter: a trend line is not drawn on stacked series, and fits each series on its own values', async () => {
+    const points = [
+        { x: 1, y: 1, series: 'A' }, { x: 2, y: 2, series: 'A' }, { x: 3, y: 3, series: 'A' },
+        { x: 1, y: 10, series: 'B' }, { x: 2, y: 10, series: 'B' }, { x: 3, y: 10, series: 'B' },
+    ];
+    const stacked = await layout('scatter', { points, ...size, stacked: true, trendline: 'linear' });
+    assert.equal(stacked.trends, undefined, 'Trendline is ignored when stacked');
+    const plain = await layout('scatter', { points, ...size, trendline: 'linear' });
+    assert.deepEqual(plain.trends.map(t => [t.series, Math.round(t.a * 1e9) / 1e9, Math.round(t.b * 1e9) / 1e9]), [[0, 0, 1], [1, 10, 0]]);
+});
+
+test('scatter: horizontal and vertical references and bands, reference values taken into the scales', async () => {
+    const out = await layout('scatter', {
+        points: [{ x: 1, y: 1 }, { x: 5, y: 4 }], ...size,
+        references: [{ value: 10, label: 'Limit' }], bands: [{ from: 2, to: 3, label: 'Normal' }],
+        xReferences: [{ value: 3, label: 'Split' }], xBands: [{ from: 4, to: 2 }],
+    });
+    const [x0, x1] = out.xTicks, [y0, y1] = out.yTicks;
+    const xAt = v => x0.pos + (v - x0.value) * (x1.pos - x0.pos) / (x1.value - x0.value);
+    const yAt = v => y0.pos + (v - y0.value) * (y1.pos - y0.pos) / (y1.value - y0.value);
+    const [h] = out.references, [v] = out.xReferences;
+    assert.ok(Math.abs(h.y1 - yAt(10)) < 0.02 && h.y1 === h.y2 && h.x1 === out.plot.left && h.x2 === out.plot.right, 'horizontal at y = 10, across the plot');
+    assert.ok(Math.abs(v.x1 - xAt(3)) < 0.02 && v.x1 === v.x2 && v.y1 === out.plot.top && v.y2 === out.plot.bottom, 'vertical at x = 3');
+    assert.ok(out.yTicks.some(t => t.value >= 10), 'the y axis grows to show the reference');
+    assert.ok(Math.abs(out.bands[0].y - yAt(3)) < 0.02 && Math.abs(out.bands[0].height - (yAt(2) - yAt(3))) < 0.02);
+    assert.ok(Math.abs(out.xBands[0].x - xAt(2)) < 0.02 && Math.abs(out.xBands[0].width - (xAt(4) - xAt(2))) < 0.02);
+    // A log axis drops what it cannot show, keeping each mark's input index.
+    const log = await layout('scatter', { points: [{ x: 1, y: 1 }, { x: 10, y: 100 }], ...size, yLog: true, references: [{ value: -1 }, { value: 10 }] });
+    assert.deepEqual(log.references.map(r => r.index), [1]);
+    const plain = await layout('scatter', { points: [{ x: 1, y: 1 }], ...size });
+    for (const key of ['references', 'bands', 'xReferences', 'xBands']) {
+        assert.equal(plain[key], undefined, key);
+    }
+});
+
+test('contour value mode: interpolation is exact at the points and bounded between them', () => {
+    const known = [{ cx: 0, cy: 0, value: 10 }, { cx: 100, cy: 0, value: 30 }, { cx: 50, cy: 80, value: 20 }];
+    for (const k of known) {
+        assert.equal(idw(known, k.cx, k.cy), k.value);
+    }
+    const rnd = lcg(3);
+    for (let i = 0; i < 200; i++) {
+        const v = idw(known, rnd() * 300 - 100, rnd() * 300 - 100);
+        assert.ok(v >= 10 && v <= 30, `${v}`);
+    }
+    assert.ok(Math.abs(idw(known.slice(0, 2), 50, 0) - 20) < 1e-12, 'halfway between two points, their mean');
+});
+
+test('contour value surface: linear on the triangles, exact at the points, bounded everywhere', () => {
+    // A 10 × 8 grid of 10-unit cells; points at cell centres (5 + 10i, 5 + 10j).
+    const at = (i, j, value) => ({ cx: 5 + 10 * i, cy: 5 + 10 * j, value });
+    const known = [at(1, 1, 10), at(8, 1, 40), at(1, 6, 20), at(8, 6, 70), at(4, 3, 55)];
+    const grid = surface(known, 10, 8, 10, 10);
+    for (const k of known) {
+        assert.ok(Math.abs(grid[((k.cy - 5) / 10) * 10 + (k.cx - 5) / 10] - k.value) < 1e-9, `exact at ${k.cx},${k.cy}`);
+    }
+    for (const v of grid) {
+        assert.ok(v >= 10 - 1e-9 && v <= 70 + 1e-9, `${v}`);
+    }
+    // A plane is reproduced exactly inside and outside the hull (outside: on the nearest hull edge).
+    const plane = (cx, cy) => 3 + 0.5 * cx + 0.25 * cy;
+    const corners = [at(2, 2), at(7, 2), at(2, 5), at(7, 5), at(5, 4)].map(k => ({ ...k, value: plane(k.cx, k.cy) }));
+    const flat = surface(corners, 10, 8, 10, 10);
+    assert.ok(Math.abs(flat[3 * 10 + 4] - plane(45, 35)) < 1e-9, 'inside the hull');
+    assert.ok(Math.abs(flat[0] - plane(25, 25)) < 1e-9, 'a corner cell takes the nearest hull corner');
+    // Fewer than three points: inverse-distance weighting.
+    assert.deepEqual([...surface([at(0, 0, 1), at(1, 0, 3)], 2, 1, 10, 10)], [1, 3]);
+});
+
+test('contour value mode: nested value bands over the whole plot, labels on the lines', async () => {
+    const points = [];
+    for (let i = 0; i <= 6; i++) {
+        for (let j = 0; j <= 4; j++) {
+            points.push({ x: i * 10, y: j * 5, value: 40 + 3 * i + 2 * j });
+        }
+    }
+    points.push({ x: 1, y: 1, value: null });
+    const out = await layout('contour', { points, ...size, mode: 'value', thresholds: 6, showLines: true, showPoints: true });
+    assert.equal(out.max, 40 + 18 + 8);
+    assert.equal(out.contours[0].value, 40, 'the lowest band starts at the smallest value');
+    for (let i = 1; i < out.contours.length; i++) {
+        assert.ok(out.contours[i].value > out.contours[i - 1].value);
+    }
+    assert.ok(out.contours.length >= 4);
+    assert.match(out.contours[0].path, /^M/);
+    assert.equal(out.points.length, 35, 'points without a value are skipped');
+    assert.equal(out.points[0].value, 40);
+    assert.ok(out.labels.length > 0);
+    const w = out.plot.right - out.plot.left, h = out.plot.bottom - out.plot.top;
+    for (const l of out.labels) {
+        assert.ok(l.x > 0 && l.x < w && l.y > 0 && l.y < h);
+        assert.ok(out.contours.some(c => c.value === l.value));
+    }
+    const plain = await layout('contour', { points, ...size, mode: 'value' });
+    assert.equal(plain.labels, undefined);
+    assert.deepEqual(plain.points, []);
+    assert.equal((await layout('contour', { points: points.slice(0, 3), ...size, thresholds: 2 })).max, undefined, 'density mode output unchanged');
+    assert.deepEqual((await layout('contour', { ...size, mode: 'value', showLines: true })).labels, []);
 });

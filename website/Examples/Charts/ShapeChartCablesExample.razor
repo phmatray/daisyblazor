@@ -1,0 +1,16 @@
+<ShapeChart Title="Hall B, cages and cable runs" Shapes="_plan" KeepAspect="true" ShowGrid="false" XTitle="Metres" AspectRatio="2" />
+
+@code {
+    // A cage is a polygon with a hole (its inner ring is the walkway); cable runs are open polylines (Closed: false).
+    private readonly ChartShape[] _plan =
+    [
+        new("Cage 1", [Rect(1, 1, 5, 3), Rect(2, 2, 3, 1)], Group: "Customer cage", Color: "var(--color-secondary)"),
+        new("Cage 2", [Rect(7, 1, 4, 3), Rect(8, 2, 2, 1)], Group: "Customer cage", Color: "var(--color-secondary)"),
+        new("Meet-me room", [Rect(12.5, 0.5, 2.5, 4)], Group: "Meet-me room", Color: "var(--color-accent)"),
+        new("Fibre run 1", [[new(3.5, 4), new(3.5, 5), new(13.75, 5), new(13.75, 4.5)]], Closed: false, Group: "Fibre", Color: "var(--color-info)"),
+        new("Fibre run 2", [[new(9, 4), new(9, 4.6), new(13.2, 4.6), new(13.2, 4.5)]], Closed: false, Group: "Fibre", Color: "var(--color-info)"),
+        new("Power feed", [[new(0.2, 0.2), new(0.2, 4.8), new(1, 4.8)], [new(0.2, 0.2), new(11.5, 0.2), new(11.5, 1)]], Closed: false, Group: "Power", Color: "var(--color-error)"),
+    ];
+
+    private static ShapePoint[] Rect(double x, double y, double w, double h) => [new(x, y), new(x + w, y), new(x + w, y + h), new(x, y + h)];
+}

@@ -1,0 +1,8 @@
+<PolarChart Series="_latency" AngleMax="24" AngleStep="6" AngleFormat="{0:00}h" Mode="PolarChartMode.Area" Smooth="true" ShowPoints="false" Levels="3" />
+
+@code {
+    private readonly PolarSeries[] _latency =
+    [
+        new("p95", [.. new double[] { 118, 106, 108, 146, 214, 241, 232, 244, 226, 184, 152, 131 }.Select((v, i) => new PolarPoint(i * 2, v))]),
+    ];
+}

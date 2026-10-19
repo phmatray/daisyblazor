@@ -1,0 +1,10 @@
+<DonutChart Title="Plan mix, this year (outer) and last year (inner)" Rings="_years" InnerRadiusRatio="0.4" Height="14rem" />
+
+@code {
+    // One ring per year, outermost first; a plan keeps its colour in both rings.
+    private readonly DonutRing[] _years =
+    [
+        new("2026", [new("Free", 41), new("Pro", 34), new("Team", 18), new("Enterprise", 7)]),
+        new("2025", [new("Free", 52), new("Pro", 30), new("Team", 13), new("Enterprise", 5)]),
+    ];
+}

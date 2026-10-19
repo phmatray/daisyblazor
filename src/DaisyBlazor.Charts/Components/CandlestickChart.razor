@@ -3,7 +3,8 @@
 
 @* Candlestick chart: the open, high, low and close of each period on a time axis. D3 computes the
    scales, ticks and the width each period gets; this component draws candles, OHLC bars or
-   high–low bars, rising periods in the success colour and falling ones in the error colour.
+   high–low bars, rising periods in the success colour and falling ones in the error colour; or a
+   close price line or area, Heikin-Ashi candles, or boxes and candles as wide as their volume.
    Technical indicators (SMA, EMA, Bollinger bands) are drawn over the candles; RSI, MACD and the
    volume get panels under them, on the same time axis. *@
 
@@ -17,6 +18,14 @@
             {
                 <path d="@ind.Band" fill="@_indicatorColor(ind.Index)" fill-opacity="0.08" stroke="none" />
             }
+            @if (!string.IsNullOrEmpty(geo.PriceArea))
+            {
+                <path d="@geo.PriceArea" fill="@PriceColor" fill-opacity="0.15" stroke="none" pointer-events="none" />
+            }
+            @if (!string.IsNullOrEmpty(geo.PriceLine))
+            {
+                <path d="@geo.PriceLine" fill="none" stroke="@PriceColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" pointer-events="none" />
+            }
             @for (int k = 0; k < geo.Candles.Count; k++)
             {
                 CandlestickLayoutCandle c = geo.Candles[k];
@@ -26,7 +35,13 @@
                     <title>@_tooltip(geo, k)</title>
                     @switch (CandleStyle)
                     {
-                        case CandlestickStyle.Candle:
+                        case CandlestickStyle.Line or CandlestickStyle.Area:
+                            break;
+                        case CandlestickStyle.EquiVolume:
+                            <rect x="@N(c.X - half)" y="@N(c.YHigh)" width="@N(c.Width)" height="@N(Math.Max(1, c.YLow - c.YHigh))"
+                                  fill="@color" fill-opacity="0.75" stroke="@color" rx="1" />
+                            break;
+                        case CandlestickStyle.Candle or CandlestickStyle.HeikinAshi or CandlestickStyle.CandleVolume:
                             <line x1="@N(c.X)" x2="@N(c.X)" y1="@N(c.YHigh)" y2="@N(c.YLow)" stroke="@color" stroke-width="1" />
                             <rect x="@N(c.X - half)" y="@N(Math.Min(c.YOpen, c.YClose))" width="@N(c.Width)"
                                   height="@N(Math.Max(1, Math.Abs(c.YOpen - c.YClose)))" fill="@color" rx="1" />
@@ -41,8 +56,15 @@
                                   stroke-width="@N(Math.Max(2, c.Width * 0.4))" stroke-linecap="round" />
                             break;
                     }
-                    @* A transparent slot keeps thin marks easy to hover. *@
-                    <rect x="@N(c.X - half)" y="@N(c.YHigh)" width="@N(c.Width)" height="@N(Math.Max(1, c.YLow - c.YHigh))" fill="transparent" />
+                    @* A transparent slot keeps thin marks easy to hover; a price line gets the plot's full height. *@
+                    @if (_closeOnly)
+                    {
+                        <rect x="@N(c.X - half)" y="@N(geo.Plot.Top)" width="@N(c.Width)" height="@N(geo.Plot.Bottom - geo.Plot.Top)" fill="transparent" />
+                    }
+                    else
+                    {
+                        <rect x="@N(c.X - half)" y="@N(c.YHigh)" width="@N(c.Width)" height="@N(Math.Max(1, c.YLow - c.YHigh))" fill="transparent" />
+                    }
                 </g>
             }
             @foreach (CandlestickLayoutIndicator ind in geo.Indicators.Where(i => i.Panel < 0))
@@ -105,8 +127,14 @@
     /// <summary>The periods. Each has a Time and Open, High, Low and Close values; they are sorted by time.</summary>
     [Parameter] public IReadOnlyList<Candle> Candles { get; set; } = [];
 
-    /// <summary>How each period is drawn: a candle (body and wick), an OHLC bar (open and close ticks) or a high–low bar.</summary>
+    /// <summary>
+    /// How each period is drawn: a candle (body and wick), an OHLC bar (open and close ticks), a high–low bar,
+    /// a close price line or area, a Heikin-Ashi candle, or a box (EquiVolume) or candle (CandleVolume) as wide as its volume.
+    /// </summary>
     [Parameter] public CandlestickStyle CandleStyle { get; set; } = CandlestickStyle.Candle;
+
+    /// <summary>CSS colour of the close price line and area (<see cref="CandlestickStyle.Line"/>, <see cref="CandlestickStyle.Area"/>).</summary>
+    [Parameter] public string PriceColor { get; set; } = "var(--color-base-content)";
 
     /// <summary>CSS colour of periods that close at or above their open.</summary>
     [Parameter] public string UpColor { get; set; } = "var(--color-success)";
@@ -119,6 +147,9 @@
 
     /// <summary>Legend name of falling periods.</summary>
     [Parameter] public string DownLabel { get; set; } = "Falling";
+
+    /// <summary>Legend name of the close price in the <see cref="CandlestickStyle.Line"/> and <see cref="CandlestickStyle.Area"/> styles.</summary>
+    [Parameter] public string CloseLabel { get; set; } = "Close";
 
     /// <summary>Show the rising/falling legend (and the indicators) under the chart.</summary>
     [Parameter] public bool ShowLegend { get; set; } = true;
@@ -144,7 +175,8 @@
     {
         // Without indicators or volume, the spec (and so the layout) is exactly the plain chart's.
         bool volume = ShowVolume && Candles.Any(c => c.Volume is not null);
-        if (Indicators.Count == 0 && !volume)
+        bool classic = CandleStyle is CandlestickStyle.Candle or CandlestickStyle.Ohlc or CandlestickStyle.HighLow;
+        if (classic && Indicators.Count == 0 && !volume)
         {
             return new
             {
@@ -161,30 +193,31 @@
             };
         }
 
-        return new
+        object[] candles = Candles.Select(c => (object)new
         {
-            Candles = Candles.Select(c => new
-            {
-                c.Time,
-                c.Open,
-                c.High,
-                c.Low,
-                c.Close,
-                c.Volume,
-            }).ToArray(),
-            Width = ViewWidth,
-            Height = ViewHeight,
-            Indicators = Indicators.Select(i => new
-            {
-                Kind = i.Kind.ToString().ToLowerInvariant(),
-                i.Period,
-                i.StdDev,
-                i.SlowPeriod,
-                i.SignalPeriod,
-            }).ToArray(),
-            ShowVolume = volume,
-        };
+            c.Time,
+            c.Open,
+            c.High,
+            c.Low,
+            c.Close,
+            c.Volume,
+        }).ToArray();
+        object[] indicators = Indicators.Select(i => (object)new
+        {
+            Kind = i.Kind.ToString().ToLowerInvariant(),
+            i.Period,
+            i.StdDev,
+            i.SlowPeriod,
+            i.SignalPeriod,
+        }).ToArray();
+
+        // The candle, OHLC and high–low styles share one geometry, so their spec has no style.
+        return classic
+            ? (object)new { Candles = candles, Width = ViewWidth, Height = ViewHeight, Indicators = indicators, ShowVolume = volume }
+            : new { Candles = candles, Width = ViewWidth, Height = ViewHeight, Indicators = indicators, ShowVolume = volume, Style = CandleStyle.ToString().ToLowerInvariant() };
     }
+
+    private bool _closeOnly => CandleStyle is CandlestickStyle.Line or CandlestickStyle.Area;
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
 
@@ -214,6 +247,7 @@
             IndicatorKind.Ema => $"EMA {_period(i.Period, 20)}",
             IndicatorKind.Bollinger => $"Bollinger {_period(i.Period, 20)}, {i.StdDev.ToString("0.##", CultureInfo.CurrentCulture)}σ",
             IndicatorKind.Rsi => $"RSI {_period(i.Period, 14)}",
+            IndicatorKind.PriceChannel => $"Price channel {_period(i.Period, 20)}",
             _ => $"MACD {_period(i.Period, 12)}, {_period(i.SlowPeriod, 26)}, {_period(i.SignalPeriod, 9)}",
         };
     }
@@ -228,15 +262,14 @@
 
     private IReadOnlyList<(string Name, string Color)> _legend =>
     [
-        (UpLabel, UpColor),
-        (DownLabel, DownColor),
+        .. (_closeOnly ? new[] { (CloseLabel, PriceColor) } : new[] { (UpLabel, UpColor), (DownLabel, DownColor) }),
         .. (Layout?.Indicators ?? []).Select(i => (_indicatorName(i.Index), _indicatorColor(i.Index))),
     ];
 
     private string _tooltip(CandlestickLayout geo, int at)
     {
         CandlestickLayoutCandle c = geo.Candles[at];
-        string text = $"{c.Label}: open {_format(c.Open)}, high {_format(c.High)}, low {_format(c.Low)}, close {_format(c.Close)}";
+        string text = $"{c.Label}: {(CandleStyle == CandlestickStyle.HeikinAshi ? "Heikin-Ashi " : string.Empty)}open {_format(c.Open)}, high {_format(c.High)}, low {_format(c.Low)}, close {_format(c.Close)}";
         if (c.Volume is { } volume)
         {
             text += $", volume {ChartText.Value(volume)}";
@@ -259,5 +292,6 @@
         ? $"{geo.Candles.Count} periods from {geo.Candles[0].Label} to {geo.Candles[^1].Label}; {geo.Candles.Count(c => c.Up)} rising, {geo.Candles.Count(c => !c.Up)} falling; lowest {_format(geo.Candles.Min(c => c.Low))}, highest {_format(geo.Candles.Max(c => c.High))}."
             + (geo.Indicators.Count > 0 ? $" Indicators: {string.Join(", ", geo.Indicators.Select(i => _indicatorName(i.Index)))}." : string.Empty)
             + (geo.Panels.Any(p => p.Kind == "volume") ? " Volume shown under the price." : string.Empty)
+            + (CandleStyle == CandlestickStyle.HeikinAshi ? " Drawn as Heikin-Ashi candles." : string.Empty)
         : "No data.";
 }

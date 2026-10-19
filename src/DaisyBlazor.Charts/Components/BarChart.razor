@@ -32,12 +32,21 @@
 
                 <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="geo.YTicks" XGrid="Horizontal" YGrid="!Horizontal"
                            XCategories="!Horizontal" YCategories="Horizontal" ViewWidth="geo.Width" />
+                @if (geo.Bands is { Count: > 0 } placedBands)
+                {
+                    <ChartReferences Behind="true" Ranges="_bands" Bands="placedBands" />
+                }
 
                 @* A layout still being replaced may name bars the new data no longer has. *@
                 @foreach (BarLayoutBar bar in geo.Bars.Where(b => b.C < _categories.Count && b.S < _seriesCount))
                 {
                     <rect x="@N(bar.X)" y="@N(bar.Y)" width="@N(bar.Width)" height="@N(bar.Height)"
                           fill="@_color(bar.C, bar.S)"><title>@_tooltip(bar.C, bar.S)</title></rect>
+                }
+
+                @if (geo.References is { Count: > 0 } || geo.Bands is { Count: > 0 })
+                {
+                    <ChartReferences References="_references" Ranges="_bands" Lines="@(geo.References ?? [])" Bands="@(geo.Bands ?? [])" />
                 }
             </svg>
         }
@@ -85,6 +94,15 @@
     /// </summary>
     [Parameter] public bool Percent { get; set; }
 
+    /// <summary>
+    /// Reference lines across the plot at a value (a target, a limit, a break-even point), drawn over
+    /// the bars with their label inside the plot. The value axis grows to show every line.
+    /// </summary>
+    [Parameter] public IReadOnlyList<ChartReference>? References { get; set; }
+
+    /// <summary>Shaded value ranges (plot bands) drawn behind the bars, cut to the plot, each with an optional label in its corner.</summary>
+    [Parameter] public IReadOnlyList<ChartBand>? Bands { get; set; }
+
     /// <summary>Draw value gridlines and labels.</summary>
     [Parameter] public bool ShowGrid { get; set; } = true;
 
@@ -120,6 +138,10 @@
     // Per-instance id for the SVG <desc> that exposes the plotted values to screen readers.
     private readonly string _descId = "bar-desc-" + Guid.NewGuid().ToString("N")[..8];
 
+    private IReadOnlyList<ChartReference> _references => References ?? [];
+
+    private IReadOnlyList<ChartBand> _bands => Bands ?? [];
+
     private bool _grouped => _series is { Count: > 0 };
     private int _seriesCount => _grouped ? _series!.Count : 1;
 
@@ -152,7 +174,23 @@
             : [_points.Select(p => p.Value).ToArray()];
 
         // The stacking keys only when stacking, so the spec (and the layout cache key) of a
-        // side-by-side chart stays as it was.
+        // side-by-side chart stays as it was; references and bands only when there are some.
+        if (_references.Count > 0 || _bands.Count > 0)
+        {
+            return new
+            {
+                Categories = _categories,
+                Series = series,
+                Horizontal,
+                ShowGrid,
+                Stacked,
+                Percent,
+                Stacks = _grouped ? _series!.Select(s => _stackNames.IndexOf(s.Stack ?? string.Empty)).ToArray() : [],
+                References = _references.Select(r => new { r.Value, r.Label }).ToArray(),
+                Bands = _bands.Select(b => new { b.From, b.To, b.Label }).ToArray(),
+            };
+        }
+
         if (!Stacked && !Percent)
         {
             return new { Categories = _categories, Series = series, Horizontal, ShowGrid };

@@ -372,4 +372,84 @@ public class LibraryChartsFixTests : BunitContext
         module.Spec().ShouldContain("\"percent\":true,\"smooth\":false,\"step\":true");
         cut.Find("path[fill-opacity]").GetAttribute("fill-opacity").ShouldBe("0.7");
     }
+
+    [Fact]
+    public void LineChart_horizontal_sends_the_rotation_and_turns_the_grid_and_category_labels()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupCharts(line: ChartFakes.Line with
+        {
+            XTicks = [new(30, "0", 0), new(634, "50", 50)],
+            YTicks = [new(60, "Jan", null, "Jan"), new(180, "Feb", null, "Feb")],
+        });
+        IRenderedComponent<LineChart> cut = Render<LineChart>(ps => ps
+            .Add(p => p.Series, new List<ChartSeries> { new("Requests", [20, 40]) })
+            .Add(p => p.Labels, new[] { "Jan", "Feb" })
+            .Add(p => p.Horizontal, true));
+
+        module.Spec().ShouldContain("\"horizontal\":true");
+        // Value grid lines run down the plot; the categories read in the stronger label colour.
+        cut.FindAll("line").Count(l => l.GetAttribute("x1") == l.GetAttribute("x2")).ShouldBe(2);
+        cut.FindAll("text").Single(t => t.TextContent == "Jan").GetAttribute("fill-opacity").ShouldBe("0.8");
+    }
+
+    [Fact]
+    public void LineChart_without_the_new_options_sends_the_same_spec_as_before()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupCharts();
+        Render<LineChart>(ps => ps.Add(p => p.Series, new List<ChartSeries> { new("A", [1, 2]) }));
+
+        string spec = module.Spec();
+        spec.ShouldNotContain("horizontal");
+        spec.ShouldNotContain("references");
+        spec.ShouldNotContain("bands");
+    }
+
+    [Fact]
+    public void BarChart_draws_reference_lines_and_bands_from_the_layout()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupCharts(bar: ChartFakes.Bar with
+        {
+            References = [new(0, 30, 50, 634, 50, 630, 46, "end"), new(1, 30, 120, 634, 120, 630, 116, "end")],
+            Bands = [new(0, 30, 150, 604, 81, 34, 163, "start")],
+        });
+        IRenderedComponent<BarChart> cut = Render<BarChart>(ps => ps
+            .Add(p => p.Data, new List<ChartDataPoint> { new("Free", 48200), new("Pro", 12000) })
+            .Add(p => p.References, new List<ChartReference> { new(40000, "Quota", "var(--color-error)"), new(20000, "Average", Dashed: false) })
+            .Add(p => p.Bands, new List<ChartBand> { new(0, 10000, "Trial range") }));
+
+        string spec = module.Spec();
+        spec.ShouldContain("\"references\":[{\"value\":40000,\"label\":\"Quota\"},{\"value\":20000,\"label\":\"Average\"}]");
+        spec.ShouldContain("\"bands\":[{\"from\":0,\"to\":10000,\"label\":\"Trial range\"}]");
+
+        IElement quota = cut.FindAll("line").Single(l => l.QuerySelector("title")?.TextContent == "Quota: 40,000");
+        quota.GetAttribute("stroke").ShouldBe("var(--color-error)");
+        quota.GetAttribute("stroke-dasharray").ShouldBe("5 4");
+        cut.FindAll("line").Single(l => l.QuerySelector("title")?.TextContent == "Average: 20,000").HasAttribute("stroke-dasharray").ShouldBeFalse();
+        IElement band = cut.FindAll("rect").Single(r => r.QuerySelector("title")?.TextContent == "Trial range: 0 to 10,000");
+        band.GetAttribute("fill-opacity").ShouldBe("0.12");
+        // The band is drawn behind the bars, the labels in front.
+        cut.FindAll("rect")[0].ShouldBe(band);
+        cut.FindAll("text").Select(t => t.TextContent).ShouldContain("Trial range");
+        cut.FindAll("text").Single(t => t.TextContent == "Quota").GetAttribute("fill").ShouldBe("var(--color-error)");
+    }
+
+    [Fact]
+    public void AreaChart_forwards_the_rotation_references_and_bands()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupCharts(line: ChartFakes.Line with
+        {
+            References = [new(0, 400, 8, 400, 231, 404, 19, "start")],
+        });
+        IRenderedComponent<AreaChart> cut = Render<AreaChart>(ps => ps
+            .Add(p => p.Series, new List<ChartSeries> { new("Requests", [20, 40]) })
+            .Add(p => p.Horizontal, true)
+            .Add(p => p.References, new List<ChartReference> { new(30, "Target") })
+            .Add(p => p.Bands, new List<ChartBand> { new(10, 20) }));
+
+        string spec = module.Spec();
+        spec.ShouldContain("\"horizontal\":true");
+        spec.ShouldContain("\"references\":[{\"value\":30,\"label\":\"Target\"}]");
+        spec.ShouldContain("\"bands\":[{\"from\":10,\"to\":20,\"label\":null}]");
+        cut.FindAll("text").Select(t => t.TextContent).ShouldContain("Target");
+    }
 }

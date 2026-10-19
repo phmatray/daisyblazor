@@ -1,5 +1,5 @@
 import { scaleBand } from '../d3/d3-scale.mjs';
-import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, compact, valueScale, ticks } from './_shared.mjs';
+import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, compact, valueScale, ticks, referenceMarks, referenceValues } from './_shared.mjs';
 
 // Bar chart, flat or grouped. spec: { categories: [string], series: [[number|null]], horizontal,
 // showGrid, width, height } (px); a flat chart is one series. Bars run from the zero line to their
@@ -9,7 +9,9 @@ import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, compact, valueScale, t
 // values stacking up from zero and negative ones down, so mixed signs diverge; stacks (one number
 // per series, default 0) splits them into stacks standing side by side in the category. percent
 // (implies stacked) turns each value into its share of its stack's total of absolute values, in %.
-export default function bar({ categories = [], series = [], horizontal = false, showGrid = true, stacked = false, percent = false, stacks = [], width, height }) {
+// references ([{ value, label }], taken into the value axis) and bands ([{ from, to, label }]) add
+// reference lines and value bands (see referenceMarks); the result then carries `references` and `bands`.
+export default function bar({ categories = [], series = [], horizontal = false, showGrid = true, stacked = false, percent = false, stacks = [], references, bands, width, height }) {
     stacked ||= percent;
     const stackOf = s => (stacked ? stacks[s] ?? 0 : s);
     // [from, to] per series and category, null for no bar; unstacked bars start at zero.
@@ -32,7 +34,7 @@ export default function bar({ categories = [], series = [], horizontal = false, 
             });
         }
     }
-    const values = stacked ? spans.flat().filter(Boolean).flat() : series.flat().filter(finite);
+    const values = [...(stacked ? spans.flat().filter(Boolean).flat() : series.flat().filter(finite)), ...referenceValues(references)];
     const tickText = percent ? v => `${compact(v)}%` : compact;
     const top = 8;
     let left;
@@ -85,10 +87,12 @@ export default function bar({ categories = [], series = [], horizontal = false, 
         label: fit(label, room),
         full: String(label ?? ''),
     }));
-    return {
-        plot: { left: r2(left), top, right: r2(right), bottom: r2(bottom) },
+    const plot = { left: r2(left), top, right: r2(right), bottom: r2(bottom) };
+    const out = {
+        plot,
         xTicks: horizontal ? valueTicks : categoryTicks,
         yTicks: horizontal ? categoryTicks : valueTicks,
         bars,
     };
+    return references?.length || bands?.length ? { ...out, ...referenceMarks(value, horizontal, plot, references, bands) } : out;
 }

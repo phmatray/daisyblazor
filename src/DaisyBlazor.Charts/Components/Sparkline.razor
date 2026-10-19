@@ -21,7 +21,19 @@
             <title>@_ariaLabel</title>
             <desc id="@_descId">@_description</desc>
 
-            @if (geo.End is { } end)
+            @if (geo.Band is { } band)
+            {
+                <rect x="0" y="@N(band.Y)" width="@N(geo.Width)" height="@N(band.Height)" fill="var(--color-base-content)" fill-opacity="0.08"><title>@($"Normal range {ChartText.Value(Math.Min(NormalMin ?? 0, NormalMax ?? 0))} to {ChartText.Value(Math.Max(NormalMin ?? 0, NormalMax ?? 0))}")</title></rect>
+            }
+
+            @if (geo.Bars is { } bars)
+            {
+                @foreach (SparkLayoutBar bar in bars)
+                {
+                    <rect x="@N(bar.X)" y="@N(bar.Y)" width="@N(bar.Width)" height="@N(bar.Height)" fill="@(bar.Value < 0 ? _negative : _color)"><title>@ChartText.Value(bar.Value)</title></rect>
+                }
+            }
+            else if (geo.End is { } end)
             {
                 @if (Area)
                 {
@@ -36,6 +48,12 @@
                     <circle cx="@N(end.X)" cy="@N(end.Y)" r="@N(StrokeWidth + 1)" fill="@_color" />
                 }
             }
+
+            @if (geo.Trend is { } trend)
+            {
+                <line x1="@N(trend.X1)" y1="@N(trend.Y1)" x2="@N(trend.X2)" y2="@N(trend.Y2)" stroke="var(--color-base-content)" stroke-opacity="0.6"
+                      stroke-width="1" stroke-dasharray="3 2" />
+            }
         </svg>
     }
 </span>
@@ -43,6 +61,21 @@
 @code {
     /// <summary>The values to plot, oldest-to-newest.</summary>
     [Parameter] public IReadOnlyList<double> Data { get; set; } = System.Array.Empty<double>();
+
+    /// <summary>Draw a line (default), a column per value, or win/loss bars by sign.</summary>
+    [Parameter] public SparklineKind Type { get; set; } = SparklineKind.Line;
+
+    /// <summary>CSS colour of the bars of negative values (Column and WinLoss); defaults to the error theme token.</summary>
+    [Parameter] public string? NegativeColor { get; set; }
+
+    /// <summary>Draw the least-squares line across the values, dashed (Line and Column).</summary>
+    [Parameter] public bool ShowTrendline { get; set; }
+
+    /// <summary>Low end of the normal range, shaded behind the values with <see cref="NormalMax"/> (Line and Column).</summary>
+    [Parameter] public double? NormalMin { get; set; }
+
+    /// <summary>High end of the normal range, shaded behind the values with <see cref="NormalMin"/> (Line and Column).</summary>
+    [Parameter] public double? NormalMax { get; set; }
 
     /// <summary>Fill the area beneath the line.</summary>
     [Parameter] public bool Area { get; set; }
@@ -79,12 +112,33 @@
 
     // The inset keeps the stroke inside the box; the end dot may extend past it (overflow:visible).
     /// <inheritdoc />
-    protected override object BuildSpec() => new { Data = Data ?? [], Pad = StrokeWidth / 2 + 0.5 };
+    // Only the options in use are sent, so a plain line keeps its original spec.
+    protected override object BuildSpec()
+    {
+        Dictionary<string, object> spec = new() { ["data"] = Data ?? [], ["pad"] = StrokeWidth / 2 + 0.5 };
+        if (Type != SparklineKind.Line)
+        {
+            spec["kind"] = Type.ToString().ToLowerInvariant();
+        }
+
+        if (ShowTrendline && Type != SparklineKind.WinLoss)
+        {
+            spec["trend"] = true;
+        }
+
+        if (NormalMin is { } lo && NormalMax is { } hi && double.IsFinite(lo) && double.IsFinite(hi) && Type != SparklineKind.WinLoss)
+        {
+            spec["normal"] = new[] { lo, hi };
+        }
+
+        return spec;
+    }
 
     private readonly string _descId = "spark-desc-" + Guid.NewGuid().ToString("N")[..8];
 
     private string _color => string.IsNullOrWhiteSpace(Color) ? "var(--color-primary)" : Color!;
-    private string _ariaLabel => string.IsNullOrEmpty(Title) ? "Sparkline trend" : Title!;
+    private string _negative => string.IsNullOrWhiteSpace(NegativeColor) ? "var(--color-error)" : NegativeColor!;
+    private string _ariaLabel => string.IsNullOrEmpty(Title) ? (Type == SparklineKind.WinLoss ? "Win/loss sparkline" : "Sparkline trend") : Title!;
 
     private string _description
     {
@@ -93,6 +147,8 @@
             List<double> values = (Data ?? []).Where(double.IsFinite).ToList();
             return values.Count == 0
                 ? "No data."
+                : Type == SparklineKind.WinLoss
+                ? $"{values.Count(v => v > 0)} up, {values.Count(v => v < 0)} down, {values.Count(v => v == 0)} even."
                 : $"{values.Count} values from {ChartText.Value(values[0])} to {ChartText.Value(values[^1])}; " +
                   $"low {ChartText.Value(values.Min())}, high {ChartText.Value(values.Max())}.";
         }

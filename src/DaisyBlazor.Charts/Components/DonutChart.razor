@@ -10,6 +10,12 @@
           Title="@Title"
           InnerRadiusRatio="InnerRadiusRatio"
           CenterLabel="@CenterLabel"
+          OthersThreshold="OthersThreshold"
+          OthersLabel="@OthersLabel"
+          Exploded="Exploded"
+          ExplodeOffset="ExplodeOffset"
+          Rings="Rings"
+          ShowPercent="ShowPercent"
           Class="@Class"
           Style="@Style"
           @attributes="UserAttributes" />
@@ -35,6 +41,24 @@
 
     /// <summary>Optional label rendered in the center of the hole.</summary>
     [Parameter] public string? CenterLabel { get; set; }
+
+    /// <summary>Merge the slices whose share is below this fraction (0.05 = 5 %) into one <see cref="OthersLabel"/> slice; 0 (default) keeps every slice.</summary>
+    [Parameter] public double OthersThreshold { get; set; }
+
+    /// <summary>Label of the slice that gathers the slices below <see cref="OthersThreshold"/>.</summary>
+    [Parameter] public string OthersLabel { get; set; } = "Other";
+
+    /// <summary>Labels of the slices to pull out of the ring.</summary>
+    [Parameter] public IReadOnlyList<string>? Exploded { get; set; }
+
+    /// <summary>How far exploded slices move out along their bisector, as a fraction of the radius (0 to 0.5).</summary>
+    [Parameter] public double ExplodeOffset { get; set; } = 0.08;
+
+    /// <summary>Concentric rings instead of <see cref="Data"/>, outermost first, sharing the hole; a label keeps one colour in every ring.</summary>
+    [Parameter] public IReadOnlyList<DonutRing>? Rings { get; set; }
+
+    /// <summary>Show each slice's share of the whole in its tooltip and the description (default true).</summary>
+    [Parameter] public bool ShowPercent { get; set; } = true;
 
     /// <summary>Extra CSS classes added to the chart wrapper.</summary>
     [Parameter] public string? Class { get; set; }

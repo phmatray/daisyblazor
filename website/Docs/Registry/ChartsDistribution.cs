@@ -8,24 +8,31 @@ public static partial class DocRegistry
     private static partial IEnumerable<ComponentDoc> ChartsDistribution() =>
     [
         new("ScatterChart", Category.Charts,
-            "One dot per observation on two value axes, to show how two measures move together: seats against API calls, payload against response time. Points can carry a Size (bubbles) and a Series (colour and legend), and either axis can be logarithmic. D3 builds the scales and a Voronoi diagram, so hovering anywhere highlights the nearest point.",
-            [typeof(ScatterChart), typeof(ScatterPoint), typeof(AxisScale), typeof(ChartTrendline)],
+            "One dot per observation on two value axes, to show how two measures move together: seats against API calls, payload against response time. Points can carry a Size (bubbles) and a Series (colour and legend), and either axis can be logarithmic. D3 builds the scales and a Voronoi diagram, so hovering anywhere highlights the nearest point. Splines, error bars, quadrants, stacking and a high-density mode for tens of thousands of points are options of the same chart.",
+            [typeof(ScatterChart), typeof(ScatterPoint), typeof(AxisScale), typeof(ChartTrendline), typeof(ChartReference), typeof(ChartBand)],
             [
                 new("Basic", "Each ScatterPoint has an X and a Y; Series groups points by colour and adds a legend. XTitle and YTitle name the axes and the tooltips.", typeof(ScatterChartBasicExample)),
                 new("Bubbles on log axes", "Give points a Size to draw bubbles whose area follows it, and a Label for the tooltip. XScale and YScale set to AxisScale.Log spread values over several orders of magnitude.", typeof(ScatterChartBubbleExample)),
                 new("Connected points", "ShowLine=\"true\" joins each series' points in X order, for measurements taken at increasing steps such as a load test.", typeof(ScatterChartLineExample)),
                 new("Trend lines", "Trendline fits a least-squares curve to each series (Linear, Exponential, Logarithmic or Power) in data space, so it also works on log axes. Hover the dashed line for its equation and R².", typeof(ScatterChartTrendlineExample)),
+                new("Spline", "Smooth=\"true\" with ShowLine draws each series as a monotone spline: it passes through every point without overshooting between them.", typeof(ScatterChartSplineExample)),
+                new("Error bars", "Give a point an XError or YError (± that much) to draw a whisker with caps; the tooltip shows the error and the axes make room for the bars.", typeof(ScatterChartErrorBarsExample)),
+                new("Quadrants", "References draws horizontal reference lines at Y values and XReferences vertical ones at X values (Bands and XBands shade ranges); one of each splits the plot into quadrants, which QuadrantLabels names (top right, top left, bottom left, bottom right).", typeof(ScatterChartQuadrantExample)),
+                new("Stacked", "Stacked=\"true\" draws each series on the running total of the ones before it at the same X, like a stacked area; tooltips give each point's own value and the total. Trendline is ignored while stacked.", typeof(ScatterChartStackedExample)),
+                new("High density", "HighDensity=\"true\" counts tens of thousands of points on a fine grid (CellSize) and shades each cell from light to full by count, with a legend of counts. The chart stays a handful of SVG paths however many points there are; every point still travels to the layout, so beyond a few hundred thousand, aggregate first.", typeof(ScatterChartHighDensityExample)),
             ])
         {
             Portrait = typeof(ScatterChartCoverExample),
         },
 
         new("ContourChart", Category.Charts,
-            "Where a cloud of points is densest, drawn as nested bands like a contour map: the darker the band, the more points there. Useful when a scatter plot has too many dots to read. D3 (d3-contour) estimates the density; the chart fills the bands in one theme colour.",
-            [typeof(ContourChart), typeof(ScatterPoint)],
+            "Where a cloud of points is densest, drawn as nested bands like a contour map: the darker the band, the more points there. Useful when a scatter plot has too many dots to read. D3 (d3-contour) estimates the density; the chart fills the bands in one theme colour. In value mode it draws a measured value interpolated between the points instead (a scatter area), optionally with labelled contour lines.",
+            [typeof(ContourChart), typeof(ScatterPoint), typeof(ContourMode)],
             [
                 new("Basic", "Pass ScatterPoint values; X and Y are used and the rest ignored. Two clusters show up as two peaks.", typeof(ContourChartBasicExample)),
                 new("Bandwidth and points", "Bandwidth sets how far each point's influence spreads (in chart units), Levels how many bands to draw, and ShowPoints overlays the observations.", typeof(ContourChartPointsExample)),
+                new("Value surface", "Mode=\"ContourMode.Value\" draws a measurement instead of density: each point's Value is interpolated linearly between the points (on their Delaunay triangles, exact at each point) and filled in bands of equal value, with a legend.", typeof(ContourChartValueExample)),
+                new("Contour lines", "ShowLines outlines each value band and prints its value on the line, like the isolines of a map.", typeof(ContourChartValueLinesExample)),
             ])
         {
             Portrait = typeof(ContourChartCoverExample),

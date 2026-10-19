@@ -248,3 +248,27 @@ test('rangebar: bars from low to high, grouped side by side, reversed ends swapp
     assert.ok(v.bars[0].height > 0);
     assert.deepEqual((await layout('rangebar', { items: [], width: W, height: H })).bars, []);
 });
+
+test('radar: stacked series sit on the running total; percent fills every spoke to 100%', async () => {
+    const axes = ['Seats', 'Storage', 'API calls'];
+    const series = [[10, 20, 30], [30, 20, 10], [null, 10, -5]];
+    const dist = (r, p) => Math.hypot(p.x - r.cx, p.y - r.cy);
+    const near = (a, b) => assert.ok(Math.abs(a - b) < 0.02, `${a} ≈ ${b}`);
+    const s = await layout('radar', { axes, series, stacked: true, width: 400, height: 400 });
+    const scale = v => v / s.rings.at(-1).value * s.radius;
+    // Spoke 0: 10, 10 + 30 = 40, 40 + 0; spoke 1: 20, 40, 50.
+    s.series.forEach((x, i) => near(dist(s, x.points[0]), scale([10, 40, 40][i])));
+    s.series.forEach((x, i) => near(dist(s, x.points[1]), scale([20, 40, 50][i])));
+    assert.deepEqual(s.series[1].points.map(p => p.value), [30, 20, 10], 'points keep their own value');
+    assert.equal(s.series[1].band.split('M').length - 1, 2, 'a band is an outer and an inner ring');
+    assert.ok(s.series[1].band.startsWith(s.series[1].path));
+
+    const p = await layout('radar', { axes, series, percent: true, max: 7, width: 400, height: 400 });
+    assert.equal(p.rings.at(-1).label, '100%');
+    for (let i = 0; i < 3; i++) {
+        assert.ok(Math.abs(dist(p, p.series[2].points[i]) - p.radius) < 0.01, `spoke ${i} reaches 100%`);
+    }
+    // Spoke 0: 10 of 40 = 25%.
+    assert.ok(Math.abs(dist(p, p.series[0].points[0]) - p.radius * 0.25) < 0.01);
+    assert.ok(!('band' in (await layout('radar', { axes, series, width: 400, height: 400 })).series[0]));
+});

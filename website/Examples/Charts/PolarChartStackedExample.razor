@@ -1,0 +1,19 @@
+<div class="grid gap-6 md:grid-cols-2">
+    <PolarChart Title="API requests by hour, stacked by plan (thousands)" Series="_requests" Stacked="true" Mode="PolarChartMode.Area"
+                AngleMax="24" AngleStep="3" AngleFormat="{0:00}h" ValueFormat="{0:N0} k" ShowPoints="false" />
+    <PolarChart Title="Share of API requests by hour" Series="_requests" Percent="true" Mode="PolarChartMode.Area"
+                AngleMax="24" AngleStep="3" AngleFormat="{0:00}h" ValueFormat="{0:N0} k" ShowPoints="false" />
+</div>
+
+@code {
+    // Every series has a point at the same hours, so each one stacks on the plans before it.
+    private static PolarSeries _plan(string name, double[] values) =>
+        new(name, [.. values.Select((v, i) => new PolarPoint(i * 3, v))]);
+
+    private readonly PolarSeries[] _requests =
+    [
+        _plan("Free", [22, 14, 18, 41, 58, 52, 47, 35]),
+        _plan("Pro", [12, 8, 15, 44, 61, 66, 49, 24]),
+        _plan("Enterprise", [6, 5, 11, 38, 57, 60, 31, 12]),
+    ];
+}

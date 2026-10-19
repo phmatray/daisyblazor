@@ -1,0 +1,18 @@
+<div class="space-y-6">
+    <PriceActionChart Title="CPU utilisation, api-01 (%): three-line break" Prices="_hours" ChartKind="PriceActionKind.LineBreak" ValueFormat="{0:0.#} %" AspectRatio="2.4" />
+    <PriceActionChart Title="Same hours, two-line break" Prices="_hours" ChartKind="PriceActionKind.LineBreak" Lines="2" ValueFormat="{0:0.#} %" AspectRatio="2.4" />
+</div>
+
+@code {
+    // A new line each time an hour closes past the last line; against the trend it must also pass the
+    // extreme of the last Lines lines.
+    private static readonly Candle[] _hours = Enumerable.Range(0, 72)
+        .Select(h =>
+        {
+            double v = Level(h);
+            return new Candle(new DateTime(2026, 10, 17, 0, 0, 0).AddHours(h), v, v, v, v);
+        })
+        .ToArray();
+
+    private static double Level(int h) => Math.Round(42 + 20 * Math.Sin((h - 8) / 24.0 * 2 * Math.PI) + 4 * Math.Sin(h * 1.7), 1);
+}

@@ -228,6 +228,82 @@ public class ChartsTimeTests : BunitContext
     }
 
     [Fact]
+    public void CandlestickChart_draws_a_close_line_and_area_and_sends_the_style()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        CandlestickLayout layout = new(
+            [new("Oct 1, 2026 09:00", 40, 70, 30, 55, true, 300, 20, 200, 120, 40, 260)],
+            [new(300, "09:00")], [], _plot)
+        {
+            PriceLine = "M290,150L310,140",
+            PriceArea = "M290,150L310,140L310,336L290,336Z",
+        };
+        module.Setup<CandlestickLayout>("layout", _ => true).SetResult(layout);
+
+        IRenderedComponent<CandlestickChart> cut = Render<CandlestickChart>(ps => ps
+            .Add(p => p.Candles, [new Candle(new DateTime(2026, 10, 1, 9, 0, 0), 40, 70, 30, 55)])
+            .Add(p => p.CandleStyle, CandlestickStyle.Area));
+
+        cut.WaitForAssertion(() => cut.Find("path[d='M290,150L310,140']").GetAttribute("stroke").ShouldBe("var(--color-base-content)"));
+        cut.Find("path[d='M290,150L310,140L310,336L290,336Z']").GetAttribute("fill-opacity").ShouldBe("0.15");
+        cut.FindAll("svg g line").Count.ShouldBe(0); // no candle marks
+        // The hover slot spans the plot, so the tooltip still gives the four values.
+        cut.Find("svg g rect").GetAttribute("height").ShouldBe("326");
+        cut.Markup.ShouldContain("Oct 1, 2026 09:00: open 40, high 70, low 30, close 55");
+        string legend = cut.Find("svg + div").TextContent;
+        legend.ShouldContain("Close");
+        legend.ShouldNotContain("Rising");
+        Spec(module, "candlestick").ShouldBe("{\"candles\":[{\"time\":\"2026-10-01T09:00:00\",\"open\":40,\"high\":70,\"low\":30,\"close\":55,\"volume\":null}],\"width\":640,\"height\":360,\"indicators\":[],\"showVolume\":false,\"style\":\"area\"}");
+    }
+
+    [Theory]
+    [InlineData(CandlestickStyle.HeikinAshi, 1, 2, "heikinashi")]
+    [InlineData(CandlestickStyle.CandleVolume, 1, 2, "candlevolume")]
+    [InlineData(CandlestickStyle.EquiVolume, 0, 2, "equivolume")]
+    public void CandlestickChart_draws_heikin_ashi_and_volume_width_styles(CandlestickStyle style, int lines, int rects, string name)
+    {
+        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        CandlestickLayout layout = new(
+            [new("Oct 1, 2026 09:00", 40, 70, 30, 55, true, 300, 36, 200, 120, 40, 260)],
+            [new(300, "09:00")], [], _plot);
+        module.Setup<CandlestickLayout>("layout", _ => true).SetResult(layout);
+
+        IRenderedComponent<CandlestickChart> cut = Render<CandlestickChart>(ps => ps
+            .Add(p => p.Candles, [new Candle(new DateTime(2026, 10, 1, 9, 0, 0), 40, 70, 30, 55) { Volume = 1200 }])
+            .Add(p => p.CandleStyle, style));
+
+        cut.WaitForAssertion(() => cut.FindAll("svg g rect").Count.ShouldBe(rects));
+        cut.FindAll("svg g line").Count.ShouldBe(lines);
+        cut.Find("svg g rect").GetAttribute("width").ShouldBe("36"); // the width the layout gave
+        cut.Markup.ShouldContain(style == CandlestickStyle.HeikinAshi ? "09:00: Heikin-Ashi open 40" : "09:00: open 40");
+        string spec = Spec(module, "candlestick");
+        spec.ShouldContain($"\"style\":\"{name}\"");
+        spec.ShouldContain("\"volume\":1200");
+    }
+
+    [Fact]
+    public void CandlestickChart_names_the_price_channel()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        CandlestickLayout layout = new(
+            [new("Oct 1, 2026 09:00", 40, 70, 30, 55, true, 300, 20, 200, 120, 40, 260)],
+            [new(300, "09:00")], [], _plot)
+        {
+            Indicators = [new(0, "pricechannel", -1, "M290,150L310,140", "", "M290,100L310,90", "M290,200L310,190", "M290,100L310,90L310,190L290,200Z", [], [50])],
+        };
+        module.Setup<CandlestickLayout>("layout", _ => true).SetResult(layout);
+
+        IRenderedComponent<CandlestickChart> cut = Render<CandlestickChart>(ps => ps
+            .Add(p => p.Candles, [new Candle(new DateTime(2026, 10, 1, 9, 0, 0), 40, 70, 30, 55)])
+            .Add(p => p.Indicators, [new ChartIndicator(IndicatorKind.PriceChannel, Period: 12)]));
+
+        cut.WaitForAssertion(() => cut.Markup.ShouldContain("Price channel 12 50"));
+        cut.Find("path[d='M290,100L310,90L310,190L290,200Z']").GetAttribute("fill").ShouldBe("var(--color-primary)");
+        cut.Find("svg + div").TextContent.ShouldContain("Price channel 12");
+        Spec(module, "candlestick").ShouldContain("{\"kind\":\"pricechannel\",\"period\":12,");
+    }
+
+    [Fact]
     public void GanttChart_draws_bars_progress_milestones_and_today()
     {
         BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
@@ -306,5 +382,80 @@ public class ChartsTimeTests : BunitContext
             .Add(p => p.Step, true));
 
         Spec(module, "range-area").ShouldContain("\"smooth\":true,\"step\":true");
+    }
+
+    [Fact]
+    public void HeatmapChart_levels_send_the_step_count_and_show_a_stepped_legend()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        HeatmapLayout layout = new(
+            [new(100, "Mon", null, "Mon")], [new(200, "09", null, "09"), new(400, "10", null, "10")],
+            [new("Mon", "09", 10, 0, 100, 20, 190, 160), new("Mon", "10", 30, 1, 300, 20, 190, 160)], 10, 30, _plot, [20]);
+        module.Setup<HeatmapLayout>("layout", _ => true).SetResult(layout);
+
+        IRenderedComponent<HeatmapChart> cut = Render<HeatmapChart>(ps => ps
+            .Add(p => p.Cells, [new HeatmapCell("Mon", "09", 10), new HeatmapCell("Mon", "10", 30)])
+            .Add(p => p.Levels, 2));
+
+        cut.WaitForAssertion(() => cut.FindAll("svg rect").Count.ShouldBe(2));
+        Spec(module, "heatmap").ShouldContain("\"levels\":2");
+        cut.FindAll(".rounded-sm").Count.ShouldBe(2);
+        cut.Markup.ShouldContain("10 – 20");
+        cut.Markup.ShouldContain("20 – 30");
+        cut.Markup.ShouldNotContain("linear-gradient");
+    }
+    [Fact]
+    public void HeatmapChart_level_legend_keeps_small_steps_apart()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        HeatmapLayout small = new(
+            [new(100, "A", null, "A")], [new(200, "c0", null, "c0"), new(400, "c1", null, "c1")],
+            [new("A", "c0", 0.001, 0, 100, 20, 190, 160), new("A", "c1", 0.005, 1, 300, 20, 190, 160)], 0.001, 0.005, _plot,
+            [0.002, 0.003, 0.004]);
+        module.Setup<HeatmapLayout>("layout", _ => true).SetResult(small);
+
+        IRenderedComponent<HeatmapChart> cut = Render<HeatmapChart>(ps => ps
+            .Add(p => p.Cells, [new HeatmapCell("A", "c0", 0.001), new HeatmapCell("A", "c1", 0.005)])
+            .Add(p => p.Levels, 4));
+
+        cut.WaitForAssertion(() => cut.FindAll(".rounded-sm").Count.ShouldBe(4));
+        cut.Markup.ShouldContain("0.001 – 0.002");
+        cut.Markup.ShouldContain("0.004 – 0.005");
+    }
+
+    [Fact]
+    public void HeatmapChart_level_legend_of_a_flat_domain_is_one_step_with_the_value()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        HeatmapLayout flat = new(
+            [new(100, "A", null, "A")], [new(200, "c0", null, "c0")], [new("A", "c0", 5, 1, 100, 20, 190, 160)], 5, 5, _plot, []);
+        module.Setup<HeatmapLayout>("layout", _ => true).SetResult(flat);
+
+        IRenderedComponent<HeatmapChart> cut = Render<HeatmapChart>(ps => ps
+            .Add(p => p.Cells, [new HeatmapCell("A", "c0", 5)])
+            .Add(p => p.Levels, 4));
+
+        cut.WaitForAssertion(() => cut.FindAll(".rounded-sm").Count.ShouldBe(1));
+        cut.Find(".rounded-sm + span").TextContent.ShouldBe("5");
+    }
+    [Fact]
+    public void CandlestickChart_names_the_close_price_with_CloseLabel()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        CandlestickLayout layout = new(
+            [new("Oct 1, 2026 09:00", 40, 70, 30, 55, true, 300, 20, 200, 120, 40, 260)],
+            [new(300, "09:00")], [], _plot)
+        {
+            PriceLine = "M290,150L310,140",
+        };
+        module.Setup<CandlestickLayout>("layout", _ => true).SetResult(layout);
+
+        IRenderedComponent<CandlestickChart> cut = Render<CandlestickChart>(ps => ps
+            .Add(p => p.Candles, [new Candle(new DateTime(2026, 10, 1, 9, 0, 0), 40, 70, 30, 55)])
+            .Add(p => p.CandleStyle, CandlestickStyle.Line)
+            .Add(p => p.CloseLabel, "Last price"));
+
+        cut.WaitForAssertion(() => cut.Find("svg + div").TextContent.ShouldContain("Last price"));
+        cut.Find("svg + div").TextContent.ShouldNotContain("Close");
     }
 }

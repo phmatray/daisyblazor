@@ -1,0 +1,12 @@
+<MultiPieChart Title="Plan mix of Acme Cloud workspaces by region" Groups="_regions" InnerRadiusRatio="0.5" />
+
+@code {
+    // A plan keeps its colour in every pie, whatever its place in the region's list.
+    private readonly PieGroup[] _regions =
+    [
+        new("Europe", [new("Free", 48), new("Pro", 31), new("Team", 15), new("Enterprise", 6)]),
+        new("North America", [new("Free", 36), new("Pro", 34), new("Team", 19), new("Enterprise", 11)]),
+        new("Asia Pacific", [new("Free", 57), new("Pro", 26), new("Team", 12), new("Enterprise", 5)]),
+        new("Latin America", [new("Free", 63), new("Pro", 24), new("Team", 13)]),
+    ];
+}
