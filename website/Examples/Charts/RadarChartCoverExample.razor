@@ -1,0 +1,11 @@
+<RadarChart Labels="_axes" Series="_plans" AspectRatio="1.1" ShowLegend="false" ShowPoints="false" />
+
+@code {
+    private readonly string[] _axes = ["Seats", "Storage", "API", "Support", "Uptime"];
+
+    private readonly ChartSeries[] _plans =
+    [
+        new("Team", [55, 60, 65, 50, 70]),
+        new("Scale", [90, 85, 95, 90, 80]),
+    ];
+}

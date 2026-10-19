@@ -1,0 +1,15 @@
+<LollipopChart Title="Deployments by weekday" Data="_days" Vertical="true" Sort="LollipopSort.None" Color="var(--color-accent)" />
+
+@code {
+    // Sort="None" keeps the week in order; a point's own Color overrides the chart's.
+    private readonly ChartDataPoint[] _days =
+    [
+        new("Mon", 48),
+        new("Tue", 62),
+        new("Wed", 57),
+        new("Thu", 66),
+        new("Fri", 21, "var(--color-warning)"),
+        new("Sat", 3),
+        new("Sun", 2),
+    ];
+}

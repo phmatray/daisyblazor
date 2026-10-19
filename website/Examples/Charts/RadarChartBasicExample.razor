@@ -1,0 +1,13 @@
+<RadarChart Title="Plans compared (score out of 100)" Labels="_axes" Series="_plans" />
+
+@code {
+    private readonly string[] _axes = ["Seats", "Storage", "API calls", "Support", "Integrations"];
+
+    // Value i of each series lines up with axis i; each series gets the next palette colour.
+    private readonly ChartSeries[] _plans =
+    [
+        new("Starter", [20, 25, 30, 20, 35]),
+        new("Team", [55, 60, 65, 50, 70]),
+        new("Scale", [90, 85, 95, 90, 80]),
+    ];
+}

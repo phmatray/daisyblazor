@@ -1,0 +1,13 @@
+<SlopeChart Title="Deployments per week, before and after the new pipeline" Items="_services"
+            StartLabel="Before" EndLabel="After" ColorByChange="true" AspectRatio="1.6" />
+
+@code {
+    private readonly SlopeItem[] _services =
+    [
+        new("API gateway", 6, 14),
+        new("Web app", 9, 21),
+        new("Workers", 4, 3),
+        new("Billing", 2, 5),
+        new("Search", 5, 5),
+    ];
+}

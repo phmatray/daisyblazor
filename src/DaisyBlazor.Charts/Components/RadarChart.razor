@@ -1,0 +1,126 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<RadarLayout>
+
+@* Radar (spider) chart: several series over the same named axes, each drawn as a closed shape around
+   the centre. D3 sizes the radius so every axis name fits, and places the rings on nice ticks; this
+   component draws them in theme colours. *@
+
+<D3ChartFrame TLayout="RadarLayout" Chart="this" Label="@_label" Description="@_description">
+    <ChildContent>
+        @if (Layout is { } layout)
+        {
+            @foreach (RadarLayoutRing ring in layout.Rings)
+            {
+                <path d="@ring.Path" fill="none" stroke="var(--color-base-content)" stroke-opacity="0.15" />
+            }
+
+            @foreach (RadarLayoutAxis axis in layout.Axes)
+            {
+                <line x1="@N(layout.Cx)" y1="@N(layout.Cy)" x2="@N(axis.X)" y2="@N(axis.Y)" stroke="var(--color-base-content)" stroke-opacity="0.15" />
+            }
+
+            @for (int s = 0; s < layout.Series.Count; s++)
+            {
+                RadarLayoutSeries series = layout.Series[s];
+                string name = _name(s);
+                string color = _color(s);
+                <path d="@series.Path" fill="@(Filled ? color : "none")" fill-opacity="0.18" stroke="@color" stroke-width="2" stroke-linejoin="round">
+                    <title>@name</title>
+                </path>
+                @if (ShowPoints)
+                {
+                    @for (int i = 0; i < series.Points.Count && i < layout.Axes.Count; i++)
+                    {
+                        RadarLayoutPoint point = series.Points[i];
+                        @if (point.Value is { } value)
+                        {
+                            <circle cx="@N(point.X)" cy="@N(point.Y)" r="3.5" fill="@color" stroke="var(--color-base-100)" stroke-width="1">
+                                <title>@($"{name}, {layout.Axes[i].Name}: {_format(value)}")</title>
+                            </circle>
+                        }
+                    }
+                }
+            }
+
+            @* Ring values sit just inside each ring on the first spoke (clear of its name), haloed in the background colour to stay readable over the shapes. *@
+            <g style="paint-order:stroke;stroke:var(--color-base-100);stroke-width:3px;stroke-linejoin:round;">
+                @foreach (RadarLayoutRing ring in layout.Rings)
+                {
+                    <SvgText X="@(layout.Cx + 4)" Y="@(layout.Cy - ring.R + 11)" FontSize="10" FillOpacity="0.6" Text="@ring.Label" />
+                }
+            </g>
+
+            @foreach (RadarLayoutAxis axis in layout.Axes)
+            {
+                <SvgText X="@axis.LabelX" Y="@axis.LabelY" Anchor="@axis.Anchor" FontSize="12" FontWeight="600" Text="@axis.Name" />
+            }
+        }
+    </ChildContent>
+    <Legend>
+        @if (ShowLegend && Series.Count > 1)
+        {
+            <ChartLegend Items="@Series.Select((s, i) => (_name(i), _color(i))).ToList()" />
+        }
+    </Legend>
+</D3ChartFrame>
+
+@code {
+    /// <summary>The axis names, clockwise from the top. At least three are needed.</summary>
+    [Parameter] public IReadOnlyList<string> Labels { get; set; } = [];
+
+    /// <summary>The series; value <c>i</c> of each lines up with axis <c>i</c>. Missing, NaN or negative values sit at the centre.</summary>
+    [Parameter] public IReadOnlyList<ChartSeries> Series { get; set; } = [];
+
+    /// <summary>Value at the outer ring. When null it is the largest value, rounded up to a nice number; larger values are drawn at the edge.</summary>
+    [Parameter] public double? Max { get; set; }
+
+    /// <summary>About how many grid rings to draw; the exact count follows nice tick values.</summary>
+    [Parameter] public int Levels { get; set; } = 4;
+
+    /// <summary>Shape of the grid rings: straight-sided or round.</summary>
+    [Parameter] public RadarGrid Grid { get; set; } = RadarGrid.Polygon;
+
+    /// <summary>Fill each series' shape with a light tint of its colour; when false only the outlines are drawn.</summary>
+    [Parameter] public bool Filled { get; set; } = true;
+
+    /// <summary>Draw a dot at each value.</summary>
+    [Parameter] public bool ShowPoints { get; set; } = true;
+
+    /// <summary>Show a legend when there is more than one series.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>Format string for values in tooltips and the description, e.g. "{0:N0} GB".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Creates a radar chart; it is a little taller than the other charts by default.</summary>
+    public RadarChart()
+    {
+        AspectRatio = 4d / 3;
+    }
+
+    /// <inheritdoc />
+    protected override string Kind => "radar";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Axes = Labels.ToArray(),
+        Series = Series.Select(s => Labels.Select((_, i) => i < s.Data.Count ? CompareSpec.Finite(s.Data[i]) : null).ToArray()).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        Max = CompareSpec.Finite(Max),
+        Levels,
+        Grid = Grid.ToString().ToLowerInvariant(),
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _name(int s) => s < Series.Count && !string.IsNullOrEmpty(Series[s].Name) ? Series[s].Name : $"Series {s + 1}";
+
+    private string _color(int s) => ChartPalette.At(s, s < Series.Count ? Series[s].Color : null);
+
+    private string _label => Title ?? "Radar chart";
+
+    private string _description => string.Join("; ", Series.Select((s, i) =>
+        $"{_name(i)}: " + string.Join(", ", Labels.Select((l, j) => j < s.Data.Count && double.IsFinite(s.Data[j]) ? $"{l} {_format(s.Data[j])}" : $"{l} no value"))));
+}

@@ -1,0 +1,68 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<LollipopLayout>
+
+@* Lollipop chart: one category per row (or column), a thin stem from zero and a dot at the value,
+   sorted so the ranking reads at a glance. A lighter cousin of the bar chart for many categories.
+   D3 computes the scale, ticks and bands; this component draws them in theme colours. *@
+
+<D3ChartFrame TLayout="LollipopLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { } layout)
+    {
+        <CompareAxis Ticks="layout.Ticks" Labels="layout.Categories" />
+
+        @foreach (LollipopLayoutItem item in layout.Items)
+        {
+            string color = ChartPalette.At(0, item.Index < Data.Count ? Data[item.Index].Color ?? Color : Color);
+            <g>
+                <title>@($"{item.Label}: {_format(item.Value)}")</title>
+                <line x1="@N(item.X1)" y1="@N(item.Y1)" x2="@N(item.X2)" y2="@N(item.Y2)" stroke="@color" stroke-width="2" />
+                <circle cx="@N(item.X2)" cy="@N(item.Y2)" r="6" fill="@color" />
+            </g>
+            @if (item.Text is { } text)
+            {
+                <SvgText X="@text.X" Y="@text.Y" Anchor="@text.Anchor" FontSize="11" FillOpacity="0.75" Text="@text.Text" />
+            }
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The categories and their values. Points whose Value is not a finite number are skipped; a point's Color overrides the chart colour.</summary>
+    [Parameter] public IReadOnlyList<ChartDataPoint> Data { get; set; } = [];
+
+    /// <summary>Stand the stems up as columns instead of rows.</summary>
+    [Parameter] public bool Vertical { get; set; }
+
+    /// <summary>Order of the categories.</summary>
+    [Parameter] public LollipopSort Sort { get; set; } = LollipopSort.Descending;
+
+    /// <summary>Write each value past its dot.</summary>
+    [Parameter] public bool ShowValues { get; set; } = true;
+
+    /// <summary>Colour of every stem and dot (any CSS colour). Defaults to the theme's primary colour.</summary>
+    [Parameter] public string? Color { get; set; }
+
+    /// <summary>Format string for values in labels and tooltips, e.g. "{0:N0}".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <inheritdoc />
+    protected override string Kind => "lollipop";
+
+    // The formatted values travel with the data so the layout can leave room for them.
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Items = Data.Select(d => new { d.Label, Value = CompareSpec.Finite(d.Value), Text = _format(d.Value) }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        Vertical,
+        Sort = Sort.ToString().ToLowerInvariant(),
+        ShowValues,
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _label => Title ?? "Lollipop chart";
+
+    private string _description => string.Join("; ", Data.Where(d => double.IsFinite(d.Value)).Select(d => $"{d.Label}: {_format(d.Value)}"));
+}

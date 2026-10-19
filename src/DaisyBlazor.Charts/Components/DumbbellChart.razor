@@ -1,0 +1,95 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<DumbbellLayout>
+
+@* Dumbbell chart: two values per category, a dot for each joined by a line, so the gap and its
+   direction read at a glance (before and after, plan and actual). D3 computes the shared scale,
+   ticks and rows; this component draws them in theme colours. *@
+
+<D3ChartFrame TLayout="DumbbellLayout" Chart="this" Label="@_label" Description="@_description">
+    <ChildContent>
+        @if (Layout is { } layout)
+        {
+            <CompareAxis Ticks="layout.Ticks" Labels="layout.Categories" />
+
+            @foreach (DumbbellLayoutItem item in layout.Items)
+            {
+                <g>
+                    <title>@_tip(item)</title>
+                    <line x1="@N(item.X1)" y1="@N(item.Y)" x2="@N(item.X2)" y2="@N(item.Y)" stroke="var(--color-base-content)" stroke-opacity="0.3" stroke-width="3" />
+                    <circle cx="@N(item.X1)" cy="@N(item.Y)" r="6" fill="@StartColor" />
+                    <circle cx="@N(item.X2)" cy="@N(item.Y)" r="6" fill="@_endColor" />
+                </g>
+                @foreach (CompareText? text in new[] { item.StartText, item.EndText })
+                {
+                    @if (text is not null)
+                    {
+                        <SvgText X="@text.X" Y="@text.Y" Anchor="@text.Anchor" FontSize="11" FillOpacity="0.75" Text="@text.Text" />
+                    }
+                }
+            }
+        }
+    </ChildContent>
+    <Legend>
+        @if (ShowLegend)
+        {
+            <ChartLegend Items="@([(StartLabel, StartColor), (EndLabel, _endColor)])" />
+        }
+    </Legend>
+</D3ChartFrame>
+
+@code {
+    /// <summary>The rows, one per category. Rows whose Start or End is not a finite number are skipped.</summary>
+    [Parameter] public IReadOnlyList<DumbbellItem> Items { get; set; } = [];
+
+    /// <summary>Name of the first value, shown in the legend and tooltips.</summary>
+    [Parameter] public string StartLabel { get; set; } = "Start";
+
+    /// <summary>Name of the second value, shown in the legend and tooltips.</summary>
+    [Parameter] public string EndLabel { get; set; } = "End";
+
+    /// <summary>Colour of the start dots (any CSS colour). Defaults to a muted text colour so the end stands out.</summary>
+    [Parameter] public string StartColor { get; set; } = "color-mix(in oklab, var(--color-base-content) 40%, transparent)";
+
+    /// <summary>Colour of the end dots (any CSS colour). Defaults to the theme's primary colour.</summary>
+    [Parameter] public string? EndColor { get; set; }
+
+    /// <summary>Write each value beside its dot.</summary>
+    [Parameter] public bool ShowValues { get; set; } = true;
+
+    /// <summary>Show the legend naming the two values.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>Format string for values in labels and tooltips, e.g. "{0:N0} ms".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <inheritdoc />
+    protected override string Kind => "dumbbell";
+
+    // The formatted values travel with the data so the layout can leave room for them.
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Items = Items.Select(i => new
+        {
+            i.Label,
+            Start = CompareSpec.Finite(i.Start),
+            End = CompareSpec.Finite(i.End),
+            StartText = _format(i.Start),
+            EndText = _format(i.End),
+        }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        ShowValues,
+    };
+
+    private string _endColor => ChartPalette.At(0, EndColor);
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _tip(DumbbellLayoutItem item) => $"{item.Label}: {StartLabel} {_format(item.Start)}, {EndLabel} {_format(item.End)}";
+
+    private string _label => Title ?? "Dumbbell chart";
+
+    private string _description => string.Join("; ", Items.Where(i => double.IsFinite(i.Start) && double.IsFinite(i.End))
+        .Select(i => $"{i.Label}: {StartLabel} {_format(i.Start)}, {EndLabel} {_format(i.End)}"));
+}

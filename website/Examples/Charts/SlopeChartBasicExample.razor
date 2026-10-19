@@ -1,0 +1,13 @@
+<SlopeChart Title="NPS by team, Q1 to Q4" Items="_teams" StartLabel="Q1" EndLabel="Q4" />
+
+@code {
+    // Close values (Support and Billing in Q4) get their labels pushed apart automatically.
+    private readonly SlopeItem[] _teams =
+    [
+        new("Support", 31, 52),
+        new("Billing", 28, 51),
+        new("Platform", 44, 39),
+        new("Mobile", 12, 27),
+        new("Search", 36, 35),
+    ];
+}

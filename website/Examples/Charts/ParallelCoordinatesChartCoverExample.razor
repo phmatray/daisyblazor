@@ -1,0 +1,13 @@
+<ParallelCoordinatesChart Dimensions="_limits" Items="_plans" AspectRatio="1.1" ShowLegend="false" />
+
+@code {
+    private readonly string[] _limits = ["Seats", "GB", "API", "Support"];
+
+    private readonly ParallelItem[] _plans =
+    [
+        new("Starter", [5, 10, 60, 8]),
+        new("Team", [25, 100, 300, 24]),
+        new("Business", [100, 500, 1200, 72]),
+        new("Scale", [250, 2000, 3000, 168]),
+    ];
+}
