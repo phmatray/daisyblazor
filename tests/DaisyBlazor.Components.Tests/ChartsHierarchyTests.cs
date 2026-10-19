@@ -91,7 +91,7 @@ public class ChartsHierarchyTests : BunitContext
         _hierarchyChart("icicle", () => Render<IcicleChart>(ps => ps.Add(p => p.Root, _root).Add(p => p.Horizontal, false)), "\"orientation\":\"vertical\"", cut =>
         {
             cut.FindAll("svg rect").Count.ShouldBe(5);
-            cut.Markup.ShouldContain("var(--color-neutral)");
+            cut.Markup.ShouldContain(ChartPalette.Neutral);
         });
 
     [Fact]

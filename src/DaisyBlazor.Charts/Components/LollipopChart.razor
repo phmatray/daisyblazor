@@ -49,11 +49,12 @@
     /// <inheritdoc />
     protected override string Kind => "lollipop";
 
-    // The formatted values travel with the data so the layout can leave room for them.
+    // The formatted values travel with the data so the layout can leave room for them; a negative one
+    // takes the axis's minus sign.
     /// <inheritdoc />
     protected override object BuildSpec() => new
     {
-        Items = Data.Select(d => new { d.Label, d.Value, Text = _format(d.Value) }).ToArray(),
+        Items = Data.Select(d => new { d.Label, d.Value, Text = ChartText.Minus(_format(d.Value)) }).ToArray(),
         Width = ViewWidth,
         Height = ViewHeight,
         Vertical = !Horizontal,

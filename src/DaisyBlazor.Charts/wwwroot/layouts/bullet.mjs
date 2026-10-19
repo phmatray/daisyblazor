@@ -2,7 +2,7 @@ import { finite, maxWidth, r2, ticks, valueScale } from './_shared.mjs';
 
 // spec: { rows: [{ label, value, target, ranges: [number] }], width, height, vertical }
 // One bullet per row, each on its own scale (zero to the largest of value, target and ranges) with
-// its own ticks. Ranges are ascending thresholds drawn as shaded bands behind a thin value bar;
+// its own ticks. Ranges are ascending thresholds drawn as shaded bands (the last up to the axis end) behind a thin value bar;
 // the target is a short line across the bar. Rows without a finite value are skipped.
 export default function bullet({ rows, width, height, vertical = false }) {
     const list = (rows ?? [])
@@ -22,10 +22,9 @@ export default function bullet({ rows, width, height, vertical = false }) {
 
     const out = list.map((r, i) => {
         const [lo, hi] = r.scale.domain();
-        const edges = [lo, ...r.ranges.filter(v => v > lo && v <= hi)];
-        if (edges.length === 1) {
-            edges.push(hi);
-        }
+        // The last band runs on to the end of the axis, which nice rounding (or a value past every
+        // threshold) may put beyond the last threshold.
+        const edges = [lo, ...r.ranges.filter(v => v > lo).slice(0, -1), hi];
         const bands = edges.slice(1).map((v, level) => [edges[level], v, level]);
 
         if (!vertical) {
