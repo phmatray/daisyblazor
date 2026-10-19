@@ -121,6 +121,26 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
     /// <summary>Formats a coordinate for an SVG attribute.</summary>
     protected static string N(double value) => Math.Round(value, 2).ToString(Ci);
 
+    /// <summary>
+    /// The wrapper of a fixed-frame chart, captured by <c>D3ChartFrame</c>: its width is watched so the
+    /// frame can follow a narrow box (see <see cref="FitFrame"/>).
+    /// </summary>
+    internal ElementReference Frame { get; set; }
+
+    /// <summary>Sets the frame for a box of this width; true when the frame changed.</summary>
+    private protected virtual bool FitFrame(double width) => false;
+
+    /// <summary>Receives the new width of a fixed-frame chart's box after it was resized.</summary>
+    [JSInvokable, EditorBrowsable(EditorBrowsableState.Never)]
+    public Task OnFrameWidth(double width) => InvokeAsync(() =>
+    {
+        if (FitFrame(width))
+        {
+            RefreshSpec();
+            StateHasChanged();
+        }
+    });
+
     /// <summary>Receives a new layout from measured mode after the chart's box was resized.</summary>
     [JSInvokable, EditorBrowsable(EditorBrowsableState.Never)]
     public Task OnMeasuredLayout(TLayout layout) => InvokeAsync(() =>
@@ -172,7 +192,9 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
     internal string? SpecJson => _specJson;
 
     /// <inheritdoc />
-    protected override void OnParametersSet()
+    protected override void OnParametersSet() => RefreshSpec();
+
+    private void RefreshSpec()
     {
         // Always asked, so the chart records its inputs from the first spec on.
         if (InputsUnchanged() && _specJson is not null)
@@ -248,16 +270,37 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
     /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!_pending)
+        // A fixed-frame chart measures its box once interactive (and again on resize), before its
+        // first layout, so a narrow box is laid out once, at its own width.
+        bool watchFrame = firstRender && !Measured && Frame.Id is not null && RendererInfo.IsInteractive;
+        if (!_pending && !watchFrame)
         {
             return;
         }
 
-        _pending = false;
         int version = ++_version;
         try
         {
             _module ??= await JS.InvokeAsync<IJSObjectReference>("import", ModulePath);
+            if (watchFrame)
+            {
+                _self ??= DotNetObjectReference.Create(this);
+                _observed = Frame;
+                double? width = await _module.InvokeAsync<double?>("observe", Frame, null, null, _self);
+                if (width is { } w && FitFrame(w))
+                {
+                    RefreshSpec();
+                    StateHasChanged(); // lays out (or, with the server engine, draws) on the next render
+                    return;
+                }
+
+                if (!_pending)
+                {
+                    return;
+                }
+            }
+
+            _pending = false;
             TLayout? layout;
             if (!Measured)
             {
@@ -333,14 +376,21 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
 /// <summary>
 /// Base for the charts drawn in a fixed-shape coordinate space (<see cref="ViewWidth"/> by
 /// <see cref="ViewHeight"/>, from <see cref="AspectRatio"/>) inside a <c>D3ChartFrame</c>: the SVG
-/// scales with the wrapper's width and its text scales with it.
+/// scales with the wrapper's width and its text scales with it. In a box narrower than the frame (a
+/// phone) the chart lays out again at the box's width, so its text is not shrunk below its size.
 /// </summary>
 /// <typeparam name="TLayout">The data the layout returns, deserialized from JSON.</typeparam>
 public abstract class D3Chart<TLayout> : D3ChartBase<TLayout>
     where TLayout : class
 {
-    /// <summary>Width of the SVG coordinate space; layouts are computed in these units.</summary>
-    protected const double ViewWidth = 640;
+    private const double FrameWidth = 640;
+    private const double MinFrameWidth = 280;
+
+    /// <summary>
+    /// Width of the SVG coordinate space; layouts are computed in these units. It is 640, or the box's
+    /// own width (at least 280) once measured narrower, so text keeps its true size on a phone.
+    /// </summary>
+    protected double ViewWidth { get; private set; } = FrameWidth;
 
     /// <summary>Optional heading rendered above the chart.</summary>
     [Parameter] public string? Title { get; set; }
@@ -348,7 +398,7 @@ public abstract class D3Chart<TLayout> : D3ChartBase<TLayout>
     /// <summary>CSS width of the chart wrapper.</summary>
     [Parameter] public string? Width { get; set; } = "100%";
 
-    /// <summary>Width divided by height. The chart keeps this shape at any width and its text scales with it.</summary>
+    /// <summary>Width divided by height. The chart keeps this shape at any width; its text scales with it above <see cref="ViewWidth"/>.</summary>
     [Parameter] public double AspectRatio { get; set; } = 16d / 9;
 
     /// <summary>Additional CSS classes merged onto the <c>w-full</c> wrapper.</summary>
@@ -368,6 +418,18 @@ public abstract class D3Chart<TLayout> : D3ChartBase<TLayout>
     internal string WrapperStyle => (string.IsNullOrEmpty(Width) ? string.Empty : $"width:{Width};") + Style;
 
     internal string ViewBox => $"0 0 {ViewWidth.ToString(Ci)} {ViewHeight.ToString(Ci)}";
+
+    private protected override bool FitFrame(double width)
+    {
+        double fit = Math.Clamp(Math.Round(width), MinFrameWidth, FrameWidth);
+        if (fit == ViewWidth)
+        {
+            return false;
+        }
+
+        ViewWidth = fit;
+        return true;
+    }
 }
 
 /// <summary>Writes NaN and infinities as null, since JSON cannot carry them.</summary>

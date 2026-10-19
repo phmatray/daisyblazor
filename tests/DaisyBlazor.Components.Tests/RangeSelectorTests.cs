@@ -21,7 +21,7 @@ public class RangeSelectorTests : BunitContext
 
     private IRenderedComponent<RangeSelector> RenderSelector(DateTime from = default, DateTime to = default, TimeSpan? step = null)
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ChartFakes.ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         module.Setup<RangeSelectorLayout>("observe", _ => true).SetResult(_layout);
         module.SetupVoid("unobserve");
         IRenderedComponent<RangeSelector> cut = Render<RangeSelector>(ps => ps
@@ -133,7 +133,7 @@ public class RangeSelectorTests : BunitContext
     [Fact]
     public void No_points_draws_an_empty_overview_without_handles()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ChartFakes.ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         module.Setup<RangeSelectorLayout>("observe", _ => true).SetResult(_layout with { Area = "", Line = "" });
         IRenderedComponent<RangeSelector> cut = Render<RangeSelector>();
 

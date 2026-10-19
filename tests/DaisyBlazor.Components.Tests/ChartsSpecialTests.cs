@@ -18,7 +18,7 @@ public class ChartsSpecialTests : BunitContext
 
     private (BunitJSModuleInterop Module, JSRuntimeInvocationHandler<TLayout> Call) Setup<TLayout>()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         return (module, module.Setup<TLayout>("layout", _ => true));
     }
 

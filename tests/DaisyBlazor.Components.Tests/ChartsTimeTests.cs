@@ -24,7 +24,7 @@ public class ChartsTimeTests : BunitContext
     [Fact]
     public void CalendarHeatmap_draws_a_cell_per_day_and_sends_calendar_dates()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         JSRuntimeInvocationHandler<CalendarHeatmapLayout> call = module.Setup<CalendarHeatmapLayout>("layout", _ => true);
         CalendarHeatmapLayout layout = new(
             [new("2026-01-05", "Mon, Jan 5, 2026", 3, 2, 30, 16, 11), new("2026-01-06", "Tue, Jan 6, 2026", 0, 0, 30, 29, 11)],
@@ -50,7 +50,7 @@ public class ChartsTimeTests : BunitContext
     [Fact]
     public void HeatmapChart_shades_cells_from_the_theme_colour()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         HeatmapLayout layout = new(
             [new(100, "Mon", null, "Mon")], [new(200, "09", null, "09"), new(400, "10", null, "10")],
             [new("Mon", "09", 10, 0, 100, 20, 190, 160), new("Mon", "10", 30, 1, 300, 20, 190, 160)], 10, 30, _plot);
@@ -70,7 +70,7 @@ public class ChartsTimeTests : BunitContext
     [Fact]
     public void RangeAreaChart_draws_band_line_and_axes()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         RangeAreaLayout layout = new("M40,100L616,120L616,200L40,180Z", "M40,150L616,160",
             [new("Oct 1, 2026", 100, 300, 150, 40, 40, 328), new("Oct 2, 2026", 120, 280, null, 616, 328, 616)],
             [new(40, "Oct"), new(616, "Oct 2")], [new(336, "0"), new(10, "300")], _plot);
@@ -93,7 +93,7 @@ public class ChartsTimeTests : BunitContext
     [Fact]
     public void StreamChart_sends_its_offset_and_draws_a_layer_per_series()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         StreamLayout layout = new(
             [new(0, "Billing", "M40,100L616,100L616,200Z", 300, 150, true), new(1, "Search", "M40,200L616,200L616,300Z", 300, 250, false)],
             [new("W1", 40, 328, [10, 30]), new("W2", 328, 616, [20, 0])],
@@ -120,7 +120,7 @@ public class ChartsTimeTests : BunitContext
     [InlineData(CandlestickStyle.HighLow, 1, 1)]
     public void CandlestickChart_draws_each_style(CandlestickStyle style, int lines, int rects)
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         CandlestickLayout layout = new(
             [new("Oct 1, 2026 09:00", 40, 70, 30, 55, true, 300, 20, 200, 120, 40, 260)],
             [new(300, "09:00")], [], _plot);
@@ -140,7 +140,7 @@ public class ChartsTimeTests : BunitContext
     [Fact]
     public void CandlestickChart_without_indicators_or_volume_sends_the_plain_spec()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         module.Setup<CandlestickLayout>("layout", _ => true);
 
         Render<CandlestickChart>(ps => ps
@@ -152,7 +152,7 @@ public class ChartsTimeTests : BunitContext
     [Fact]
     public void CandlestickChart_draws_indicators_panels_and_volume()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         CandlestickLayout layout = new(
             [new("Oct 1, 2026 09:00", 40, 70, 30, 55, true, 300, 20, 200, 120, 40, 260) { Volume = 1200 }],
             [new(300, "09:00")], [], _plot with { Bottom = 200 })
@@ -202,7 +202,7 @@ public class ChartsTimeTests : BunitContext
     public void CandlestickChart_names_indicators_by_the_periods_the_layout_uses()
     {
         // The layout takes the default for a period under 1, so the legend must say so too.
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         CandlestickLayout layout = new(
             [new("Oct 1, 2026 09:00", 40, 70, 30, 55, true, 300, 20, 200, 120, 40, 260)],
             [new(300, "09:00")], [], _plot with { Bottom = 200 })
@@ -230,7 +230,7 @@ public class ChartsTimeTests : BunitContext
     [Fact]
     public void CandlestickChart_draws_a_close_line_and_area_and_sends_the_style()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         CandlestickLayout layout = new(
             [new("Oct 1, 2026 09:00", 40, 70, 30, 55, true, 300, 20, 200, 120, 40, 260)],
             [new(300, "09:00")], [], _plot)
@@ -262,7 +262,7 @@ public class ChartsTimeTests : BunitContext
     [InlineData(CandlestickStyle.EquiVolume, 0, 2, "equivolume")]
     public void CandlestickChart_draws_heikin_ashi_and_volume_width_styles(CandlestickStyle style, int lines, int rects, string name)
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         CandlestickLayout layout = new(
             [new("Oct 1, 2026 09:00", 40, 70, 30, 55, true, 300, 36, 200, 120, 40, 260)],
             [new(300, "09:00")], [], _plot);
@@ -284,7 +284,7 @@ public class ChartsTimeTests : BunitContext
     [Fact]
     public void CandlestickChart_names_the_price_channel()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         CandlestickLayout layout = new(
             [new("Oct 1, 2026 09:00", 40, 70, 30, 55, true, 300, 20, 200, 120, 40, 260)],
             [new(300, "09:00")], [], _plot)
@@ -306,7 +306,7 @@ public class ChartsTimeTests : BunitContext
     [Fact]
     public void GanttChart_draws_bars_progress_milestones_and_today()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         GanttLayout layout = new(
             [
                 new(true, "Plan", "Plan", 0, false, null, null, null, 0, 0, 20, 30),
@@ -334,7 +334,7 @@ public class ChartsTimeTests : BunitContext
     [Fact]
     public void BumpChart_draws_lines_points_and_end_labels()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         BumpLayout layout = new(
             [
                 new(0, "Starter", "Starter", "M80,100C200,100,200,200,320,200", [new("Q1", 1, 40, 80, 100), new("Q2", 2, 30, 320, 200)], new(80, 100), new(320, 200)),
@@ -357,7 +357,7 @@ public class ChartsTimeTests : BunitContext
     [Fact]
     public void Time_charts_with_no_data_still_ask_for_a_layout_and_draw_an_empty_chart()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         module.Setup<GanttLayout>("layout", _ => true).SetResult(new GanttLayout([], [], null, [], new PlotArea(0, 0, 0, 0)));
         module.Setup<CalendarHeatmapLayout>("layout", _ => true).SetResult(new CalendarHeatmapLayout([], [], [], [], 0, 0));
 
@@ -374,7 +374,7 @@ public class ChartsTimeTests : BunitContext
     [Fact]
     public void RangeAreaChart_sends_step()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         module.Setup<RangeAreaLayout>("layout", _ => true).SetResult(new RangeAreaLayout("", "", [], [], [], _plot));
 
         Render<RangeAreaChart>(ps => ps
@@ -387,7 +387,7 @@ public class ChartsTimeTests : BunitContext
     [Fact]
     public void HeatmapChart_levels_send_the_step_count_and_show_a_stepped_legend()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         HeatmapLayout layout = new(
             [new(100, "Mon", null, "Mon")], [new(200, "09", null, "09"), new(400, "10", null, "10")],
             [new("Mon", "09", 10, 0, 100, 20, 190, 160), new("Mon", "10", 30, 1, 300, 20, 190, 160)], 10, 30, _plot, [20]);
@@ -407,7 +407,7 @@ public class ChartsTimeTests : BunitContext
     [Fact]
     public void HeatmapChart_level_legend_keeps_small_steps_apart()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         HeatmapLayout small = new(
             [new(100, "A", null, "A")], [new(200, "c0", null, "c0"), new(400, "c1", null, "c1")],
             [new("A", "c0", 0.001, 0, 100, 20, 190, 160), new("A", "c1", 0.005, 1, 300, 20, 190, 160)], 0.001, 0.005, _plot,
@@ -426,7 +426,7 @@ public class ChartsTimeTests : BunitContext
     [Fact]
     public void HeatmapChart_level_legend_of_a_flat_domain_is_one_step_with_the_value()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         HeatmapLayout flat = new(
             [new(100, "A", null, "A")], [new(200, "c0", null, "c0")], [new("A", "c0", 5, 1, 100, 20, 190, 160)], 5, 5, _plot, []);
         module.Setup<HeatmapLayout>("layout", _ => true).SetResult(flat);
@@ -441,7 +441,7 @@ public class ChartsTimeTests : BunitContext
     [Fact]
     public void CandlestickChart_names_the_close_price_with_CloseLabel()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         CandlestickLayout layout = new(
             [new("Oct 1, 2026 09:00", 40, 70, 30, 55, true, 300, 20, 200, 120, 40, 260)],
             [new(300, "09:00")], [], _plot)

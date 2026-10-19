@@ -67,7 +67,7 @@ public class LibraryChartsFixTests : BunitContext
     [Fact]
     public void Measured_charts_keep_their_CSS_height_while_loading()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ChartFakes.ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         JSRuntimeInvocationHandler<LineLayout> observe = module.Setup<LineLayout>("observe", _ => true);
         IRenderedComponent<LineChart> cut = Render<LineChart>(ps => ps
             .Add(p => p.Series, One(1, 2))

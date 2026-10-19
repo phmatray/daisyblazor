@@ -1,5 +1,6 @@
 using System.Text.Json;
 using DaisyBlazor.Charts;
+using Microsoft.AspNetCore.Components;
 
 namespace DaisyBlazor.Components.Tests;
 
@@ -36,6 +37,18 @@ internal static class ChartFakes
         module.Setup<SparkLayout>("observe", i => Kind(i) == "spark").SetResult(spark ?? Spark);
         module.Setup<PieLayout>("layout", i => (string?)i.Arguments[0] == "pie").SetResult(pie ?? Pie);
         module.SetupVoid("unobserve");
+        return module;
+    }
+
+    /// <summary>
+    /// Sets up the chart module for an interactive render, where a fixed-frame chart first measures
+    /// its box: observe() with no kind answers <paramref name="frameWidth"/> (by default wider than the 640 frame).
+    /// </summary>
+    public static BunitJSModuleInterop SetupChartModule(this BunitContext context, double frameWidth = 800)
+    {
+        context.SetRendererInfo(new RendererInfo("WebAssembly", isInteractive: true));
+        BunitJSModuleInterop module = context.JSInterop.SetupModule(ModulePath);
+        module.Setup<double?>("observe", i => i.Arguments[1] is null).SetResult(frameWidth);
         return module;
     }
 

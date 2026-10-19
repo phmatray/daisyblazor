@@ -24,7 +24,7 @@ public class ChartsComboTests : BunitContext
 
     private JSRuntimeInvocationHandler<ComboLayout> Setup()
     {
-        _module = JSInterop.SetupModule(ModulePath);
+        _module = this.SetupChartModule();
         return _module.Setup<ComboLayout>("layout", _ => true);
     }
 

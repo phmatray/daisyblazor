@@ -18,7 +18,7 @@ public class ChartsCompareTests : BunitContext
 
     private (BunitJSModuleInterop Module, JSRuntimeInvocationHandler<T> Call) Setup<T>()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         return (module, module.Setup<T>("layout", _ => true));
     }
 

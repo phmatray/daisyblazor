@@ -14,7 +14,7 @@
             </clipPath>
         </defs>
         <ChartAxes Plot="view.Plot" Baseline="true" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
-                   XGrid="true" YGrid="true" Height="ViewHeight" />
+                   XGrid="true" YGrid="true" Height="ViewHeight" ViewWidth="ViewWidth" />
         <g clip-path="@($"url(#{_clipId})")">
             @foreach (HexbinBin bin in view.Bins)
             {

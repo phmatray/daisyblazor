@@ -10,7 +10,7 @@
     {
         <style>.dbc-shape:hover{fill-opacity:.65}.dbc-line:hover{stroke-width:4}</style>
         <ChartAxes Plot="view.Plot" Baseline="true" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
-                   XGrid="ShowGrid" YGrid="ShowGrid" Height="ViewHeight" />
+                   XGrid="ShowGrid" YGrid="ShowGrid" Height="ViewHeight" ViewWidth="ViewWidth" />
         @for (int i = 0; i < view.Paths.Count && i < Shapes.Count; i++)
         {
             ChartShape shape = Shapes[i];
