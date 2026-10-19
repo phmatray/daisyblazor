@@ -411,6 +411,22 @@ test('measured: a box without a size waits until it gets one', async () => {
     unobserve(el);
 });
 
+test('frame: observing with no kind reports the box width only, and again when the width changes', async () => {
+    const el = { clientWidth: 360, clientHeight: 200 };
+    const ref = dotnet();
+    assert.equal(await observe(el, null, null, ref), 360);
+    const ro = observers.at(-1);
+    el.clientHeight = 260; // the chart's own height changing (layout arrived, legend) is not a resize
+    ro.callback();
+    await wait(150);
+    assert.equal(ref.calls.length, 0);
+    el.clientWidth = 330;
+    ro.callback();
+    await wait(150);
+    assert.deepEqual(ref.calls, [['OnFrameWidth', 330]]);
+    unobserve(el);
+});
+
 test('measured: arrow keys on a slider inside the chart do not scroll the page; other keys pass', async () => {
     const listeners = {};
     const el = {

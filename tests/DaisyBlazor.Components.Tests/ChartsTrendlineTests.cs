@@ -101,7 +101,7 @@ public class ChartsTrendlineTests : BunitContext
     [Fact]
     public void Scatter_sends_the_order_or_period_and_describes_the_new_kinds()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ChartFakes.ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         JSRuntimeInvocationHandler<ScatterLayout> call = module.Setup<ScatterLayout>("layout", _ => true);
         IRenderedComponent<ScatterChart> cut = Render<ScatterChart>(ps => ps
             .Add(p => p.Points, [new ScatterPoint(1, 2, Series: "EU"), new ScatterPoint(2, 3, Series: "US")])
@@ -123,7 +123,7 @@ public class ChartsTrendlineTests : BunitContext
     [Fact]
     public void Scatter_with_a_straight_trend_sends_the_same_spec_as_before()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ChartFakes.ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         module.Setup<ScatterLayout>("layout", _ => true);
         Render<ScatterChart>(ps => ps.Add(p => p.Points, [new ScatterPoint(1, 2)]).Add(p => p.Trendline, ChartTrendline.Linear));
 

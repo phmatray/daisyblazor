@@ -27,7 +27,7 @@ public class ChartsFinancialTests : BunitContext
     [Fact]
     public void Renko_draws_a_brick_per_item_with_the_dates_of_its_move()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         PriceActionLayout layout = new("renko", 1, 0,
             [
                 new(1, true, 10, 11, "Oct 19, 2026 09:00", "Oct 19, 2026 10:00", 100, 40, 200, 150),
@@ -56,7 +56,7 @@ public class ChartsFinancialTests : BunitContext
     [Fact]
     public void Kagi_draws_thick_yang_and_thin_yin_strokes()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         PriceActionLayout layout = new("kagi", 0, 15,
             [new(1, true, 10, 13, "a", "b", 100, 30, 200, 120)],
             [new(100, "1")], [], _plot)
@@ -85,7 +85,7 @@ public class ChartsFinancialTests : BunitContext
     [Fact]
     public void Point_and_figure_draws_x_and_o_marks()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         PriceActionLayout layout = new("pointandfigure", 1, 3,
             [
                 new(1, true, 10, 12, "a", "b", 100, 20, 200, 160) { Marks = [200, 180, 160] },
@@ -110,7 +110,7 @@ public class ChartsFinancialTests : BunitContext
     [Fact]
     public void Line_break_with_no_prices_still_asks_for_a_layout()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         module.Setup<PriceActionLayout>("layout", _ => true).SetResult(new PriceActionLayout("linebreak", 0, 2, [], [], [], _plot));
 
         IRenderedComponent<PriceActionChart> cut = Render<PriceActionChart>(ps => ps

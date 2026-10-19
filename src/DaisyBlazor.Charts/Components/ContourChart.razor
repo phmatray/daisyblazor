@@ -11,7 +11,7 @@
     @if (Layout is { } view)
     {
         <ChartAxes Plot="view.Plot" Baseline="true" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
-                   XGrid="true" YGrid="true" Height="ViewHeight" />
+                   XGrid="true" YGrid="true" Height="ViewHeight" ViewWidth="ViewWidth" />
         <g transform="@($"translate({N(view.Plot.Left)},{N(view.Plot.Top)})")">
             @if (Mode == ContourMode.Value)
             {

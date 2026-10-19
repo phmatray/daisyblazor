@@ -26,7 +26,7 @@ public class ChartsDistributionTests : BunitContext
 
     private JSRuntimeInvocationHandler<TLayout> Setup<TLayout>()
     {
-        _module = JSInterop.SetupModule(ModulePath);
+        _module = this.SetupChartModule();
         return _module.Setup<TLayout>("layout", _ => true);
     }
 

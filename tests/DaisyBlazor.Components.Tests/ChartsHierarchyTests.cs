@@ -42,7 +42,7 @@ public class ChartsHierarchyTests : BunitContext
 
     private (BunitJSModuleInterop Module, JSRuntimeInvocationHandler<T> Call) _setup<T>()
     {
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         return (module, module.Setup<T>("layout", _ => true));
     }
 
@@ -233,7 +233,7 @@ public class ChartsHierarchyTests : BunitContext
     private BunitJSModuleInterop _drillSetup()
     {
         SetRendererInfo(new RendererInfo("WebAssembly", isInteractive: true));
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         module.Setup<HierarchyLayout>("layout", i => !_lastSpec(i).Contains("\"focus\"")).SetResult(_hierarchy);
         module.Setup<HierarchyLayout>("layout", i => _lastSpec(i).Contains("\"focus\":[\"Platform\"]")).SetResult(_platform);
         return module;
@@ -370,7 +370,7 @@ public class ChartsHierarchyTests : BunitContext
     private BunitJSModuleInterop _slashSetup()
     {
         SetRendererInfo(new RendererInfo("WebAssembly", isInteractive: true));
-        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        BunitJSModuleInterop module = this.SetupChartModule();
         HierarchyLayout whole = new(
             [
                 _rect("CI/CD", "CI/CD", 1, 0, false, 10, 0, 0, 640, 360, names: ["CI/CD"]),
