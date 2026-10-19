@@ -13,7 +13,7 @@ public static partial class DocRegistry
             [
                 new("Basic", "Root is a HierarchyNode: leaves carry a Value, parents add up their Children. Tiles show their name and value when they fit; hover any tile for its full path.", typeof(TreemapChartBasicExample)),
                 new("Tiling", "Tile chooses how each parent is cut (here SliceDice, which alternates rows and columns by level); ValueFormat sets the unit.", typeof(TreemapChartTileExample)),
-                new("Drill-down", "Drilldown=\"true\" makes every parent a button (click, or Tab then Enter): the chart re-roots on it at full size, colours stay those of its top-level branch, and the breadcrumb above goes back up. @bind-Focus sets or follows the drilled node as a path like \"Platform/api\"; OnNodeClick reports any clicked node. Clicks need an interactive render mode; static rendering draws the Focus node.", typeof(TreemapChartDrilldownExample)),
+                new("Drill-down", "Drilldown=\"true\" makes every parent a button (click, or Tab then Enter): the chart re-roots on it at full size, colours stay those of its top-level branch, and the breadcrumb above goes back up. @bind-Focus sets or follows the drilled node as a path like \"Platform/api\" (a '/' inside a name is written \"\\/\"); OnNodeClick reports any clicked node. Clicks need an interactive render mode; static rendering draws the Focus node.", typeof(TreemapChartDrilldownExample)),
             ])
         {
             Portrait = typeof(TreemapChartCoverExample),

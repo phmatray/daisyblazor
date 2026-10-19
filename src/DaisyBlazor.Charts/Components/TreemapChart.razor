@@ -15,13 +15,14 @@
             @foreach (HierarchyLayoutNode node in layout.Nodes)
             {
                 string color = ChartInk.GroupColor(node.Group, layout.Groups, GroupColors);
+                string tip = _tip(node);
                 double w = node.X1 - node.X0;
                 double h = node.Y1 - node.Y0;
                 @if (!node.Leaf)
                 {
                     <rect x="@N(node.X0)" y="@N(node.Y0)" width="@N(w)" height="@N(h)" rx="3"
-                          fill="@color" fill-opacity="0.12" stroke="@color" stroke-opacity="0.45" @attributes="Mark(node, _tip(node))">
-                        <title>@_tip(node)</title>
+                          fill="@color" fill-opacity="0.12" stroke="@color" stroke-opacity="0.45" @attributes="Mark(node, tip)">
+                        <title>@tip</title>
                     </rect>
                     @if (node.Thickness >= 14 && ChartText.Fit(_text(node), node.Room, 11) is { } header)
                     {
@@ -30,8 +31,8 @@
                 }
                 else
                 {
-                    <rect x="@N(node.X0)" y="@N(node.Y0)" width="@N(w)" height="@N(h)" rx="2" fill="@color" fill-opacity="0.9" @attributes="Mark(node, _tip(node))">
-                        <title>@_tip(node)</title>
+                    <rect x="@N(node.X0)" y="@N(node.Y0)" width="@N(w)" height="@N(h)" rx="2" fill="@color" fill-opacity="0.9" @attributes="Mark(node, tip)">
+                        <title>@tip</title>
                     </rect>
                     @if (node.Thickness >= 20 && ChartText.Fit(node.Name, node.Room, 12) is { } name)
                     {

@@ -1,7 +1,7 @@
 import { partition } from '../d3/d3-hierarchy.mjs';
 import { build, groups, base, focus, echo, EMPTY } from './_hierarchy.mjs';
 
-// spec: { root: { name, value, children }, focus?: "Branch/child", width, height, orientation: 'horizontal' | 'vertical' }
+// spec: { root: { name, value, children }, focus?: ['Branch', 'child'], width, height, orientation: 'horizontal' | 'vertical' }
 // Horizontal: one column per level, root on the left. Vertical: one row per level, root on top.
 export default function icicle({ root, focus: path, width, height, orientation = 'horizontal' }) {
     const full = build(root);

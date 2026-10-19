@@ -2,7 +2,7 @@ import { partition } from '../d3/d3-hierarchy.mjs';
 import { arc } from '../d3/d3-shape.mjs';
 import { build, groups, base, focus, echo, EMPTY } from './_hierarchy.mjs';
 
-// spec: { root: { name, value, children }, focus?: "Branch/child", width, height }
+// spec: { root: { name, value, children }, focus?: ['Branch', 'child'], width, height }
 // One ring per level around a centre disc for the root. Paths are relative to (cx, cy); labels run
 // along the radius, flipped on the left half so they read left to right.
 export default function sunburst({ root, focus: path, width, height }) {

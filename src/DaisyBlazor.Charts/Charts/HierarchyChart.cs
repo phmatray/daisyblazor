@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
@@ -10,8 +11,11 @@ namespace DaisyBlazor.Charts;
 /// </summary>
 public abstract class HierarchyChart : D3Chart<HierarchyLayout>
 {
-    private string? _focus;
+    // The drilled node as its names below the root; carried as a list end to end (spec, layout,
+    // clicks), so a name may hold '/'. Only the public Focus string escapes it.
+    private IReadOnlyList<string> _focus = [];
     private string? _focusParameter;
+    private (HierarchyLayout? Layout, HierarchyNode? Tree, IReadOnlyList<string>? Trail) _trail;
 
     /// <summary>
     /// Click (or Enter on) a node with children to show only that branch, at full size; a leaf below
@@ -23,8 +27,10 @@ public abstract class HierarchyChart : D3Chart<HierarchyLayout>
 
     /// <summary>
     /// The node drawn as the root, as the names below the root joined by '/', e.g. "Platform/Logs";
-    /// null for the whole tree. Bind it with <c>@bind-Focus</c> to set or follow the drilled node.
-    /// An unknown path shows the whole tree and a leaf shows its parent. Applies under static rendering too.
+    /// null for the whole tree. A '/' inside a name is written "\/" and a backslash "\\", so the
+    /// node "A / B" under "CI/CD" is "CI\/CD/A \/ B" (FocusChanged reports paths the same way).
+    /// Bind it with <c>@bind-Focus</c> to set or follow the drilled node. An unknown path shows the
+    /// whole tree and a leaf shows its parent. Applies under static rendering too.
     /// </summary>
     [Parameter] public string? Focus { get; set; }
 
@@ -40,14 +46,28 @@ public abstract class HierarchyChart : D3Chart<HierarchyLayout>
     /// <summary>The tree being drawn (the chart's <c>Root</c>).</summary>
     protected abstract HierarchyNode? Tree { get; }
 
-    /// <summary>The focus path to send to the layout, or null for the whole tree.</summary>
-    protected string? SpecFocus => string.IsNullOrEmpty(_focus) ? null : _focus;
+    /// <summary>The focus to send to the layout, as the names below the root, or null for the whole tree.</summary>
+    protected IReadOnlyList<string>? SpecFocus => _focus.Count == 0 ? null : _focus;
 
     /// <summary>The breadcrumb's names, root first, once a drill-down chart is drawn interactively; null otherwise.</summary>
-    protected IReadOnlyList<string>? Trail =>
-        Drilldown && Layout is not null && RendererInfo.IsInteractive
-            ? [Tree?.Name ?? string.Empty, .. Segments(Layout.Focus)]
-            : null;
+    protected IReadOnlyList<string>? Trail
+    {
+        get
+        {
+            if (!Drilldown || Layout is not { } layout || !RendererInfo.IsInteractive)
+            {
+                return null;
+            }
+
+            // Built once per layout (Mark reads it for every node).
+            if (!ReferenceEquals(_trail.Layout, layout) || !ReferenceEquals(_trail.Tree, Tree))
+            {
+                _trail = (layout, Tree, [Tree?.Name ?? string.Empty, .. layout.Focus ?? []]);
+            }
+
+            return _trail.Trail;
+        }
+    }
 
     /// <summary>Classes for the SVG while nodes are buttons: labels let clicks through to their node.</summary>
     protected string? SvgClass => Interactive ? "[&_text]:pointer-events-none" : null;
@@ -60,7 +80,7 @@ public abstract class HierarchyChart : D3Chart<HierarchyLayout>
         if (Focus != _focusParameter)
         {
             _focusParameter = Focus;
-            _focus = Focus;
+            _focus = ParseFocus(Focus);
         }
 
         base.OnParametersSet();
@@ -77,7 +97,7 @@ public abstract class HierarchyChart : D3Chart<HierarchyLayout>
             return null;
         }
 
-        bool up = node.Depth == 0 && !string.IsNullOrEmpty(Layout?.Focus);
+        bool up = node.Depth == 0 && Layout?.Focus is { Count: > 0 };
         // A leaf opens its parent, unless that parent is already the drawn root.
         bool drills = Drilldown && (node.Depth == 0 ? up : !node.Leaf || node.Depth > 1);
         if (!drills && !OnNodeClick.HasDelegate)
@@ -85,12 +105,11 @@ public abstract class HierarchyChart : D3Chart<HierarchyLayout>
             return null;
         }
 
-        IReadOnlyList<string>? trail = Trail;
         return new Dictionary<string, object>
         {
             ["role"] = "button",
             ["tabindex"] = "0",
-            ["aria-label"] = drills && up && trail is { Count: > 1 } ? $"{label}. Back to {trail[^2]}" : label,
+            ["aria-label"] = drills && up && Trail is { Count: > 1 } trail ? $"{label}. Back to {trail[^2]}" : label,
             ["class"] = "cursor-pointer focus-visible:outline-none focus-visible:stroke-base-content focus-visible:stroke-3 focus-visible:[stroke-opacity:1]",
             ["onclick"] = EventCallback.Factory.Create<MouseEventArgs>(this, () => Select(node, drills)),
             // ponytail: Space may also scroll the page; Blazor cannot cancel it for one key only.
@@ -99,12 +118,12 @@ public abstract class HierarchyChart : D3Chart<HierarchyLayout>
     }
 
     /// <summary>Goes back to the breadcrumb at <paramref name="index"/> (0 is the root).</summary>
-    protected Task Climb(int index) => Drill(string.Join('/', Segments(Layout?.Focus).Take(index)));
+    protected Task Climb(int index) => Drill([.. (Layout?.Focus ?? []).Take(index)]);
 
     private async Task Select(HierarchyLayoutNode node, bool drills)
     {
-        // Paths join names with " / " in tooltips; the layout's root node is the current focus.
-        List<string> path = node.Depth == 0 ? [.. Segments(Layout?.Focus)] : [.. node.Path.Split(" / ")];
+        // Every node carries its names in the whole tree, the drawn root (the current focus) included.
+        IReadOnlyList<string> path = node.Names;
         if (OnNodeClick.HasDelegate && Find(path) is { } found)
         {
             await OnNodeClick.InvokeAsync(found);
@@ -112,21 +131,20 @@ public abstract class HierarchyChart : D3Chart<HierarchyLayout>
 
         if (drills)
         {
-            await Drill(string.Join('/', node.Depth == 0 || node.Leaf ? path.Take(path.Count - 1) : path));
+            await Drill([.. node.Depth == 0 || node.Leaf ? path.Take(path.Count - 1) : path]);
         }
     }
 
-    private async Task Drill(string path)
+    private async Task Drill(IReadOnlyList<string> path)
     {
-        string? next = path.Length == 0 ? null : path;
-        if (next == SpecFocus)
+        if (path.SequenceEqual(_focus))
         {
             return;
         }
 
-        _focus = next;
+        _focus = path;
         base.OnParametersSet();
-        await FocusChanged.InvokeAsync(next);
+        await FocusChanged.InvokeAsync(FormatFocus(path));
     }
 
     private HierarchyNode? Find(IEnumerable<string> path)
@@ -140,6 +158,38 @@ public abstract class HierarchyChart : D3Chart<HierarchyLayout>
         return node;
     }
 
-    private static string[] Segments(string? path) =>
-        string.IsNullOrEmpty(path) ? [] : path.Split('/');
+    // The public Focus string: names joined by '/', with '\' and '/' inside a name escaped by a '\'.
+    private static string? FormatFocus(IReadOnlyList<string> names) =>
+        names.Count == 0 ? null : string.Join('/', names.Select(n => n.Replace(@"\", @"\\").Replace("/", @"\/")));
+
+    private static List<string> ParseFocus(string? path)
+    {
+        List<string> names = [];
+        if (string.IsNullOrEmpty(path))
+        {
+            return names;
+        }
+
+        StringBuilder name = new();
+        for (int i = 0; i < path.Length; i++)
+        {
+            char c = path[i];
+            if (c == '\\' && i + 1 < path.Length)
+            {
+                name.Append(path[++i]);
+            }
+            else if (c == '/')
+            {
+                names.Add(name.ToString());
+                name.Clear();
+            }
+            else
+            {
+                name.Append(c);
+            }
+        }
+
+        names.Add(name.ToString());
+        return names;
+    }
 }

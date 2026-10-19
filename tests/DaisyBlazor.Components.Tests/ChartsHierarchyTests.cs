@@ -23,8 +23,10 @@ public class ChartsHierarchyTests : BunitContext
 
     private static readonly GraphLink[] _links = [new("Gateway", "Auth", 4), new("Gateway", "Projects", 2)];
 
-    private static HierarchyLayoutNode _rect(string name, string path, int depth, int group, bool leaf, double value, double x0, double y0, double x1, double y1, string? d = null) =>
-        new(name, path, depth, group, leaf, value, x0, y0, x1, y1, d, x0 + 5, y0 + 14, 0, x1 - x0 - 10, y1 - y0);
+    // Names: the node's place below the root, as the layout gives it; the tree's own root has none.
+    private static HierarchyLayoutNode _rect(string name, string path, int depth, int group, bool leaf, double value, double x0, double y0, double x1, double y1, string? d = null, string[]? names = null) =>
+        new(name, path, depth, group, leaf, value, x0, y0, x1, y1, d, x0 + 5, y0 + 14, 0, x1 - x0 - 10, y1 - y0)
+        { Names = names ?? (group < 0 ? [] : path.Split(" / ")) };
 
     private static readonly HierarchyLayout _hierarchy = new(
         [
@@ -226,14 +228,14 @@ public class ChartsHierarchyTests : BunitContext
             _rect("Backups", "Platform / Backups", 1, 0, true, 20, 0, 240, 640, 360, "M0,-180L0,-120Z"),
         ],
         ["Platform", "Data"], 320, 180)
-    { Focus = "Platform" };
+    { Focus = ["Platform"] };
 
     private BunitJSModuleInterop _drillSetup()
     {
         SetRendererInfo(new RendererInfo("WebAssembly", isInteractive: true));
         BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
         module.Setup<HierarchyLayout>("layout", i => !_lastSpec(i).Contains("\"focus\"")).SetResult(_hierarchy);
-        module.Setup<HierarchyLayout>("layout", i => _lastSpec(i).Contains("\"focus\":\"Platform\"")).SetResult(_platform);
+        module.Setup<HierarchyLayout>("layout", i => _lastSpec(i).Contains("\"focus\":[\"Platform\"]")).SetResult(_platform);
         return module;
     }
 
@@ -256,7 +258,7 @@ public class ChartsHierarchyTests : BunitContext
         platform.Click();
 
         changes.ShouldBe(["Platform"]);
-        _lastSpec(module.Invocations["layout"].Last()).ShouldContain("\"focus\":\"Platform\"");
+        _lastSpec(module.Invocations["layout"].Last()).ShouldContain("\"focus\":[\"Platform\"]");
         cut.WaitForAssertion(() => cut.FindAll("nav button").Count.ShouldBe(2));
         cut.FindAll("nav button").Select(b => b.TextContent.Trim()).ShouldBe(["Storage", "Platform"]);
         cut.FindAll("nav button")[1].GetAttribute("aria-current").ShouldBe("location");
@@ -313,7 +315,7 @@ public class ChartsHierarchyTests : BunitContext
         cut.FindAll("rect[role=button]").Single(r => r.GetAttribute("aria-label") == "Platform / Logs: 40").Click();
 
         changes.ShouldBe(["Platform"]);
-        _lastSpec(module.Invocations["layout"].Last()).ShouldContain("\"focus\":\"Platform\"");
+        _lastSpec(module.Invocations["layout"].Last()).ShouldContain("\"focus\":[\"Platform\"]");
     }
 
     [Fact]
@@ -357,5 +359,136 @@ public class ChartsHierarchyTests : BunitContext
 
         cut.FindAll("[role=button], [tabindex], nav, button").Count.ShouldBe(0);
         cut.Find("svg").HasAttribute("class").ShouldBeFalse();
+    }
+
+    // Names holding '/' and ' / ': Ops > CI/CD > A / B > x, y; CI/CD > z.
+    private static readonly HierarchyNode _slashes = new("Ops", Children:
+    [
+        new("CI/CD", Children: [new("A / B", Children: [new("x", 5), new("y", 3)]), new("z", 2)]),
+    ]);
+
+    private BunitJSModuleInterop _slashSetup()
+    {
+        SetRendererInfo(new RendererInfo("WebAssembly", isInteractive: true));
+        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        HierarchyLayout whole = new(
+            [
+                _rect("CI/CD", "CI/CD", 1, 0, false, 10, 0, 0, 640, 360, names: ["CI/CD"]),
+                _rect("A / B", "CI/CD / A / B", 2, 0, false, 8, 0, 18, 500, 360, names: ["CI/CD", "A / B"]),
+                _rect("x", "CI/CD / A / B / x", 3, 0, true, 5, 0, 36, 300, 360, names: ["CI/CD", "A / B", "x"]),
+            ],
+            ["CI/CD"], 320, 180);
+        HierarchyLayout cicd = new(
+            [
+                _rect("CI/CD", "CI/CD", 0, 0, false, 10, 0, 0, 640, 360, names: ["CI/CD"]),
+                _rect("A / B", "CI/CD / A / B", 1, 0, false, 8, 0, 18, 500, 360, names: ["CI/CD", "A / B"]),
+            ],
+            ["CI/CD"], 320, 180)
+        { Focus = ["CI/CD"] };
+        HierarchyLayout ab = new(
+            [
+                _rect("A / B", "CI/CD / A / B", 0, 0, false, 8, 0, 0, 640, 360, names: ["CI/CD", "A / B"]),
+                _rect("x", "CI/CD / A / B / x", 1, 0, true, 5, 0, 18, 400, 360, names: ["CI/CD", "A / B", "x"]),
+            ],
+            ["CI/CD"], 320, 180)
+        { Focus = ["CI/CD", "A / B"] };
+        module.Setup<HierarchyLayout>("layout", i => !_lastSpec(i).Contains("\"focus\"")).SetResult(whole);
+        module.Setup<HierarchyLayout>("layout", i => _lastSpec(i).Contains("\"focus\":[\"CI/CD\"]")).SetResult(cicd);
+        module.Setup<HierarchyLayout>("layout", i => _lastSpec(i).Contains("\"focus\":[\"CI/CD\",\"A / B\"]")).SetResult(ab);
+        return module;
+    }
+
+    [Fact]
+    public void Drilldown_names_with_slashes_drill_and_climb_back_with_an_escaped_Focus()
+    {
+        BunitJSModuleInterop module = _slashSetup();
+        List<string?> changes = [];
+        IRenderedComponent<TreemapChart> cut = Render<TreemapChart>(ps => ps.Add(p => p.Root, _slashes).Add(p => p.Drilldown, true)
+            .Add(p => p.FocusChanged, (string? f) => changes.Add(f)));
+        cut.WaitForAssertion(() => cut.FindAll("svg").Count.ShouldBe(1));
+
+        cut.FindAll("rect[role=button]").Single(r => r.GetAttribute("aria-label") == "CI/CD: 10").Click();
+        changes.ShouldBe(["CI\\/CD"]);
+        _lastSpec(module.Invocations["layout"].Last()).ShouldContain("\"focus\":[\"CI/CD\"]");
+        cut.WaitForAssertion(() => cut.FindAll("nav button").Count.ShouldBe(2));
+
+        cut.FindAll("rect[role=button]").Single(r => r.GetAttribute("aria-label") == "CI/CD / A / B: 8").Click();
+        changes.ShouldBe(["CI\\/CD", "CI\\/CD/A \\/ B"]);
+        _lastSpec(module.Invocations["layout"].Last()).ShouldContain("\"focus\":[\"CI/CD\",\"A / B\"]");
+        cut.WaitForAssertion(() => cut.FindAll("nav button").Count.ShouldBe(3));
+        cut.FindAll("nav button").Select(b => b.TextContent.Trim()).ShouldBe(["Ops", "CI/CD", "A / B"]);
+
+        cut.FindAll("nav button")[1].Click();
+        changes[^1].ShouldBe("CI\\/CD");
+        _lastSpec(module.Invocations["layout"].Last()).ShouldContain("\"focus\":[\"CI/CD\"]");
+    }
+
+    [Fact]
+    public void Focus_with_escaped_slashes_names_the_node_and_OnNodeClick_finds_it()
+    {
+        BunitJSModuleInterop module = _slashSetup();
+        List<HierarchyNode> clicked = [];
+        IRenderedComponent<IcicleChart> cut = Render<IcicleChart>(ps => ps.Add(p => p.Root, _slashes)
+            .Add(p => p.Focus, "CI\\/CD/A \\/ B")
+            .Add(p => p.OnNodeClick, (HierarchyNode n) => clicked.Add(n)));
+        cut.WaitForAssertion(() => cut.FindAll("svg").Count.ShouldBe(1));
+        _lastSpec(module.Invocations["layout"].Last()).ShouldContain("\"focus\":[\"CI/CD\",\"A / B\"]");
+
+        cut.FindAll("rect[role=button]").Single(r => r.GetAttribute("aria-label") == "CI/CD / A / B: 8").Click();
+        cut.FindAll("rect[role=button]").Single(r => r.GetAttribute("aria-label") == "CI/CD / A / B / x: 5").Click();
+        HierarchyNode ab = _slashes.Children![0].Children![0];
+        clicked.ShouldBe([ab, ab.Children![0]]);
+    }
+
+    // Exposes the breadcrumb a drill-down chart builds, to check it is built once per layout.
+    private sealed class TrailProbe : TreemapChart
+    {
+        public IReadOnlyList<string>? Probe => Trail;
+    }
+
+    // Counts the number formats asked of it (string.Format asks for an ICustomFormatter once per call).
+    private sealed class CountingCulture() : System.Globalization.CultureInfo("en-US")
+    {
+        public int Formats { get; set; }
+
+        public override object? GetFormat(Type? formatType)
+        {
+            if (formatType == typeof(ICustomFormatter))
+            {
+                Formats++;
+            }
+
+            return base.GetFormat(formatType);
+        }
+    }
+
+    [Fact]
+    public void Drilldown_builds_the_trail_once_per_layout_and_each_tooltip_once_per_node()
+    {
+        _drillSetup();
+        System.Globalization.CultureInfo before = System.Globalization.CultureInfo.CurrentCulture;
+        CountingCulture culture = new();
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture = culture;
+            IRenderedComponent<TrailProbe> cut = Render<TrailProbe>(ps => ps.Add(p => p.Root, _root).Add(p => p.Drilldown, true)
+                .Add(p => p.ShowValues, false));
+            cut.WaitForAssertion(() => cut.FindAll("svg").Count.ShouldBe(1));
+
+            IReadOnlyList<string>? trail = cut.Instance.Probe;
+            trail.ShouldBe(["Storage"]);
+            cut.Instance.Probe.ShouldBeSameAs(trail);
+
+            // A re-render with the same layout: one tooltip per node (5) and the description's two
+            // branch totals; the trail is not rebuilt.
+            culture.Formats = 0;
+            cut.Render();
+            culture.Formats.ShouldBe(5 + 2);
+            cut.Instance.Probe.ShouldBeSameAs(trail);
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentCulture = before;
+        }
     }
 }

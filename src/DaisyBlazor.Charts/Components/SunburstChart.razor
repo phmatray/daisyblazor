@@ -16,9 +16,10 @@
                 @foreach (HierarchyLayoutNode node in layout.Nodes)
                 {
                     string color = node.Depth == 0 ? "var(--color-base-200)" : ChartInk.GroupColor(node.Group, layout.Groups, GroupColors);
+                    string tip = _tip(node);
                     double opacity = node.Depth <= 1 ? 1 : Math.Max(0.5, 1 - 0.18 * (node.Depth - 1));
-                    <path d="@node.D" fill="@color" fill-opacity="@N(opacity)" @attributes="Mark(node, _tip(node))">
-                        <title>@_tip(node)</title>
+                    <path d="@node.D" fill="@color" fill-opacity="@N(opacity)" @attributes="Mark(node, tip)">
+                        <title>@tip</title>
                     </path>
                 }
 

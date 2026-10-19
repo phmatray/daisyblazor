@@ -15,11 +15,12 @@
             @foreach (HierarchyLayoutNode node in layout.Nodes)
             {
                 string color = ChartInk.GroupColor(node.Group, layout.Groups, GroupColors);
+                string tip = _tip(node);
                 double opacity = node.Depth <= 1 ? 1 : Math.Max(0.5, 1 - 0.18 * (node.Depth - 1));
                 string ink = node.Depth <= 2 ? ChartPalette.ContentOf(color) : "var(--color-base-content)";
                 <rect x="@N(node.X0 + 0.5)" y="@N(node.Y0 + 0.5)" width="@N(Math.Max(0, node.X1 - node.X0 - 1))" height="@N(Math.Max(0, node.Y1 - node.Y0 - 1))"
-                      rx="2" fill="@color" fill-opacity="@N(opacity)" @attributes="Mark(node, _tip(node))">
-                    <title>@_tip(node)</title>
+                      rx="2" fill="@color" fill-opacity="@N(opacity)" @attributes="Mark(node, tip)">
+                    <title>@tip</title>
                 </rect>
                 @if (node.Thickness >= 20 && ChartText.Fit(node.Name, node.Room, 12) is { } name)
                 {

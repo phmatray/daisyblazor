@@ -38,10 +38,10 @@ public enum TreemapTile
 public sealed record HierarchyLayout(IReadOnlyList<HierarchyLayoutNode> Nodes, IReadOnlyList<string> Groups, double Cx, double Cy)
 {
     /// <summary>
-    /// When the spec asked for a focus: the path of the node laid out as the root ("Platform/api",
-    /// names below the root joined by '/'), or "" when that was the whole tree. Null otherwise.
+    /// When the spec asked for a focus: the names below the root of the node laid out as the root
+    /// (["Platform", "api"]), or empty when that was the whole tree. Null otherwise.
     /// </summary>
-    public string? Focus { get; init; }
+    public IReadOnlyList<string>? Focus { get; init; }
 }
 
 /// <summary>
@@ -53,7 +53,14 @@ public sealed record HierarchyLayout(IReadOnlyList<HierarchyLayoutNode> Nodes, I
 public sealed record HierarchyLayoutNode(
     string Name, string Path, int Depth, int Group, bool Leaf, double Value,
     double X0, double Y0, double X1, double Y1, string? D,
-    double LabelX, double LabelY, double LabelAngle, double Room, double Thickness);
+    double LabelX, double LabelY, double LabelAngle, double Room, double Thickness)
+{
+    /// <summary>
+    /// The node's place in the whole tree: the names below the root, down to this node (empty for the
+    /// root). Unlike <see cref="Path"/> (the same joined by " / " for tooltips), names may hold any text.
+    /// </summary>
+    public IReadOnlyList<string> Names { get; init; } = [];
+}
 
 /// <summary>Group colours and descriptions shared by the hierarchy and graph charts.</summary>
 internal static class ChartInk
