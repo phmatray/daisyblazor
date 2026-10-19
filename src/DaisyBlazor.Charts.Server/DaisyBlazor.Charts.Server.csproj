@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>DaisyBlazor.Charts.Server</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <PackageId>DaisyBlazor.Charts.Server</PackageId>
+    <Description>Server rendering for DaisyBlazor.Charts: runs the charts' bundled D3 layouts in-process with Jint (a JavaScript interpreter written in .NET, no Node), so charts render their full SVG during prerendering and static server rendering.</Description>
+    <PackageTags>$(PackageTags);charts;svg;d3;ssr;prerendering</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Jint" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DaisyBlazor.Charts\DaisyBlazor.Charts.csproj" />
+  </ItemGroup>
+
+  <!-- The exact .mjs files the browser loads, so server and browser compute the same layouts. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\DaisyBlazor.Charts\wwwroot\**\*.mjs" LogicalName="charts/%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

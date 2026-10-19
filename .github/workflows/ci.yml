@@ -41,6 +41,14 @@ jobs:
       - name: Test static JS
         run: node --test "tests/*.test.mjs"
 
+      # The server-rendering tests replay every layout call of the node tests through Jint; fail if
+      # the recorded calls no longer match what the layouts return.
+      - name: Check the recorded chart layouts
+        run: |
+          rm -f tests/DaisyBlazor.Charts.Server.Tests/layouts.fixture.json
+          node --import ./scripts/record-layouts.mjs --test --test-concurrency=1 "tests/charts-*.test.mjs"
+          git diff --exit-code -- tests/DaisyBlazor.Charts.Server.Tests/layouts.fixture.json
+
       - name: Restore
         run: dotnet restore
 
