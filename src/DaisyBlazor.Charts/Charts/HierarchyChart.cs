@@ -14,8 +14,9 @@ public abstract class HierarchyChart : D3Chart<HierarchyLayout>
     private string? _focusParameter;
 
     /// <summary>
-    /// Click (or Enter on) a node with children to show only that branch, at full size; a breadcrumb
-    /// above the chart goes back up. Needs an interactive render mode: under static rendering the
+    /// Click (or Enter on) a node with children to show only that branch, at full size; a leaf below
+    /// the first level opens its parent, so a treemap whose leaves cover their parents still drills.
+    /// A breadcrumb above the chart goes back up. Needs an interactive render mode: under static rendering the
     /// chart shows <see cref="Focus"/> (or the whole tree) with no buttons.
     /// </summary>
     [Parameter] public bool Drilldown { get; set; }
@@ -77,7 +78,8 @@ public abstract class HierarchyChart : D3Chart<HierarchyLayout>
         }
 
         bool up = node.Depth == 0 && !string.IsNullOrEmpty(Layout?.Focus);
-        bool drills = Drilldown && (node.Depth == 0 ? up : !node.Leaf);
+        // A leaf opens its parent, unless that parent is already the drawn root.
+        bool drills = Drilldown && (node.Depth == 0 ? up : !node.Leaf || node.Depth > 1);
         if (!drills && !OnNodeClick.HasDelegate)
         {
             return null;
@@ -110,7 +112,7 @@ public abstract class HierarchyChart : D3Chart<HierarchyLayout>
 
         if (drills)
         {
-            await Drill(string.Join('/', node.Depth == 0 ? path.Take(path.Count - 1) : path));
+            await Drill(string.Join('/', node.Depth == 0 || node.Leaf ? path.Take(path.Count - 1) : path));
         }
     }
 

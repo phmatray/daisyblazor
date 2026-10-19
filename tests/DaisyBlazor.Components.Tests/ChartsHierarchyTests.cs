@@ -301,15 +301,32 @@ public class ChartsHierarchyTests : BunitContext
     }
 
     [Fact]
-    public void Drilldown_leaves_and_the_top_root_are_not_clickable()
+    public void Drilldown_a_treemap_leaf_opens_its_parent()
+    {
+        BunitJSModuleInterop module = _drillSetup();
+        List<string?> changes = [];
+
+        IRenderedComponent<TreemapChart> cut = Render<TreemapChart>(ps => ps.Add(p => p.Root, _root).Add(p => p.Drilldown, true)
+            .Add(p => p.FocusChanged, (string? f) => changes.Add(f)));
+        cut.WaitForAssertion(() => cut.FindAll("svg").Count.ShouldBe(1));
+
+        cut.FindAll("rect[role=button]").Single(r => r.GetAttribute("aria-label") == "Platform / Logs: 40").Click();
+
+        changes.ShouldBe(["Platform"]);
+        _lastSpec(module.Invocations["layout"].Last()).ShouldContain("\"focus\":\"Platform\"");
+    }
+
+    [Fact]
+    public void Drilldown_first_level_leaves_and_the_top_root_are_not_clickable_and_deeper_leaves_open_their_parent()
     {
         _drillSetup();
 
         IRenderedComponent<IcicleChart> cut = Render<IcicleChart>(ps => ps.Add(p => p.Root, _root).Add(p => p.Drilldown, true));
         cut.WaitForAssertion(() => cut.FindAll("svg").Count.ShouldBe(1));
 
-        // Storage (the root, nowhere to go up to), Logs, Backups and Data (leaves) do nothing.
-        cut.FindAll("[role=button]").Select(e => e.GetAttribute("aria-label")).ShouldBe(["Platform: 60"]);
+        // Storage (the root, nowhere to go up to) and Data (a leaf right under it) do nothing; Logs and
+        // Backups are leaves one level deeper, so they open Platform.
+        cut.FindAll("[role=button]").Select(e => e.GetAttribute("aria-label")).ShouldBe(["Platform: 60", "Platform / Logs: 40", "Platform / Backups: 20"]);
         cut.Find("svg").ClassList.ShouldContain("[&_text]:pointer-events-none");
     }
 
