@@ -18,7 +18,7 @@ colors:
 typography:
   display:
     fontFamily: "Fredoka, Manrope, ui-rounded, sans-serif"
-    fontSize: "clamp(3.5rem, 9vw, 7.5rem)"
+    fontSize: "clamp(3rem, 7.5vw, 6rem)"
     fontWeight: 700
     lineHeight: 0.92
     letterSpacing: "-0.03em"
@@ -199,7 +199,7 @@ Semantic, theme-bound roles only: one saturated ground, one reading surface, one
 - **Ground Ink** (`--color-primary-content`): all text, icons, outlines and rules printed on the ground, at full strength for anything small. Inverts to become the fill of the primary button on the ground, the active top-nav pill, the hovered jump pill and the theme switcher pill (with the ground colour as their text).
 
 ### Secondary
-- **Secondary** (`--color-secondary`): one quarter-arc of the next-theme colour wheel, the circle peeking from the corner of each theme tile and the small dot on theme-switcher swatches; mixed 70% into attribute tokens in code.
+- **Secondary** (`--color-secondary`): one quarter-arc of the next-theme colour wheel, the circle peeking from the corner of each theme tile and the small dot on theme-switcher swatches; mixed 50% into attribute tokens in code.
 
 ### Tertiary
 - **Accent** (`--color-accent`): one arc of the colour wheel, string tokens in code (75% mix) and accent parts inside theme tiles.
@@ -224,11 +224,12 @@ Semantic, theme-bound roles only: one saturated ground, one reading surface, one
 **Display Font:** Fredoka (with Manrope, ui-rounded)
 **Body Font:** Manrope (with ui-sans-serif, system-ui)
 **Label/Mono Font:** JetBrains Mono (with ui-monospace, SFMono-Regular)
+**Icon Font:** Material Symbols Outlined (the `Icons.Material.*` glyphs; icons only, never text)
 
 **Character:** Fredoka's soft, round strokes set tight and huge give the pages a friendly, poster-like voice; Manrope underneath is plain-spoken and sturdy, so the reference material stays calm. Mono carries parameter names, types, paths and code, with ligatures off.
 
 ### Hierarchy
-- **Display** (700, clamp(3.5rem, 9vw, 7.5rem), 0.92): the home page H1 in the masthead.
+- **Display** (700, clamp(3rem, 7.5vw, 6rem), 0.92): the home page H1 in the masthead.
 - **Display page** (700, clamp(2.75rem, 6.5vw, 5.5rem), 0.92): every other page's H1, the component or guide name.
 - **Headline** (700, clamp(2.4rem, 5vw, 4rem), 0.95): home section titles, stated plainly ("Every component, running live.").
 - **Title** (700, 2rem, 1.1): prose H2s and the playground heading.
@@ -272,7 +273,7 @@ Three corner families. Covers and theme tiles are near-square (6px). Working sur
 ## Components
 
 ### Masthead
-The page's cover. Full-bleed primary ground with primary-content ink; contains an optional breadcrumb trail, the H1, a lede, a row of eight theme swatches with a "+29 more themes" link, the "On this page" jump pills, and the live cover. Ground and ink cross-fade over 600ms (cubic-bezier(.2, .8, .2, 1)) as a fallback where view transitions are unavailable. The top bar and footer share the same ground. On the home page the lede carries the two CTAs and a pill-shaped install command (`dotnet add package DaisyBlazor.Components`) on a 12% ink tint with an ink-filled copy button.
+The page's cover. Full-bleed primary ground with primary-content ink; contains an optional breadcrumb trail, the H1, a lede, on the home page only a row of eight theme swatches with a "+29 more themes" link, the "On this page" jump pills, and the live cover. Ground and ink cross-fade over 600ms (cubic-bezier(.2, .8, .2, 1)) as a fallback where view transitions are unavailable. The top bar and footer share the same ground. On the home page the lede carries the two CTAs and a pill-shaped install command (`dotnet add package DaisyBlazor.Components`) outlined at 40% ink with an ink-filled copy button.
 
 ### Live cover
 A flat base-100 square (6px corners, 24px padding, 22rem on lg) holding the page's component running live; on the home page, several components composing an Acme Cloud dashboard card. No border, no shadow: the reading surface against the ground is the frame.
@@ -289,11 +290,14 @@ The page's sections as outlined pills on the ground: 2px primary-content border,
 ### Theme tiles (/themes and the home themes band)
 A square button rendered in its own `data-theme`: primary ground, primary-content ink, "Light" or "Dark" over the theme name in Fredoka, a secondary circle peeking from the top-right corner, and a base-100 inset at the foot with real daisyUI buttons (Save, Edit, More), a toggle and a progress bar. Hover lifts 4px with the tile shadow and slides the circle; the active tile gets a 4px base-content ring offset 4px and an "Active" pill.
 
+### Doc tile
+A component's live cover (inert, scaled to 78%, fading out at the foot) over a 2px-ruled base-200/60 strip with its Fredoka name and two-line summary; the strip floods with the ground on hover. Chart covers are capped at 15rem wide (12rem in the compact tile) because charts take their height from their width. The compact tile (name only) builds the home chart wall and the chart catalogue in the Charts guide; charts are always shown grouped by family (Essentials, Hierarchy and networks, Distribution, Over time, Compare, Composition and progress, Specialised).
+
 ### Example card
 Fredoka title with a pill toggle (2px base-content border; the selected half inverts to base-content fill with base-100 text) between Preview and Code. The body is a 16px-radius box with a 2px base-content border: preview on base-100 at 24-32px padding, or the flush code block. A 2px-ruled footer on base-200/60 shows the source path in mono and a Source link.
 
 ### Code block
-Neutral surface, neutral-content text, JetBrains Mono 0.85rem/1.7, 16px corners unless flush inside a card; an optional mono title strip ruled at 15% ink. Syntax colours are mixed from the theme: tags from primary (70%, semibold), attributes from secondary (70%), strings from accent (75%), Razor directives from warning (75%, semibold), keywords from info (75%, semibold), numbers from success (75%), comments at 50% neutral-content in italic. A ghost Copy button sits top-right, faded into the neutral by a leftward shadow, switching to "Copied" briefly.
+Neutral surface, neutral-content text, JetBrains Mono 0.85rem/1.7, 16px corners unless flush inside a card; an optional mono title strip ruled at 15% ink. Syntax colours are mixed from the theme: tags from primary (55%, semibold), attributes from secondary (50%), strings from accent (75%), Razor directives from warning (75%, semibold), keywords from info (75%, semibold), numbers from success (75%), comments at 65% neutral-content in italic. A ghost Copy button sits top-right, faded into the neutral by a leftward shadow, switching to "Copied" briefly.
 
 ### Playground
 Same 2px-ruled, 16px card: the live component centred on base-100 (min 14rem tall), a base-200 controls grid under a 2px rule (1, 2, then 3 columns) built from DaisyBlazor's own inputs, each control headed by the mono parameter name and its mono type at 60%; enum values are pill radio chips (2px base-300 border, inverting to base-content fill when selected). The generated Razor sits in a flush code block below. A ghost pill Reset button activates once a value changes.
@@ -305,7 +309,7 @@ Desktop: full-width table, mono names and types, a 2px base-content head rule an
 A native dialog, 42rem wide with 24px corners. Its header is a strip of ground: search icon, Fredoka 1.25rem semibold input in primary-content with its placeholder at 85% ink, Esc key. Results are 16px-radius rows with a 12px icon tile and a sentence-case kind label; the active row floods with primary and primary-content. A base-300-ruled footer lists the keyboard hints and the indexed component count. Opens on Ctrl+K, ⌘K or "/".
 
 ### Navigation
-Top bar on the ground: rotating daisy mark, the "daisy" + softened "Blazor" logotype, bold nav pills (hover at 10% ink, active inverted to ink fill), a base-100 search pill with Ctrl K keys and the theme switcher pill (ink fill, ground text, theme name from lg) opening a 2-3 column grid of swatch buttons each rendered in its own theme. Below md the nav collapses into a disclosure panel under a 20% ink rule. Side nav on the reading surface: sentence-case group labels at 60% ink ("Guides", "Components"), guide links as pills that turn primary when active, category headings with a component count, component links on a 2px base-300 rail with a primary dot for the active page.
+Top bar on the ground: rotating daisy mark, the "daisy" + softened "Blazor" logotype, bold nav pills (Guides, Components, Charts, Themes, GitHub) (hover at 10% ink, active inverted to ink fill), a base-100 search pill with Ctrl K keys and the theme switcher pill (ink fill, ground text, theme name from lg) opening a 2-3 column grid of swatch buttons each rendered in its own theme. Below md the nav collapses into a disclosure panel under a 20% ink rule. Side nav on the reading surface: sentence-case group labels at 60% ink ("Guides", "Components"), guide links as pills that turn primary when active, category headings with a component count, component links on a 2px base-300 rail with a primary dot for the active page.
 
 ### Buttons
 - **Shape:** full pill (9999px).

@@ -17,6 +17,7 @@
         <span class="sleeve-muted mb-2 block text-sm font-bold">Components</span>
         <ul class="space-y-1 font-bold">
             <li><a href="components">All components</a></li>
+            <li><a href="charts">All charts <span class="sleeve-muted font-semibold">@DocRegistry.ChartCount</span></a></li>
             @foreach (IGrouping<Category, ComponentDoc> group in DocRegistry.ByCategory())
             {
                 <li><a href="@($"components#{group.Key.Slug()}")">@group.Key.Title() <span class="sleeve-muted font-semibold">@group.Count()</span></a></li>

@@ -1,16 +1,47 @@
 @page "/not-found"
+@inject NavigationManager Nav
 
 <PageTitle>Not found · DaisyBlazor</PageTitle>
+<HeadContent><meta name="robots" content="noindex" /></HeadContent>
 
 <main id="content" tabindex="-1">
 <Sleeve Title="Page not found.">
     <Lede>
         <p>The page you asked for doesn't exist, or it moved when the docs became a Blazor app.</p>
+        @if (_suggestions.Count > 0)
+        {
+            <p class="mt-5 font-bold">Did you mean</p>
+            <ul class="mt-2 flex flex-wrap gap-2">
+                @foreach (ComponentDoc d in _suggestions)
+                {
+                    <li><a href="@d.Url" class="track">@d.Name</a></li>
+                }
+            </ul>
+        }
         <div class="mt-6 flex flex-wrap gap-3">
             <a href="" class="btn rounded-full border-0 bg-primary-content text-primary hover:bg-primary-content/90">Back to the start</a>
             <a href="components" class="btn btn-outline rounded-full border-2 border-primary-content text-primary-content hover:bg-primary-content hover:text-primary">Browse components</a>
+            <a href="charts" class="btn btn-outline rounded-full border-2 border-primary-content text-primary-content hover:bg-primary-content hover:text-primary">Browse charts</a>
         </div>
+        <p class="mt-5 hidden text-sm font-semibold md:block">Or press <Kbd Size="Size.Small">Ctrl</Kbd> <Kbd Size="Size.Small">K</Kbd> to search the docs.</p>
     </Lede>
 </Sleeve>
 <div class="h-32"></div>
 </main>
+
+@code {
+    private List<ComponentDoc> _suggestions = [];
+
+    protected override void OnParametersSet()
+    {
+        // The last path segment, without hyphens: "components/bar-chrt" suggests BarChart.
+        string last = Nav.ToBaseRelativePath(Nav.Uri).Split('?', '#')[0].TrimEnd('/').Split('/')[^1].Replace("-", "").ToLowerInvariant();
+        _suggestions = last.Length < 3 ? [] :
+        [
+            .. DocRegistry.All
+                .Where(d => d.Slug.Contains(last) || last.Contains(d.Slug) || d.Slug.StartsWith(last[..3]))
+                .OrderBy(d => d.Slug.StartsWith(last) ? 0 : 1)
+                .Take(6),
+        ];
+    }
+}

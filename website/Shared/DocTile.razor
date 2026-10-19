@@ -1,0 +1,36 @@
+@* A component's live cover over its name and summary, linking to its page. *@
+
+<a href="@Doc.Url" class="group flex h-full flex-col overflow-hidden rounded-2xl border-2 border-base-content bg-base-100 transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-18px_rgb(0_0_0/0.5)]">
+    @* Tall covers start at the top and fade out at the bottom instead of being cut through the middle. *@
+    <div class="pointer-events-none grid @(Compact ? "h-44" : "h-56") overflow-hidden bg-base-100 p-4 [place-items:safe_center] [mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)]" inert>
+        @* Charts size their height from their width: cap the width so the whole chart fits the tile. *@
+        <div class="@(IsChart ? (Compact ? "mx-auto max-w-[12rem]" : "mx-auto max-w-[15rem]") : "") w-full origin-top scale-[0.78]">
+            @if (Cover is not null)
+            {
+                <DynamicComponent Type="Cover" />
+            }
+        </div>
+    </div>
+    <div class="mt-auto border-t-2 border-base-content bg-base-200/60 px-4 py-3 transition group-hover:bg-primary group-hover:text-primary-content">
+        <span class="flex items-baseline justify-between gap-2">
+            <span class="min-w-0 font-display font-semibold [overflow-wrap:anywhere] @(Compact ? "text-base sm:text-lg" : "text-xl")">@Doc.Name</span>
+            @if (Doc.MudEquivalent is not null)
+            {
+                <span class="text-xs font-bold opacity-80">@Doc.MudEquivalent</span>
+            }
+        </span>
+        @if (!Compact)
+        {
+            <span class="line-clamp-2 text-sm opacity-85">@Doc.Summary</span>
+        }
+    </div>
+</a>
+
+@code {
+    [Parameter, EditorRequired] public ComponentDoc Doc { get; set; } = null!;
+    /// <summary>A shorter tile with the name only, for dense walls.</summary>
+    [Parameter] public bool Compact { get; set; }
+
+    private bool IsChart => Doc.Category == Category.Charts;
+    private Type? Cover => Doc.Portrait ?? Doc.Examples.FirstOrDefault()?.Component;
+}

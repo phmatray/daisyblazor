@@ -23,10 +23,10 @@
         }
         @if (QuadrantLabels is { Count: 4 } q)
         {
-            <SvgText X="view.Plot.Right - 6" Y="view.Plot.Top + 14" Anchor="end" FillOpacity="0.6" FontWeight="600" Text="@q[0]" />
-            <SvgText X="view.Plot.Left + 6" Y="view.Plot.Top + 14" FillOpacity="0.6" FontWeight="600" Text="@q[1]" />
-            <SvgText X="view.Plot.Left + 6" Y="view.Plot.Bottom - 6" FillOpacity="0.6" FontWeight="600" Text="@q[2]" />
-            <SvgText X="view.Plot.Right - 6" Y="view.Plot.Bottom - 6" Anchor="end" FillOpacity="0.6" FontWeight="600" Text="@q[3]" />
+            <SvgText X="view.Plot.Right - 6" Y="view.Plot.Top + 14" Anchor="end" FillOpacity="0.7" FontWeight="600" Text="@q[0]" />
+            <SvgText X="view.Plot.Left + 6" Y="view.Plot.Top + 14" FillOpacity="0.7" FontWeight="600" Text="@q[1]" />
+            <SvgText X="view.Plot.Left + 6" Y="view.Plot.Bottom - 6" FillOpacity="0.7" FontWeight="600" Text="@q[2]" />
+            <SvgText X="view.Plot.Right - 6" Y="view.Plot.Bottom - 6" Anchor="end" FillOpacity="0.7" FontWeight="600" Text="@q[3]" />
         }
         @foreach (DensityLevel level in _density(view).Levels)
         {

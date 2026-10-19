@@ -2,7 +2,7 @@
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
-<DocShell Title="Migrating from MudBlazor" Tracks="G.Tracks" Trail="G.Trail" Portrait="Portrait" PortraitCaption="Before / after">
+<DocShell Title="Migrating from MudBlazor" Description="@G.Summary" Tracks="G.Tracks" Trail="G.Trail" Portrait="Portrait" PortraitCaption="Before / after">
     <Lede>
         DaisyBlazor ships a MudBlazor-compatible API surface, so an existing MudBlazor app migrates incrementally, mostly by renaming
         <code>MudX</code> to <code>X</code>. Enums, icons, dialogs and snackbars keep the shapes you already use.
@@ -112,7 +112,16 @@
                     {
                         <tr>
                             <td><code>@mud</code></td>
-                            <td><a href="@($"components/{daisy.Split(' ')[0].ToLowerInvariant()}")"><code>@daisy</code></a></td>
+                            <td>
+                                @if (DocRegistry.Find(daisy.Split(' ')[0]) is { } target)
+                                {
+                                    <a href="@target.Url"><code>@daisy</code></a>
+                                }
+                                else
+                                {
+                                    <code>@daisy</code>
+                                }
+                            </td>
                             <td>@((MarkupString)(notes ?? ""))</td>
                         </tr>
                     }

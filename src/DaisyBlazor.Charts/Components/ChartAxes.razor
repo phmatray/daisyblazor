@@ -70,7 +70,7 @@
 }
 @foreach (AxisTick tick in Y2Ticks.Where(t => t.Label.Length > 0))
 {
-    <SvgText X="@(Plot.Right + 6)" Y="@tick.Pos" Dy="0.35em" FontSize="11" FillOpacity="0.6" Text="@tick.Label" />
+    <SvgText X="@(Plot.Right + 6)" Y="@tick.Pos" Dy="0.35em" FontSize="11" FillOpacity="0.7" Text="@tick.Label" />
 }
 
 @if (!string.IsNullOrEmpty(XTitle))
@@ -144,9 +144,9 @@
 
     private double _yAt => YAxisAt ?? Plot.Left;
 
-    private double _xOpacity => XCategories ? 0.8 : 0.6;
+    private double _xOpacity => XCategories ? 0.8 : 0.7;
 
-    private double _yOpacity => YCategories ? 0.8 : 0.6;
+    private double _yOpacity => YCategories ? 0.8 : 0.7;
 
     private string _gridOpacity(AxisTick tick) => ZeroLine && tick.Value == 0 ? "0.35" : "0.1";
 

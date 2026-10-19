@@ -3,6 +3,7 @@
 @inject DocsJs Js
 
 <PageTitle>@(PageTitle ?? Title) · DaisyBlazor</PageTitle>
+<SeoHead Title="@($"{PageTitle ?? Title} · DaisyBlazor")" Description="@Description" Path="@Canonical" />
 
 <Sleeve Title="@Title" Lede="Lede" Chips="Chips" Portrait="Portrait" PortraitCaption="@PortraitCaption" Tracks="Tracks" Trail="Trail" />
 
@@ -22,7 +23,7 @@
     {
         <nav class="hidden xl:block" aria-label="On this page">
             <div class="sticky top-6">
-                <span class="mb-3 block text-sm font-bold text-base-content/60">On this page</span>
+                <span class="mb-3 block text-sm font-bold text-base-content/75">On this page</span>
                 <ol class="space-y-0.5 border-l-2 border-base-300">
                     @for (int i = 0; i < Tracks.Count; i++)
                     {
@@ -30,7 +31,7 @@
                         bool on = t.Id == _active;
                         <li>
                             <a href="@($"{Path}#{t.Id}")"
-                               class="-ml-0.5 flex gap-2 border-l-2 py-1 pl-3 text-sm transition @(on ? "border-primary font-bold text-base-content" : "border-transparent text-base-content/65 hover:text-base-content")">
+                               class="-ml-0.5 flex gap-2 border-l-2 py-1 pl-3 text-sm transition @(on ? "border-primary font-bold text-base-content" : "border-transparent text-base-content/75 hover:text-base-content")">
                                 @t.Title
                             </a>
                         </li>
@@ -46,6 +47,10 @@
 
     [Parameter, EditorRequired] public string Title { get; set; } = "";
     [Parameter] public string? PageTitle { get; set; }
+    /// <summary>The meta description; defaults to the site's.</summary>
+    [Parameter] public string? Description { get; set; }
+    /// <summary>The canonical path, when the page also answers on an alias.</summary>
+    [Parameter] public string? Canonical { get; set; }
     [Parameter] public RenderFragment? Lede { get; set; }
     [Parameter] public RenderFragment? Chips { get; set; }
     [Parameter] public RenderFragment? Portrait { get; set; }

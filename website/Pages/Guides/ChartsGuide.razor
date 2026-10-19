@@ -1,12 +1,28 @@
 @page "/charts"
 
-<DocShell Title="Charts" Tracks="G.Tracks" Trail="G.Trail" Portrait="Portrait" PortraitCaption="Plan mix">
+<DocShell Title="54 Blazor charts" PageTitle="Blazor charts: 54 SVG chart types" Description="@G.Summary" Tracks="G.Tracks" Portrait="Portrait" PortraitCaption="Plan mix">
     <Lede>
         <code>DaisyBlazor.Charts</code> draws 54 chart types as inline SVG laid out by a D3 module
         bundled in the package. No ApexCharts, no Chart.js, nothing to install from npm, and every colour is a daisyUI theme token.
     </Lede>
     <ChildContent>
-        <div class="prose-doc">
+        @H(0)
+        <p class="max-w-[70ch] text-lg text-base-content/80">Grouped by what they show. Each tile is the chart running live; it opens the chart's page, with examples, their code and every parameter.</p>
+        @foreach (ChartFamily family in DocRegistry.ChartFamilies)
+        {
+            <section class="mt-10" aria-labelledby="@($"family-{family.Slug}")">
+                <h3 id="@($"family-{family.Slug}")" class="font-display text-[1.5rem] font-semibold leading-tight">@family.Title <span class="text-base tabular-nums text-base-content/75">@family.Docs.Count</span></h3>
+                <p class="mb-4 mt-1 max-w-[70ch] text-base-content/80">@family.Blurb</p>
+                <ul class="grid grid-cols-2 gap-3 md:grid-cols-3 2xl:grid-cols-4">
+                    @foreach (ComponentDoc doc in family.Docs)
+                    {
+                        <li><DocTile Doc="doc" Compact /></li>
+                    }
+                </ul>
+            </section>
+        }
+        <div class="prose-doc mt-14">
+            @H(1)
             <p>
                 Every chart is rendered as <strong>inline <code>&lt;svg&gt;</code></strong> whose geometry (scales, ticks, paths, arcs) is computed by the D3 module bundled in the package, and every colour is
                 emitted as a daisyUI theme token (<code>var(--color-primary)</code>, …), so charts <strong>follow the active
@@ -19,21 +35,8 @@
                 first HTML (prerendering, static server rendering), add the server package described at the end of this guide.
             </p>
 
-            @H(0)
             <CodeBlock Language="bash" Code="dotnet add package DaisyBlazor.Charts" />
             <CodeBlock Title="_Imports.razor" Code="@@using DaisyBlazor.Charts" />
-
-            @H(1)
-            <p>Each name opens the chart's page, with live examples, their code and the full parameter list.</p>
-            <table>
-                <thead><tr><th>Component</th><th>Shows</th></tr></thead>
-                <tbody>
-                    @foreach (ComponentDoc doc in DocRegistry.All.Where(d => d.Category == Category.Charts))
-                    {
-                        <tr><td><a href="@($"components/{doc.Slug}")"><code>@doc.Name</code></a></td><td>@FirstSentence(doc.Summary)</td></tr>
-                    }
-                </tbody>
-            </table>
             <p>
                 Every chart also accepts <code>Title</code> (heading above the chart, also the accessible label), <code>Width</code> (default
                 <code>"100%"</code>), <code>Height</code> (default <code>"16rem"</code>; <code>Sparkline</code> <code>"1.5rem"</code>,
@@ -125,15 +128,9 @@
 @code {
     private static readonly GuideDoc G = Guides.Get("charts");
 
-    private static string FirstSentence(string text)
-    {
-        int end = text.IndexOf(". ", StringComparison.Ordinal);
-        return end < 0 ? text : text[..(end + 1)];
-    }
-
     private static RenderFragment H(int i) => __builder =>
     {
-        <h2 id="@G.Tracks[i].Id" class="scroll-mt-6 font-display">@G.Tracks[i].Title</h2>
+        <h2 id="@G.Tracks[i].Id" class="scroll-mt-6 font-display text-[2rem] font-bold leading-tight">@G.Tracks[i].Title</h2>
     };
 
     private static readonly string[] Days = ["Mon", "Tue", "Wed", "Thu", "Fri"];

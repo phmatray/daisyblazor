@@ -1,0 +1,38 @@
+@* Per-page description, canonical URL and social cards. The publish step bakes them into each page's static HTML. *@
+@inject NavigationManager Nav
+
+<HeadContent>
+    <meta name="description" content="@Description" />
+    <link rel="canonical" href="@Url" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="DaisyBlazor" />
+    <meta property="og:title" content="@Title" />
+    <meta property="og:description" content="@Description" />
+    <meta property="og:url" content="@Url" />
+    <meta property="og:image" content="@Image" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="@Title" />
+    <meta name="twitter:description" content="@Description" />
+    <meta name="twitter:image" content="@Image" />
+</HeadContent>
+
+@code {
+    public const string SiteUrl = "https://phmatray.github.io/daisyblazor/";
+    private const string Image = "https://raw.githubusercontent.com/phmatray/daisyblazor/main/.github/banner.png";
+
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string? Description { get; set; }
+    /// <summary>The page's own path when it answers on several (an alias such as "components/bar-chart").</summary>
+    [Parameter] public string? Path { get; set; }
+
+    private string Url => SiteUrl + (Path ?? Nav.ToBaseRelativePath(Nav.Uri).Split('?', '#')[0]);
+
+    protected override void OnParametersSet() => Description = Shorten(Description ?? Site);
+
+    public const string Site =
+        "Open-source daisyUI v5 and Tailwind CSS v4 components for Blazor, with 54 theme-aware SVG chart types laid out by D3, a MudBlazor-compatible API and 37 themes.";
+
+    // Search results show about 160 characters: cut at a word and mark the cut.
+    private static string Shorten(string text) =>
+        text.Length <= 160 ? text : text[..text.LastIndexOf(' ', 157)].TrimEnd(',', ';', ':') + "…";
+}

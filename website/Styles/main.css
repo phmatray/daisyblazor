@@ -154,12 +154,12 @@
 
     /* Syntax colours derive from the active theme, so code matches every theme. */
     .code-block { background: var(--color-neutral); color: var(--color-neutral-content); }
-    .tok-tag { color: color-mix(in oklab, var(--color-primary) 70%, var(--color-neutral-content)); font-weight: 600; }
-    .tok-attr { color: color-mix(in oklab, var(--color-secondary) 70%, var(--color-neutral-content)); }
+    .tok-tag { color: color-mix(in oklab, var(--color-primary) 55%, var(--color-neutral-content)); font-weight: 600; }
+    .tok-attr { color: color-mix(in oklab, var(--color-secondary) 50%, var(--color-neutral-content)); }
     .tok-str { color: color-mix(in oklab, var(--color-accent) 75%, var(--color-neutral-content)); }
     .tok-razor { color: color-mix(in oklab, var(--color-warning) 75%, var(--color-neutral-content)); font-weight: 600; }
     .tok-kw { color: color-mix(in oklab, var(--color-info) 75%, var(--color-neutral-content)); font-weight: 600; }
-    .tok-com { color: color-mix(in oklab, var(--color-neutral-content) 50%, var(--color-neutral)); font-style: italic; }
+    .tok-com { color: color-mix(in oklab, var(--color-neutral-content) 65%, var(--color-neutral)); font-style: italic; }
     .tok-num { color: color-mix(in oklab, var(--color-success) 75%, var(--color-neutral-content)); }
 }
 

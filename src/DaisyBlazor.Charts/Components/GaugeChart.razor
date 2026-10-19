@@ -25,7 +25,7 @@
 
         @foreach (GaugeLayoutTick tick in geo.Ticks)
         {
-            <SvgText X="@tick.X" Y="@tick.Y" Dy="0.35em" Anchor="@tick.Anchor" FontSize="@geo.FontSize" FillOpacity="0.6" Text="@_format(tick.Value)" />
+            <SvgText X="@tick.X" Y="@tick.Y" Dy="0.35em" Anchor="@tick.Anchor" FontSize="@geo.FontSize" FillOpacity="0.7" Text="@_format(tick.Value)" />
         }
 
         @if (geo.Marker is { } marker)

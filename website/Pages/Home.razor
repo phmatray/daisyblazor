@@ -2,21 +2,22 @@
 @implements IDisposable
 @inject DocsJs Js
 
-<PageTitle>DaisyBlazor — daisyUI components for Blazor</PageTitle>
+<PageTitle>DaisyBlazor: daisyUI components and charts for Blazor</PageTitle>
+<SeoHead Title="DaisyBlazor: daisyUI components and charts for Blazor" />
 
-<Sleeve Title="daisyUI components for Blazor." Large="true" Tracks="_tracks" Portrait="Cover" PortraitCaption="A few DaisyBlazor components composing a dashboard card">
+<Sleeve Title="daisyUI components and charts for Blazor." Large="true" Releases="true" Tracks="_tracks" Portrait="Cover" PortraitCaption="A few DaisyBlazor components composing a dashboard card">
     <Lede>
         <p>
-            @DocRegistry.All.Count typed Blazor components on Tailwind CSS v4 and daisyUI v5. The API mirrors MudBlazor, so an
-            existing app can move one component at a time. @ThemeDeck.Themes.Count themes, SVG charts, and the CSS build ships
-            inside the NuGet package.
+            @DocRegistry.ComponentCount typed Blazor components and @DocRegistry.ChartCount chart types on Tailwind CSS v4 and daisyUI v5.
+            The API mirrors MudBlazor, so an existing app can move one component at a time. @ThemeDeck.Themes.Count themes, and the
+            CSS build ships inside the NuGet package.
         </p>
         <div class="mt-7 flex flex-wrap items-center gap-3">
             <a href="getting-started" class="btn btn-lg rounded-full border-0 bg-primary-content px-7 text-primary hover:bg-primary-content/90">Get started</a>
-            <a href="components" class="btn btn-lg rounded-full border-2 border-primary-content bg-transparent px-7 text-primary-content hover:bg-primary-content hover:text-primary">Browse @DocRegistry.All.Count components</a>
+            <a href="components" class="btn btn-lg rounded-full border-2 border-primary-content bg-transparent px-7 text-primary-content hover:bg-primary-content hover:text-primary">See the @DocRegistry.ChartCount charts</a>
         </div>
         <button type="button" @onclick="CopyInstall"
-                class="mt-5 inline-flex max-w-full items-center gap-3 rounded-full bg-primary-content/12 py-2 pl-4 pr-2 font-mono text-sm transition hover:bg-primary-content/20"
+                class="mt-5 inline-flex max-w-full items-center gap-3 rounded-full border-2 border-primary-content/40 py-1.5 pl-4 pr-1.5 font-mono text-sm transition hover:border-primary-content"
                 aria-label="Copy the install command">
             <span class="sleeve-muted select-none">$</span>
             <span class="truncate">dotnet add package DaisyBlazor.Components</span>
@@ -85,8 +86,38 @@
             </WallTile>
         </div>
         <a href="components" class="mt-6 inline-flex items-center gap-2 font-bold underline decoration-primary decoration-2 underline-offset-4">
-            All @DocRegistry.All.Count components <Icon Name="@Icons.Material.Filled.ArrowForward" Size="Size.Small" />
+            All @DocRegistry.ComponentCount components <Icon Name="@Icons.Material.Filled.ArrowForward" Size="Size.Small" />
         </a>
+    </section>
+
+    @* ── Charts ─────────────────────────────────────────────────────────── *@
+    <section id="charts" class="scroll-mt-6 border-t-2 border-base-content bg-base-200">
+        <div class="mx-auto max-w-[1500px] px-4 py-20 sm:px-8 lg:px-14 lg:py-28">
+            <div class="mb-10 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:items-end">
+                <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]">@DocRegistry.ChartCount charts, every one in your theme.</h2>
+                <p class="text-lg text-base-content/80">
+                    From line and bar to Sankey, treemaps, candlesticks, calendars and maps. D3 computes the layout, Razor draws
+                    the SVG in theme colours, and the server package can send the finished chart in the first HTML.
+                </p>
+            </div>
+            <ul class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6" aria-label="A few of the charts">
+                @foreach (ComponentDoc doc in _showcase)
+                {
+                    <li><DocTile Doc="doc" Compact /></li>
+                }
+            </ul>
+            <nav class="mt-8 flex flex-wrap items-center gap-2" aria-label="Chart families">
+                @foreach (ChartFamily family in DocRegistry.ChartFamilies)
+                {
+                    <a href="@($"charts#family-{family.Slug}")" class="rounded-full border-2 border-base-content px-4 py-1.5 text-sm font-bold transition hover:bg-base-content hover:text-base-100">
+                        @family.Title <span class="tabular-nums opacity-75">@family.Docs.Count</span>
+                    </a>
+                }
+            </nav>
+            <a href="charts" class="mt-8 inline-flex items-center gap-2 font-bold underline decoration-primary decoration-2 underline-offset-4">
+                All @DocRegistry.ChartCount charts <Icon Name="@Icons.Material.Filled.ArrowForward" Size="Size.Small" />
+            </a>
+        </div>
     </section>
 
     @* ── Playground ─────────────────────────────────────────────────────── *@
@@ -153,30 +184,6 @@
         </div>
     </section>
 
-    @* ── Charts ─────────────────────────────────────────────────────────── *@
-    <section id="charts" class="scroll-mt-6 border-t-2 border-base-content bg-base-200">
-        <div class="mx-auto max-w-[1500px] px-4 py-20 sm:px-8 lg:px-14 lg:py-28">
-            <div class="mb-10 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:items-end">
-                <h2 class="font-display text-[clamp(2.4rem,5vw,4rem)] font-bold leading-[0.95]">Charts that follow your theme.</h2>
-                <p class="text-lg text-base-content/80">
-                    54 chart types, from line and bar to Sankey, treemap, heatmaps and gauges, drawn as SVG in theme
-                    colours. Switch the theme and watch them follow.
-                </p>
-            </div>
-            <div class="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-                <div class="rounded-2xl border-2 border-base-content bg-base-100 p-5">
-                    <LineChart Series="_streams" Labels="_months" Smooth="true" Area="true" Height="17rem" Title="Active users (thousands, sample data)" />
-                </div>
-                <div class="rounded-2xl border-2 border-base-content bg-base-100 p-5">
-                    <DonutChart Data="_formats" CenterLabel="Plans" Height="17rem" Title="Customers by plan (sample data)" />
-                </div>
-            </div>
-            <a href="charts" class="mt-6 inline-flex items-center gap-2 font-bold underline decoration-primary decoration-2 underline-offset-4">
-                The charts guide <Icon Name="@Icons.Material.Filled.ArrowForward" Size="Size.Small" />
-            </a>
-        </div>
-    </section>
-
     @* ── No npm ─────────────────────────────────────────────────────────── *@
     <section id="no-npm" class="scroll-mt-6 border-t-2 border-base-content">
         <div class="mx-auto grid max-w-[1500px] gap-10 px-4 py-20 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16 lg:px-14 lg:py-28">
@@ -215,8 +222,8 @@
 
     private readonly List<Track> _tracks =
     [
-        new("components", "Components"), new("playground", "Playground"), new("themes", "Themes"),
-        new("migration", "From MudBlazor"), new("charts", "Charts"), new("no-npm", "No npm"),
+        new("components", "Components"), new("charts", "Charts"), new("playground", "Playground"),
+        new("themes", "Themes"), new("migration", "From MudBlazor"), new("no-npm", "No npm"),
     ];
 
     private bool _shuffle = true;
@@ -226,13 +233,12 @@
     private bool _copied;
     private PlaygroundSpec? _buttonPlayground;
 
-    private readonly List<string> _months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"];
-    private readonly List<ChartSeries> _streams =
+    private static readonly ComponentDoc[] _showcase =
     [
-        new("Pro", [12, 19, 17, 26, 31, 29, 38, 44]),
-        new("Enterprise", [8, 11, 14, 13, 18, 22, 21, 27]),
+        .. new[] { "sankeychart", "treemapchart", "candlestickchart", "calendarheatmap", "sunburstchart", "waterfallchart",
+                   "radarchart", "violinchart", "chordchart", "gaugechart", "streamchart", "choroplethmap" }
+            .Select(slug => DocRegistry.Find(slug)!),
     ];
-    private readonly List<ChartDataPoint> _formats = [new("Free", 46), new("Pro", 38), new("Enterprise", 16)];
     private readonly List<string> _buildLines = ["dotnet build", "DaisyBlazor: tailwindcss -i Styles/main.css -o wwwroot/css/app.css", "Build succeeded."];
 
     private string Current => Provider?.Theme ?? ThemeDeck.Light;

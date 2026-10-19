@@ -37,7 +37,7 @@
             }
 
             <h1 id="page-title" tabindex="-1"
-                class="font-display font-bold leading-[0.92] tracking-[-0.03em] outline-none @(Large ? "text-[clamp(3.5rem,9vw,7.5rem)]" : "text-[clamp(2.75rem,6.5vw,5.5rem)]")">
+                class="font-display font-bold leading-[0.92] tracking-[-0.03em] outline-none @(Large ? "text-[clamp(3rem,7.5vw,6rem)]" : "text-[clamp(2.75rem,6.5vw,5.5rem)]")">
                 @Title
             </h1>
 
@@ -105,7 +105,7 @@
     [Parameter] public IReadOnlyList<(string Label, string? Href)>? Trail { get; set; }
     [Parameter] public bool Large { get; set; }
     /// <summary>Show the row of theme swatches under the lede.</summary>
-    [Parameter] public bool Releases { get; set; } = true;
+    [Parameter] public bool Releases { get; set; }
 
     private string Path => Nav.ToBaseRelativePath(Nav.Uri).Split('#')[0];
     private string Current => Provider?.Theme ?? ThemeDeck.Light;

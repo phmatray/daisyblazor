@@ -7,7 +7,7 @@
         @if (_prev is not null)
         {
             <a href="@_prev.Value.Url" class="group rounded-2xl p-4 transition hover:bg-base-200">
-                <span class="text-sm font-semibold text-base-content/65">← Previous</span>
+                <span class="text-sm font-semibold text-base-content/75">← Previous</span>
                 <span class="block font-display text-2xl font-semibold group-hover:underline group-hover:decoration-primary group-hover:underline-offset-4">@_prev.Value.Title</span>
             </a>
         }
@@ -18,7 +18,7 @@
         @if (_next is not null)
         {
             <a href="@_next.Value.Url" class="group rounded-2xl p-4 text-right transition hover:bg-base-200">
-                <span class="text-sm font-semibold text-base-content/65">Next →</span>
+                <span class="text-sm font-semibold text-base-content/75">Next →</span>
                 <span class="block font-display text-2xl font-semibold group-hover:underline group-hover:decoration-primary group-hover:underline-offset-4">@_next.Value.Title</span>
             </a>
         }

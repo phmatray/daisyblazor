@@ -37,7 +37,7 @@
                             string[] names = Enum.GetNames(type);
                             <span class="mb-1.5 flex items-baseline justify-between text-sm font-bold">
                                 <span class="font-mono">@param.Name</span>
-                                <span class="font-mono text-xs font-medium text-base-content/60">@type.Name</span>
+                                <span class="font-mono text-xs font-medium text-base-content/75">@type.Name</span>
                             </span>
                             @if (names.Length <= 4)
                             {
@@ -189,7 +189,10 @@
         foreach ((string name, object? v) in _values)
         {
             if (v is null || _defaults.ContainsKey(name)) continue;
-            attrs.Add($"{name}=\"{Razor(v)}\"");
+            // Data (a chart's Series, Labels, Links…) stays a field reference: Data="@_data".
+            attrs.Add(v is System.Collections.IEnumerable and not string
+                ? $"{name}=\"@_{char.ToLowerInvariant(name[0])}{name[1..]}\""
+                : $"{name}=\"{Razor(v)}\"");
         }
 
         bool child = !string.IsNullOrEmpty(_childText);

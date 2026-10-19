@@ -37,16 +37,16 @@
                     </span>
                     <span class="min-w-0">
                         <span class="block truncate font-bold @(hit.Kind == HitKind.Parameter ? "font-mono text-[0.9rem]" : "")">@hit.Title</span>
-                        <span class="block truncate text-sm @(index == _active ? "text-primary-content/80" : "text-base-content/65")">@hit.Context</span>
+                        <span class="block truncate text-sm @(index == _active ? "text-primary-content/80" : "text-base-content/75")">@hit.Context</span>
                     </span>
                     <span class="ml-auto shrink-0 text-xs font-bold opacity-70">@KindLabel(hit.Kind)</span>
                 </li>
             }
         </ul>
-        <div class="flex items-center gap-4 border-t border-base-300 px-5 py-2.5 text-xs text-base-content/65">
+        <div class="flex items-center gap-4 border-t border-base-300 px-5 py-2.5 text-xs text-base-content/75">
             <span class="flex items-center gap-1"><Kbd Size="Size.Small">↑</Kbd><Kbd Size="Size.Small">↓</Kbd> to move</span>
             <span class="flex items-center gap-1"><Kbd Size="Size.Small">Enter</Kbd> to open</span>
-            <span class="ml-auto">@DocRegistry.All.Count components indexed</span>
+            <span class="ml-auto">@DocRegistry.ComponentCount components and @DocRegistry.ChartCount charts indexed</span>
         </div>
     </div>
     <form method="dialog" class="modal-backdrop"><button aria-label="Close search">close</button></form>
