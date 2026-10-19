@@ -15,6 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="DaisyBlazor.Charts.Server.Tests" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
     <SupportedPlatform Include="browser" />
   </ItemGroup>
