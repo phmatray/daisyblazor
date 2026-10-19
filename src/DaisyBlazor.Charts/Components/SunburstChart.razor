@@ -1,11 +1,14 @@
 @namespace DaisyBlazor.Charts
-@inherits D3Chart<HierarchyLayout>
+@inherits HierarchyChart
 
 @* Sunburst: a tree as rings around a centre disc, each arc's angle proportional to its value. D3
    (d3-hierarchy partition) places the arcs; this component draws them in theme colours, one colour
    per top-level branch, fading with depth. *@
 
-<D3ChartFrame TLayout="HierarchyLayout" Chart="this" Label="@_label" Description="@_description">
+<D3ChartFrame TLayout="HierarchyLayout" Chart="this" Label="@_label" Description="@_description" SvgClass="@SvgClass">
+    <Header>
+        <ChartBreadcrumb Crumbs="@Trail" OnSelect="@Climb" />
+    </Header>
     <ChildContent>
         @if (Layout is { } layout)
         {
@@ -14,8 +17,8 @@
                 {
                     string color = node.Depth == 0 ? "var(--color-base-200)" : ChartInk.GroupColor(node.Group, layout.Groups, GroupColors);
                     double opacity = node.Depth <= 1 ? 1 : Math.Max(0.5, 1 - 0.18 * (node.Depth - 1));
-                    <path d="@node.D" fill="@color" fill-opacity="@N(opacity)">
-                        <title>@($"{node.Path}: {_format(node.Value)}")</title>
+                    <path d="@node.D" fill="@color" fill-opacity="@N(opacity)" @attributes="Mark(node, _tip(node))">
+                        <title>@_tip(node)</title>
                     </path>
                 }
 
@@ -72,9 +75,16 @@
     protected override string Kind => "sunburst";
 
     /// <inheritdoc />
-    protected override object BuildSpec() => new { Root, Width = ViewWidth, Height = ViewHeight };
+    protected override HierarchyNode? Tree => Root;
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => SpecFocus is not { } focus
+        ? new { Root, Width = ViewWidth, Height = ViewHeight }
+        : new { Root, Focus = focus, Width = ViewWidth, Height = ViewHeight };
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _tip(HierarchyLayoutNode node) => $"{node.Path}: {_format(node.Value)}";
 
     private string _label => Title ?? Root?.Name ?? "Sunburst chart";
 

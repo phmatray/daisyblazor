@@ -33,7 +33,7 @@ export function groups(h) {
 
 // The plain fields every hierarchy node returns; geometry and label room are added by each layout.
 export function base(d) {
-    const chain = d.ancestors().reverse();
+    const chain = (d.full ?? d).ancestors().reverse();
     return {
         name: String(d.data.name ?? ''),
         path: (chain.length > 1 ? chain.slice(1) : chain).map(a => String(a.data.name ?? '')).join(' / '),
@@ -42,4 +42,35 @@ export function base(d) {
         leaf: !d.children,
         value: d.value,
     };
+}
+
+// The subtree to lay out for a focus path of names below the root ("Platform/api"), re-rooted so
+// D3 gives it the full size. An unknown path is the whole tree; a leaf is its parent. Nodes keep
+// their value, colour group and (in `full`) their place in the whole tree, for paths.
+export function focus(h, path) {
+    if (typeof path !== 'string' || path === '') {
+        return h;
+    }
+    let f = h;
+    for (const name of path.split('/')) {
+        f = f.children?.find(c => String(c.data.name ?? '') === name);
+        if (!f) {
+            return h;
+        }
+    }
+    while (!f.children) {
+        f = f.parent;
+    }
+    return f === h ? h : hierarchy(f, n => n.children).eachBefore(n => {
+        const o = n.data;
+        Object.assign(n, { data: o.data, value: o.value, group: o.group, full: o });
+    });
+}
+
+// What a layout echoes when the spec asked for a focus: the path of the node it laid out ('' for
+// the root). Specs without a focus get nothing, so their result is unchanged.
+export function echo(view, path) {
+    return typeof path === 'string'
+        ? { focus: (view.full ?? view).ancestors().reverse().slice(1).map(a => String(a.data.name ?? '')).join('/') }
+        : {};
 }

@@ -25,7 +25,8 @@
     }
     else
     {
-        <svg viewBox="@Chart.ViewBox" role="img" aria-label="@Label" aria-describedby="@(Description is null ? null : _descId)"
+        @Header
+        <svg viewBox="@Chart.ViewBox" class="@SvgClass" role="img" aria-label="@Label" aria-describedby="@(Description is null ? null : _descId)"
              style="display:block;width:100%;height:auto;overflow:visible;font-family:inherit;font-size:12px;">
             <title>@Label</title>
             @if (Description is not null)
@@ -50,6 +51,12 @@
 
     /// <summary>The SVG content, drawn only once a layout exists.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Optional HTML above the SVG once it is drawn, such as a drill-down breadcrumb.</summary>
+    [Parameter] public RenderFragment? Header { get; set; }
+
+    /// <summary>Optional CSS classes on the SVG element.</summary>
+    [Parameter] public string? SvgClass { get; set; }
 
     /// <summary>Optional HTML legend under the SVG.</summary>
     [Parameter] public RenderFragment? Legend { get; set; }

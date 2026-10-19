@@ -1,0 +1,28 @@
+<SunburstChart Title="Acme Cloud support tickets by area, topic and channel" Root="_tickets" ValueFormat="{0:N0} tickets"
+               AspectRatio="1.4" Drilldown="true" @bind-Focus="_focus" />
+<p class="text-sm text-base-content/70 mt-2">Focus: <code>@(_focus ?? "(whole tree)")</code></p>
+
+@code {
+    private string? _focus;
+
+    // Click an area to zoom in on it; click the centre or the trail to go back up.
+    private readonly HierarchyNode _tickets = new("Tickets", Children:
+    [
+        new("Workspaces", Children:
+        [
+            new("Invites", Children: [new("Email", 140), new("Chat", 60)]),
+            new("Permissions", Children: [new("Email", 90), new("Chat", 75)]),
+            new("Projects", Children: [new("Email", 50), new("Chat", 45)]),
+        ]),
+        new("Integrations", Children:
+        [
+            new("Webhooks", Children: [new("Email", 110), new("Chat", 40)]),
+            new("SSO", Children: [new("Email", 85), new("Chat", 30)]),
+        ]),
+        new("Account", Children:
+        [
+            new("Sign-in", Children: [new("Email", 120), new("Chat", 95)]),
+            new("Plans", Children: [new("Email", 45), new("Chat", 35)]),
+        ]),
+    ]);
+}

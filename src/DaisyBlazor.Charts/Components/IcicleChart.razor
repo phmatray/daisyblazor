@@ -1,32 +1,37 @@
 @namespace DaisyBlazor.Charts
-@inherits D3Chart<HierarchyLayout>
+@inherits HierarchyChart
 
 @* Icicle: a tree as stacked bands, one band per level, each node as long as its value. D3
    (d3-hierarchy partition) places the bands; this component draws them in theme colours, one colour
    per top-level branch, fading with depth. *@
 
-<D3ChartFrame TLayout="HierarchyLayout" Chart="this" Label="@_label" Description="@_description">
-    @if (Layout is { } layout)
-    {
-        @foreach (HierarchyLayoutNode node in layout.Nodes)
+<D3ChartFrame TLayout="HierarchyLayout" Chart="this" Label="@_label" Description="@_description" SvgClass="@SvgClass">
+    <Header>
+        <ChartBreadcrumb Crumbs="@Trail" OnSelect="@Climb" />
+    </Header>
+    <ChildContent>
+        @if (Layout is { } layout)
         {
-            string color = ChartInk.GroupColor(node.Group, layout.Groups, GroupColors);
-            double opacity = node.Depth <= 1 ? 1 : Math.Max(0.5, 1 - 0.18 * (node.Depth - 1));
-            string ink = node.Depth <= 2 ? ChartPalette.ContentOf(color) : "var(--color-base-content)";
-            <rect x="@N(node.X0 + 0.5)" y="@N(node.Y0 + 0.5)" width="@N(Math.Max(0, node.X1 - node.X0 - 1))" height="@N(Math.Max(0, node.Y1 - node.Y0 - 1))"
-                  rx="2" fill="@color" fill-opacity="@N(opacity)">
-                <title>@($"{node.Path}: {_format(node.Value)}")</title>
-            </rect>
-            @if (node.Thickness >= 20 && ChartText.Fit(node.Name, node.Room, 12) is { } name)
+            @foreach (HierarchyLayoutNode node in layout.Nodes)
             {
-                <SvgText X="@node.LabelX" Y="@node.LabelY" Dy="0.1em" FontSize="12" FontWeight="600" Fill="@ink" Text="@name" />
-                @if (ShowValues && node.Thickness >= 36 && ChartText.Fit(_format(node.Value), node.Room, 11) is { } value)
+                string color = ChartInk.GroupColor(node.Group, layout.Groups, GroupColors);
+                double opacity = node.Depth <= 1 ? 1 : Math.Max(0.5, 1 - 0.18 * (node.Depth - 1));
+                string ink = node.Depth <= 2 ? ChartPalette.ContentOf(color) : "var(--color-base-content)";
+                <rect x="@N(node.X0 + 0.5)" y="@N(node.Y0 + 0.5)" width="@N(Math.Max(0, node.X1 - node.X0 - 1))" height="@N(Math.Max(0, node.Y1 - node.Y0 - 1))"
+                      rx="2" fill="@color" fill-opacity="@N(opacity)" @attributes="Mark(node, _tip(node))">
+                    <title>@_tip(node)</title>
+                </rect>
+                @if (node.Thickness >= 20 && ChartText.Fit(node.Name, node.Room, 12) is { } name)
                 {
-                    <SvgText X="@node.LabelX" Y="@(node.LabelY + 15)" Dy="0.1em" FontSize="11" Fill="@ink" FillOpacity="0.85" Text="@value" />
+                    <SvgText X="@node.LabelX" Y="@node.LabelY" Dy="0.1em" FontSize="12" FontWeight="600" Fill="@ink" Text="@name" />
+                    @if (ShowValues && node.Thickness >= 36 && ChartText.Fit(_format(node.Value), node.Room, 11) is { } value)
+                    {
+                        <SvgText X="@node.LabelX" Y="@(node.LabelY + 15)" Dy="0.1em" FontSize="11" Fill="@ink" FillOpacity="0.85" Text="@value" />
+                    }
                 }
             }
         }
-    }
+    </ChildContent>
 </D3ChartFrame>
 
 @code {
@@ -49,15 +54,16 @@
     protected override string Kind => "icicle";
 
     /// <inheritdoc />
-    protected override object BuildSpec() => new
-    {
-        Root,
-        Width = ViewWidth,
-        Height = ViewHeight,
-        Orientation = Horizontal ? "horizontal" : "vertical",
-    };
+    protected override HierarchyNode? Tree => Root;
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => SpecFocus is not { } focus
+        ? new { Root, Width = ViewWidth, Height = ViewHeight, Orientation = Horizontal ? "horizontal" : "vertical" }
+        : new { Root, Focus = focus, Width = ViewWidth, Height = ViewHeight, Orientation = Horizontal ? "horizontal" : "vertical" };
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _tip(HierarchyLayoutNode node) => $"{node.Path}: {_format(node.Value)}";
 
     private string _label => Title ?? Root?.Name ?? "Icicle chart";
 

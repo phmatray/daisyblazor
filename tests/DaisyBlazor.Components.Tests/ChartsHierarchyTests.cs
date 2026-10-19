@@ -1,6 +1,7 @@
 using System.Text.Json;
 using DaisyBlazor.Charts;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace DaisyBlazor.Components.Tests;
 
@@ -215,5 +216,129 @@ public class ChartsHierarchyTests : BunitContext
         chord.FindAll("svg path").Count.ShouldBe(0);
         chord.FindAll("svg desc").Count.ShouldBe(1);
         chord.Find("svg desc").TextContent.ShouldBeEmpty();
+    }
+
+    // Drill-down: the fake layout answers the whole tree, or the Platform branch when the spec asks for it.
+    private static readonly HierarchyLayout _platform = new(
+        [
+            _rect("Platform", "Platform", 0, 0, false, 60, 0, 0, 640, 360, "M0,-60A60,60,0,1,1,0,60A60,60,0,1,1,0,-60Z"),
+            _rect("Logs", "Platform / Logs", 1, 0, true, 40, 0, 18, 640, 240, "M0,-180L0,-120Z"),
+            _rect("Backups", "Platform / Backups", 1, 0, true, 20, 0, 240, 640, 360, "M0,-180L0,-120Z"),
+        ],
+        ["Platform", "Data"], 320, 180)
+    { Focus = "Platform" };
+
+    private BunitJSModuleInterop _drillSetup()
+    {
+        SetRendererInfo(new RendererInfo("WebAssembly", isInteractive: true));
+        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        module.Setup<HierarchyLayout>("layout", i => !_lastSpec(i).Contains("\"focus\"")).SetResult(_hierarchy);
+        module.Setup<HierarchyLayout>("layout", i => _lastSpec(i).Contains("\"focus\":\"Platform\"")).SetResult(_platform);
+        return module;
+    }
+
+    private static string _lastSpec(JSRuntimeInvocation invocation) => JsonSerializer.Serialize(invocation.Arguments[1], _web);
+
+    [Fact]
+    public void Drilldown_click_on_a_parent_re_roots_and_raises_FocusChanged()
+    {
+        BunitJSModuleInterop module = _drillSetup();
+        List<string?> changes = [];
+
+        IRenderedComponent<TreemapChart> cut = Render<TreemapChart>(ps => ps.Add(p => p.Root, _root).Add(p => p.Drilldown, true)
+            .Add(p => p.FocusChanged, (string? f) => changes.Add(f)));
+        cut.WaitForAssertion(() => cut.FindAll("svg").Count.ShouldBe(1));
+        cut.Find("nav[aria-label] button").GetAttribute("aria-current").ShouldBe("location");
+
+        AngleSharp.Dom.IElement platform = cut.Find("rect[role=button]");
+        platform.GetAttribute("aria-label").ShouldBe("Platform: 60");
+        platform.GetAttribute("tabindex").ShouldBe("0");
+        platform.Click();
+
+        changes.ShouldBe(["Platform"]);
+        _lastSpec(module.Invocations["layout"].Last()).ShouldContain("\"focus\":\"Platform\"");
+        cut.WaitForAssertion(() => cut.FindAll("nav button").Count.ShouldBe(2));
+        cut.FindAll("nav button").Select(b => b.TextContent.Trim()).ShouldBe(["Storage", "Platform"]);
+        cut.FindAll("nav button")[1].GetAttribute("aria-current").ShouldBe("location");
+        cut.FindAll("nav button")[0].HasAttribute("aria-current").ShouldBeFalse();
+    }
+
+    [Fact]
+    public void Drilldown_breadcrumb_goes_back_to_the_root()
+    {
+        BunitJSModuleInterop module = _drillSetup();
+        List<string?> changes = [];
+
+        IRenderedComponent<IcicleChart> cut = Render<IcicleChart>(ps => ps.Add(p => p.Root, _root).Add(p => p.Drilldown, true)
+            .Add(p => p.Focus, "Platform").Add(p => p.FocusChanged, (string? f) => changes.Add(f)));
+        cut.WaitForAssertion(() => cut.FindAll("nav button").Count.ShouldBe(2));
+
+        // The drawn root (Platform) is a button too: it goes one level up.
+        cut.Find("rect[role=button]").GetAttribute("aria-label").ShouldBe("Platform: 60. Back to Storage");
+        cut.Find("nav button").Click();
+
+        changes.ShouldBe([null]);
+        _lastSpec(module.Invocations["layout"].Last()).ShouldNotContain("focus");
+        cut.WaitForAssertion(() => cut.FindAll("nav button").Count.ShouldBe(1));
+    }
+
+    [Fact]
+    public void Drilldown_Enter_on_a_focused_node_drills_in()
+    {
+        _drillSetup();
+        List<string?> changes = [];
+
+        IRenderedComponent<SunburstChart> cut = Render<SunburstChart>(ps => ps.Add(p => p.Root, _root).Add(p => p.Drilldown, true)
+            .Add(p => p.FocusChanged, (string? f) => changes.Add(f)));
+        cut.WaitForAssertion(() => cut.FindAll("svg").Count.ShouldBe(1));
+
+        cut.Find("path[role=button]").KeyDown(new KeyboardEventArgs { Key = "Tab" });
+        changes.ShouldBeEmpty();
+        cut.Find("path[role=button]").KeyDown(new KeyboardEventArgs { Key = "Enter" });
+
+        changes.ShouldBe(["Platform"]);
+        cut.WaitForAssertion(() => cut.FindAll("nav button").Count.ShouldBe(2));
+    }
+
+    [Fact]
+    public void Drilldown_leaves_and_the_top_root_are_not_clickable()
+    {
+        _drillSetup();
+
+        IRenderedComponent<IcicleChart> cut = Render<IcicleChart>(ps => ps.Add(p => p.Root, _root).Add(p => p.Drilldown, true));
+        cut.WaitForAssertion(() => cut.FindAll("svg").Count.ShouldBe(1));
+
+        // Storage (the root, nowhere to go up to), Logs, Backups and Data (leaves) do nothing.
+        cut.FindAll("[role=button]").Select(e => e.GetAttribute("aria-label")).ShouldBe(["Platform: 60"]);
+        cut.Find("svg").ClassList.ShouldContain("[&_text]:pointer-events-none");
+    }
+
+    [Fact]
+    public void OnNodeClick_reports_any_node_leaves_included()
+    {
+        _drillSetup();
+        List<HierarchyNode> clicked = [];
+
+        IRenderedComponent<TreemapChart> cut = Render<TreemapChart>(ps => ps.Add(p => p.Root, _root)
+            .Add(p => p.OnNodeClick, (HierarchyNode n) => clicked.Add(n)));
+        cut.WaitForAssertion(() => cut.FindAll("svg").Count.ShouldBe(1));
+
+        cut.FindAll("rect[role=button]").Count.ShouldBe(5, "every node, leaves included");
+        cut.FindAll("rect[role=button]").Single(r => r.GetAttribute("aria-label") == "Platform / Logs: 40").Click();
+
+        clicked.ShouldBe([_root.Children![0].Children![0]]);
+        cut.FindAll("nav").Count.ShouldBe(0);
+    }
+
+    [Fact]
+    public void Without_Drilldown_nothing_is_a_button()
+    {
+        _drillSetup();
+
+        IRenderedComponent<SunburstChart> cut = Render<SunburstChart>(ps => ps.Add(p => p.Root, _root));
+        cut.WaitForAssertion(() => cut.FindAll("svg").Count.ShouldBe(1));
+
+        cut.FindAll("[role=button], [tabindex], nav, button").Count.ShouldBe(0);
+        cut.Find("svg").HasAttribute("class").ShouldBeFalse();
     }
 }

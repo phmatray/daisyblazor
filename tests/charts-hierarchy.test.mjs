@@ -107,6 +107,43 @@ test('sunburst: arcs fill the circle in proportion, labels inside the radius', a
     }
 });
 
+test('drill-down: a focus path lays out that subtree at full size, coloured by its top-level branch', async () => {
+    const deep = {
+        name: 'Acme Cloud',
+        children: [
+            { name: 'Data', value: 30 },
+            { name: 'Platform', children: [{ name: 'api', children: [{ name: 'auth', value: 25 }, { name: 'search', value: 15 }] }, { name: 'web', value: 20 }] },
+        ],
+    };
+    for (const kind of ['treemap', 'sunburst', 'icicle']) {
+        const whole = await layout(kind, { root: deep, width: W, height: H });
+        assert.equal(whole.focus, undefined, `${kind}: no focus asked, none echoed`);
+
+        const { nodes, groups, focus } = await layout(kind, { root: deep, focus: 'Platform/api', width: W, height: H });
+        assert.equal(focus, 'Platform/api', kind);
+        assert.deepEqual(groups, ['Platform', 'Data'], `${kind}: legend keys stay those of the whole tree`);
+        assert.deepEqual(nodes.map(n => n.name).filter(n => n !== 'api').sort(), ['auth', 'search'], kind);
+        const auth = nodes.find(n => n.name === 'auth');
+        assert.equal(auth.group, 0, `${kind}: colour keyed to the top-level branch`);
+        assert.equal(auth.path, 'Platform / api / auth', `${kind}: paths stay those of the whole tree`);
+        assert.equal(auth.depth, 1, kind);
+
+        const unknown = await layout(kind, { root: deep, focus: 'Platform/nope', width: W, height: H });
+        assert.equal(unknown.focus, '', `${kind}: unknown path falls back to the root`);
+        assert.deepEqual(unknown.nodes, whole.nodes, kind);
+
+        const leaf = await layout(kind, { root: deep, focus: 'Platform/web', width: W, height: H });
+        assert.equal(leaf.focus, 'Platform', `${kind}: a leaf shows its parent`);
+    }
+
+    const { nodes } = await layout('treemap', { root: deep, focus: 'Platform/api', width: W, height: H, padding: 0 });
+    close(nodes.reduce((s, n) => s + area(n), 0), W * H, 1e-3);
+    const icicle = await layout('icicle', { root: deep, focus: 'Platform', width: W, height: H });
+    const top = icicle.nodes.find(n => n.depth === 0);
+    assert.deepEqual([top.name, top.y0, top.y1], ['Platform', 0, H]);
+    close(top.x1, W / 3);
+});
+
 test('hierarchy layouts return an empty layout for missing or all-zero trees', async () => {
     const empty = { nodes: [], groups: [], cx: 0, cy: 0 };
     for (const kind of ['treemap', 'sunburst', 'circle-packing', 'icicle']) {
