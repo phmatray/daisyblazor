@@ -13,13 +13,22 @@ export const LABEL_ROW = FONT * 1.2 + 6;
 /** Average glyph width in em. Layouts cannot measure text, so they estimate it on the wide side. */
 const EM = 0.6;
 
+/** Glyph width in em: wide letters (M, W, m, w, %, @) and other capitals run past the average. */
+const glyph = c => /[MWmw%@—]/.test(c) ? 0.95 : c >= 'A' && c <= 'Z' ? 0.72 : EM;
+
 export const finite = v => typeof v === 'number' && Number.isFinite(v);
 
 export const r2 = v => Math.round(v * 100) / 100;
 
 /** Estimated width of a label at the given font size. */
 // ponytail: estimate, not measurement; measure with getComputedTextLength if a font ever overflows.
-export const textWidth = (text, size = FONT) => String(text ?? '').length * size * EM;
+export const textWidth = (text, size = FONT) => {
+    let em = 0;
+    for (const c of String(text ?? '')) {
+        em += glyph(c);
+    }
+    return em * size;
+};
 
 /** Estimated width of the widest label of the list. */
 export const maxWidth = (list, size = FONT) => list.reduce((m, s) => Math.max(m, textWidth(s, size)), 0);
@@ -30,7 +39,10 @@ export function fit(label, room, size = FONT) {
     if (textWidth(text, size) <= room) {
         return text;
     }
-    const chars = Math.max(1, Math.floor(room / (size * EM)) - 1);
+    let chars = 1;
+    while (chars < text.length && textWidth(text.slice(0, chars + 1) + '…', size) <= room) {
+        chars++;
+    }
     return text.slice(0, chars).trimEnd() + '…';
 }
 

@@ -53,7 +53,10 @@ export default function contour({ points, width, height, xTitle, yTitle, bandwid
     const known = valid.map(p => ({ cx: x(p.x) - plot.left, cy: y(p.y) - plot.top, value: p.value }));
     const grid = surface(known, nx, ny, sx, sy);
     const [lo, hi] = extent(valid, p => p.value);
-    const levels = [lo, ...ticks(lo, hi, count).filter(t => t > lo && t < hi)];
+    // Nice levels between the extremes, none within half a step of them (no 280–281 sliver band).
+    const nice = ticks(lo, hi, count);
+    const half = nice.length > 1 ? (nice[1] - nice[0]) / 2 : 0;
+    const levels = [lo, ...nice.filter(t => t >= lo + half && t <= hi - half && t > lo && t < hi)];
     // The grid's corners (0, 0) to (nx, ny) map onto the plot; every band is a closed area.
     const scale = geoTransform({ point(px, py) { this.stream.point(px * sx, py * sy); } });
     const path = geoPath(scale);

@@ -1,13 +1,15 @@
 import { scaleLinear } from '../d3/d3-scale.mjs';
 import { arc as d3Arc } from '../d3/d3-shape.mjs';
+import { maxWidth } from './_shared.mjs';
 
 const EMPTY = { cx: 0, cy: 0, radius: 0, track: '', fill: '', bands: [], marker: null, ticks: [], value: 0, fraction: 0, fontSize: 12, valueFontSize: 12, valueY: 0 };
 const RAD = Math.PI / 180;
 
-// spec: { min, max, value, bands: [{ from, to }], marker, startAngle, endAngle, thickness, width, height }
+// spec: { min, max, value, bands: [{ from, to }], marker, startAngle, endAngle, thickness, tickText, width, height }
 // Angles are in degrees, 0 at 12 o'clock, clockwise. Paths are relative to (cx, cy). The value and
-// the marker are clamped to [min, max]; bands are clipped to it.
-export default function gauge({ min = 0, max = 100, value, bands, marker, startAngle = -120, endAngle = 120, thickness = 0.2, width, height }) {
+// the marker are clamped to [min, max]; bands are clipped to it. tickText lists labels as the chart
+// formats them (the widest sets the room beside the arc); the tick values themselves when absent.
+export default function gauge({ min = 0, max = 100, value, bands, marker, startAngle = -120, endAngle = 120, thickness = 0.2, tickText, width, height }) {
     if (!Number.isFinite(min) || !Number.isFinite(max) || !(max > min) || !Number.isFinite(startAngle) || !Number.isFinite(endAngle) || startAngle === endAngle) {
         return EMPTY;
     }
@@ -25,7 +27,10 @@ export default function gauge({ min = 0, max = 100, value, bands, marker, startA
     }
     const xs = unit.map(p => p[0]), ys = unit.map(p => p[1]);
     const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
-    const padX = 16 + fontSize * 2.4, padY = 16 + fontSize * 1.4;
+    // Tick labels sit radius + 16 + 0.6 em out from the centre and run outward from there.
+    const tickCount = Math.max(2, Math.round(Math.abs(endAngle - startAngle) / 50));
+    const labelW = maxWidth(tickText?.length ? tickText : angle.ticks(tickCount).map(String), fontSize);
+    const padX = 18 + fontSize * 0.6 + labelW, padY = 16 + fontSize * 1.4;
     const radius = Math.max(10, Math.min((width - 2 * padX) / (x1 - x0), (height - 2 * padY) / (y1 - y0)));
     const cx = width / 2 - radius * (x0 + x1) / 2, cy = height / 2 - radius * (y0 + y1) / 2;
     const inner = radius * (1 - Math.min(0.9, Math.max(0.02, thickness)));
@@ -46,7 +51,7 @@ export default function gauge({ min = 0, max = 100, value, bands, marker, startA
         outMarker = { value: clamp(marker), x1: mx1, y1: my1, x2: mx2, y2: my2 };
     }
 
-    const ticks = angle.ticks(Math.max(2, Math.round(Math.abs(endAngle - startAngle) / 50))).map(t => {
+    const ticks = angle.ticks(tickCount).map(t => {
         const a = angle(t), [x, y] = polar(a, radius + 16 + fontSize * 0.6), s = Math.sin(a);
         return { value: t, x, y, anchor: s > 0.3 ? 'start' : s < -0.3 ? 'end' : 'middle' };
     });

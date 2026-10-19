@@ -28,7 +28,7 @@ public sealed record PolarSeries(string Name, IReadOnlyList<PolarPoint> Points, 
 /// <summary>Geometry of a <see cref="PolarChart"/>: centre, radius, grid rings, angle spokes and the placed series.</summary>
 public sealed record PolarLayout(double Cx, double Cy, double Radius, IReadOnlyList<PolarRing> Rings, IReadOnlyList<PolarSpoke> Spokes, IReadOnlyList<PolarLayoutSeries> Series);
 
-/// <summary>A grid circle at radius tick <paramref name="Value"/>: its radius <paramref name="R"/> and where its label goes.</summary>
+/// <summary>A grid circle at radius tick <paramref name="Value"/>: its radius <paramref name="R"/> and where its label goes; the label is empty for a ring at the rim, where it would meet the start spoke's label.</summary>
 public sealed record PolarRing(double Value, string Label, double R, double X, double Y);
 
 /// <summary>An angle gridline at <paramref name="Value"/>: its outer end and where its label is written.</summary>

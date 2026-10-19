@@ -91,11 +91,19 @@
         StartAngle,
         EndAngle,
         Thickness,
+        TickText = _tickText(),
         Width = ViewWidth,
         Height = ViewHeight,
     };
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    // The layout picks the ticks (nice steps of at least a twentieth of the scale), so the widest label is
+    // among the formatted twentieths and the ends.
+    // ponytail: a sample, not the exact ticks; send the tick values back from the layout if a format ever outgrows it.
+    private string[] _tickText() => Max > Min && double.IsFinite(Min) && double.IsFinite(Max)
+        ? Enumerable.Range(0, 21).Select(k => _format(Min + (Max - Min) * k / 20)).Distinct().ToArray()
+        : [];
 
     private string _color => ChartPalette.At(0, Color);
 

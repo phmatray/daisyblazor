@@ -31,11 +31,18 @@
                         <title>@series.Name</title>
                     </path>
                 }
-                @if (ShowPoints || Mode == PolarChartMode.Marker)
+                @foreach (PolarLayoutPoint p in placed.Points.Where(p => p.I < series.Points.Count))
                 {
-                    @foreach (PolarLayoutPoint p in placed.Points.Where(p => p.I < series.Points.Count))
+                    @* Without dots, a transparent hover target still carries the point's tooltip. *@
+                    @if (ShowPoints || Mode == PolarChartMode.Marker)
                     {
                         <circle cx="@N(p.X)" cy="@N(p.Y)" r="@(Mode == PolarChartMode.Marker ? "4.5" : "3")" fill="@color" stroke="var(--color-base-100)" stroke-width="1">
+                            <title>@_tooltip(series, series.Points[p.I])</title>
+                        </circle>
+                    }
+                    else
+                    {
+                        <circle cx="@N(p.X)" cy="@N(p.Y)" r="8" fill="transparent">
                             <title>@_tooltip(series, series.Points[p.I])</title>
                         </circle>
                     }
@@ -44,7 +51,7 @@
 
             @* Radius labels along the start spoke, haloed in the background colour to stay readable over the series. *@
             <g style="paint-order:stroke;stroke:var(--color-base-100);stroke-width:3px;stroke-linejoin:round;">
-                @foreach (PolarRing ring in geo.Rings)
+                @foreach (PolarRing ring in geo.Rings.Where(r => r.Label.Length > 0))
                 {
                     <SvgText X="@ring.X" Y="@ring.Y" FontSize="10" FillOpacity="0.6" Text="@ring.Label" />
                 }
