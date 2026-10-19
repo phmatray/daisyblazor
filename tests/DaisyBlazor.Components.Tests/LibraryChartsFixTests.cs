@@ -172,8 +172,10 @@ public class LibraryChartsFixTests : BunitContext
         IRenderedComponent<AreaChart> cut = Render<AreaChart>(ps => ps
             .Add(p => p.Series, new List<ChartSeries> { new("A", [5]), new("B", [1, 2]) }));
 
-        cut.FindAll("circle").Count.ShouldBe(1);
-        cut.Find("circle > title").TextContent.ShouldBe("A · 1: 5");
+        // The other points only get transparent hover targets.
+        cut.FindAll("circle:not([fill='transparent'])").Count.ShouldBe(1);
+        cut.Find("circle:not([fill='transparent']) > title").TextContent.ShouldBe("A · 1: 5");
+        cut.FindAll("circle[fill='transparent']").Count.ShouldBe(2);
     }
 
     [Fact]

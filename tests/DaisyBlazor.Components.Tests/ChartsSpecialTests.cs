@@ -149,7 +149,7 @@ public class ChartsSpecialTests : BunitContext
         spec.ShouldContain("\"values\":{\"FRA\":1200}");
         spec.ShouldContain("\"projection\":\"equal-earth\"");
         spec.ShouldContain("\"color\":\"var(--color-primary)\"");
-        spec.ShouldContain("\"noDataColor\":\"var(--color-base-300)\"");
+        spec.ShouldContain("\"noDataColor\":\"url(#nodata-");
 
         call.SetResult(new ChoroplethLayout("", 1200, 1200, "low", "high",
             [new("FRA", "France", 1200, "M0,0L1,1Z", "high"), new("BRA", "Brazil", null, "M2,0L3,1Z", "var(--color-base-300)")]));

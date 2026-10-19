@@ -80,10 +80,19 @@ public static class ChartPalette
         "var(--color-error)"
     };
 
-    /// <summary>The neutral token, handy for axes/gridlines fallbacks.</summary>
-    public const string Neutral = "var(--color-neutral)";
+    /// <summary>
+    /// A neutral grey for marks: the theme's text colour mixed 60 % into the page background. Unlike
+    /// <c>var(--color-neutral)</c>, which is near the card colour in dark themes, it stays visible
+    /// on <c>base-100</c> in light and dark themes alike.
+    /// </summary>
+    public const string Neutral = "color-mix(in oklab, var(--color-base-content) 60%, var(--color-base-100))";
 
-    /// <summary>CSS variable for a semantic <see cref="Color"/>, or null for Default/Inherit.</summary>
+    /// <summary>
+    /// CSS colour for a semantic <see cref="Color"/>, or null for Default/Inherit. <see cref="Color.Dark"/>
+    /// is <see cref="Neutral"/> and <see cref="Color.Surface"/> a lighter grey (the text colour mixed
+    /// 35 % into <c>base-100</c>), so both show on the chart background in light and dark themes;
+    /// daisyUI's <c>neutral</c> token would nearly vanish on dark cards.
+    /// </summary>
     public static string? FromColor(Color color) => color switch
     {
         Color.Primary => "var(--color-primary)",
@@ -93,8 +102,8 @@ public static class ChartPalette
         Color.Success => "var(--color-success)",
         Color.Warning => "var(--color-warning)",
         Color.Error => "var(--color-error)",
-        Color.Dark => "var(--color-neutral)",
-        Color.Surface => "var(--color-neutral)",
+        Color.Dark => Neutral,
+        Color.Surface => "color-mix(in oklab, var(--color-base-content) 35%, var(--color-base-100))",
         _ => null
     };
 

@@ -10,8 +10,15 @@
 <D3ChartFrame TLayout="ContourLayout" Chart="this" Label="@_label" Description="@_description" Legend="@_legend">
     @if (Layout is { } view)
     {
+        <defs>
+            <clipPath id="@_clipId">
+                <rect x="@N(view.Plot.Left)" y="@N(view.Plot.Top)" width="@N(view.Plot.Right - view.Plot.Left)" height="@N(view.Plot.Bottom - view.Plot.Top)" />
+            </clipPath>
+        </defs>
         <ChartAxes Plot="view.Plot" Baseline="true" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
                    XGrid="true" YGrid="true" Height="ViewHeight" />
+        @* The density estimate spreads past the outermost points, so the bands are clipped to the plot. *@
+        <g clip-path="@($"url(#{_clipId})")">
         <g transform="@($"translate({N(view.Plot.Left)},{N(view.Plot.Top)})")">
             @if (Mode == ContourMode.Value)
             {
@@ -38,6 +45,7 @@
                     </path>
                 }
             }
+        </g>
         </g>
         @foreach (ContourLayoutPoint p in view.Points)
         {
@@ -121,6 +129,8 @@
     };
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private readonly string _clipId = "contourclip-" + Guid.NewGuid().ToString("N")[..8];
 
     // The value bands run from a faint tint (lowest) to the full colour (highest).
     private string _shade(int band, int count) =>
