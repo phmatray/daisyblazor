@@ -30,7 +30,7 @@ public static class Guides
             "Only your own themes", "Source globs", "The comment-scanning gotcha", "The class safelist",
             "The Material Symbols webfont", "The heading font"),
         new("Charts", "charts",
-            "Dependency-free, theme-aware SVG charts: line, area, bar, pie, donut and sparkline, computed in C#.",
+            "Theme-aware SVG charts: line, area, bar, pie, donut, sparkline and more, laid out by a bundled D3 module.",
             "Install", "The six components", "Data models", "Colours follow the theme", "Usage", "Notes and geometry"),
         new("Migrating from MudBlazor", "migration",
             "Move a MudBlazor app over incrementally, mostly by renaming MudX to X.",

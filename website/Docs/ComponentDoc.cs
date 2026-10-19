@@ -88,7 +88,7 @@ public static class CategoryInfo
         Category.Layout => "Grids, stacks, drawers, heroes and page structure.",
         Category.Mockup => "Browser, phone, window and code frames for showing things off.",
         Category.Data => "Composed building blocks for data-heavy screens.",
-        Category.Charts => "Dependency-free SVG charts that follow the active theme.",
+        Category.Charts => "SVG charts laid out by a bundled D3 module, in the active theme's colours.",
         _ => "",
     };
 
