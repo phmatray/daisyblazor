@@ -18,7 +18,15 @@ const out = join(charts, 'd3');
 const used = new Map();
 for (const file of readdirSync(layouts).filter(f => f.endsWith('.mjs'))) {
     const source = readFileSync(join(layouts, file), 'utf8');
-    for (const [, names, pkg] of source.matchAll(/import\s*\{([^}]+)\}\s*from\s*'\.\.\/d3\/([a-z0-9-]+)\.mjs'/g)) {
+    // Only named imports are understood. Any other mention of a d3/ module (a namespace import, a
+    // re-export, double quotes, another path) would leave its names out of the bundle, so it fails.
+    const named = [...source.matchAll(/import\s*\{([^}]+)\}\s*from\s*'\.\.\/d3\/([a-z0-9-]+)\.mjs';/g)];
+    const mentions = source.match(/d3\/[^'"\s]*\.mjs/g) ?? [];
+    if (mentions.length !== named.length) {
+        console.error(`layouts/${file}: import D3 only as \`import { … } from '../d3/<package>.mjs';\` (found ${mentions.length} d3/ references, ${named.length} named imports).`);
+        process.exit(1);
+    }
+    for (const [, names, pkg] of named) {
         const set = used.get(pkg) ?? new Set();
         for (const name of names.split(',').map(n => n.trim().split(/\s+as\s+/)[0]).filter(Boolean)) {
             set.add(name);

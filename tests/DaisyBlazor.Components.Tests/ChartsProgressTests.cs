@@ -111,6 +111,28 @@ public class ChartsProgressTests : BunitContext
         cut.Markup.ShouldContain("var(--color-secondary)");
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData("  ")]
+    public void Gauge_falls_back_to_primary_for_an_empty_colour(string color)
+    {
+        (_, JSRuntimeInvocationHandler<GaugeLayout> call) = Setup<GaugeLayout>();
+        IRenderedComponent<GaugeChart> cut = Render<GaugeChart>(ps => ps.Add(p => p.Value, 40).Add(p => p.Color, color));
+
+        call.SetResult(new GaugeLayout(320, 280, 200, "M0,-200A200,200Z", "M0,-200A200,200Z", [], null, [], 40, 0.4, 17.8, 56, 300));
+
+        cut.WaitForAssertion(() => cut.FindAll("svg path").Count.ShouldBeGreaterThan(0));
+        cut.FindAll("svg path").Select(p => p.GetAttribute("fill")).ShouldContain("var(--color-primary)");
+        cut.FindAll("svg path").Select(p => p.GetAttribute("fill")).ShouldNotContain(color);
+    }
+
+    [Fact]
+    public void An_axis_tick_without_a_label_reads_as_empty()
+    {
+        new AxisTick(1, null!).Label.ShouldBe(string.Empty);
+        JsonSerializer.Deserialize<AxisTick>("""{"pos":1,"label":null}""", _json)!.Label.ShouldBe(string.Empty);
+    }
+
     [Fact]
     public void Gauge_with_an_empty_layout_draws_no_arc()
     {

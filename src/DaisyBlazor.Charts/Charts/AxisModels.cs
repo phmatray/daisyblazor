@@ -13,7 +13,11 @@ public sealed record PlotArea(double Left, double Top, double Right, double Bott
 /// can format it its own way; <paramref name="Full"/> is the whole name when <paramref name="Label"/>
 /// was shortened to fit. An empty label is not drawn.
 /// </summary>
-public sealed record AxisTick(double Pos, string Label, double? Value = null, string? Full = null);
+public sealed record AxisTick(double Pos, string Label, double? Value = null, string? Full = null)
+{
+    /// <summary>The tick's text; a missing label (a data point or group without a name) reads as empty.</summary>
+    public string Label { get; init; } = Label ?? string.Empty;
+}
 
 /// <summary>A text placed by a layout: content, anchor point and text-anchor.</summary>
 public sealed record ChartLabel(string Text, double X, double Y, string Anchor);

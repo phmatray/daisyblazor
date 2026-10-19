@@ -73,8 +73,29 @@ public sealed partial class JintChartLayoutEngine : IChartLayoutEngine, IDisposa
         return engine;
     }
 
-    /// <summary>Loads the D3 modules on one engine ahead of the first request.</summary>
-    public void Warmup() => Layout("sankey", """{"links":[],"width":10,"height":10}""");
+    /// <summary>
+    /// Loads every chart layout and the D3 code it uses on one engine ahead of the first request, so
+    /// the first prerender of any chart does not pay for parsing it.
+    /// </summary>
+    public void Warmup()
+    {
+        Engine engine = _pool.TryTake(out Engine? pooled) ? pooled : CreateEngine();
+        try
+        {
+            foreach (string file in Directory.GetFiles(Path.Combine(_root.Value, "layouts"), "*.mjs"))
+            {
+                string kind = Path.GetFileNameWithoutExtension(file);
+                if (KindPattern().IsMatch(kind))
+                {
+                    engine.Modules.Import($"./layouts/{kind}.mjs");
+                }
+            }
+        }
+        finally
+        {
+            _pool.Add(engine);
+        }
+    }
 
     /// <inheritdoc />
     public void Dispose()

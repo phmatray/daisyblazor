@@ -96,7 +96,7 @@
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
 
-    private string _color => Color ?? ChartPalette.At(0);
+    private string _color => ChartPalette.At(0, Color);
 
     private GaugeBand? _band(int index) => Bands is { } bands && index < bands.Count ? bands[index] : null;
 

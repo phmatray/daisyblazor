@@ -46,7 +46,7 @@ echo "publish OK: app.css shipped from a clean tree"
 # Server rendering: the published app's first HTML must already hold the finished chart SVG (laid out
 # by DaisyBlazor.Charts.Server), not the placeholder a chart shows while the browser lays it out.
 PORT=5199
-(cd "$WORK/publish" && ASPNETCORE_URLS="http://127.0.0.1:$PORT" dotnet DaisyBlazor.App.dll > "$WORK/run.log" 2>&1) &
+(cd "$WORK/publish" && ASPNETCORE_URLS="http://127.0.0.1:$PORT" exec dotnet DaisyBlazor.App.dll > "$WORK/run.log" 2>&1) &
 APP=$!
 trap 'kill $APP 2>/dev/null || true' EXIT
 for _ in $(seq 1 60); do curl -sf "http://127.0.0.1:$PORT/" -o "$WORK/home.html" && break; sleep 1; done

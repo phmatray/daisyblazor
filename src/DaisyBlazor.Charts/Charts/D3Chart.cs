@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
 namespace DaisyBlazor.Charts;
@@ -45,6 +46,7 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
     private PersistentComponentState? _state;
     private PersistingComponentStateSubscription? _persisting;
     private string? _layoutJson;
+    private bool _restoreTried;
     private bool _pending;
     private int _version;
 
@@ -102,20 +104,29 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
         _engine = (IChartLayoutEngine?)Services.GetService(typeof(IChartLayoutEngine));
         _state = (PersistentComponentState?)Services.GetService(typeof(PersistentComponentState));
 
-        // A layout computed while prerendering travels to the interactive render (WebAssembly or a
-        // new circuit) through the persisted component state, so the chart never flashes back to
-        // its placeholder while the browser lays it out again.
-        if (_engine is not null && _state is not null && !RendererInfo.IsInteractive)
+        // A layout computed while prerendering travels to a WebAssembly (or Auto) render through the
+        // persisted component state, so the chart never flashes back to its placeholder while the
+        // browser lays it out again. An Interactive Server circuit has the engine and lays out itself,
+        // so nothing is persisted for it.
+        if (_engine is not null && _state is not null && !RendererInfo.IsInteractive
+            && AssignedRenderMode is InteractiveWebAssemblyRenderMode or InteractiveAutoRenderMode)
         {
             _persisting = _state.RegisterOnPersisting(() =>
             {
                 if (_specJson is not null && _layoutJson is not null)
                 {
-                    _state.PersistAsJson(StateKey(_specJson), _layoutJson);
+                    try
+                    {
+                        _state.PersistAsJson(StateKey(_specJson), _layoutJson);
+                    }
+                    catch (ArgumentException)
+                    {
+                        // An identical chart on the page already persisted this very layout.
+                    }
                 }
 
                 return Task.CompletedTask;
-            });
+            }, AssignedRenderMode);
         }
     }
 
@@ -149,12 +160,19 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
             LayoutOnServer(_engine, json);
             _pending = Measured && RendererInfo.IsInteractive;
         }
-        else if (_state is not null && _state.TryTakeFromJson(StateKey(json), out string? persisted) && persisted is not null)
+        else if (!_restoreTried && _state is not null && TryRestore(json, out string? persisted))
         {
             Layout = JsonSerializer.Deserialize<TLayout>(persisted, _json);
             Error = null;
             _pending = Measured;
         }
+    }
+
+    // Persisted state only exists for the first render, so only the first spec is looked up.
+    private bool TryRestore(string json, out string? persisted)
+    {
+        _restoreTried = true;
+        return _state!.TryTakeFromJson(StateKey(json), out persisted) && persisted is not null;
     }
 
     private void LayoutOnServer(IChartLayoutEngine engine, string json)
@@ -184,6 +202,7 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
         catch (Exception ex) when (ex is not OutOfMemoryException)
         {
             Layout = null;
+            _layoutJson = null;
             Error = ex.Message.Split('\n')[0];
         }
     }

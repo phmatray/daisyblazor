@@ -1,8 +1,10 @@
 using Bunit;
+using Bunit.Rendering;
 using Bunit.TestDoubles;
 using DaisyBlazor.Charts;
 using DaisyBlazor.Charts.Server;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DaisyBlazor.Charts.Server.Tests;
@@ -29,7 +31,7 @@ public sealed class PrerenderedLayoutTests : IClassFixture<PrerenderedLayoutTest
             server.Services.AddSingleton<IChartLayoutEngine>(_engine);
             BunitPersistentComponentState state = server.AddBunitPersistentComponentState();
             server.SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-            IRenderedComponent<SankeyChart> prerendered = server.Render<SankeyChart>(ps => ps.Add(p => p.Links, _links));
+            IRenderedComponent<SankeyChart> prerendered = Prerender(server, RenderMode.InteractiveWebAssembly);
 
             state.TriggerOnPersisting();
 
@@ -63,6 +65,58 @@ public sealed class PrerenderedLayoutTests : IClassFixture<PrerenderedLayoutTest
         IRenderedComponent<SankeyChart> cut = browser.Render<SankeyChart>(ps => ps.Add(p => p.Links, _links));
 
         cut.FindAll("[aria-busy=true]").ShouldNotBeEmpty();
+    }
+
+    [Fact]
+    public void Two_identical_charts_persist_one_layout_without_failing()
+    {
+        using BunitContext server = ServerContext(out BunitPersistentComponentState state);
+        IRenderedComponent<ContainerFragment> page = server.Render(builder =>
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                builder.OpenComponent<SankeyChart>(i * 3);
+                builder.AddAttribute((i * 3) + 1, nameof(SankeyChart.Links), _links);
+                builder.AddComponentRenderMode(RenderMode.InteractiveWebAssembly);
+                builder.CloseComponent();
+            }
+        });
+
+        Should.NotThrow(() => state.TriggerOnPersisting());
+        string key = D3ChartBase<SankeyLayout>.StateKey("sankey", page.FindComponents<SankeyChart>()[0].Instance.SpecJson!);
+        state.TryTake(key, out string? _).ShouldBeTrue();
+    }
+
+    [Fact]
+    public void An_interactive_server_chart_persists_nothing()
+    {
+        using BunitContext server = ServerContext(out BunitPersistentComponentState state);
+        IRenderedComponent<SankeyChart> prerendered = Prerender(server, RenderMode.InteractiveServer);
+
+        state.TriggerOnPersisting();
+
+        state.TryTake(D3ChartBase<SankeyLayout>.StateKey("sankey", prerendered.Instance.SpecJson!), out string? _).ShouldBeFalse();
+    }
+
+    private BunitContext ServerContext(out BunitPersistentComponentState state)
+    {
+        BunitContext server = new();
+        server.Services.AddSingleton<IChartLayoutEngine>(_engine);
+        state = server.AddBunitPersistentComponentState();
+        server.SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        return server;
+    }
+
+    private static IRenderedComponent<SankeyChart> Prerender(BunitContext server, IComponentRenderMode mode)
+    {
+        IRenderedComponent<ContainerFragment> page = server.Render(builder =>
+        {
+            builder.OpenComponent<SankeyChart>(0);
+            builder.AddAttribute(1, nameof(SankeyChart.Links), _links);
+            builder.AddComponentRenderMode(mode);
+            builder.CloseComponent();
+        });
+        return page.FindComponent<SankeyChart>();
     }
 
     public sealed class EngineFixture : IDisposable
