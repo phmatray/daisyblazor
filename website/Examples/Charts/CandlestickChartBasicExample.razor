@@ -1,0 +1,17 @@
+<CandlestickChart Title="CPU utilisation per hour, api-01 (%)" Candles="_hours" ValueFormat="{0:0.#} %" />
+
+@code {
+    // Each hour's first, highest, lowest and last CPU reading: a daytime peak and a nightly batch job.
+    private static readonly Candle[] _hours = Enumerable.Range(0, 24)
+        .Select(h =>
+        {
+            double open = Level(h);
+            double close = Level(h + 1);
+            double spread = 4 + (h * 7) % 9;
+            return new Candle(new DateTime(2026, 10, 19, h, 0, 0), open, Math.Max(open, close) + spread, Math.Min(open, close) - spread / 2, close);
+        })
+        .ToArray();
+
+    private static double Level(int hour) =>
+        Math.Round(30 + 28 * Math.Max(0, Math.Sin((hour - 7) / 11.0 * Math.PI)) + (hour is 2 or 3 ? 25 : 0) + (hour * 5) % 6, 1);
+}

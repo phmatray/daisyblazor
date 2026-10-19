@@ -1,0 +1,241 @@
+// node --test tests/ — the "over time" layouts computed by the bundled D3 module.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { layout } from '../src/DaisyBlazor.Charts/wwwroot/charts.mjs';
+
+const W = 640, H = 360;
+const inside = (x, y, w = W, h = H) => x >= 0 && x <= w && y >= 0 && y <= h;
+// Tick labels must not overlap: neighbours at least the half-widths apart (~0.6em glyphs, 11 units).
+const spaced = ticks => ticks.every((t, i) => i === 0 || t.position - ticks[i - 1].position >= (t.label.length + ticks[i - 1].label.length) * 3.3);
+
+test('calendar-heatmap: one cell per day, weeks as columns, Monday first', async () => {
+    const { cells, months, weekdays, max } = await layout('calendar-heatmap', {
+        days: [{ date: '2026-01-05', value: 2 }, { date: '2026-01-05', value: 1 }, { date: '2026-03-02', value: 12 }],
+        width: W, height: 100,
+    });
+    assert.equal(cells.length, 57); // Jan 5 to Mar 2 inclusive
+    assert.equal(cells[0].date, '2026-01-05');
+    assert.equal(cells[0].value, 3); // same day summed
+    assert.equal(cells[0].label, 'Mon, Jan 5, 2026');
+    assert.equal(max, 12);
+    // Jan 5 2026 is a Monday: top row. Jan 11 (Sunday) is the bottom row of the same column.
+    assert.equal(cells[0].y, cells[7].y);
+    assert.equal(cells[6].x, cells[0].x);
+    assert.ok(cells[6].y > cells[5].y);
+    assert.ok(cells[7].x > cells[0].x);
+    assert.deepEqual(months.map(m => m.label), ['Jan', 'Feb', 'Mar']);
+    assert.deepEqual(weekdays.map(w => w.label), ['Mon', 'Wed', 'Fri']);
+    for (const c of cells) {
+        assert.ok(inside(c.x, c.y, W, 100) && inside(c.x + c.size, c.y + c.size, W, 100));
+    }
+});
+
+test('calendar-heatmap: levels quantize positive values, zero is level 0', async () => {
+    const { cells, thresholds } = await layout('calendar-heatmap', {
+        days: [1, 0, 4, 8].map((value, i) => ({ date: `2026-02-0${i + 1}`, value })), levels: 5, width: W, height: 100,
+    });
+    assert.deepEqual(cells.map(c => c.level), [1, 0, 3, 4]); // 4 sits on the second threshold
+    assert.deepEqual(thresholds, [2, 4, 6]);
+});
+
+test('calendar-heatmap: a Sunday week start moves Sunday to the top row', async () => {
+    const { cells } = await layout('calendar-heatmap', { days: [], from: '2026-01-04', to: '2026-01-10', weekStart: 0, width: W, height: 100 });
+    assert.equal(cells.length, 7);
+    assert.deepEqual(new Set(cells.map(c => c.x)).size, 1); // Jan 4 (Sunday) to Jan 10 is one column
+    assert.ok(cells.every((c, i) => i === 0 || c.y > cells[i - 1].y));
+});
+
+test('calendar-heatmap: dates with a time keep their calendar day; nothing to show is empty', async () => {
+    const { cells } = await layout('calendar-heatmap', { days: [{ date: '2026-06-01T23:30:00', value: 1 }], width: W, height: 100 });
+    assert.equal(cells[0].date, '2026-06-01');
+    assert.deepEqual((await layout('calendar-heatmap', { days: [], width: W, height: 100 })).cells, []);
+    assert.deepEqual((await layout('calendar-heatmap', { days: [{ date: 'nope', value: 1 }], width: W, height: 100 })).cells, []);
+});
+
+test('heatmap: rows and columns in first-appearance order, a sequential t from min to max', async () => {
+    const out = await layout('heatmap', {
+        cells: [
+            { row: 'Mon', column: '09', value: 10 }, { row: 'Mon', column: '10', value: 30 },
+            { row: 'Tue', column: '09', value: 20 }, { row: 'Tue', column: '09', value: 0 },
+            { row: 'Tue', column: '10', value: null },
+        ],
+        width: W, height: H,
+    });
+    assert.deepEqual(out.rows.map(r => r.name), ['Mon', 'Tue']);
+    assert.deepEqual(out.columns.map(c => c.name), ['09', '10']);
+    assert.equal(out.cells.length, 3);
+    assert.deepEqual(out.cells.map(c => c.t), [0, 1, 0.5]);
+    assert.equal(out.min, 10);
+    assert.equal(out.max, 30);
+    for (const c of out.cells) {
+        assert.ok(c.x >= out.plot.x0 && c.x + c.w <= W && c.y >= out.plot.y0 && c.y + c.h <= H);
+    }
+});
+
+test('heatmap: given orders win, long row names are shortened, crowded column labels thinned', async () => {
+    const columns = Array.from({ length: 60 }, (_, i) => `Column ${i}`);
+    const out = await layout('heatmap', {
+        cells: columns.map(column => ({ row: 'A very long row name that would never fit beside the grid', column, value: 1 })),
+        rows: ['A very long row name that would never fit beside the grid'], columns: [...columns].reverse(),
+        width: W, height: H,
+    });
+    assert.equal(out.columns[0].name, 'Column 59');
+    assert.ok(out.rows[0].label.endsWith('…'));
+    assert.ok(out.rows[0].label.length * 6.6 <= out.plot.x0);
+    const shown = out.columns.filter(c => c.show);
+    assert.ok(shown.length < columns.length);
+    assert.ok(shown.every((c, i) => i === 0 || c.position - shown[i - 1].position >= c.label.length * 6));
+    assert.deepEqual((await layout('heatmap', { cells: [], width: W, height: H })).cells, []);
+});
+
+test('range-area: a band and a center line on a time axis, sorted by date, read as UTC', async () => {
+    const out = await layout('range-area', {
+        points: [
+            { date: '2026-10-03T00:00:00', low: 90, high: 310, center: 140 },
+            { date: '2026-10-01T00:00:00', low: 100, high: 300, center: 150 },
+            { date: '2026-10-02T00:00:00', low: 280, high: 120, center: null },
+        ],
+        width: W, height: H,
+    });
+    assert.deepEqual(out.points.map(p => p.label), ['Oct 1, 2026', 'Oct 2, 2026', 'Oct 3, 2026']);
+    assert.deepEqual([out.points[1].low, out.points[1].high], [120, 280]); // swapped into order
+    assert.match(out.band, /^M[\d.]+,[\d.]+/);
+    assert.ok(out.center.startsWith('M'));
+    assert.ok(out.points[0].x < out.points[1].x && out.points[1].x < out.points[2].x);
+    assert.ok(out.yTicks.some(t => t.label === '0')); // the value axis starts at zero
+    assert.ok(out.xTicks.every(t => !/AM|PM|:/.test(t.label))); // daily data gets no hour ticks
+    assert.ok(spaced(out.xTicks));
+    assert.ok(out.plot.x0 > 0 && out.plot.x1 < W && out.plot.y1 < H);
+});
+
+test('range-area: labels make a category axis; no valid point is empty', async () => {
+    const out = await layout('range-area', {
+        points: ['Mon', 'Tue', 'Wed'].map((label, i) => ({ label, low: i, high: i + 2 })), smooth: false, width: W, height: H,
+    });
+    assert.deepEqual(out.xTicks.map(t => t.label), ['Mon', 'Tue', 'Wed']);
+    assert.equal(out.center, '');
+    assert.doesNotMatch(out.band, /C/); // straight segments when not smooth
+    assert.deepEqual((await layout('range-area', { points: [{ label: 'x', low: null, high: 1 }], width: W, height: H })).points, []);
+});
+
+test('stream: wiggle has no value axis, stacked and percent stack from zero', async () => {
+    const series = [{ name: 'Billing', values: [10, 20, 30] }, { name: 'Search', values: [30, -5, null] }];
+    const spec = { series, labels: ['W1', 'W2', 'W3'], width: W, height: H };
+
+    const wiggle = await layout('stream', { ...spec, offset: 'wiggle' });
+    assert.equal(wiggle.layers.length, 2);
+    assert.deepEqual(wiggle.layers.map(l => l.index), [0, 1]);
+    assert.deepEqual(wiggle.yTicks, []);
+    assert.deepEqual(wiggle.columns[1].values, [20, 0]); // negative counts as 0
+
+    const stacked = await layout('stream', { ...spec, offset: 'stacked' });
+    assert.equal(stacked.yTicks[0].label, '0');
+    assert.equal(stacked.yTicks[0].position, stacked.plot.y1);
+
+    const percent = await layout('stream', { ...spec, offset: 'percent' });
+    assert.deepEqual([percent.yTicks[0].label, percent.yTicks.at(-1).label], ['0%', '100%']);
+    assert.equal(percent.yTicks.at(-1).position, percent.plot.y0);
+    for (const l of percent.layers) {
+        assert.match(l.path, /^M/);
+        if (l.showLabel) {
+            assert.ok(l.labelX >= percent.plot.x0 && l.labelX <= percent.plot.x1);
+        }
+    }
+});
+
+test('stream: dates make a time axis; no series is empty', async () => {
+    const dates = Array.from({ length: 12 }, (_, i) => new Date(Date.UTC(2026, 0, 5 + 7 * i)).toISOString().slice(0, 19));
+    const out = await layout('stream', { series: [{ name: 'A', values: dates.map((_, i) => i + 1) }], dates, width: W, height: H });
+    assert.ok(out.xTicks.length >= 2 && spaced(out.xTicks));
+    assert.equal(out.columns[0].label, 'Jan 5, 2026');
+    assert.deepEqual((await layout('stream', { series: [], width: W, height: H })).layers, []);
+});
+
+test('candlestick: periods sorted, bodies inside the plot, rising and falling', async () => {
+    const candles = [
+        { time: '2026-10-01T10:00:00', open: 55, high: 60, low: 20, close: 25 },
+        { time: '2026-10-01T09:00:00', open: 40, high: 70, low: 30, close: 55 },
+        { time: '2026-10-01T11:00:00', open: 25, high: null, low: 20, close: 30 },
+    ];
+    const out = await layout('candlestick', { candles, width: W, height: H });
+    assert.equal(out.candles.length, 2);
+    assert.deepEqual(out.candles.map(c => c.up), [true, false]);
+    assert.equal(out.candles[0].label, 'Oct 1, 2026 09:00');
+    const [up] = out.candles;
+    assert.ok(up.yHigh < up.yClose && up.yClose < up.yOpen && up.yOpen < up.yLow);
+    for (const c of out.candles) {
+        assert.ok(c.x - c.width / 2 >= out.plot.x0 && c.x + c.width / 2 <= out.plot.x1);
+        assert.ok(c.yHigh >= out.plot.y0 && c.yLow <= out.plot.y1);
+    }
+    assert.deepEqual(out.xTicks.map(t => t.label), ['09:00', '10:00']);
+    assert.deepEqual((await layout('candlestick', { candles: [], width: W, height: H })).candles, []);
+});
+
+test('candlestick: one period still gets a width and a domain', async () => {
+    const out = await layout('candlestick', { candles: [{ time: '2026-10-01T09:00:00', open: 5, high: 5, low: 5, close: 5 }], width: W, height: H });
+    assert.equal(out.candles.length, 1);
+    assert.ok(out.candles[0].width > 0 && Number.isFinite(out.candles[0].yOpen));
+});
+
+test('gantt: ungrouped tasks first, then a header per group; milestones and progress', async () => {
+    const out = await layout('gantt', {
+        tasks: [
+            { name: 'Design', start: '2026-10-01T00:00:00', end: '2026-10-10T00:00:00', group: 'Plan', progress: 1.4 },
+            { name: 'Kick-off', start: '2026-09-28T00:00:00', end: null },
+            { name: 'Build', start: '2026-10-08T00:00:00', end: '2026-10-30T00:00:00', group: 'Ship', progress: 0.25 },
+            { name: 'No start', start: null, end: '2026-10-30T00:00:00' },
+        ],
+        today: '2026-10-19T00:00:00', width: W, height: H,
+    });
+    assert.deepEqual(out.rows.map(r => r.name), ['Kick-off', 'Plan', 'Design', 'Ship', 'Build']);
+    assert.deepEqual(out.rows.map(r => r.header), [false, true, false, true, false]);
+    assert.deepEqual(out.groups, ['Plan', 'Ship']);
+    const [kickoff, , design, , build] = out.rows;
+    assert.equal(kickoff.milestone, true);
+    assert.equal(kickoff.x0, out.plot.x0);
+    assert.equal(design.progress, 1); // clamped
+    assert.equal(build.progress, 0.25);
+    assert.equal(build.x1, out.plot.x1);
+    assert.ok(design.x0 < build.x0);
+    assert.ok(out.rows.every((r, i) => i === 0 || r.y >= out.rows[i - 1].y + out.rows[i - 1].h));
+    assert.equal(out.today.label, 'Oct 19, 2026');
+    assert.ok(out.today.position > build.x0 && out.today.position < build.x1);
+    assert.ok(spaced(out.xTicks));
+});
+
+test('gantt: a today outside the plan is not drawn; no tasks is empty', async () => {
+    const out = await layout('gantt', { tasks: [{ name: 'A', start: '2026-01-01', end: '2026-01-05' }], today: '2027-01-01T00:00:00', width: W, height: H });
+    assert.equal(out.today, null);
+    assert.deepEqual((await layout('gantt', { tasks: [], width: W, height: H })).rows, []);
+});
+
+test('bump: the highest value ranks first, names at both ends, gaps break the line', async () => {
+    const out = await layout('bump', {
+        series: [
+            { name: 'Starter', values: [30, 50, 20] },
+            { name: 'Pro', values: [40, 20, null] },
+            { name: 'Team', values: [10, 60, 70] },
+        ],
+        labels: ['Q1', 'Q2', 'Q3'], width: W, height: H,
+    });
+    const rank = name => out.lines.find(l => l.name === name).points.map(p => p.rank);
+    assert.deepEqual(rank('Starter'), [2, 2, 2]);
+    assert.deepEqual(rank('Pro'), [1, 3]);
+    assert.deepEqual(rank('Team'), [3, 1, 1]);
+    assert.equal(out.ranks, 3);
+    const pro = out.lines[1];
+    assert.equal(pro.end, null);
+    assert.ok(pro.start.x === out.plot.x0);
+    const team = out.lines[2];
+    assert.ok(team.end.y < team.start.y); // rank 1 is higher up
+    assert.match(team.path, /C/); // smooth bump curve
+    assert.ok(out.plot.x0 >= 'Starter'.length * 7.2 && out.plot.x1 <= W - 'Starter'.length * 7.2);
+    assert.deepEqual(out.xTicks.map(t => t.label), ['Q1', 'Q2', 'Q3']);
+});
+
+test('bump: ranks given as data are kept; no series is empty', async () => {
+    const out = await layout('bump', { series: [{ name: 'A', values: [2, 1] }, { name: 'B', values: [1, 2] }], valuesAreRanks: true, width: W, height: H });
+    assert.deepEqual(out.lines[0].points.map(p => p.rank), [2, 1]);
+    assert.deepEqual(out.xTicks.map(t => t.label), ['1', '2']);
+    assert.deepEqual((await layout('bump', { series: [], width: W, height: H })).lines, []);
+});

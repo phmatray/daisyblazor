@@ -1,0 +1,100 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<HeatmapLayout>
+
+@* Heatmap: a value for each row and column, as a grid of cells shaded on a sequential scale from
+   the smallest to the largest value. D3 lays out the bands and the scale; this component mixes
+   the shade from a theme colour and the page background. *@
+
+<D3ChartFrame TLayout="HeatmapLayout" Chart="this" Label="@_label" Description="@_description">
+    <ChildContent>
+        @if (Layout is { } geo)
+        {
+            @foreach (HeatmapLabel column in geo.Columns.Where(c => c.Show))
+            {
+                <SvgText X="@column.Position" Y="@(geo.Plot.Y0 - 6)" Anchor="middle" FontSize="10" FillOpacity="0.7" Text="@column.Label" />
+            }
+            @foreach (HeatmapLabel row in geo.Rows)
+            {
+                <SvgText X="@(geo.Plot.X0 - 6)" Y="@row.Position" Dy="0.35em" Anchor="end" FontSize="11" FillOpacity="0.8" Text="@row.Label" />
+            }
+            @foreach (HeatmapLayoutCell cell in geo.Cells)
+            {
+                <rect x="@N(cell.X)" y="@N(cell.Y)" width="@N(cell.W)" height="@N(cell.H)" rx="2" fill="@_shade(cell.T)">
+                    <title>@($"{cell.Row}, {cell.Column}: {_format(cell.Value)}")</title>
+                </rect>
+                @if (ShowValues && cell.W >= _format(cell.Value).Length * 6 + 4 && cell.H >= 12)
+                {
+                    <SvgText X="@(cell.X + cell.W / 2)" Y="@(cell.Y + cell.H / 2)" Dy="0.35em" Anchor="middle" FontSize="10"
+                             Fill="@(cell.T > 0.55 ? _contentColor : "var(--color-base-content)")" Text="@_format(cell.Value)" />
+                }
+            }
+        }
+    </ChildContent>
+    <Legend>
+        @if (ShowLegend && Layout is { Cells.Count: > 0 } geo)
+        {
+            <div class="flex flex-wrap gap-3 mt-2 text-xs" aria-hidden="true">
+                <span class="inline-flex items-center gap-1.5">
+                    <span class="text-base-content/80">@_format(geo.Min)</span>
+                    <span style="@($"display:inline-block;width:8rem;height:0.625rem;border-radius:2px;background:linear-gradient(to right, {_shade(0)}, {_shade(0.5)}, {_shade(1)});")"></span>
+                    <span class="text-base-content/80">@_format(geo.Max)</span>
+                </span>
+            </div>
+        }
+    </Legend>
+</D3ChartFrame>
+
+@code {
+    /// <summary>The values. Each HeatmapCell puts a Value at a Row and Column; a repeated pair is summed.</summary>
+    [Parameter] public IReadOnlyList<HeatmapCell> Cells { get; set; } = [];
+
+    /// <summary>Row order, top to bottom. Defaults to the row names in order of first appearance; rows not listed are left out.</summary>
+    [Parameter] public IReadOnlyList<string>? Rows { get; set; }
+
+    /// <summary>Column order, left to right. Defaults to the column names in order of first appearance; columns not listed are left out.</summary>
+    [Parameter] public IReadOnlyList<string>? Columns { get; set; }
+
+    /// <summary>CSS colour of the largest value; smaller values blend it into the page background. Defaults to the theme's primary colour.</summary>
+    [Parameter] public string? Color { get; set; }
+
+    /// <summary>Write each value inside its cell, where it fits.</summary>
+    [Parameter] public bool ShowValues { get; set; }
+
+    /// <summary>Show the colour scale, from the smallest to the largest value, under the chart.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>Format string for values in cells, tooltips and the legend, e.g. "{0:N0} requests".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <inheritdoc />
+    protected override string Kind => "heatmap";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Cells = Cells.Select(c => new { c.Row, c.Column, Value = SpecValue.Finite(c.Value) }).ToArray(),
+        Rows,
+        Columns,
+        Width = ViewWidth,
+        Height = ViewHeight,
+    };
+
+    private string _color => ChartPalette.At(0, Color);
+
+    // The scale runs from a faint tint (smallest value) to the full colour (largest).
+    private string _shade(double t) =>
+        $"color-mix(in oklab, {_color} {Math.Round(8 + 92 * t).ToString(Ci)}%, var(--color-base-100))";
+
+    // Text on a theme colour uses that colour's -content token; on a custom colour, the page background.
+    private string _contentColor => _color.StartsWith("var(--color-", StringComparison.Ordinal) && _color.EndsWith(')')
+        ? _color[..^1] + "-content)"
+        : "var(--color-base-100)";
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _label => Title ?? "Heatmap";
+
+    private string _description => Layout is { Cells.Count: > 0 } geo
+        ? $"{geo.Rows.Count} rows by {geo.Columns.Count} columns, values from {_format(geo.Min)} to {_format(geo.Max)}. Highest: {string.Join(", ", geo.Cells.OrderByDescending(c => c.Value).Take(3).Select(c => $"{c.Row}, {c.Column} ({_format(c.Value)})"))}."
+        : "No data.";
+}

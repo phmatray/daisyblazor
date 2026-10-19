@@ -1,0 +1,14 @@
+<CalendarHeatmap Title="Deployments per day" Days="_days" ValueFormat="{0:N0} deployments" />
+
+@code {
+    // A year of production deployments: busier mid-week, almost none at weekends.
+    private static readonly CalendarDay[] _days = Enumerable.Range(0, 364)
+        .Select(i =>
+        {
+            DateOnly date = new DateOnly(2025, 10, 20).AddDays(i);
+            bool weekend = date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+            int deployments = weekend ? (i % 9 == 0 ? 1 : 0) : (i * 7 + i / 5) % 9;
+            return new CalendarDay(date, deployments);
+        })
+        .ToArray();
+}

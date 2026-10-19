@@ -1,0 +1,17 @@
+<div class="space-y-6">
+    <StreamChart Title="Share of API requests by client (Percent)" Series="_clients" Labels="_months" Offset="StreamOffset.Percent" AspectRatio="2.4" />
+    <StreamChart Title="API requests by client, millions (Stacked)" Series="_clients" Labels="_months" Offset="StreamOffset.Stacked"
+                 AspectRatio="2.4" ShowLegend="false" ValueFormat="{0:N1}M" />
+</div>
+
+@code {
+    private readonly string[] _months = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct"];
+
+    private readonly ChartSeries[] _clients =
+    [
+        new("Web app", [12.4, 13.1, 13.8, 13.2, 14.6, 15.9, 16.4]),
+        new("CLI", [3.1, 3.6, 4.4, 5.2, 5.9, 6.8, 7.7]),
+        new("SDK", [6.0, 6.8, 7.1, 8.4, 9.9, 11.2, 12.8]),
+        new("Webhooks", [2.2, 2.3, 2.6, 2.4, 2.9, 3.1, 3.3]),
+    ];
+}

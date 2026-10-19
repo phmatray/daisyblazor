@@ -1,0 +1,7 @@
+<CalendarHeatmap Days="_days" AspectRatio="2.6" ShowLegend="false" />
+
+@code {
+    private static readonly CalendarDay[] _days = Enumerable.Range(0, 112)
+        .Select(i => new CalendarDay(new DateOnly(2026, 6, 29).AddDays(i), i % 7 >= 5 ? 0 : (i * 3 + i / 7) % 8))
+        .ToArray();
+}

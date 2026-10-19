@@ -1,0 +1,103 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<CandlestickLayout>
+
+@* Candlestick chart: the open, high, low and close of each period on a time axis. D3 computes the
+   scales, ticks and the width each period gets; this component draws candles, OHLC bars or
+   high–low bars, rising periods in the success colour and falling ones in the error colour. *@
+
+<D3ChartFrame TLayout="CandlestickLayout" Chart="this" Label="@_label" Description="@_description">
+    <ChildContent>
+        @if (Layout is { } geo)
+        {
+            <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="geo.YTicks" ViewWidth="ViewWidth" />
+            @foreach (CandlestickLayoutCandle c in geo.Candles)
+            {
+                string color = c.Up ? UpColor : DownColor;
+                double half = c.Width / 2;
+                <g>
+                    <title>@_tooltip(c)</title>
+                    @switch (CandleStyle)
+                    {
+                        case CandlestickStyle.Candle:
+                            <line x1="@N(c.X)" x2="@N(c.X)" y1="@N(c.YHigh)" y2="@N(c.YLow)" stroke="@color" stroke-width="1" />
+                            <rect x="@N(c.X - half)" y="@N(Math.Min(c.YOpen, c.YClose))" width="@N(c.Width)"
+                                  height="@N(Math.Max(1, Math.Abs(c.YOpen - c.YClose)))" fill="@color" rx="1" />
+                            break;
+                        case CandlestickStyle.Ohlc:
+                            <line x1="@N(c.X)" x2="@N(c.X)" y1="@N(c.YHigh)" y2="@N(c.YLow)" stroke="@color" stroke-width="1.5" />
+                            <line x1="@N(c.X - half)" x2="@N(c.X)" y1="@N(c.YOpen)" y2="@N(c.YOpen)" stroke="@color" stroke-width="1.5" />
+                            <line x1="@N(c.X)" x2="@N(c.X + half)" y1="@N(c.YClose)" y2="@N(c.YClose)" stroke="@color" stroke-width="1.5" />
+                            break;
+                        default:
+                            <line x1="@N(c.X)" x2="@N(c.X)" y1="@N(c.YHigh)" y2="@N(c.YLow)" stroke="@color"
+                                  stroke-width="@N(Math.Max(2, c.Width * 0.4))" stroke-linecap="round" />
+                            break;
+                    }
+                    @* A transparent slot keeps thin marks easy to hover. *@
+                    <rect x="@N(c.X - half)" y="@N(c.YHigh)" width="@N(c.Width)" height="@N(Math.Max(1, c.YLow - c.YHigh))" fill="transparent" />
+                </g>
+            }
+        }
+    </ChildContent>
+    <Legend>
+        @if (ShowLegend)
+        {
+            <ChartLegend Items="@([(UpLabel, UpColor), (DownLabel, DownColor)])" />
+        }
+    </Legend>
+</D3ChartFrame>
+
+@code {
+    /// <summary>The periods. Each has a Time and Open, High, Low and Close values; they are sorted by time.</summary>
+    [Parameter] public IReadOnlyList<Candle> Candles { get; set; } = [];
+
+    /// <summary>How each period is drawn: a candle (body and wick), an OHLC bar (open and close ticks) or a high–low bar.</summary>
+    [Parameter] public CandlestickStyle CandleStyle { get; set; } = CandlestickStyle.Candle;
+
+    /// <summary>CSS colour of periods that close at or above their open.</summary>
+    [Parameter] public string UpColor { get; set; } = "var(--color-success)";
+
+    /// <summary>CSS colour of periods that close below their open.</summary>
+    [Parameter] public string DownColor { get; set; } = "var(--color-error)";
+
+    /// <summary>Legend name of rising periods.</summary>
+    [Parameter] public string UpLabel { get; set; } = "Rising";
+
+    /// <summary>Legend name of falling periods.</summary>
+    [Parameter] public string DownLabel { get; set; } = "Falling";
+
+    /// <summary>Show the rising/falling legend under the chart.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>Format string for values in tooltips, e.g. "{0:0.#} %".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <inheritdoc />
+    protected override string Kind => "candlestick";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Candles = Candles.Select(c => new
+        {
+            c.Time,
+            Open = SpecValue.Finite(c.Open),
+            High = SpecValue.Finite(c.High),
+            Low = SpecValue.Finite(c.Low),
+            Close = SpecValue.Finite(c.Close),
+        }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _tooltip(CandlestickLayoutCandle c) =>
+        $"{c.Label}: open {_format(c.Open)}, high {_format(c.High)}, low {_format(c.Low)}, close {_format(c.Close)}";
+
+    private string _label => Title ?? "Candlestick chart";
+
+    private string _description => Layout is { Candles.Count: > 0 } geo
+        ? $"{geo.Candles.Count} periods from {geo.Candles[0].Label} to {geo.Candles[^1].Label}; {geo.Candles.Count(c => c.Up)} rising, {geo.Candles.Count(c => !c.Up)} falling; lowest {_format(geo.Candles.Min(c => c.Low))}, highest {_format(geo.Candles.Max(c => c.High))}."
+        : "No data.";
+}

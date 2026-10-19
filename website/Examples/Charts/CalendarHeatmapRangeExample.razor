@@ -1,0 +1,12 @@
+<CalendarHeatmap Title="Green builds, third quarter" Days="_days" From="new DateOnly(2026, 7, 1)" To="new DateOnly(2026, 9, 30)"
+                 FirstDayOfWeek="DayOfWeek.Sunday" Levels="4" Color="var(--color-success)" AspectRatio="2.4"
+                 LessLabel="Fewer" MoreLabel="More builds" ValueFormat="{0:N0} green builds" />
+
+@code {
+    // Only working days have builds; From and To still show every day of the quarter.
+    private static readonly CalendarDay[] _days = Enumerable.Range(0, 92)
+        .Select(i => new DateOnly(2026, 7, 1).AddDays(i))
+        .Where(d => d.DayOfWeek is not (DayOfWeek.Saturday or DayOfWeek.Sunday))
+        .Select(d => new CalendarDay(d, (d.DayNumber * 5) % 13))
+        .ToArray();
+}

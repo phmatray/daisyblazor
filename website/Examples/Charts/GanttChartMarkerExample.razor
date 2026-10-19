@@ -1,0 +1,13 @@
+<GanttChart Title="Sprint 42" Tasks="_tasks" Today="new DateTime(2026, 10, 22, 12, 0, 0)" TodayLabel="Code freeze" AspectRatio="2.2" />
+
+@code {
+    // Without groups the tasks are listed in order; Today can mark any moment, with its own label.
+    private readonly GanttTask[] _tasks =
+    [
+        new("Search filters", new DateTime(2026, 10, 12), new DateTime(2026, 10, 16), Progress: 1),
+        new("Audit log export", new DateTime(2026, 10, 14), new DateTime(2026, 10, 21), Progress: 0.8),
+        new("SSO settings page", new DateTime(2026, 10, 16), new DateTime(2026, 10, 22), Progress: 0.6),
+        new("Rate limit alerts", new DateTime(2026, 10, 19), new DateTime(2026, 10, 23), Progress: 0.2),
+        new("Sprint review", new DateTime(2026, 10, 23, 14, 0, 0)),
+    ];
+}

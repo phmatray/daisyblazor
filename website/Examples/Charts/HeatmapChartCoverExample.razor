@@ -1,0 +1,10 @@
+<HeatmapChart Cells="_cells" AspectRatio="1.3" ShowLegend="false" />
+
+@code {
+    private static readonly string[] _days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+    private static readonly HeatmapCell[] _cells = _days
+        .SelectMany((day, d) => Enumerable.Range(0, 12).Select(slot =>
+            new HeatmapCell(day, (slot * 2).ToString("00"), (d >= 5 ? 4 : 12) + (slot is >= 4 and <= 9 ? 20 : 0) + (slot * 5 + d * 3) % 7)))
+        .ToArray();
+}
