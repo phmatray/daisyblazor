@@ -1,0 +1,176 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<PriceActionLayout>
+
+@* Price action chart: Renko, Kagi, line break and point & figure charts, which only move when the
+   price does. D3 computes the bricks, lines or columns from the closes and their scales; the x axis
+   numbers them, the y axis is the price. Rising marks take the success colour and falling ones the
+   error colour (Kagi: thick yang lines and thin yin lines). *@
+
+<D3ChartFrame TLayout="PriceActionLayout" Chart="this" Label="@_label" Description="@_description">
+    <ChildContent>
+        @if (Layout is { } geo)
+        {
+            <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="geo.YTicks" YGrid="true" Baseline="true" XTickMarks="true" ViewWidth="ViewWidth" />
+            @foreach (PriceActionStroke s in geo.Strokes)
+            {
+                <line x1="@N(s.X1)" y1="@N(s.Y1)" x2="@N(s.X2)" y2="@N(s.Y2)" stroke="@(s.Thick ? UpColor : DownColor)"
+                      stroke-width="@(s.Thick ? "3" : "1.25")" stroke-linecap="square" pointer-events="none" />
+            }
+            @foreach (PriceActionItem item in geo.Items)
+            {
+                string color = item.Up ? UpColor : DownColor;
+                double half = item.Width / 2;
+                double top = Math.Min(item.YOpen, item.YClose);
+                double height = Math.Max(1, Math.Abs(item.YOpen - item.YClose));
+                <g>
+                    <title>@_tooltip(geo, item)</title>
+                    @switch (geo.Kind)
+                    {
+                        case "pointandfigure":
+                            double r = half * 0.8;
+                            @foreach (double y in item.Marks)
+                            {
+                                if (item.Up)
+                                {
+                                    <path d="@($"M{N(item.X - r)},{N(y - r)}L{N(item.X + r)},{N(y + r)}M{N(item.X - r)},{N(y + r)}L{N(item.X + r)},{N(y - r)}")"
+                                          stroke="@color" stroke-width="1.5" stroke-linecap="round" fill="none" />
+                                }
+                                else
+                                {
+                                    <circle cx="@N(item.X)" cy="@N(y)" r="@N(r)" stroke="@color" stroke-width="1.5" fill="none" />
+                                }
+                            }
+                            <rect x="@N(item.X - half)" y="@N(top - half)" width="@N(item.Width)" height="@N(height + item.Width)" fill="transparent" />
+                            break;
+                        case "kagi":
+                            @* The strokes are drawn above; this slot gives the line its tooltip. *@
+                            <rect x="@N(item.X - half)" y="@N(top)" width="@N(item.Width)" height="@N(height)" fill="transparent" />
+                            break;
+                        default:
+                            <rect x="@N(item.X - half)" y="@N(top)" width="@N(item.Width)" height="@N(height)" fill="@color" fill-opacity="0.8"
+                                  stroke="@color" rx="1" />
+                            break;
+                    }
+                </g>
+            }
+        }
+    </ChildContent>
+    <Legend>
+        @if (ShowLegend)
+        {
+            <ChartLegend Items="@_legend" />
+        }
+    </Legend>
+</D3ChartFrame>
+
+@code {
+    /// <summary>
+    /// The prices, sorted by time. Only the closes build the chart; the highs and lows set the automatic
+    /// box (ATR). For a series of single values use <c>new Candle(time, v, v, v, v)</c>.
+    /// </summary>
+    [Parameter] public IReadOnlyList<Candle> Prices { get; set; } = [];
+
+    /// <summary>Which chart to draw: Renko bricks, Kagi lines, line break lines or point &amp; figure columns.</summary>
+    [Parameter] public PriceActionKind ChartKind { get; set; } = PriceActionKind.Renko;
+
+    /// <summary>
+    /// Size of a Renko brick or a point &amp; figure box, in price units. Null (or 0) takes the average true range
+    /// over <see cref="AtrPeriod"/> periods at the last price. A box so small it would draw more than 2,000 boxes
+    /// is enlarged to draw 2,000.
+    /// </summary>
+    [Parameter] public double? BoxSize { get; set; }
+
+    /// <summary>Periods of the average true range used when <see cref="BoxSize"/> (or Kagi's <see cref="Reversal"/>) is not given.</summary>
+    [Parameter] public int AtrPeriod { get; set; } = 14;
+
+    /// <summary>
+    /// Kagi: how far a close must come back from a line's end to turn it, in price units (or a percentage of the
+    /// end with <see cref="ReversalPercent"/>); null takes the average true range, or 4 % with ReversalPercent.
+    /// Point &amp; figure: the boxes a reversal needs; null takes 3.
+    /// </summary>
+    [Parameter] public double? Reversal { get; set; }
+
+    /// <summary>Read Kagi's <see cref="Reversal"/> as a percentage of the line's end.</summary>
+    [Parameter] public bool ReversalPercent { get; set; }
+
+    /// <summary>Line break: how many lines a reversal must pass (3 for the usual three-line break).</summary>
+    [Parameter] public int Lines { get; set; } = 3;
+
+    /// <summary>CSS colour of rising bricks, lines and X columns, and of Kagi's thick (yang) lines.</summary>
+    [Parameter] public string UpColor { get; set; } = "var(--color-success)";
+
+    /// <summary>CSS colour of falling bricks, lines and O columns, and of Kagi's thin (yin) lines.</summary>
+    [Parameter] public string DownColor { get; set; } = "var(--color-error)";
+
+    /// <summary>Legend name of the rising colour (Kagi: of thick yang lines).</summary>
+    [Parameter] public string? UpLabel { get; set; }
+
+    /// <summary>Legend name of the falling colour (Kagi: of thin yin lines).</summary>
+    [Parameter] public string? DownLabel { get; set; }
+
+    /// <summary>Show the legend under the chart.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <summary>Format string for prices in tooltips and the description, e.g. "{0:0.#} %".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <inheritdoc />
+    protected override string Kind => "price-action";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Prices = Prices.Select(p => new { p.Time, p.Open, p.High, p.Low, p.Close }).ToArray(),
+        Kind = ChartKind.ToString().ToLowerInvariant(),
+        BoxSize,
+        Reversal,
+        ReversalPercent,
+        Lines,
+        AtrPeriod,
+        Width = ViewWidth,
+        Height = ViewHeight,
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private bool _kagi => ChartKind == PriceActionKind.Kagi;
+
+    private IReadOnlyList<(string Name, string Color)> _legend =>
+    [
+        (UpLabel ?? (_kagi ? "Yang (thick)" : ChartKind == PriceActionKind.PointAndFigure ? "Rising (X)" : "Rising"), UpColor),
+        (DownLabel ?? (_kagi ? "Yin (thin)" : ChartKind == PriceActionKind.PointAndFigure ? "Falling (O)" : "Falling"), DownColor),
+    ];
+
+    private static string _noun(string kind) => kind switch
+    {
+        "renko" => "Brick",
+        "pointandfigure" => "Column",
+        _ => "Line",
+    };
+
+    private string _tooltip(PriceActionLayout geo, PriceActionItem item)
+    {
+        string when = item.From == item.To ? item.To : $"{item.From} – {item.To}";
+        string boxes = item.Marks.Count > 0 ? $" ({item.Marks.Count} {(item.Up ? "X" : "O")})" : string.Empty;
+        return $"{_noun(geo.Kind)} {item.Index}, {(item.Up ? "rising" : "falling")}: {_format(item.Open)} → {_format(item.Close)}{boxes}; {when}";
+    }
+
+    private string _label => Title ?? ChartKind switch
+    {
+        PriceActionKind.Kagi => "Kagi chart",
+        PriceActionKind.LineBreak => "Line break chart",
+        PriceActionKind.PointAndFigure => "Point and figure chart",
+        _ => "Renko chart",
+    };
+
+    private string _description => Layout is { Items.Count: > 0 } geo
+        ? $"{geo.Items.Count} {_noun(geo.Kind).ToLowerInvariant()}s, {geo.Items.Count(i => i.Up)} rising and {geo.Items.Count(i => !i.Up)} falling, from {geo.Items[0].From} to {geo.Items[^1].To}"
+            + geo.Kind switch
+            {
+                "renko" => $"; box {_format(geo.BoxSize)}.",
+                "pointandfigure" => $"; box {_format(geo.BoxSize)}, {geo.Reversal.ToString(CultureInfo.CurrentCulture)}-box reversal.",
+                "linebreak" => $"; {geo.Reversal.ToString(CultureInfo.CurrentCulture)}-line break.",
+                _ => ReversalPercent ? $"; reversal {geo.Reversal.ToString("0.##", CultureInfo.CurrentCulture)} %." : $"; reversal {_format(geo.Reversal)}.",
+            }
+        : "No data.";
+}

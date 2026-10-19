@@ -1,0 +1,16 @@
+<PriceActionChart Title="Job queue depth: point and figure, 20-job boxes, 3-box reversal" Prices="_depth" ChartKind="PriceActionKind.PointAndFigure"
+                  BoxSize="20" Reversal="3" ValueFormat="{0:N0} jobs" AspectRatio="1.8" />
+
+@code {
+    // X columns while the depth rises a box at a time, O columns while it falls; a column turns when the
+    // depth comes back three boxes, starting one box away from its end.
+    private static readonly Candle[] _depth = Enumerable.Range(0, 120)
+        .Select(i =>
+        {
+            double v = Depth(i);
+            return new Candle(new DateTime(2026, 10, 18, 0, 0, 0).AddMinutes(30 * i), v, v, v, v);
+        })
+        .ToArray();
+
+    private static double Depth(int i) => Math.Round(240 + 120 * Math.Sin(i / 9.0) + 50 * Math.Sin(i / 2.3) + 0.8 * i);
+}

@@ -1,0 +1,16 @@
+<CandlestickChart Title="CPU utilisation per hour, api-01 (%), 12-hour channel" Candles="_hours" Indicators="_channel" ValueFormat="{0:0.#} %" AspectRatio="2" />
+
+@code {
+    // The band runs between the highest high and the lowest low of the last 12 hours, with its midpoint as the line.
+    private static readonly ChartIndicator[] _channel = [new(IndicatorKind.PriceChannel, Period: 12)];
+
+    private static readonly Candle[] _hours = Enumerable.Range(0, 72)
+        .Select(h =>
+        {
+            double open = Level(h), close = Level(h + 1);
+            return new Candle(new DateTime(2026, 10, 17, 0, 0, 0).AddHours(h), open, Math.Max(open, close) + 3 + h % 4, Math.Min(open, close) - 2 - h % 3, close);
+        })
+        .ToArray();
+
+    private static double Level(int h) => Math.Round(42 + 20 * Math.Sin((h - 8) / 24.0 * 2 * Math.PI) + 0.15 * h + 3 * Math.Sin(h * 1.7), 1);
+}

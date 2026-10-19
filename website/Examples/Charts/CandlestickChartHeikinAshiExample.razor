@@ -1,0 +1,20 @@
+<div class="space-y-6">
+    <CandlestickChart Title="CPU utilisation per 15 minutes, api-01 (%)" Candles="_slots" ValueFormat="{0:0.#} %" AspectRatio="2.4" ShowLegend="false" />
+    <CandlestickChart Title="Same readings as Heikin-Ashi candles" Candles="_slots" CandleStyle="CandlestickStyle.HeikinAshi" ValueFormat="{0:0.#} %" AspectRatio="2.4" />
+</div>
+
+@code {
+    // Heikin-Ashi averages each period with the one before (close = (O + H + L + C) / 4, open = mean of
+    // the previous HA open and close), so runs of rising or falling load show as unbroken colours.
+    private static readonly Candle[] _slots = Enumerable.Range(0, 64)
+        .Select(i =>
+        {
+            double open = Level(i), close = Level(i + 1);
+            double spread = 1.5 + (i * 7 % 5) * 0.8;
+            return new Candle(new DateTime(2026, 10, 19, 6, 0, 0).AddMinutes(15 * i), open,
+                Math.Round(Math.Max(open, close) + spread, 1), Math.Round(Math.Min(open, close) - spread * 0.7, 1), close);
+        })
+        .ToArray();
+
+    private static double Level(int i) => Math.Round(45 + 18 * Math.Sin(i / 10.0) + 5 * Math.Sin(i * 1.9), 1);
+}
