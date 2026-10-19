@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0](https://github.com/phmatray/daisyblazor/compare/v0.8.0...v0.9.0) (2026-10-19)
+
+
+### Features
+
+* **charts:** category-axis markers on line, area and bar charts ([#140](https://github.com/phmatray/daisyblazor/issues/140)) ([795f1ca](https://github.com/phmatray/daisyblazor/commit/795f1caebcfed8f833889b64fa87f8831efeed7d))
+
+
+### Bug Fixes
+
+* **docs:** no live cover spills out of its tile ([#138](https://github.com/phmatray/daisyblazor/issues/138)) ([d8d2cd5](https://github.com/phmatray/daisyblazor/commit/d8d2cd5e510d6bde611a565ad4afb320699ff45d))
+
 ## [0.8.0](https://github.com/phmatray/daisyblazor/compare/v0.7.0...v0.8.0) (2026-10-19)
 
 
