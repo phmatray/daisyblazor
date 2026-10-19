@@ -83,5 +83,16 @@ public static partial class DocRegistry
         {
             Portrait = typeof(RangeBarChartCoverExample),
         },
+
+        new("ComboChart", Category.Charts,
+            "Bars and lines over the same categories, so a count and a rate read together: deployments per week as bars and the change failure rate as a line. The lines can take their own scale on a right-hand axis. D3 computes the scales, bands and ticks; the chart draws them in theme colours.",
+            [typeof(ComboChart), typeof(ChartSeries)],
+            [
+                new("Basic", "Labels names the categories; value i of each series in Bars and Lines belongs to label i. Bar series sit side by side and colours run through the palette across the bars, then the lines.", typeof(ComboChartBasicExample)),
+                new("Secondary axis, stacked", "SecondaryAxis=\"true\" gives the lines their own scale on the right, formatted with SecondaryValueFormat; StackBars stacks the bar series and Smooth curves the lines. A series' Color overrides the palette.", typeof(ComboChartSecondaryAxisExample)),
+            ])
+        {
+            Portrait = typeof(ComboChartCoverExample),
+        },
     ];
 }

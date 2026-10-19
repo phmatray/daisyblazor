@@ -26,9 +26,9 @@ enum and the `CssClass` class-merge helper).
 The other 39 types, by family (each has a docs page with live examples and its parameters):
 
 - **Hierarchy and flow:** `TreemapChart`, `SunburstChart`, `CirclePackingChart`, `IcicleChart`, `SankeyChart`, `ChordChart`, `NetworkChart`, `ArcDiagramChart`
-- **Distribution:** `ScatterChart` (and bubbles), `ContourChart`, `HexbinChart`, `BoxPlotChart`, `ViolinChart`, `HistogramChart`, `BeeswarmChart`, `RidgelineChart`
+- **Distribution:** `ScatterChart` (bubbles, connected points, trend lines), `ContourChart`, `HexbinChart`, `BoxPlotChart`, `ViolinChart`, `HistogramChart`, `BeeswarmChart`, `RidgelineChart`
 - **Over time:** `CalendarHeatmap`, `HeatmapChart`, `RangeAreaChart`, `StreamChart`, `CandlestickChart` (candle, OHLC, high-low), `GanttChart`, `BumpChart`
-- **Compare:** `RadarChart`, `BulletChart`, `DumbbellChart`, `SlopeChart`, `LollipopChart`, `ParallelCoordinatesChart`, `RangeBarChart`
+- **Compare:** `RadarChart`, `BulletChart`, `DumbbellChart`, `SlopeChart`, `LollipopChart`, `ParallelCoordinatesChart`, `RangeBarChart`, `ComboChart` (bars and lines, optional right axis)
 - **Composition and progress:** `WaterfallChart`, `FunnelChart` (and pyramid), `GaugeChart`, `LinearGaugeChart`, `RadialBarChart`, `PolarAreaChart`, `ParetoChart`, `MarimekkoChart`, `WaffleChart`
 
 The core charts (line, area, bar, pie, donut, sparkline) take a CSS `Width` (default `"100%"`;

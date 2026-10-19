@@ -37,8 +37,41 @@ public sealed record PositionedValue(double Value, double Pos);
 /// <summary>Positions along the value axis of a group's summary statistics.</summary>
 public sealed record BoxPositions(double Low, double Q1, double Median, double Q3, double High);
 
-/// <summary>Geometry of a <see cref="ScatterChart"/>.</summary>
-public sealed record ScatterLayout(PlotArea Plot, IReadOnlyList<AxisTick> XTicks, IReadOnlyList<AxisTick> YTicks, IReadOnlyList<string> Series, IReadOnlyList<ScatterLayoutPoint> Points);
+/// <summary>Geometry of a <see cref="ScatterChart"/>. Lines and Trends are only present when the chart asks for them.</summary>
+public sealed record ScatterLayout(
+    PlotArea Plot, IReadOnlyList<AxisTick> XTicks, IReadOnlyList<AxisTick> YTicks, IReadOnlyList<string> Series, IReadOnlyList<ScatterLayoutPoint> Points,
+    IReadOnlyList<ScatterLine>? Lines = null, IReadOnlyList<ScatterTrend>? Trends = null);
+
+/// <summary>A series' points joined in X order (an SVG path).</summary>
+public sealed record ScatterLine(int Series, string Path);
+
+/// <summary>
+/// A series' fitted trend: its kind, coefficients A and B (see <see cref="ChartTrendline"/>), the
+/// coefficient of determination R2, and the curve as an SVG path.
+/// </summary>
+public sealed record ScatterTrend(int Series, string Kind, double A, double B, double R2, string Path);
+
+/// <summary>
+/// A least-squares trend line fitted to each series of a <see cref="ScatterChart"/>, in data space.
+/// R² is that of the straight-line fit after the transform, as spreadsheets report it.
+/// </summary>
+public enum ChartTrendline
+{
+    /// <summary>No trend line.</summary>
+    None,
+
+    /// <summary>y = a + b·x.</summary>
+    Linear,
+
+    /// <summary>y = a·e^(b·x), fitted to ln y; points with y ≤ 0 are left out of the fit.</summary>
+    Exponential,
+
+    /// <summary>y = a + b·ln x; points with x ≤ 0 are left out of the fit.</summary>
+    Logarithmic,
+
+    /// <summary>y = a·x^b, fitted to ln y against ln x; points with x or y ≤ 0 are left out of the fit.</summary>
+    Power,
+}
 
 /// <summary>A placed point: its values, series index, circle and Voronoi cell (an SVG path).</summary>
 public sealed record ScatterLayoutPoint(double X, double Y, double? Size, string? Label, int Series, double Cx, double Cy, double R, string Cell);
