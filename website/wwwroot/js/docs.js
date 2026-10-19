@@ -69,3 +69,44 @@ export function revealActiveLink(container) {
     // The sticky container is the offset parent, so offsetTop is measured from its top.
     container.scrollTop = link.offsetTop - container.clientHeight / 2;
 }
+
+// Live covers in the tiles: shrink one that is wider than its tile until it fits, and centre it.
+const coverResize = new ResizeObserver(entries => {
+    for (const e of entries) fitCover(e.target.closest('[data-cover]'));
+});
+
+function fitCover(box) {
+    const cover = box?.firstElementChild;
+    if (!cover) return;
+    cover.style.width = '';
+    cover.style.scale = '';
+    const base = parseFloat(getComputedStyle(cover).scale) || 1;
+    // scrollWidth counts content that spills past the cover's own box; a scroller inside it (a wide table)
+    // hides its own overflow, so add that too. A carousel scrolls on purpose and keeps its width.
+    let hidden = 0;
+    for (const el of cover.querySelectorAll('*')) {
+        if (el.scrollWidth > el.clientWidth + 1 && !el.closest('.carousel') && getComputedStyle(el).overflowX !== 'visible') {
+            hidden = Math.max(hidden, el.scrollWidth - el.clientWidth);
+        }
+    }
+    const width = Math.max(cover.scrollWidth, cover.offsetWidth) + hidden;
+    if (width > cover.offsetWidth) cover.style.width = `${width}px`;
+    const room = box.clientWidth - 24;
+    const scale = Math.min(base, room / width);
+    cover.style.scale = String(scale);
+    const height = cover.offsetHeight * scale;
+    cover.style.top = `${Math.max(16, (box.clientHeight - height) / 2)}px`;
+}
+
+/** Fits every tile cover on the page now and whenever a tile or its cover changes size. */
+export function watchCovers() {
+    const watch = root => root.querySelectorAll?.('[data-cover]').forEach(box => {
+        if (box.dataset.watched) return;
+        box.dataset.watched = '1';
+        coverResize.observe(box);
+        if (box.firstElementChild) coverResize.observe(box.firstElementChild);
+    });
+    watch(document);
+    new MutationObserver(records => records.forEach(r => r.addedNodes.forEach(n => n.nodeType === 1 && watch(n.parentElement ?? n))))
+        .observe(document.body, { childList: true, subtree: true });
+}
