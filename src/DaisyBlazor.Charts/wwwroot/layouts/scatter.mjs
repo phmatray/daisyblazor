@@ -1,5 +1,8 @@
-import { Delaunay, scaleSqrt, extent } from '../d3.mjs';
-import { finite, valueScale, cartesian, r2 } from './_distribution.mjs';
+import { extent } from '../d3/d3-array.mjs';
+import { Delaunay } from '../d3/d3-delaunay.mjs';
+import { scaleSqrt } from '../d3/d3-scale.mjs';
+import { finite, valueScale, r2 } from './_shared.mjs';
+import { cartesian } from './_distribution.mjs';
 
 // spec: { points: [{ x, y, size, series, label }], width, height, xLog, yLog, xTitle, yTitle,
 //         radius, minRadius, maxRadius }
@@ -10,8 +13,8 @@ export default function scatter({ points, width, height, xLog = false, yLog = fa
     const sizes = valid.map(p => p.size).filter(s => finite(s) && s > 0);
     const bubble = sizes.length > 0;
     const inset = bubble ? maxRadius : radius;
-    const x = valueScale(valid.map(p => p.x), xLog);
-    const y = valueScale(valid.map(p => p.y), yLog);
+    const x = valueScale(valid.map(p => p.x), { log: xLog });
+    const y = valueScale(valid.map(p => p.y), { log: yLog });
     const { plot, xTicks, yTicks } = cartesian({ width, height, x, y, xTitle, yTitle, inset });
     const series = [...new Set(valid.map(p => p.series ?? ''))];
     if (valid.length === 0) {

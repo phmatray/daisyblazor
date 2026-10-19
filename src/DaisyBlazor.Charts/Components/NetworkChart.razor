@@ -31,7 +31,7 @@
                 <g stroke="var(--color-base-100)" stroke-width="3" stroke-linejoin="round" paint-order="stroke">
                     @foreach (GraphLayoutNode node in layout.Nodes)
                     {
-                        @if (ChartInk.Fit(node.Name, layout.LabelRoom, 11) is { } name)
+                        @if (ChartText.Fit(node.Name, layout.LabelRoom, 11) is { } name)
                         {
                             <SvgText X="@(node.X + node.R + 3)" Y="@node.Y" Dy="0.35em" FontSize="11" FontWeight="600" Text="@name" />
                         }

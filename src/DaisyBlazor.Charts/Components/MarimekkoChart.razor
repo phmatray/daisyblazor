@@ -8,10 +8,7 @@
     <ChildContent>
         @if (Layout is { Plot: { } plot } geo)
         {
-            @foreach (MarimekkoTick tick in geo.Ticks)
-            {
-                <SvgText X="@(plot.Left - 6)" Y="@tick.Pos" Dy="0.35em" Anchor="end" FontSize="11" FillOpacity="0.6" Text="@_percent(tick.Value)" />
-            }
+            <ChartAxes Plot="plot" YTicks="@geo.Ticks.Select(t => t with { Label = _percent(t.Value ?? 0) }).ToList()" />
 
             @foreach (MarimekkoLayoutCell cell in geo.Cells)
             {
@@ -22,7 +19,7 @@
                 @if (ShowValues && cell.Width >= 44 && cell.Height >= 18)
                 {
                     <SvgText X="@(cell.X + cell.Width / 2)" Y="@(cell.Y + cell.Height / 2)" Dy="0.35em" Anchor="middle" FontSize="11" FontWeight="600"
-                             Fill="@_onColor(fill)" Text="@_percent(cell.Share)" />
+                             Fill="@ChartPalette.ContentOf(fill, "var(--color-base-100)")" Text="@_percent(cell.Share)" />
                 }
             }
 
@@ -74,10 +71,6 @@
 
     private string _color(int segment, MarimekkoLayout geo) =>
         SegmentColors is not null && SegmentColors.TryGetValue(geo.Segments[segment], out string? c) ? c : ChartPalette.At(segment);
-
-    // Text on a theme colour uses that colour's -content token; any other fill gets the base background.
-    private static string _onColor(string fill) =>
-        fill.StartsWith("var(--color-", StringComparison.Ordinal) && fill.EndsWith(')') ? fill[..^1] + "-content)" : "var(--color-base-100)";
 
     private string _label => Title ?? "Marimekko chart";
 

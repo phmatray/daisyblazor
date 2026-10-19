@@ -1,4 +1,5 @@
-import { scaleLinear } from '../d3.mjs';
+import { scaleLinear } from '../d3/d3-scale.mjs';
+import { ticks } from './_shared.mjs';
 
 // spec: { cells: [{ column, segment, value }], width, height, gap }
 // Variable-width 100 % stacked columns: each column is as wide as its share of the grand total, and
@@ -47,7 +48,7 @@ export default function marimekko({ cells, width, height, gap = 2 }) {
         columns: outColumns,
         cells: outCells,
         segments,
-        ticks: y.ticks(4).map(v => ({ value: v, pos: y(v) })),
+        ticks: ticks(y, 4),
         plot,
     };
 }

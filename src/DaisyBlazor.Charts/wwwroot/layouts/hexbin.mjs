@@ -1,4 +1,5 @@
-import { finite, valueScale, cartesian, r2 } from './_distribution.mjs';
+import { finite, valueScale, r2 } from './_shared.mjs';
+import { cartesian } from './_distribution.mjs';
 
 const SQRT3 = Math.sqrt(3);
 

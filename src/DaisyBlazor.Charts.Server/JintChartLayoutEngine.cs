@@ -11,8 +11,8 @@ namespace DaisyBlazor.Charts.Server;
 /// <summary>
 /// Runs the charts' D3 layout modules with Jint. The modules ship embedded in this assembly and are
 /// written once to a temporary folder that Jint loads them from. A Jint engine is not thread-safe, so
-/// each call rents one from a pool; the first call on an engine parses the D3 bundle (about half a
-/// second), later calls take a few milliseconds (density contours and force layouts take longer),
+/// each call rents one from a pool; the first call of each kind on an engine parses the D3 modules it needs (a few hundred
+/// milliseconds), later calls take a few milliseconds (density contours and force layouts take longer),
 /// and repeated specs come from a cache.
 /// </summary>
 public sealed partial class JintChartLayoutEngine : IChartLayoutEngine, IDisposable
@@ -73,8 +73,29 @@ public sealed partial class JintChartLayoutEngine : IChartLayoutEngine, IDisposa
         return engine;
     }
 
-    /// <summary>Parses the D3 bundle on one engine ahead of the first request.</summary>
-    public void Warmup() => Layout("sankey", """{"links":[],"width":10,"height":10}""");
+    /// <summary>
+    /// Loads every chart layout and the D3 code it uses on one engine ahead of the first request, so
+    /// the first prerender of any chart does not pay for parsing it.
+    /// </summary>
+    public void Warmup()
+    {
+        Engine engine = _pool.TryTake(out Engine? pooled) ? pooled : CreateEngine();
+        try
+        {
+            foreach (string file in Directory.GetFiles(Path.Combine(_root.Value, "layouts"), "*.mjs"))
+            {
+                string kind = Path.GetFileNameWithoutExtension(file);
+                if (KindPattern().IsMatch(kind))
+                {
+                    engine.Modules.Import($"./layouts/{kind}.mjs");
+                }
+            }
+        }
+        finally
+        {
+            _pool.Add(engine);
+        }
+    }
 
     /// <inheritdoc />
     public void Dispose()

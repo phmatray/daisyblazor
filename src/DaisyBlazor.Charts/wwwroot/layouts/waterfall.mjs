@@ -1,4 +1,5 @@
-import { scaleBand, scaleLinear } from '../d3.mjs';
+import { scaleBand } from '../d3/d3-scale.mjs';
+import { ticks, valueScale } from './_shared.mjs';
 
 const EMPTY = { bars: [], connectors: [], ticks: [], plot: null, zero: 0 };
 
@@ -30,19 +31,17 @@ export default function waterfall({ steps, width, height, horizontal = false }) 
         : { left: 48, top: 22, right: width - 8, bottom: height - 26 };
     const band = scaleBand().domain(raw.map((_, i) => i)).paddingInner(0.3).paddingOuter(0.15)
         .range(horizontal ? [plot.top, plot.bottom] : [plot.left, plot.right]);
-    const lo = Math.min(0, ...raw.map(b => Math.min(b.from, b.to)));
-    const hi = Math.max(0, ...raw.map(b => Math.max(b.from, b.to)));
-    const value = scaleLinear().domain([lo, hi === lo ? lo + 1 : hi]).nice()
+    const value = valueScale(raw.flatMap(b => [b.from, b.to]), { zero: true })
         .range(horizontal ? [plot.left, plot.right] : [plot.bottom, plot.top]);
 
     const bars = raw.map((b, i) => {
         const a = value(b.from), z = value(b.to), p = band(i), bw = band.bandwidth();
         if (horizontal) {
             const x = Math.min(a, z), w = Math.max(1, Math.abs(z - a));
-            return { ...b, total: b.to, x, y: p, width: w, height: bw, labelX: x + w + 5, labelY: p + bw / 2, anchor: 'start', categoryX: plot.left - 8, categoryY: p + bw / 2 };
+            return { ...b, total: b.to, x, y: p, width: w, height: bw, labelX: x + w + 5, labelY: p + bw / 2, anchor: 'start' };
         }
         const y = Math.min(a, z), h = Math.max(1, Math.abs(z - a));
-        return { ...b, total: b.to, x: p, y, width: bw, height: h, labelX: p + bw / 2, labelY: y - 6, anchor: 'middle', categoryX: p + bw / 2, categoryY: plot.bottom + 17 };
+        return { ...b, total: b.to, x: p, y, width: bw, height: h, labelX: p + bw / 2, labelY: y - 6, anchor: 'middle' };
     });
 
     // A thin rule carries each running total across to the next bar.
@@ -56,7 +55,7 @@ export default function waterfall({ steps, width, height, horizontal = false }) 
     return {
         bars,
         connectors,
-        ticks: value.ticks(5).map(v => ({ value: v, pos: value(v) })),
+        ticks: ticks(value, 5),
         plot,
         zero: value(0),
     };

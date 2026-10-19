@@ -9,14 +9,15 @@
     <ChildContent>
         @if (Layout is { } layout)
         {
-            <CompareAxis Ticks="layout.Ticks" Labels="layout.Categories" />
+            <ChartAxes Plot="layout.Plot" XTicks="layout.XTicks" YTicks="layout.YTicks" XAxisAt="layout.XAxisAt" YAxisAt="layout.YAxisAt"
+                       XLabelAngle="layout.LabelAngle" XGrid="Horizontal" YGrid="!Horizontal" XCategories="!Horizontal" YCategories="Horizontal" />
 
             @foreach (RangeBarLayoutBar bar in layout.Bars)
             {
                 <rect x="@N(bar.X)" y="@N(bar.Y)" width="@N(bar.Width)" height="@N(bar.Height)" rx="3" fill="@_color(bar.GroupIndex, layout)">
                     <title>@_tip(bar)</title>
                 </rect>
-                @foreach (CompareText? text in new[] { bar.LowText, bar.HighText })
+                @foreach (ChartLabel? text in new[] { bar.LowText, bar.HighText })
                 {
                     @if (text is not null)
                     {
@@ -38,8 +39,8 @@
     /// <summary>The bars. Items with the same Label share a category; Group splits it into side-by-side slots. Items whose Low or High is not a finite number are skipped.</summary>
     [Parameter] public IReadOnlyList<RangeBarItem> Items { get; set; } = [];
 
-    /// <summary>Stand the bars up as columns instead of rows.</summary>
-    [Parameter] public bool Vertical { get; set; }
+    /// <summary>Lay the bars out as rows (the default); false stands them up as columns.</summary>
+    [Parameter] public bool Horizontal { get; set; } = true;
 
     /// <summary>Write the low and high values at the ends of each bar.</summary>
     [Parameter] public bool ShowValues { get; set; }
@@ -63,15 +64,15 @@
         Items = Items.Select(i => new
         {
             i.Label,
-            Low = CompareSpec.Finite(i.Low),
-            High = CompareSpec.Finite(i.High),
+            i.Low,
+            i.High,
             i.Group,
             LowText = _format(i.Low),
             HighText = _format(i.High),
         }).ToArray(),
         Width = ViewWidth,
         Height = ViewHeight,
-        Vertical,
+        Vertical = !Horizontal,
         ShowValues,
     };
 

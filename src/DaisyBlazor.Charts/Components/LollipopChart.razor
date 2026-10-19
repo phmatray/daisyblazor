@@ -8,7 +8,8 @@
 <D3ChartFrame TLayout="LollipopLayout" Chart="this" Label="@_label" Description="@_description">
     @if (Layout is { } layout)
     {
-        <CompareAxis Ticks="layout.Ticks" Labels="layout.Categories" />
+        <ChartAxes Plot="layout.Plot" XTicks="layout.XTicks" YTicks="layout.YTicks" XAxisAt="layout.XAxisAt" YAxisAt="layout.YAxisAt"
+                   XLabelAngle="layout.LabelAngle" XGrid="Horizontal" YGrid="!Horizontal" XCategories="!Horizontal" YCategories="Horizontal" />
 
         @foreach (LollipopLayoutItem item in layout.Items)
         {
@@ -30,8 +31,8 @@
     /// <summary>The categories and their values. Points whose Value is not a finite number are skipped; a point's Color overrides the chart colour.</summary>
     [Parameter] public IReadOnlyList<ChartDataPoint> Data { get; set; } = [];
 
-    /// <summary>Stand the stems up as columns instead of rows.</summary>
-    [Parameter] public bool Vertical { get; set; }
+    /// <summary>Lay the stems out as rows (the default); false stands them up as columns.</summary>
+    [Parameter] public bool Horizontal { get; set; } = true;
 
     /// <summary>Order of the categories.</summary>
     [Parameter] public LollipopSort Sort { get; set; } = LollipopSort.Descending;
@@ -52,10 +53,10 @@
     /// <inheritdoc />
     protected override object BuildSpec() => new
     {
-        Items = Data.Select(d => new { d.Label, Value = CompareSpec.Finite(d.Value), Text = _format(d.Value) }).ToArray(),
+        Items = Data.Select(d => new { d.Label, d.Value, Text = _format(d.Value) }).ToArray(),
         Width = ViewWidth,
         Height = ViewHeight,
-        Vertical,
+        Vertical = !Horizontal,
         Sort = Sort.ToString().ToLowerInvariant(),
         ShowValues,
     };

@@ -1,4 +1,4 @@
-import { sankey as d3Sankey, sankeyLinkHorizontal, sankeyJustify, sankeyLeft, sankeyRight, sankeyCenter } from '../d3.mjs';
+import { sankey as d3Sankey, sankeyLinkHorizontal, sankeyJustify, sankeyLeft, sankeyRight, sankeyCenter } from '../d3/d3-sankey.mjs';
 
 const ALIGN = { justify: sankeyJustify, left: sankeyLeft, right: sankeyRight, center: sankeyCenter };
 

@@ -30,7 +30,6 @@ test('waterfall keeps a running total through deltas and subtotals', async () =>
     for (const b of bars) {
         inside(b.x, b.y);
         inside(b.labelX, b.labelY);
-        inside(b.categoryX, b.categoryY);
     }
 });
 

@@ -105,10 +105,10 @@
     protected override object BuildSpec() => new
     {
         Axes = Labels.ToArray(),
-        Series = Series.Select(s => Labels.Select((_, i) => i < s.Data.Count ? CompareSpec.Finite(s.Data[i]) : null).ToArray()).ToArray(),
+        Series = Series.Select(s => Labels.Select((_, i) => i < s.Data.Count ? s.Data[i] : (double?)null).ToArray()).ToArray(),
         Width = ViewWidth,
         Height = ViewHeight,
-        Max = CompareSpec.Finite(Max),
+        Max,
         Levels,
         Grid = Grid.ToString().ToLowerInvariant(),
     };

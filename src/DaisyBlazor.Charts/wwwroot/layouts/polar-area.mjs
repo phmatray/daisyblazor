@@ -1,4 +1,5 @@
-import { arc as d3Arc, scaleRadial } from '../d3.mjs';
+import { scaleRadial } from '../d3/d3-scale.mjs';
+import { arc as d3Arc } from '../d3/d3-shape.mjs';
 
 // spec: { items: [{ label, value }], width, height }
 // Rose (Nightingale) chart: every item gets an equal angle, starting at 12 o'clock and running

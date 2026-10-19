@@ -43,13 +43,13 @@ public class ChartsProgressTests : BunitContext
 
         call.SetResult(new WaterfallLayout(
             [
-                new("Open", "total", 100, 100, 50, 100, 60, 200, 80, 94, "middle", 80, 330),
-                new("New", "increase", 40, 140, 150, 20, 60, 80, 180, 14, "middle", 180, 330),
-                new("Lost", "decrease", -25, 115, 250, 20, 60, 50, 280, 14, "middle", 280, 330),
-                new("Close", "total", 115, 115, 350, 70, 60, 230, 380, 64, "middle", 380, 330),
+                new("Open", "total", 100, 100, 50, 100, 60, 200, 80, 94, "middle"),
+                new("New", "increase", 40, 140, 150, 20, 60, 80, 180, 14, "middle"),
+                new("Lost", "decrease", -25, 115, 250, 20, 60, 50, 280, 14, "middle"),
+                new("Close", "total", 115, 115, 350, 70, 60, 230, 380, 64, "middle"),
             ],
             [new(110, 100, 150, 100)],
-            [new(0, 300), new(100, 100)],
+            [new(300, "0", 0), new(100, "100", 100)],
             new(48, 20, 632, 300),
             300));
 
@@ -67,7 +67,7 @@ public class ChartsProgressTests : BunitContext
         (BunitJSModuleInterop module, JSRuntimeInvocationHandler<FunnelLayout> call) = Setup<FunnelLayout>();
         ChartDataPoint[] stages = [new("Trial", 1000), new("Paid", 250)];
 
-        IRenderedComponent<FunnelChart> cut = Render<FunnelChart>(ps => ps.Add(p => p.Stages, stages).Add(p => p.Shape, FunnelShape.Pyramid));
+        IRenderedComponent<FunnelChart> cut = Render<FunnelChart>(ps => ps.Add(p => p.Data, stages).Add(p => p.Shape, FunnelShape.Pyramid));
 
         (string kind, string spec) = Sent(module);
         kind.ShouldBe("funnel");
@@ -92,7 +92,7 @@ public class ChartsProgressTests : BunitContext
 
         IRenderedComponent<GaugeChart> cut = Render<GaugeChart>(ps => ps
             .Add(p => p.Title, "Uptime").Add(p => p.Value, 99.95).Add(p => p.Min, 99).Add(p => p.Max, 100)
-            .Add(p => p.Marker, 99.9).Add(p => p.Bands, bands).Add(p => p.Color, Color.Success));
+            .Add(p => p.Marker, 99.9).Add(p => p.Bands, bands).Add(p => p.Color, "var(--color-success)"));
 
         (string kind, string spec) = Sent(module);
         kind.ShouldBe("gauge");
@@ -109,6 +109,28 @@ public class ChartsProgressTests : BunitContext
         cut.Markup.ShouldContain("var(--color-success)");
         cut.Markup.ShouldContain("Below SLA: 99 to 99.9");
         cut.Markup.ShouldContain("var(--color-secondary)");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("  ")]
+    public void Gauge_falls_back_to_primary_for_an_empty_colour(string color)
+    {
+        (_, JSRuntimeInvocationHandler<GaugeLayout> call) = Setup<GaugeLayout>();
+        IRenderedComponent<GaugeChart> cut = Render<GaugeChart>(ps => ps.Add(p => p.Value, 40).Add(p => p.Color, color));
+
+        call.SetResult(new GaugeLayout(320, 280, 200, "M0,-200A200,200Z", "M0,-200A200,200Z", [], null, [], 40, 0.4, 17.8, 56, 300));
+
+        cut.WaitForAssertion(() => cut.FindAll("svg path").Count.ShouldBeGreaterThan(0));
+        cut.FindAll("svg path").Select(p => p.GetAttribute("fill")).ShouldContain("var(--color-primary)");
+        cut.FindAll("svg path").Select(p => p.GetAttribute("fill")).ShouldNotContain(color);
+    }
+
+    [Fact]
+    public void An_axis_tick_without_a_label_reads_as_empty()
+    {
+        new AxisTick(1, null!).Label.ShouldBe(string.Empty);
+        JsonSerializer.Deserialize<AxisTick>("""{"pos":1,"label":null}""", _json)!.Label.ShouldBe(string.Empty);
     }
 
     [Fact]
@@ -129,7 +151,7 @@ public class ChartsProgressTests : BunitContext
         (BunitJSModuleInterop module, JSRuntimeInvocationHandler<LinearGaugeLayout> call) = Setup<LinearGaugeLayout>();
 
         IRenderedComponent<LinearGaugeChart> cut = Render<LinearGaugeChart>(ps => ps
-            .Add(p => p.Value, 412).Add(p => p.Max, 500).Add(p => p.Vertical, true).Add(p => p.AspectRatio, 0.5).Add(p => p.ValueFormat, "{0} GB"));
+            .Add(p => p.Value, 412).Add(p => p.Max, 500).Add(p => p.Horizontal, false).Add(p => p.AspectRatio, 0.5).Add(p => p.ValueFormat, "{0} GB"));
 
         (string kind, string spec) = Sent(module);
         kind.ShouldBe("linear-gauge");
@@ -150,7 +172,7 @@ public class ChartsProgressTests : BunitContext
         (BunitJSModuleInterop module, JSRuntimeInvocationHandler<RadialBarLayout> call) = Setup<RadialBarLayout>();
         ChartDataPoint[] items = [new("Compute", 72), new("Seats", 93, "var(--color-warning)")];
 
-        IRenderedComponent<RadialBarChart> cut = Render<RadialBarChart>(ps => ps.Add(p => p.Items, items).Add(p => p.ValueFormat, "{0}%"));
+        IRenderedComponent<RadialBarChart> cut = Render<RadialBarChart>(ps => ps.Add(p => p.Data, items).Add(p => p.ValueFormat, "{0}%"));
 
         (string kind, string spec) = Sent(module);
         kind.ShouldBe("radial-bar");
@@ -174,7 +196,7 @@ public class ChartsProgressTests : BunitContext
         (BunitJSModuleInterop module, JSRuntimeInvocationHandler<PolarAreaLayout> call) = Setup<PolarAreaLayout>();
         ChartDataPoint[] items = [new("Login", 142), new("API", 88)];
 
-        IRenderedComponent<PolarAreaChart> cut = Render<PolarAreaChart>(ps => ps.Add(p => p.Items, items));
+        IRenderedComponent<PolarAreaChart> cut = Render<PolarAreaChart>(ps => ps.Add(p => p.Data, items));
 
         (string kind, string spec) = Sent(module);
         kind.ShouldBe("polar-area");
@@ -195,7 +217,7 @@ public class ChartsProgressTests : BunitContext
         (BunitJSModuleInterop module, JSRuntimeInvocationHandler<ParetoLayout> call) = Setup<ParetoLayout>();
         ChartDataPoint[] items = [new("DNS", 30), new("Timeout", 50), new("Other", 20)];
 
-        IRenderedComponent<ParetoChart> cut = Render<ParetoChart>(ps => ps.Add(p => p.Items, items));
+        IRenderedComponent<ParetoChart> cut = Render<ParetoChart>(ps => ps.Add(p => p.Data, items));
 
         (string kind, string spec) = Sent(module);
         kind.ShouldBe("pareto");
@@ -207,7 +229,7 @@ public class ChartsProgressTests : BunitContext
                 new("DNS", 30, 0.3, 0.8, 260, 130, 100, 170, 310, 76),
                 new("Other", 20, 0.2, 1, 460, 190, 100, 110, 510, 12),
             ],
-            "M110,170L310,76L510,12", [new(0, 300), new(50, 12)], [new(0, 300), new(0.8, 76), new(1, 12)],
+            "M110,170L310,76L510,12", [new(300, "0", 0), new(12, "50", 50)], [new(300, "0", 0), new(76, "0.8", 0.8), new(12, "1", 1)],
             new(48, 12, 594, 300), 76, 2));
 
         cut.WaitForAssertion(() => cut.FindAll("svg rect").Count.ShouldBe(3));
@@ -236,7 +258,7 @@ public class ChartsProgressTests : BunitContext
                 new(0, 0, 30, 0.75, 44, 85, 232, 230), new(0, 1, 10, 0.25, 44, 6, 232, 77),
                 new(1, 0, 20, 1 / 3d, 278, 214, 356, 101), new(1, 1, 40, 2 / 3d, 278, 6, 356, 206),
             ],
-            ["Free", "Pro"], [new(0, 320), new(1, 6)], new(44, 6, 634, 320)));
+            ["Free", "Pro"], [new(320, "0", 0), new(6, "1", 1)], new(44, 6, 634, 320)));
 
         cut.WaitForAssertion(() => cut.FindAll("svg rect").Count.ShouldBe(4));
         cut.Markup.ShouldContain("75%");
@@ -251,7 +273,7 @@ public class ChartsProgressTests : BunitContext
         (BunitJSModuleInterop module, JSRuntimeInvocationHandler<WaffleLayout> call) = Setup<WaffleLayout>();
         ChartDataPoint[] items = [new("Active", 412), new("Gone", 0), new("Invited", 96)];
 
-        IRenderedComponent<WaffleChart> cut = Render<WaffleChart>(ps => ps.Add(p => p.Items, items).Add(p => p.Total, 600));
+        IRenderedComponent<WaffleChart> cut = Render<WaffleChart>(ps => ps.Add(p => p.Data, items).Add(p => p.Total, 600));
 
         (string kind, string spec) = Sent(module);
         kind.ShouldBe("waffle");

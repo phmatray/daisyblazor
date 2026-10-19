@@ -1,4 +1,6 @@
-import { line, scaleBand, scaleLinear } from '../d3.mjs';
+import { scaleBand, scaleLinear } from '../d3/d3-scale.mjs';
+import { line } from '../d3/d3-shape.mjs';
+import { ticks, valueScale } from './_shared.mjs';
 
 // spec: { items: [{ label, value }], threshold, width, height }
 // Bars sorted by value (largest first) on the left axis, the cumulative share as a line on a
@@ -16,7 +18,7 @@ export default function pareto({ items, threshold = 0.8, width, height }) {
     const plot = { left: 48, top: 12, right: width - 46, bottom: height - 26 };
     const total = valid.reduce((s, d) => s + d.value, 0);
     const x = scaleBand().domain(valid.map((_, i) => i)).range([plot.left, plot.right]).paddingInner(0.25).paddingOuter(0.1);
-    const y = scaleLinear().domain([0, valid[0].value]).nice().range([plot.bottom, plot.top]);
+    const y = valueScale([valid[0].value], { zero: true }).range([plot.bottom, plot.top]);
     const share = scaleLinear().domain([0, 1]).range([plot.bottom, plot.top]);
 
     let running = 0;
@@ -43,8 +45,8 @@ export default function pareto({ items, threshold = 0.8, width, height }) {
     return {
         bars,
         line: line().x(b => b.cx).y(b => b.cy)(bars),
-        ticks: y.ticks(5).map(v => ({ value: v, pos: y(v) })),
-        shareTicks: share.ticks(5).map(v => ({ value: v, pos: share(v) })),
+        ticks: ticks(y, 5),
+        shareTicks: ticks(share, 5),
         plot,
         thresholdY: share(t),
         vitalFew,

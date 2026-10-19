@@ -1,7 +1,7 @@
 namespace DaisyBlazor.Charts;
 
 /// <summary>Geometry of a <see cref="BumpChart"/>, computed by D3: one line per series and the period ticks.</summary>
-public sealed record BumpLayout(IReadOnlyList<BumpLine> Lines, IReadOnlyList<TimeAxisTick> XTicks, int Ranks, TimePlotArea Plot);
+public sealed record BumpLayout(IReadOnlyList<BumpLine> Lines, IReadOnlyList<AxisTick> XTicks, int Ranks, PlotArea Plot);
 
 /// <summary>A placed series: its index, name, line path, ranked points, and where its name goes at each end (null when unranked there).</summary>
 public sealed record BumpLine(int Index, string Name, string Label, string Path, IReadOnlyList<BumpPoint> Points, BumpAnchor? Start, BumpAnchor? End);

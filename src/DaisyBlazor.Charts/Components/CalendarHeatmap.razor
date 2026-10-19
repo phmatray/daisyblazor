@@ -9,13 +9,13 @@
     <ChildContent>
         @if (Layout is { } geo)
         {
-            @foreach (CalendarHeatmapLabel month in geo.Months)
+            @foreach (AxisTick month in geo.Months)
             {
-                <SvgText X="@month.X" Y="11" FontSize="10" FillOpacity="0.7" Text="@month.Label" />
+                <SvgText X="@month.Pos" Y="11" FontSize="10" FillOpacity="0.7" Text="@month.Label" />
             }
-            @foreach (CalendarHeatmapLabel weekday in geo.Weekdays)
+            @foreach (AxisTick weekday in geo.Weekdays)
             {
-                <SvgText X="26" Y="@weekday.Y" Dy="0.35em" Anchor="end" FontSize="10" FillOpacity="0.7" Text="@weekday.Label" />
+                <SvgText X="26" Y="@weekday.Pos" Dy="0.35em" Anchor="end" FontSize="10" FillOpacity="0.7" Text="@weekday.Label" />
             }
             @foreach (CalendarHeatmapCell cell in geo.Cells)
             {
@@ -83,7 +83,7 @@
     /// <inheritdoc />
     protected override object BuildSpec() => new
     {
-        Days = Days.Select(d => new { d.Date, Value = SpecValue.Finite(d.Value) }).ToArray(),
+        Days = Days.Select(d => new { d.Date, d.Value }).ToArray(),
         From,
         To,
         WeekStart = (int)FirstDayOfWeek,

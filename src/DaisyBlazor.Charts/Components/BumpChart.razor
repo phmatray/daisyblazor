@@ -8,7 +8,7 @@
 <D3ChartFrame TLayout="BumpLayout" Chart="this" Label="@_label" Description="@_description">
     @if (Layout is { } geo)
     {
-        <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" XGrid="true" ViewWidth="ViewWidth" />
+        <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" XGrid="true" Baseline="true" XTickMarks="true" ViewWidth="ViewWidth" />
         @foreach (BumpLine line in geo.Lines)
         {
             string color = _color(line.Index);
@@ -58,7 +58,7 @@
     /// <inheritdoc />
     protected override object BuildSpec() => new
     {
-        Series = Series.Select(s => new { s.Name, Values = s.Data.Select(SpecValue.Finite).ToArray() }).ToArray(),
+        Series = Series.Select(s => new { s.Name, Values = s.Data }).ToArray(),
         Labels,
         ValuesAreRanks,
         Width = ViewWidth,

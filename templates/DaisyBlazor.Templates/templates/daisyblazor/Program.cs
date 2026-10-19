@@ -10,6 +10,9 @@ builder.Services.AddRazorComponents()
 // DaisyBlazor: ISnackbar + IDialogService.
 builder.Services.AddDaisyBlazor();
 
+// DaisyBlazor.Charts.Server: charts lay out on the server, so prerendered pages already show them.
+builder.Services.AddDaisyBlazorChartsServerRendering();
+
 WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.

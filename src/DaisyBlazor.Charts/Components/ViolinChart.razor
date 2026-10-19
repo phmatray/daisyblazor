@@ -8,9 +8,10 @@
 <D3ChartFrame TLayout="ViolinLayout" Chart="this" Label="@_label" Description="@_description">
     @if (Layout is { } view)
     {
-        <DistributionAxes Plot="view.Plot" XTicks="view.XTicks" YTicks="view.YTicks" Height="ViewHeight"
-                          XTitle="@(view.Horizontal ? ValueTitle : null)" YTitle="@(view.Horizontal ? null : ValueTitle)"
-                          XGrid="view.Horizontal" YGrid="!view.Horizontal" />
+        <ChartAxes Plot="view.Plot" Baseline="true" XTicks="view.XTicks" YTicks="view.YTicks" Height="ViewHeight"
+                   XTitle="@(view.Horizontal ? ValueTitle : null)" YTitle="@(view.Horizontal ? null : ValueTitle)"
+                   XGrid="view.Horizontal" YGrid="!view.Horizontal"
+                   XCategories="!view.Horizontal" YCategories="view.Horizontal" />
         @foreach (ViolinLayoutGroup g in view.Groups)
         {
             string color = _color(g);

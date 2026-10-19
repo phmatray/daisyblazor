@@ -13,8 +13,8 @@ public class ChartsCompareTests : BunitContext
 
     private static readonly JsonSerializerOptions _web = new(JsonSerializerDefaults.Web);
 
-    private static readonly CompareRect _plot = new(80, 4, 550, 330);
-    private static readonly CompareTick[] _ticks = [new("0", 80, 349, "middle", 80, 4, 80, 334), new("50", 355, 349, "middle", 355, 4, 355, 334)];
+    private static readonly PlotArea _plot = new(80, 4, 630, 334);
+    private static readonly AxisTick[] _ticks = [new(80, "0", 0), new(355, "50", 50)];
 
     private (BunitJSModuleInterop Module, JSRuntimeInvocationHandler<T> Call) Setup<T>()
     {
@@ -68,7 +68,7 @@ public class ChartsCompareTests : BunitContext
         (BunitJSModuleInterop module, JSRuntimeInvocationHandler<BulletLayout> call) = Setup<BulletLayout>();
         IRenderedComponent<BulletChart> cut = Render<BulletChart>(ps => ps
             .Add(p => p.Items, [new BulletItem("Active seats", 820, 900, [500, 750, 1000]), new BulletItem("Broken", double.NaN)])
-            .Add(p => p.Vertical, true));
+            .Add(p => p.Horizontal, false));
 
         (string kind, string spec) = Sent(module);
         kind.ShouldBe("bullet");
@@ -77,9 +77,9 @@ public class ChartsCompareTests : BunitContext
         spec.ShouldContain("\"vertical\":true");
 
         call.SetResult(new BulletLayout([
-            new("Active seats", 820, 900, new("Active seats", 200, 352, "middle", 0),
+            new("Active seats", 820, 900, new(180, 10, 220, 310),
                 [new(180, 10, 40, 100, 0), new(180, 110, 40, 100, 1), new(180, 210, 40, 100, 2)],
-                new(193, 40, 13, 294), new(186, 30, 214, 30), [new("0", 174, 338, "end", 177, 334, 180, 334)]),
+                new(193, 40, 13, 294), new(186, 30, 214, 30), [new(200, "Active seats")], [new(334, "0", 0)]),
         ]));
 
         cut.WaitForAssertion(() => cut.FindAll("svg rect").Count.ShouldBe(4));
@@ -103,8 +103,8 @@ public class ChartsCompareTests : BunitContext
         kind.ShouldBe("dumbbell");
         spec.ShouldContain("\"startText\":\"240 ms\"");
 
-        call.SetResult(new DumbbellLayout(_plot, _ticks, [new("Europe", 60, 170, "end", 0)],
-            [new("Europe", 240, 180, 500, 300, 166, new("240 ms", 508, 170, "start", 0), new("180 ms", 292, 170, "end", 0))]));
+        call.SetResult(new DumbbellLayout(_plot, _ticks, [new(166, "Europe")], 334, 80, 0,
+            [new("Europe", 240, 180, 500, 300, 166, new("240 ms", 508, 170, "start"), new("180 ms", 292, 170, "end"))]));
 
         cut.WaitForAssertion(() => cut.FindAll("svg circle").Count.ShouldBe(2));
         cut.Markup.ShouldContain("Europe: Before 240 ms, After 180 ms");
@@ -126,10 +126,10 @@ public class ChartsCompareTests : BunitContext
         kind.ShouldBe("slope");
         spec.ShouldContain("\"startLabel\":\"Q1\"");
 
-        call.SetResult(new SlopeLayout([new("Q1", 120, 16, "middle", 0), new("Q4", 520, 16, "middle", 0)], 120, 520, 36, 470,
+        call.SetResult(new SlopeLayout([new("Q1", 120, 16, "middle"), new("Q4", 520, 16, "middle")], 120, 520, 36, 470,
         [
-            new("Support", 31, 52, 120, 300, 520, 100, new("Support 31", 110, 304, "end", 0), new("52 Support", 530, 104, "start", 0)),
-            new("Platform", 44, 39, 120, 200, 520, 250, new("Platform 44", 110, 204, "end", 0), new("39 Platform", 530, 254, "start", 0)),
+            new("Support", 31, 52, 120, 300, 520, 100, new("Support 31", 110, 304, "end"), new("52 Support", 530, 104, "start")),
+            new("Platform", 44, 39, 120, 200, 520, 250, new("Platform 44", 110, 204, "end"), new("39 Platform", 530, 254, "start")),
         ]));
 
         cut.WaitForAssertion(() => cut.FindAll("svg circle").Count.ShouldBe(4));
@@ -153,10 +153,10 @@ public class ChartsCompareTests : BunitContext
         spec.ShouldContain("\"sort\":\"ascending\"");
         spec.ShouldContain("\"text\":\"52\"");
 
-        call.SetResult(new LollipopLayout(_plot, _ticks, [new("Billing", 60, 100, "end", 0), new("Support", 60, 250, "end", 0)],
+        call.SetResult(new LollipopLayout(_plot, _ticks, [new(96, "Billing"), new(246, "Support")], 334, 80, 0,
         [
-            new("Billing", 41, 1, 80, 96, 400, 96, new("41", 408, 100, "start", 0)),
-            new("Support", 52, 0, 80, 246, 500, 246, new("52", 508, 250, "start", -40)),
+            new("Billing", 41, 1, 80, 96, 400, 96, new("41", 408, 100, "start")),
+            new("Support", 52, 0, 80, 246, 500, 246, new("52", 508, 250, "start")),
         ]));
 
         cut.WaitForAssertion(() => cut.FindAll("svg circle").Count.ShouldBe(2));
@@ -181,8 +181,8 @@ public class ChartsCompareTests : BunitContext
 
         call.SetResult(new ParallelLayout(
             [
-                new("Seats", 40, 30, 352, new("Seats", 40, 16, "middle", 0), [new("0", 34, 356, "end", 37, 352, 40, 352)]),
-                new("Storage", 600, 30, 352, new("Storage", 600, 16, "middle", 0), [new("100", 594, 34, "end", 597, 30, 600, 30)]),
+                new("Seats", 40, 30, 352, new("Seats", 40, 16, "middle"), [new(352, "0", 0)]),
+                new("Storage", 600, 30, 352, new("Storage", 600, 16, "middle"), [new(30, "100", 100)]),
             ],
             [new("Starter", 0, [5, null], "M40,300"), new("Team", 1, [25, 100], "M40,200L600,30")]));
 
@@ -206,7 +206,7 @@ public class ChartsCompareTests : BunitContext
         kind.ShouldBe("rangebar");
         spec.ShouldContain("\"group\":\"Before\"");
 
-        call.SetResult(new RangeBarLayout(_plot, _ticks, [new("Europe", 60, 170, "end", 0)], ["Before", "After"],
+        call.SetResult(new RangeBarLayout(_plot, _ticks, [new(166, "Europe")], 334, 80, 0, ["Before", "After"],
         [
             new("Europe", "Before", 0, 120, 410, 150, 60, 300, 100, null, null),
             new("Europe", "After", 1, 95, 300, 120, 170, 200, 100, null, null),
@@ -234,13 +234,13 @@ public class ChartsCompareTests : BunitContext
     public void Charts_ask_again_only_when_their_data_changes()
     {
         (BunitJSModuleInterop module, JSRuntimeInvocationHandler<LollipopLayout> call) = Setup<LollipopLayout>();
-        call.SetResult(new LollipopLayout(_plot, [], [], []));
+        call.SetResult(new LollipopLayout(_plot, [], [], 334, 80, 0, []));
 
         IRenderedComponent<LollipopChart> cut = Render<LollipopChart>(ps => ps.Add(p => p.Data, [new ChartDataPoint("A", 1)]));
         cut.Render(ps => ps.Add(p => p.Title, "NPS"));
         module.Invocations["layout"].Count.ShouldBe(1);
 
-        cut.Render(ps => ps.Add(p => p.Vertical, true));
+        cut.Render(ps => ps.Add(p => p.Horizontal, false));
         module.Invocations["layout"].Count.ShouldBe(2);
     }
 }

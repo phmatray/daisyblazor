@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { layout, observe, update, unobserve } from '../src/DaisyBlazor.Charts/wwwroot/charts.mjs';
-import { compact } from '../src/DaisyBlazor.Charts/wwwroot/layouts/_axis.mjs';
+import { compact } from '../src/DaisyBlazor.Charts/wwwroot/layouts/_shared.mjs';
 
 const size = { width: 640, height: 256 };
 const moves = path => path.split('M').filter(Boolean).length;
@@ -17,24 +17,24 @@ test('line: the axis rounds out to nice ticks', async () => {
 test('compact tick text for large values', async () => {
     assert.deepEqual([0, 2.5, 0.1 + 0.2, 1500, 50000, -1500, 2_400_000, 1234.5].map(compact),
         ['0', '2.5', '0.3', '1.5k', '50k', '-1.5k', '2.4M', '1.23k']);
-    const { valueTicks } = await layout('bar', { categories: ['Free', 'Pro'], series: [[48200, 12000]], ...size });
-    assert.equal(valueTicks.at(-1).label, '50k');
+    const { yTicks } = await layout('bar', { categories: ['Free', 'Pro'], series: [[48200, 12000]], ...size });
+    assert.equal(yTicks.at(-1).label, '50k');
 });
 
 test('line: a slot per label, points in the middle of their slot', async () => {
-    const { plot, xLabels, series } = await layout('line', { series: [[1, 2]], labels: ['A', 'B', 'C', 'D'], showGrid: false, ...size });
+    const { plot, xTicks, series } = await layout('line', { series: [[1, 2]], labels: ['A', 'B', 'C', 'D'], showGrid: false, ...size });
     const slot = (plot.right - plot.left) / 4;
-    assert.equal(xLabels.length, 4);
-    assert.equal(xLabels[3].pos, plot.left + slot * 3.5);
+    assert.equal(xTicks.length, 4);
+    assert.equal(xTicks[3].pos, plot.left + slot * 3.5);
     assert.equal(series[0].points[0].x, plot.left + slot / 2);
 });
 
 test('line: long axes thin their labels so they never overlap', async () => {
     const labels = Array.from({ length: 60 }, (_, i) => `Day ${i + 1}`);
-    const { xLabels } = await layout('line', { series: [labels.map(() => 1)], labels, width: 300, height: 200 });
-    assert.ok(xLabels.length < 15);
-    for (let i = 1; i < xLabels.length; i++) {
-        assert.ok(xLabels[i].pos - xLabels[i - 1].pos >= 'Day 60'.length * 6.6);
+    const { xTicks } = await layout('line', { series: [labels.map(() => 1)], labels, width: 300, height: 200 });
+    assert.ok(xTicks.length < 15);
+    for (let i = 1; i < xTicks.length; i++) {
+        assert.ok(xTicks[i].pos - xTicks[i - 1].pos >= 'Day 60'.length * 6.6);
     }
 });
 
@@ -80,8 +80,8 @@ test('line: unstacked axis follows the largest single value; empty input is safe
 });
 
 test('bar: negative bars run down from the zero line', async () => {
-    const { bars, valueTicks } = await layout('bar', { categories: ['Up', 'Down'], series: [[10, -10]], ...size });
-    const zero = valueTicks.find(t => t.label === '0').pos;
+    const { bars, yTicks } = await layout('bar', { categories: ['Up', 'Down'], series: [[10, -10]], ...size });
+    const zero = yTicks.find(t => t.label === '0').pos;
     assert.ok(Math.abs(bars[0].y + bars[0].height - zero) < 0.01);
     assert.equal(bars[1].y, zero);
     assert.equal(bars[0].height, bars[1].height);
@@ -96,16 +96,16 @@ test('bar: grouped bars share their category band, missing values draw nothing',
 
 test('bar: horizontal keeps long category labels whole and has no value row without the grid', async () => {
     const out = await layout('bar', { categories: ['North America', 'Asia Pacific'], series: [[10, 5]], horizontal: true, ...size });
-    assert.deepEqual(out.categoryLabels.map(l => l.label), ['North America', 'Asia Pacific']);
+    assert.deepEqual(out.yTicks.map(l => l.label), ['North America', 'Asia Pacific']);
     assert.ok(out.plot.left > 'North America'.length * 6.6);
 
     const bare = await layout('bar', { categories: ['A'], series: [[1]], horizontal: true, showGrid: false, ...size });
-    assert.deepEqual(bare.valueTicks, []);
+    assert.deepEqual(bare.xTicks, []);
     assert.equal(bare.plot.bottom, 256 - 4);
 
     const narrow = await layout('bar', { categories: ['A very long region name indeed'], series: [[1]], horizontal: true, width: 200, height: 100 });
-    assert.match(narrow.categoryLabels[0].label, /…$/);
-    assert.equal(narrow.categoryLabels[0].full, 'A very long region name indeed');
+    assert.match(narrow.yTicks[0].label, /…$/);
+    assert.equal(narrow.yTicks[0].full, 'A very long region name indeed');
 });
 
 test('pie: slices clockwise from 12 o\'clock in input order, with percentages', async () => {

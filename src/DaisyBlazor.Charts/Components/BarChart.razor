@@ -30,45 +30,14 @@
                 <title>@_ariaLabel</title>
                 <desc id="@_descId">@_description</desc>
 
-                @foreach (AxisLabel tick in geo.ValueTicks)
-                {
-                    @if (Horizontal)
-                    {
-                        <line x1="@N(tick.Pos)" y1="@N(geo.Plot.Top)" x2="@N(tick.Pos)" y2="@N(geo.Plot.Bottom)"
-                              stroke="var(--color-base-content)" stroke-opacity="0.12" stroke-width="1" />
-                        <SvgText X="@tick.Pos" Y="@geo.ValueLabelAt" Anchor="middle" FillOpacity="0.6" Text="@tick.Label" />
-                    }
-                    else
-                    {
-                        <line x1="@N(geo.Plot.Left)" y1="@N(tick.Pos)" x2="@N(geo.Plot.Right)" y2="@N(tick.Pos)"
-                              stroke="var(--color-base-content)" stroke-opacity="0.12" stroke-width="1" />
-                        <SvgText X="@geo.ValueLabelAt" Y="@tick.Pos" Dy="0.35em" Anchor="end" FillOpacity="0.6" Text="@tick.Label" />
-                    }
-                }
+                <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="geo.YTicks" XGrid="Horizontal" YGrid="!Horizontal"
+                           XCategories="!Horizontal" YCategories="Horizontal" ViewWidth="geo.Width" />
 
                 @* A layout still being replaced may name bars the new data no longer has. *@
                 @foreach (BarLayoutBar bar in geo.Bars.Where(b => b.C < _categories.Count && b.S < _seriesCount))
                 {
                     <rect x="@N(bar.X)" y="@N(bar.Y)" width="@N(bar.Width)" height="@N(bar.Height)"
                           fill="@_color(bar.C, bar.S)"><title>@_tooltip(bar.C, bar.S)</title></rect>
-                }
-
-                @foreach (AxisLabel label in geo.CategoryLabels)
-                {
-                    <g>
-                        @if (label.Full != label.Label)
-                        {
-                            <title>@label.Full</title>
-                        }
-                        @if (Horizontal)
-                        {
-                            <SvgText X="@geo.LabelAt" Y="@label.Pos" Dy="0.35em" Anchor="end" FillOpacity="0.6" Text="@label.Label" />
-                        }
-                        else
-                        {
-                            <SvgText X="@label.Pos" Y="@geo.LabelAt" Anchor="middle" FillOpacity="0.6" Text="@label.Label" />
-                        }
-                    </g>
                 }
             </svg>
         }
@@ -164,8 +133,8 @@
         {
             Categories = _categories,
             Series = _grouped
-                ? _series!.Select(s => ChartText.Spec(s.Data)).ToArray()
-                : [ChartText.Spec(_points.Select(p => p.Value).ToList())],
+                ? _series!.Select(s => s.Data ?? []).ToArray()
+                : [_points.Select(p => p.Value).ToArray()],
             Horizontal,
             ShowGrid,
         };

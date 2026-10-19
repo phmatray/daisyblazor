@@ -27,7 +27,7 @@
 
 @code {
     /// <summary>The parts of the whole, filled in this order. Only positive values count; a point's Color overrides the palette.</summary>
-    [Parameter] public IReadOnlyList<ChartDataPoint> Items { get; set; } = [];
+    [Parameter] public IReadOnlyList<ChartDataPoint> Data { get; set; } = [];
 
     /// <summary>The whole. When it is larger than the sum of the items, the remaining cells stay empty; by default the items fill the grid.</summary>
     [Parameter] public double? Total { get; set; }
@@ -72,7 +72,7 @@
     };
 
     // The layout keeps only positive values, so the component filters the same way to keep item indexes aligned.
-    private IEnumerable<ChartDataPoint> _valid => Items.Where(i => double.IsFinite(i.Value) && i.Value > 0);
+    private IEnumerable<ChartDataPoint> _valid => Data.Where(i => double.IsFinite(i.Value) && i.Value > 0);
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
 

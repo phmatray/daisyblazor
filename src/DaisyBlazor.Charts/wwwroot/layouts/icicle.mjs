@@ -1,4 +1,4 @@
-import { partition } from '../d3.mjs';
+import { partition } from '../d3/d3-hierarchy.mjs';
 import { build, groups, base, EMPTY } from './_hierarchy.mjs';
 
 // spec: { root: { name, value, children }, width, height, orientation: 'horizontal' | 'vertical' }

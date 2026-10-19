@@ -1,8 +1,9 @@
 // Shared by the graph layouts (chord, network, arc-diagram): turns { links, nodes } into indexed
 // nodes and valid links. The leading underscore keeps it out of reach of layout(kind).
+import { textWidth } from './_shared.mjs';
 
-// Rough width of a 12-unit label, used to reserve room for names around a chart.
-export const textWidth = s => String(s).length * 7;
+// Names are drawn bold, about as wide as 12-unit regular text: the room reserved around a chart.
+export const nameWidth = s => textWidth(s, 12);
 
 // nodes: [{ name, group }] in the order given, then every other link endpoint by first appearance.
 // links: only those with two different, non-empty names and a positive finite value.

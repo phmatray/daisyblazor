@@ -8,7 +8,7 @@
 <D3ChartFrame TLayout="BeeswarmLayout" Chart="this" Label="@_label" Description="@_description">
     @if (Layout is { } view)
     {
-        <DistributionAxes Plot="view.Plot" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@ValueTitle" XGrid="true" Height="ViewHeight" />
+        <ChartAxes Plot="view.Plot" Baseline="true" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@ValueTitle" XGrid="true" YCategories="true" Height="ViewHeight" />
         @foreach (BeeswarmLayoutGroup g in view.Groups)
         {
             string color = _color(g);

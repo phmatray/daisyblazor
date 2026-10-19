@@ -9,7 +9,7 @@
     <ChildContent>
         @if (Layout is { } geo)
         {
-            <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="geo.YTicks" ViewWidth="ViewWidth" />
+            <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="geo.YTicks" YGrid="true" Baseline="true" XTickMarks="true" ViewWidth="ViewWidth" />
             @foreach (CandlestickLayoutCandle c in geo.Candles)
             {
                 string color = c.Up ? UpColor : DownColor;
@@ -81,10 +81,10 @@
         Candles = Candles.Select(c => new
         {
             c.Time,
-            Open = SpecValue.Finite(c.Open),
-            High = SpecValue.Finite(c.High),
-            Low = SpecValue.Finite(c.Low),
-            Close = SpecValue.Finite(c.Close),
+            c.Open,
+            c.High,
+            c.Low,
+            c.Close,
         }).ToArray(),
         Width = ViewWidth,
         Height = ViewHeight,

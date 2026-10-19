@@ -1,4 +1,5 @@
-import { arc as d3Arc, scaleLinear } from '../d3.mjs';
+import { scaleLinear } from '../d3/d3-scale.mjs';
+import { arc as d3Arc } from '../d3/d3-shape.mjs';
 
 const EMPTY = { cx: 0, cy: 0, radius: 0, track: '', fill: '', bands: [], marker: null, ticks: [], value: 0, fraction: 0, fontSize: 12, valueFontSize: 12, valueY: 0 };
 const RAD = Math.PI / 180;

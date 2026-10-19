@@ -1,5 +1,6 @@
-import { scalePoint, scaleSqrt, max } from '../d3.mjs';
-import { graph, textWidth } from './_graph.mjs';
+import { max } from '../d3/d3-array.mjs';
+import { scalePoint, scaleSqrt } from '../d3/d3-scale.mjs';
+import { graph, nameWidth } from './_graph.mjs';
 
 const EMPTY = { nodes: [], links: [], groups: [], labelRoom: 0 };
 
@@ -18,7 +19,7 @@ export default function arcDiagram({ links, nodes, width, height, sort = 'input'
         order.sort((a, b) => b.degree - a.degree || a.index - b.index);
     }
 
-    const labelRoom = Math.min(height * 0.4, max(order, d => textWidth(d.name)) + 16);
+    const labelRoom = Math.min(height * 0.4, max(order, d => nameWidth(d.name)) + 16);
     const baseline = height - labelRoom;
     const x = scalePoint().domain(order.map(d => d.index)).range([12, width - 12]).padding(0.5);
     const r = d => 3 + 1.5 * Math.sqrt(d.degree);

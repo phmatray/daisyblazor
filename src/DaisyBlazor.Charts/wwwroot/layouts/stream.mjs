@@ -1,11 +1,11 @@
-import {
-    stack, area, scaleLinear, format, curveBasis, curveMonotoneX,
-    stackOffsetWiggle, stackOffsetNone, stackOffsetExpand, stackOrderInsideOut, stackOrderNone,
-} from '../d3.mjs';
-import { xScale, yAxis, finite, r2 } from './_time.mjs';
+import { format } from '../d3/d3-format.mjs';
+import { scaleLinear } from '../d3/d3-scale.mjs';
+import { stack, area, curveBasis, curveMonotoneX, stackOffsetWiggle, stackOffsetNone, stackOffsetExpand, stackOrderInsideOut, stackOrderNone } from '../d3/d3-shape.mjs';
+import { finite, r2, textWidth, ticks } from './_shared.mjs';
+import { xScale, yAxisWidth } from './_time.mjs';
 
 const OFFSET = { wiggle: stackOffsetWiggle, stacked: stackOffsetNone, percent: stackOffsetExpand };
-const EMPTY = { layers: [], columns: [], xTicks: [], yTicks: [], plot: { x0: 0, y0: 0, x1: 0, y1: 0 } };
+const EMPTY = { layers: [], columns: [], xTicks: [], yTicks: [], plot: { left: 0, top: 0, right: 0, bottom: 0 } };
 
 // spec: { series: [{ name, values }], dates, labels, offset: 'wiggle' | 'stacked' | 'percent', width, height }
 // values[i] lines up with dates[i] (a time axis, in order) or labels[i] (a category axis). Missing,
@@ -33,11 +33,12 @@ export default function stream({ series, dates, labels, offset = 'wiggle', width
     if (showY) {
         y.nice();
     }
-    const axis = showY ? yAxis(y, Math.max(2, Math.floor((bottom - top) / 40)), offset === 'percent' ? format('.0%') : undefined) : { ticks: [], width: 12 };
-    const plot = { x0: axis.width, y0: top, x1: width - 24, y1: bottom };
-    y.range([plot.y1, plot.y0]);
+    const yCount = Math.max(2, Math.floor((bottom - top) / 40));
+    const yFormat = offset === 'percent' ? format('.0%') : undefined;
+    const plot = { left: showY ? yAxisWidth(y, yCount, yFormat) : 12, top, right: width - 24, bottom };
+    y.range([plot.bottom, plot.top]);
 
-    const x = xScale({ dates, labels, count, x0: plot.x0, x1: plot.x1 });
+    const x = xScale({ dates, labels, count, x0: plot.left, x1: plot.right });
     const xs = rows.map((_, i) => x.at(i));
     const shape = area().x((_, i) => xs[i]).y0(d => y(d[0])).y1(d => y(d[1]))
         .curve(offset === 'wiggle' ? curveBasis : curveMonotoneX);
@@ -48,7 +49,7 @@ export default function stream({ series, dates, labels, offset = 'wiggle', width
         // only when the text fits inside the layer there.
         layers: layers.map(layer => {
             const name = named[layer.key].name ?? '';
-            const half = name.length * 3.3 + 4;
+            const half = textWidth(name) / 2 + 4;
             // The layer's bottom and top edge at any x, interpolated between data points.
             const edges = px => {
                 const j = Math.max(0, Math.min(count - 2, xs.findIndex((x, k) => k === count - 1 || xs[k + 1] >= px)));
@@ -58,7 +59,7 @@ export default function stream({ series, dates, labels, offset = 'wiggle', width
             };
             let best = null;
             for (let i = 0; i < count; i++) {
-                const cx = Math.min(Math.max(xs[i], plot.x0 + half), plot.x1 - half);
+                const cx = Math.min(Math.max(xs[i], plot.left + half), plot.right - half);
                 const [b, t] = edges(cx);
                 const cy = (b + t) / 2;
                 const samples = [cx - half, cx - half / 2, cx, cx + half / 2, cx + half, ...xs.filter(x => Math.abs(x - cx) <= half)];
@@ -78,12 +79,12 @@ export default function stream({ series, dates, labels, offset = 'wiggle', width
         // One hover strip per x position, holding every series' raw value.
         columns: xs.map((cx, i) => ({
             label: x.label(i),
-            x0: r2(i === 0 ? plot.x0 : (xs[i - 1] + cx) / 2),
-            x1: r2(i === count - 1 ? plot.x1 : (cx + xs[i + 1]) / 2),
+            x0: r2(i === 0 ? plot.left : (xs[i - 1] + cx) / 2),
+            x1: r2(i === count - 1 ? plot.right : (cx + xs[i + 1]) / 2),
             values: named.map(s => value(s, i)),
         })),
-        xTicks: x.ticks.map(t => ({ position: r2(t.position), label: t.label })),
-        yTicks: axis.ticks.map(t => ({ position: r2(y(t.value)), label: t.label })),
+        xTicks: x.ticks,
+        yTicks: showY ? ticks(y, yCount, yFormat) : [],
         plot,
     };
 }

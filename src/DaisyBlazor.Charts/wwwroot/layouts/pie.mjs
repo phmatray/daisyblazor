@@ -1,4 +1,4 @@
-import { pie as d3Pie, arc as d3Arc } from '../d3.mjs';
+import { pie as d3Pie, arc as d3Arc } from '../d3/d3-shape.mjs';
 
 // Pie and donut. spec: { values: [number|null], size, innerRatio, centerLabel }. Only positive
 // finite values count; slices run clockwise from 12 o'clock in input order, their paths centred on

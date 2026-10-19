@@ -1,4 +1,4 @@
-import { arc as d3Arc } from '../d3.mjs';
+import { arc as d3Arc } from '../d3/d3-shape.mjs';
 
 const SWEEP = 1.5 * Math.PI; // rings run three quarters of a turn, so the top-left quarter stays free for labels
 

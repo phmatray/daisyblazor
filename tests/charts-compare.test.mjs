@@ -33,10 +33,12 @@ function assertInside(result, width = W, height = H) {
 
 // Labels as boxes, using the same width estimate the layouts use, must not overlap.
 function box(l, size = 12) {
-    const w = l.text.length * size * 0.62;
+    const w = l.text.length * size * 0.6;
     const x = l.anchor === 'end' ? l.x - w : l.anchor === 'middle' ? l.x - w / 2 : l.x;
     return { x0: x, x1: x + w, y0: l.y - size * 0.8, y1: l.y };
 }
+// A category label down the left of a horizontal frame, placed as the axes component draws it.
+const category = (r, i) => ({ text: r.yTicks[i].label, x: r.yAxisAt - 6, y: r.yTicks[i].pos + 4, anchor: 'end' });
 const overlap = (a, b) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
 
 test('radar: one spoke per axis from the top, rings on nice ticks, names inside the box', async () => {
@@ -92,12 +94,13 @@ test('bullet: each row has its own scale, ranges as bands, a bar and a target', 
     const [seats, deploys] = r.rows;
     assert.deepEqual(seats.ranges.map(b => b.level), [0, 1, 2]);
     assert.equal(seats.ranges[0].x, seats.bar.x);
-    assert.equal(seats.ticks.at(-1).label, '1,000');
-    assert.equal(deploys.ticks.at(-1).label, '50');
+    assert.equal(seats.xTicks.at(-1).label, '1,000');
+    assert.equal(deploys.xTicks.at(-1).label, '50');
     assert.ok(seats.marker.x1 > seats.bar.x + seats.bar.width, 'target past the value');
     assert.ok(deploys.marker.x1 < deploys.bar.x + deploys.bar.width, 'value past the target');
     assert.ok(seats.ranges[0].y + seats.ranges[0].height < deploys.ranges[0].y, 'rows stack');
-    assert.equal(seats.name.anchor, 'end');
+    assert.deepEqual(seats.yTicks.map(t => t.label), ['Active seats']);
+    assert.ok(seats.yTicks[0].pos > seats.plot.top && seats.yTicks[0].pos < seats.plot.bottom);
     assertInside(r, W, 200);
 });
 
@@ -110,8 +113,8 @@ test('bullet: vertical columns; no ranges gives one band; rows without a value a
     assert.equal(r.rows[0].marker, null);
     assert.equal(r.rows[0].ranges.length, 1);
     assert.ok(r.rows[0].bar.height > 0 && r.rows[0].bar.width > 0);
-    assert.ok(r.rows[0].name.x < r.rows[1].name.x);
-    assert.equal(r.rows[1].ticks[0].anchor, 'end');
+    assert.ok(r.rows[0].xTicks[0].pos < r.rows[1].xTicks[0].pos);
+    assert.equal(r.rows[1].yTicks[0].pos, r.rows[1].plot.bottom);
     assertInside(r, 400, 300);
     assert.deepEqual(await layout('bullet', { rows: [], width: W, height: H }), { rows: [] });
 });
@@ -131,9 +134,9 @@ test('dumbbell: two dots per row, value texts outside the pair', async () => {
     assert.equal(eu.startText.anchor, 'start');
     assert.equal(eu.endText.anchor, 'end');
     assert.equal(asia.startText.anchor, 'end');
-    assert.ok(r.categories.every(c => c.x < r.plot.x));
+    assert.ok(r.yAxisAt < r.plot.left);
     for (const it of r.items) {
-        assert.ok(box(it.startText, 11).x0 >= box(r.categories[0]).x1 - 0.01 || it.startText.anchor === 'start');
+        assert.ok(box(it.startText, 11).x0 >= box(category(r, 0), 11).x1 - 0.01 || it.startText.anchor === 'start');
         assert.ok(box(it.endText, 11).x1 <= W && box(it.startText, 11).x1 <= W);
     }
     assertInside(r, W, 200);
@@ -178,21 +181,21 @@ test('lollipop: sorted descending by default, stems from zero, horizontal or ver
     assert.ok(r.items.every(i => i.x1 === zero));
     assert.ok(r.items[2].x2 < zero);
     assert.equal(r.items[2].text.anchor, 'end');
-    assert.ok(r.ticks.some(t => t.label === '0' && t.x === zero));
+    assert.ok(r.xTicks.some(t => t.label === '0' && t.pos === zero));
     assertInside(r);
 
     const v = await layout('lollipop', { items, width: W, height: H, vertical: true, sort: 'none' });
     assert.deepEqual(v.items.map(i => i.label), ['Support', 'Platform', 'Billing']);
     assert.ok(v.items[0].y2 < v.items[0].y1, 'positive goes up');
-    assert.equal(v.categories[0].rotate, 0);
+    assert.equal(v.labelAngle, 0);
     assertInside(v);
 });
 
 test('lollipop: long labels in a narrow vertical chart turn and keep room', async () => {
     const items = Array.from({ length: 12 }, (_, i) => ({ label: `Team number ${i + 1}`, value: i + 1, text: String(i + 1) }));
     const v = await layout('lollipop', { items, width: 400, height: 300, vertical: true });
-    assert.equal(v.categories[0].rotate, -40);
-    assert.ok(v.plot.y + v.plot.height < 300 - 50);
+    assert.equal(v.labelAngle, -40);
+    assert.ok(v.plot.bottom < 300 - 50);
     assert.deepEqual((await layout('lollipop', { items: [{ label: 'a', value: null }], width: W, height: H })).items, []);
 });
 
@@ -230,7 +233,7 @@ test('rangebar: bars from low to high, grouped side by side, reversed ends swapp
         width: W, height: H, showValues: true,
     });
     assert.deepEqual(r.groups, ['Seats', 'Projects']);
-    assert.deepEqual(r.categories.map(c => c.text), ['Starter', 'Team']);
+    assert.deepEqual(r.yTicks.map(c => c.label), ['Starter', 'Team']);
     const [s1, s2, t1] = r.bars;
     assert.equal(t1.low, 5);
     assert.equal(t1.high, 25);

@@ -13,7 +13,7 @@ dotnet new install DaisyBlazor.Templates
 
 | Short name | Description |
 |------------|-------------|
-| `daisyblazor` | A Blazor Web App (Interactive Server) pre-wired with DaisyBlazor components, the DaisyBlazor.Charts SVG charts, theme switching, and the Tailwind build pipeline. |
+| `daisyblazor` | A Blazor Web App (Interactive Server) pre-wired with DaisyBlazor components, the DaisyBlazor.Charts SVG charts (rendered on the server), theme switching, and the Tailwind build pipeline. |
 
 ## Use
 

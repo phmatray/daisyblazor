@@ -1,9 +1,12 @@
 using System.ComponentModel;
 using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 
 namespace DaisyBlazor.Charts;
@@ -40,6 +43,10 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
     private string? _specJson;
     private JsonElement _spec;
     private IChartLayoutEngine? _engine;
+    private PersistentComponentState? _state;
+    private PersistingComponentStateSubscription? _persisting;
+    private string? _layoutJson;
+    private bool _restoreTried;
     private bool _pending;
     private int _version;
 
@@ -92,8 +99,45 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
     });
 
     /// <inheritdoc />
-    protected override void OnInitialized() =>
+    protected override void OnInitialized()
+    {
         _engine = (IChartLayoutEngine?)Services.GetService(typeof(IChartLayoutEngine));
+        _state = (PersistentComponentState?)Services.GetService(typeof(PersistentComponentState));
+
+        // A layout computed while prerendering travels to a WebAssembly (or Auto) render through the
+        // persisted component state, so the chart never flashes back to its placeholder while the
+        // browser lays it out again. An Interactive Server circuit has the engine and lays out itself,
+        // so nothing is persisted for it.
+        if (_engine is not null && _state is not null && !RendererInfo.IsInteractive
+            && AssignedRenderMode is InteractiveWebAssemblyRenderMode or InteractiveAutoRenderMode)
+        {
+            _persisting = _state.RegisterOnPersisting(() =>
+            {
+                if (_specJson is not null && _layoutJson is not null)
+                {
+                    try
+                    {
+                        _state.PersistAsJson(StateKey(_specJson), _layoutJson);
+                    }
+                    catch (ArgumentException)
+                    {
+                        // An identical chart on the page already persisted this very layout.
+                    }
+                }
+
+                return Task.CompletedTask;
+            }, AssignedRenderMode);
+        }
+    }
+
+    // The key is the layout's input itself (kind and a hash of the spec), so two charts can only
+    // share a persisted layout when they would compute the same one.
+    private string StateKey(string specJson) => StateKey(Kind, specJson);
+
+    internal static string StateKey(string kind, string specJson) =>
+        $"daisyblazor-chart:{kind}:{Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(specJson)), 0, 12)}";
+
+    internal string? SpecJson => _specJson;
 
     /// <inheritdoc />
     protected override void OnParametersSet()
@@ -116,6 +160,19 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
             LayoutOnServer(_engine, json);
             _pending = Measured && RendererInfo.IsInteractive;
         }
+        else if (!_restoreTried && _state is not null && TryRestore(json, out string? persisted))
+        {
+            Layout = JsonSerializer.Deserialize<TLayout>(persisted, _json);
+            Error = null;
+            _pending = Measured;
+        }
+    }
+
+    // Persisted state only exists for the first render, so only the first spec is looked up.
+    private bool TryRestore(string json, out string? persisted)
+    {
+        _restoreTried = true;
+        return _state!.TryTakeFromJson(StateKey(json), out persisted) && persisted is not null;
     }
 
     private void LayoutOnServer(IChartLayoutEngine engine, string json)
@@ -124,7 +181,8 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
         {
             if (!Measured)
             {
-                Layout = JsonSerializer.Deserialize<TLayout>(engine.Layout(Kind, json), _json);
+                _layoutJson = engine.Layout(Kind, json);
+                Layout = JsonSerializer.Deserialize<TLayout>(_layoutJson, _json);
             }
             else
             {
@@ -135,6 +193,7 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
                 JsonObject result = JsonNode.Parse(engine.Layout(Kind, spec.ToJsonString()))!.AsObject();
                 result["width"] = width;
                 result["height"] = height;
+                _layoutJson = result.ToJsonString();
                 Layout = result.Deserialize<TLayout>(_json);
             }
 
@@ -143,6 +202,7 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
         catch (Exception ex) when (ex is not OutOfMemoryException)
         {
             Layout = null;
+            _layoutJson = null;
             Error = ex.Message.Split('\n')[0];
         }
     }
@@ -227,6 +287,7 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
         }
 
         _self?.Dispose();
+        _persisting?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

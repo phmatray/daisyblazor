@@ -1,5 +1,7 @@
-import { contourDensity, geoPath } from '../d3.mjs';
-import { finite, valueScale, cartesian, r2 } from './_distribution.mjs';
+import { contourDensity } from '../d3/d3-contour.mjs';
+import { geoPath } from '../d3/d3-geo.mjs';
+import { finite, valueScale, r2 } from './_shared.mjs';
+import { cartesian } from './_distribution.mjs';
 
 // spec: { points: [{ x, y }], width, height, xTitle, yTitle, bandwidth, thresholds, showPoints }
 // Estimates the density of the points (d3-contour) and returns one filled band per level, lowest

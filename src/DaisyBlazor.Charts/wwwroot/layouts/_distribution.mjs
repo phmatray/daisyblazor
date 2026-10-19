@@ -1,48 +1,21 @@
 // Helpers shared by the distribution layouts (scatter, contour, hexbin, box plot, violin, histogram,
 // beeswarm, ridgeline). The leading underscore keeps it out of charts.mjs's kind pattern.
-import { scaleLinear, scaleLog, scaleBand, extent, quantileSorted, deviation } from '../d3.mjs';
-
-// Approximate width of one character of an 11-unit tick label.
-const CHAR = 6.6;
-
-export const finite = v => typeof v === 'number' && Number.isFinite(v);
-
-export const textWidth = s => String(s ?? '').length * CHAR;
+import { quantileSorted, deviation } from '../d3/d3-array.mjs';
+import { scaleBand } from '../d3/d3-scale.mjs';
+import { finite, maxWidth, r2, ticks as niceTicks, valueScale } from './_shared.mjs';
 
 /** The finite values, ascending. */
 export const sorted = values => (values ?? []).filter(finite).sort((a, b) => a - b);
 
-/** A nice linear (or log) scale over the values; an empty or single-valued domain is widened. */
-export function valueScale(values, log = false) {
-    const vs = (values ?? []).filter(v => finite(v) && (!log || v > 0));
-    let [lo, hi] = vs.length ? extent(vs) : (log ? [1, 10] : [0, 1]);
-    if (lo === hi) {
-        if (log) {
-            lo /= 10;
-            hi *= 10;
-        } else {
-            const pad = Math.abs(lo) / 10 || 1;
-            lo -= pad;
-            hi += pad;
-        }
-    }
-    return (log ? scaleLog() : scaleLinear()).domain([lo, hi]).nice();
-}
-
-/** Labelled ticks of a continuous scale: [{ pos, label }]. Log scales label a readable subset only. */
-export function ticks(scale, count) {
-    const n = Math.max(2, Math.round(count));
-    const log = typeof scale.base === 'function';
-    const format = scale.tickFormat(n, log ? ',' : undefined);
-    return scale.ticks(n).map(v => ({ pos: scale(v), label: format(v) })).filter(t => t.label !== '');
-}
+/** About `count` labelled ticks of a continuous scale (count need not be a whole number). */
+export const ticks = (scale, count) => niceTicks(scale, Math.max(2, Math.round(count)));
 
 /**
  * The plot rectangle inside a width x height chart, leaving room for the y tick labels on the left,
  * the y title above them, the x tick labels and the x title below.
  */
 export function frame({ width, height, yLabels, xTitle, yTitle, extraTop = 0 }) {
-    const left = Math.ceil(Math.max(0, ...yLabels.map(textWidth))) + 12;
+    const left = Math.ceil(maxWidth(yLabels)) + 12;
     const top = (yTitle ? 26 : 10) + extraTop;
     const bottom = height - (xTitle ? 42 : 24);
     return { left, top, right: width - 16, bottom };
@@ -75,7 +48,7 @@ export function grouped({ width, height, names, values, horizontal, valueTitle, 
         value.range([plot.bottom, plot.top]);
         band.range([plot.left, plot.right]);
     }
-    const bandTicks = names.map((n, i) => ({ pos: band(i) + band.bandwidth() / 2, label: n }));
+    const bandTicks = names.map((n, i) => ({ pos: r2(band(i) + band.bandwidth() / 2), label: n }));
     const valueTicks = ticks(value, count);
     return {
         plot, value, band,
@@ -126,5 +99,3 @@ export function kde(s, bandwidth, at) {
 
 /** `n` evenly spaced values from lo to hi inclusive. */
 export const steps = (lo, hi, n) => Array.from({ length: n }, (_, i) => lo + (hi - lo) * i / (n - 1));
-
-export const r2 = v => Math.round(v * 100) / 100;

@@ -1,5 +1,7 @@
-import { chord, chordDirected, ribbon, ribbonArrow, arc, descending } from '../d3.mjs';
-import { graph, textWidth } from './_graph.mjs';
+import { descending } from '../d3/d3-array.mjs';
+import { chord, chordDirected, ribbon, ribbonArrow } from '../d3/d3-chord.mjs';
+import { arc } from '../d3/d3-shape.mjs';
+import { graph, nameWidth } from './_graph.mjs';
 
 const EMPTY = { groups: [], ribbons: [], cx: 0, cy: 0 };
 
@@ -22,7 +24,7 @@ export default function chordLayout({ links, width, height, directed = false, pa
     }
 
     // Names sit outside the ring, so the radius leaves room for the longest one on each side.
-    const widest = Number.isFinite(labelWidth) && labelWidth > 0 ? labelWidth : Math.max(...g.nodes.map(d => textWidth(d.name)));
+    const widest = Number.isFinite(labelWidth) && labelWidth > 0 ? labelWidth : Math.max(...g.nodes.map(d => nameWidth(d.name)));
     const outer = Math.max(20, Math.min(height / 2 - 20, width / 2 - widest - 16));
     const inner = outer - Math.max(8, outer * 0.07);
     const pad = Number.isFinite(padAngle) && padAngle >= 0 ? Math.min(padAngle, 0.5) : 0.04;

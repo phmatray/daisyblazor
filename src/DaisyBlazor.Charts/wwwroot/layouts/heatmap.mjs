@@ -1,7 +1,8 @@
-import { scaleBand, scaleSequential, extent } from '../d3.mjs';
-import { finite, textWidth, fit, r2 } from './_time.mjs';
+import { extent } from '../d3/d3-array.mjs';
+import { scaleBand, scaleSequential } from '../d3/d3-scale.mjs';
+import { finite, maxWidth, fit, r2, stride } from './_shared.mjs';
 
-const EMPTY = { rows: [], columns: [], cells: [], min: 0, max: 0, plot: { x0: 0, y0: 0, x1: 0, y1: 0 } };
+const EMPTY = { rows: [], columns: [], cells: [], min: 0, max: 0, plot: { left: 0, top: 0, right: 0, bottom: 0 } };
 
 // spec: { cells: [{ row, column, value }], rows, columns, width, height }
 // Rows and columns are the given orders, or else the distinct names in order of first appearance.
@@ -27,19 +28,19 @@ export default function heatmap({ cells, rows, columns, width, height }) {
     const colNames = columns?.length ? columns.map(String) : [...new Set(entries.map(e => e.column))];
 
     // Row names on the left, column names on top; both margins follow the longest name.
-    const left = Math.min(width * 0.3, Math.max(...rowNames.map(n => textWidth(n)))) + 8;
-    const plot = { x0: left, y0: 20, x1: width - 2, y1: height - 2 };
-    const x = scaleBand().domain(colNames).range([plot.x0, plot.x1]).padding(0.06);
-    const y = scaleBand().domain(rowNames).range([plot.y0, plot.y1]).padding(0.06);
+    const left = Math.min(width * 0.3, maxWidth(rowNames)) + 8;
+    const plot = { left, top: 20, right: width - 2, bottom: height - 2 };
+    const x = scaleBand().domain(colNames).range([plot.left, plot.right]).padding(0.06);
+    const y = scaleBand().domain(rowNames).range([plot.top, plot.bottom]).padding(0.06);
     const [min, max] = extent(entries, e => e.value);
     const t = scaleSequential(v => v).domain([min, max > min ? max : min + 1]).clamp(true);
 
-    // Column labels are thinned so neighbours never touch.
-    const every = Math.max(1, Math.ceil((Math.max(...colNames.map(n => textWidth(n, 10))) + 6) / Math.max(1, x.step())));
+    // Column labels are thinned so neighbours never touch: a skipped column's label is empty.
+    const every = stride(colNames, x.step(), 6, 10);
 
     return {
-        rows: rowNames.map(name => ({ name, label: fit(name, left - 8), position: r2(y(name) + y.bandwidth() / 2), show: true })),
-        columns: colNames.map((name, i) => ({ name, label: name, position: r2(x(name) + x.bandwidth() / 2), show: i % every === 0 })),
+        rows: rowNames.map(name => ({ pos: r2(y(name) + y.bandwidth() / 2), label: fit(name, left - 8), full: name })),
+        columns: colNames.map((name, i) => ({ pos: r2(x(name) + x.bandwidth() / 2), label: i % every === 0 ? name : '', full: name })),
         cells: entries.filter(e => x(e.column) !== undefined && y(e.row) !== undefined).map(e => ({
             row: e.row, column: e.column, value: e.value, t: r2(t(e.value)),
             x: r2(x(e.column)), y: r2(y(e.row)), w: r2(x.bandwidth()), h: r2(y.bandwidth()),

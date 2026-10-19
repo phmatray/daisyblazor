@@ -1,6 +1,9 @@
 // Shared helpers for the "over time" layouts. The leading underscore keeps this file out of
 // charts.mjs's layout names, so it can only be imported by the layouts themselves.
-import { scaleUtc, scalePoint, utcFormat, extent } from '../d3.mjs';
+import { extent } from '../d3/d3-array.mjs';
+import { scaleUtc, scalePoint } from '../d3/d3-scale.mjs';
+import { utcFormat } from '../d3/d3-time-format.mjs';
+import { maxWidth, r2, stride, ticks } from './_shared.mjs';
 
 // .NET sends DateTime without an offset ("2026-10-05T00:00:00"), which JavaScript would read as
 // local time. Read every date as UTC so the chart never depends on the machine's time zone.
@@ -13,17 +16,8 @@ export function parseDate(value) {
     return Number.isNaN(date.getTime()) ? null : date;
 }
 
-export const finite = v => typeof v === 'number' && Number.isFinite(v);
-
-// Approximate width of a label in chart units (the charts use a ~0.6em average glyph).
-export const textWidth = (label, size = 11) => String(label).length * size * 0.6;
-
-// A y axis for a linear scale whose domain is set: ticks with labels, and the left margin they need.
-export function yAxis(scale, count, format) {
-    const fmt = format ?? scale.tickFormat(count);
-    const ticks = scale.ticks(count).map(v => ({ value: v, label: fmt(v) }));
-    return { ticks, width: Math.max(0, ...ticks.map(t => textWidth(t.label))) + 8 };
-}
+// The left margin a y axis needs for the labels of about `count` ticks of a linear scale.
+export const yAxisWidth = (scale, count, format) => maxWidth(ticks(scale, count, format).map(t => t.label)) + 8;
 
 // An x scale over either dates (a UTC time scale) or category labels (a point scale), with tick
 // labels thinned so neighbours never touch. Dated data should be sorted (see byDate). `dates` and `labels` line up with the data by index.
@@ -38,10 +32,9 @@ export function xScale({ dates, labels, count, x0, x1, pad = 0 }) {
 
     const names = Array.from({ length: count }, (_, i) => String(labels?.[i] ?? i + 1));
     const scale = scalePoint().domain(names.map((_, i) => i)).range([x0 + pad, x1 - pad]);
-    const widest = Math.max(1, ...names.map(n => textWidth(n))) + 10;
-    const every = Math.max(1, Math.ceil(widest / Math.max(1, scale.step())));
-    const ticks = names.flatMap((n, i) => (i % every === 0 ? [{ position: scale(i), label: n }] : []));
-    return { at: i => scale(i), ticks, label: i => names[i], time: false };
+    const every = stride(names, scale.step(), 10);
+    const shown = names.flatMap((n, i) => (i % every === 0 ? [{ pos: r2(scale(i)), label: n }] : []));
+    return { at: i => scale(i), ticks: shown, label: i => names[i], time: false };
 }
 
 // Labels for time ticks: a time of day, else a day, else a month, else a year.
@@ -60,7 +53,7 @@ export function timeTicks(scale, dates) {
     const count = Math.max(2, Math.min(Math.floor(Math.abs(x1 - x0) / 90), dates.length));
     return scale.ticks(count)
         .filter(d => !daily || (d.getUTCHours() === 0 && d.getUTCMinutes() === 0))
-        .map(d => ({ position: scale(d), label: tickLabel(d) }));
+        .map(d => ({ pos: r2(scale(d)), label: tickLabel(d) }));
 }
 
 // The date shown in tooltips: the day, plus the time when it is not midnight.
@@ -73,14 +66,6 @@ export function labelOf(date) {
     }
     return date.getUTCHours() === 0 && date.getUTCMinutes() === 0 ? dayLabel(date) : timeLabel(date);
 }
-
-// Shortens a label to fit `room` chart units, with an ellipsis.
-export function fit(label, room, size = 11) {
-    const max = Math.max(1, Math.floor(room / (size * 0.6)));
-    return label.length <= max ? label : `${label.slice(0, Math.max(1, max - 1))}…`;
-}
-
-export const r2 = v => Math.round(v * 100) / 100;
 
 // Sorts items by their parsed `date` when every item has one; otherwise keeps the given order.
 export function byDate(items, key = 'date') {

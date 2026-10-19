@@ -32,7 +32,7 @@
 
 @code {
     /// <summary>One wedge per point, clockwise from 12 o'clock. Points without a finite, non-negative Value are skipped; a point's Color overrides the palette.</summary>
-    [Parameter] public IReadOnlyList<ChartDataPoint> Items { get; set; } = [];
+    [Parameter] public IReadOnlyList<ChartDataPoint> Data { get; set; } = [];
 
     /// <summary>Print each item's value after its name.</summary>
     [Parameter] public bool ShowValues { get; set; } = true;
@@ -52,16 +52,16 @@
     /// <inheritdoc />
     protected override object BuildSpec() => new
     {
-        Items = Items.Select(i => new { i.Label, i.Value }).ToArray(),
+        Items = Data.Select(i => new { i.Label, i.Value }).ToArray(),
         Width = ViewWidth,
         Height = ViewHeight,
     };
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
 
-    private string _color(int index) => ChartPalette.At(index, index < Items.Count ? Items[index].Color : null);
+    private string _color(int index) => ChartPalette.At(index, index < Data.Count ? Data[index].Color : null);
 
     private string _label => Title ?? "Polar area chart";
 
-    private string _description => string.Join("; ", Items.Where(i => i.Value >= 0).Select(i => $"{i.Label}: {_format(i.Value)}"));
+    private string _description => string.Join("; ", Data.Where(i => i.Value >= 0).Select(i => $"{i.Label}: {_format(i.Value)}"));
 }

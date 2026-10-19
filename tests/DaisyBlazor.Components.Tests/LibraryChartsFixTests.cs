@@ -20,7 +20,7 @@ public class LibraryChartsFixTests : BunitContext
         // charts-core.test.mjs: 12, 30, 44, 20 gives the ticks 0, 10, … 50.
         BunitJSModuleInterop module = JSInterop.SetupCharts(line: ChartFakes.Line with
         {
-            YTicks = [.. new[] { "0", "10", "20", "30", "40", "50" }.Select((t, i) => new AxisLabel(231 - i * 44.6, t))],
+            YTicks = [.. new[] { "0", "10", "20", "30", "40", "50" }.Select((t, i) => new AxisTick(231 - i * 44.6, t))],
         });
         IRenderedComponent<LineChart> cut = Render<LineChart>(ps => ps
             .Add(p => p.Series, One(12, 30, 44, 20)));
@@ -119,7 +119,8 @@ public class LibraryChartsFixTests : BunitContext
         // charts-core.test.mjs: the gutter fits "North America"; only names wider than 40% of the box are cut.
         BunitJSModuleInterop module = JSInterop.SetupCharts(bar: ChartFakes.Bar with
         {
-            CategoryLabels = [new(60, "North America", "North America"), new(180, "A very long reg…", "A very long region name")],
+            XTicks = [new(320, "0", 0), new(600, "10", 10)],
+            YTicks = [new(60, "North America", null, "North America"), new(180, "A very long reg…", null, "A very long region name")],
         });
         IRenderedComponent<BarChart> cut = Render<BarChart>(ps => ps
             .Add(p => p.Horizontal, true)

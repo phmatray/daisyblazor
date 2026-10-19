@@ -9,7 +9,7 @@
     <ChildContent>
         @if (Layout is { } geo)
         {
-            <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="geo.YTicks" ViewWidth="ViewWidth" />
+            <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="geo.YTicks" YGrid="true" Baseline="true" XTickMarks="true" ViewWidth="ViewWidth" />
             @foreach (StreamLayer layer in geo.Layers)
             {
                 <path d="@layer.Path" fill="@_color(layer.Index)" fill-opacity="0.85"
@@ -21,15 +21,15 @@
                 @foreach (StreamLayer layer in geo.Layers.Where(l => l.ShowLabel))
                 {
                     <SvgText X="@layer.LabelX" Y="@layer.LabelY" Dy="0.35em" Anchor="middle" FontSize="11" FontWeight="600"
-                             Fill="@_contentColor(layer.Index)" Text="@layer.Name" />
+                             Fill="@ChartPalette.ContentOf(_color(layer.Index))" Text="@layer.Name" />
                 }
             }
 
             @* One invisible strip per x position carries every series' value there. *@
             @foreach (StreamColumn column in geo.Columns)
             {
-                <rect x="@N(column.X0)" y="@N(geo.Plot.Y0)" width="@N(Math.Max(1, column.X1 - column.X0))"
-                      height="@N(geo.Plot.Y1 - geo.Plot.Y0)" fill="transparent">
+                <rect x="@N(column.X0)" y="@N(geo.Plot.Top)" width="@N(Math.Max(1, column.X1 - column.X0))"
+                      height="@N(geo.Plot.Bottom - geo.Plot.Top)" fill="transparent">
                     <title>@_tooltip(column)</title>
                 </rect>
             }
@@ -71,7 +71,7 @@
     /// <inheritdoc />
     protected override object BuildSpec() => new
     {
-        Series = Series.Select(s => new { s.Name, Values = s.Data.Select(SpecValue.Finite).ToArray() }).ToArray(),
+        Series = Series.Select(s => new { s.Name, Values = s.Data }).ToArray(),
         Dates,
         Labels,
         Offset = Offset.ToString().ToLowerInvariant(),
@@ -80,15 +80,6 @@
     };
 
     private string _color(int index) => ChartPalette.At(index, index < Series.Count ? Series[index].Color : null);
-
-    // Text on a theme colour uses that colour's -content token; on a custom colour, the base text colour.
-    private string _contentColor(int index)
-    {
-        string color = _color(index);
-        return color.StartsWith("var(--color-", StringComparison.Ordinal) && color.EndsWith(')')
-            ? color[..^1] + "-content)"
-            : "var(--color-base-content)";
-    }
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
 

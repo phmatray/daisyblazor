@@ -107,13 +107,14 @@
             <p>
                 <code>DaisyBlazor.Charts.Server</code> runs the same layout files on the server with <a href="https://github.com/sebastienros/jint">Jint</a>,
                 a JavaScript interpreter written in .NET, so no Node.js is needed. Register it once and every chart computes its layout before its first
-                render: prerendered and statically rendered pages contain the finished SVG instead of a placeholder. Interactive charts lay out again in
-                the browser, at the real size of their box.
+                render: prerendered and statically rendered pages contain the finished SVG instead of a placeholder. The prerendered layout travels to the
+                interactive render with the persisted component state, so a WebAssembly chart keeps showing it while it starts; charts sized by their
+                box (line, area, bar, sparkline) then lay out again at its real size. The <code>dotnet new daisyblazor</code> template comes with it registered.
             </p>
             <CodeBlock Language="bash" Code="dotnet add package DaisyBlazor.Charts.Server" />
             <CodeBlock Title="Program.cs" Language="csharp" Code="builder.Services.AddDaisyBlazorChartsServerRendering();" />
             <p>
-                The first layout parses the D3 bundle (about half a second); most layouts then take under 5 ms, force-directed networks and density
+                The first layout of each kind parses the D3 modules it needs (a few hundred milliseconds, once per engine); most layouts then take under 5 ms, force-directed networks and density
                 contours longer, and a chart with the same data is answered from a cache. The server and browser results are tested to match for every
                 chart type.
             </p>

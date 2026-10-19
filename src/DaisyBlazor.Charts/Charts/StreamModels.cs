@@ -17,9 +17,9 @@ public enum StreamOffset
 public sealed record StreamLayout(
     IReadOnlyList<StreamLayer> Layers,
     IReadOnlyList<StreamColumn> Columns,
-    IReadOnlyList<TimeAxisTick> XTicks,
-    IReadOnlyList<TimeAxisTick> YTicks,
-    TimePlotArea Plot);
+    IReadOnlyList<AxisTick> XTicks,
+    IReadOnlyList<AxisTick> YTicks,
+    PlotArea Plot);
 
 /// <summary>A placed layer: its series index, area path, and where its name fits (if it does).</summary>
 public sealed record StreamLayer(int Index, string Name, string Path, double LabelX, double LabelY, bool ShowLabel);

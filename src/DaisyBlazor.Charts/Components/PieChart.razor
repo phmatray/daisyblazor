@@ -106,7 +106,7 @@
     /// <inheritdoc />
     protected override object BuildSpec() => new
     {
-        Values = ChartText.Spec(_data.Select(p => p.Value).ToList()),
+        Values = _data.Select(p => p.Value).ToArray(),
         Size = _size,
         InnerRatio = InnerRadiusRatio,
         CenterLabel = CenterLabel ?? string.Empty,

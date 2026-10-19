@@ -22,7 +22,7 @@ public static partial class DocRegistry
             "Stages that each keep part of the one before, such as trial to paid: every stage is as wide as its value and shows its conversion from the previous stage. D3 computes the outlines.",
             [typeof(FunnelChart)],
             [
-                new("Basic", "Stages are ChartDataPoint values, first to last; the right side shows each value and the share kept from the stage before.", typeof(FunnelChartBasicExample)),
+                new("Basic", "Data holds the stages as ChartDataPoint values, first to last; the right side shows each value and the share kept from the stage before.", typeof(FunnelChartBasicExample)),
                 new("Pyramid", "Shape=\"FunnelShape.Pyramid\" cuts a triangle into slices whose heights follow the values, first stage at the base. Color=\"@null\" gives each stage its own palette colour.", typeof(FunnelChartPyramidExample)),
             ])
         {
@@ -34,7 +34,7 @@ public static partial class DocRegistry
             [typeof(GaugeChart)],
             [
                 new("Bands and marker", "Bands colour ranges of the scale in a ring outside the arc; Marker draws the target across it. A value outside Min to Max fills the arc to its end but prints as given.", typeof(GaugeChartBasicExample)),
-                new("Half circle", "StartAngle and EndAngle (degrees from 12 o'clock) shape the arc: -90 to 90 is a half circle. Thickness sets the arc width and Color its theme colour.", typeof(GaugeChartHalfExample)),
+                new("Half circle", "StartAngle and EndAngle (degrees from 12 o'clock) shape the arc: -90 to 90 is a half circle. Thickness sets the arc width and Color takes any CSS colour.", typeof(GaugeChartHalfExample)),
             ])
         {
             Portrait = typeof(GaugeChartCoverExample),
@@ -45,7 +45,7 @@ public static partial class DocRegistry
             [typeof(LinearGaugeChart)],
             [
                 new("Basic", "Bands are painted on the track, Marker draws the target, and ValueFormat adds the unit.", typeof(LinearGaugeChartBasicExample)),
-                new("Vertical", "Vertical runs the scale bottom to top. Give it an AspectRatio below 1 and a narrow Width: a vertical gauge sizes its text from its width.", typeof(LinearGaugeChartVerticalExample)),
+                new("Vertical", "Horizontal=\"false\" runs the scale bottom to top. Give it an AspectRatio below 1 and a narrow Width: a vertical gauge sizes its text from its width.", typeof(LinearGaugeChartVerticalExample)),
             ])
         {
             Portrait = typeof(LinearGaugeChartCoverExample),

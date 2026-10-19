@@ -1,5 +1,6 @@
-import { line, curveLinearClosed, scaleLinear } from '../d3.mjs';
-import { finite, r2, textWidth } from './_compare.mjs';
+import { scaleLinear } from '../d3/d3-scale.mjs';
+import { line, curveLinearClosed } from '../d3/d3-shape.mjs';
+import { finite, r2, textWidth } from './_shared.mjs';
 
 const EMPTY = { cx: 0, cy: 0, radius: 0, axes: [], rings: [], series: [] };
 

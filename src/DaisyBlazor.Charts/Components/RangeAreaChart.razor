@@ -9,7 +9,7 @@
     <ChildContent>
         @if (Layout is { } geo)
         {
-            <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="geo.YTicks" ViewWidth="ViewWidth" />
+            <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" YTicks="geo.YTicks" YGrid="true" Baseline="true" XTickMarks="true" ViewWidth="ViewWidth" />
             <path d="@geo.Band" fill="@_color" fill-opacity="0.25" stroke="@_color" stroke-opacity="0.4" stroke-width="1" />
             @if (!string.IsNullOrEmpty(geo.Center))
             {
@@ -19,8 +19,8 @@
             @* One invisible strip per point carries its tooltip. *@
             @foreach (RangeAreaLayoutPoint point in geo.Points)
             {
-                <rect x="@N(point.X0)" y="@N(geo.Plot.Y0)" width="@N(Math.Max(1, point.X1 - point.X0))"
-                      height="@N(geo.Plot.Y1 - geo.Plot.Y0)" fill="transparent">
+                <rect x="@N(point.X0)" y="@N(geo.Plot.Top)" width="@N(Math.Max(1, point.X1 - point.X0))"
+                      height="@N(geo.Plot.Bottom - geo.Plot.Top)" fill="transparent">
                     <title>@_tooltip(point)</title>
                 </rect>
             }
@@ -67,9 +67,9 @@
         {
             p.Date,
             p.Label,
-            Low = SpecValue.Finite(p.Low),
-            High = SpecValue.Finite(p.High),
-            Center = p.Center is double c ? SpecValue.Finite(c) : null,
+            p.Low,
+            p.High,
+            p.Center,
         }).ToArray(),
         Width = ViewWidth,
         Height = ViewHeight,

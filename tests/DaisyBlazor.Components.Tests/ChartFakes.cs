@@ -14,12 +14,12 @@ internal static class ChartFakes
 
     private static readonly JsonSerializerOptions _web = new(JsonSerializerDefaults.Web);
 
-    public static readonly LineLayout Line = new(640, 256, new PlotBox(30, 8, 634, 231),
-        [new(231, "0"), new(8, "50")], [new(181, "Jan", "Jan"), new(483, "Feb", "Feb")], 246,
+    public static readonly LineLayout Line = new(640, 256, new PlotArea(30, 8, 634, 231),
+        [new(181, "Jan", null, "Jan"), new(483, "Feb", null, "Feb")], [new(231, "0", 0), new(8, "50", 50)],
         [new("M181,100L483,50", "M181,100L483,50L483,231L181,231Z", [new(0, 181, 100, false), new(1, 483, 50, false)])]);
 
-    public static readonly BarLayout Bar = new(640, 256, new PlotBox(30, 8, 634, 231),
-        [new(231, "0"), new(8, "50k")], [new(181, "Free", "Free"), new(483, "Pro", "Pro")], 246, 24,
+    public static readonly BarLayout Bar = new(640, 256, new PlotArea(30, 8, 634, 231),
+        [new(181, "Free", null, "Free"), new(483, "Pro", null, "Pro")], [new(231, "0", 0), new(8, "50k", 50000)],
         [new(0, 0, 100, 20, 160, 211), new(1, 0, 400, 180, 160, 51)]);
 
     public static readonly PieLayout Pie = new(100, 100, 94, 0,

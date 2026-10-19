@@ -45,7 +45,7 @@ public static partial class DocRegistry
             [typeof(IcicleChart)],
             [
                 new("Basic", "Root is a HierarchyNode; the root fills the first column and each level splits it further. Bands show their name and value when they fit.", typeof(IcicleChartBasicExample)),
-                new("Vertical", "Orientation=\"Vertical\" puts the root on top with one row per level.", typeof(IcicleChartVerticalExample)),
+                new("Vertical", "Horizontal=\"false\" puts the root on top with one row per level.", typeof(IcicleChartVerticalExample)),
             ])
         {
             Portrait = typeof(IcicleChartCoverExample),
