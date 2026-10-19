@@ -11,9 +11,9 @@ public sealed record GanttTask(string Name, DateTime Start, DateTime? End = null
 public sealed record GanttLayout(
     IReadOnlyList<GanttRow> Rows,
     IReadOnlyList<string> Groups,
-    AxisTick? Today,
-    IReadOnlyList<AxisTick> XTicks,
-    PlotArea Plot);
+    TimeAxisTick? Today,
+    IReadOnlyList<TimeAxisTick> XTicks,
+    TimePlotArea Plot);
 
 /// <summary>A placed row: a group header, or a task with its dates, progress and bar (a diamond when it is a milestone).</summary>
 public sealed record GanttRow(

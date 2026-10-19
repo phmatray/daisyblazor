@@ -10,7 +10,7 @@ public sealed record HeatmapLayout(
     IReadOnlyList<HeatmapLayoutCell> Cells,
     double Min,
     double Max,
-    PlotArea Plot);
+    TimePlotArea Plot);
 
 /// <summary>A row or column name, its (possibly shortened) label, its centre and whether the label is drawn.</summary>
 public sealed record HeatmapLabel(string Name, string Label, double Position, bool Show);

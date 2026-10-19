@@ -12,7 +12,7 @@ public class ChartsTimeTests : BunitContext
 {
     private const string ModulePath = "./_content/DaisyBlazor.Charts/charts.mjs";
 
-    private static readonly PlotArea _plot = new(40, 10, 616, 336);
+    private static readonly TimePlotArea _plot = new(40, 10, 616, 336);
 
     private static string Spec(BunitJSModuleInterop module, string kind)
     {
@@ -147,7 +147,7 @@ public class ChartsTimeTests : BunitContext
                 new(false, "Design", "Design", 0, false, "Oct 1, 2026", "Oct 10, 2026", 0.5, 100, 300, 60, 30),
                 new(false, "Launch", "Launch", -1, true, "Oct 20, 2026", "Oct 20, 2026", null, 500, 502, 100, 30),
             ],
-            ["Plan"], new AxisTick(250, "Oct 8, 2026"), [new(100, "Oct 1")], _plot);
+            ["Plan"], new TimeAxisTick(250, "Oct 8, 2026"), [new(100, "Oct 1")], _plot);
         module.Setup<GanttLayout>("layout", _ => true).SetResult(layout);
 
         IRenderedComponent<GanttChart> cut = Render<GanttChart>(ps => ps
@@ -192,7 +192,7 @@ public class ChartsTimeTests : BunitContext
     public void Time_charts_with_no_data_still_ask_for_a_layout_and_draw_an_empty_chart()
     {
         BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
-        module.Setup<GanttLayout>("layout", _ => true).SetResult(new GanttLayout([], [], null, [], new PlotArea(0, 0, 0, 0)));
+        module.Setup<GanttLayout>("layout", _ => true).SetResult(new GanttLayout([], [], null, [], new TimePlotArea(0, 0, 0, 0)));
         module.Setup<CalendarHeatmapLayout>("layout", _ => true).SetResult(new CalendarHeatmapLayout([], [], [], [], 0, 0));
 
         IRenderedComponent<GanttChart> gantt = Render<GanttChart>();

@@ -4,7 +4,7 @@
    with grid lines on the left, period ticks under the plot. A label near either edge of the chart
    is anchored to that edge so it never leaves the viewBox. *@
 
-@foreach (AxisTick tick in YTicks)
+@foreach (TimeAxisTick tick in YTicks)
 {
     <line x1="@N(Plot.X0)" x2="@N(Plot.X1)" y1="@N(tick.Position)" y2="@N(tick.Position)"
           stroke="var(--color-base-content)" stroke-opacity="0.1" />
@@ -12,7 +12,7 @@
              FillOpacity="0.6" Text="@tick.Label" />
 }
 
-@foreach (AxisTick tick in XTicks)
+@foreach (TimeAxisTick tick in XTicks)
 {
     @if (XGrid)
     {
@@ -33,13 +33,13 @@
 
 @code {
     /// <summary>The plot rectangle the axes frame.</summary>
-    [Parameter, EditorRequired] public PlotArea Plot { get; set; } = null!;
+    [Parameter, EditorRequired] public TimePlotArea Plot { get; set; } = null!;
 
     /// <summary>Ticks under the plot (positions are x coordinates).</summary>
-    [Parameter] public IReadOnlyList<AxisTick> XTicks { get; set; } = [];
+    [Parameter] public IReadOnlyList<TimeAxisTick> XTicks { get; set; } = [];
 
     /// <summary>Ticks left of the plot (positions are y coordinates), each with a horizontal grid line.</summary>
-    [Parameter] public IReadOnlyList<AxisTick> YTicks { get; set; } = [];
+    [Parameter] public IReadOnlyList<TimeAxisTick> YTicks { get; set; } = [];
 
     /// <summary>Also draw a vertical grid line at each x tick.</summary>
     [Parameter] public bool XGrid { get; set; }
@@ -50,7 +50,7 @@
     private static string N(double value) => Math.Round(value, 2).ToString(CultureInfo.InvariantCulture);
 
     // Tick labels are 11 units high with ~0.6em glyphs.
-    private string _anchor(AxisTick tick)
+    private string _anchor(TimeAxisTick tick)
     {
         double half = tick.Label.Length * 11 * 0.6 / 2;
         return tick.Position - half < 0 ? "start" : tick.Position + half > ViewWidth ? "end" : "middle";
