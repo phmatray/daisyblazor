@@ -10,6 +10,7 @@ export async function resolve(specifier, context, next) {
     if (r.url.endsWith('/wwwroot/charts.mjs') && !context.parentURL?.startsWith('data:') && !specifier.includes('?real')) {
         return { url: 'data:text/javascript,' + encodeURIComponent(
             "import { layout as real } from '" + r.url + "?real';" +
+            "export * from '" + r.url + "?real';" +
             "export async function layout(kind, spec) {" +
             "  const result = await real(kind, spec);" +
             "  (globalThis.__layouts ??= []).push({ kind, spec: JSON.parse(JSON.stringify(spec)), result: JSON.parse(JSON.stringify(result)) });" +
