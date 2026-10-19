@@ -34,6 +34,10 @@ jobs:
       - name: Check generated styles
         run: node scripts/gen-styles.mjs --check
 
+      # The D3 bundle shipped in DaisyBlazor.Charts is generated from the pinned npm versions.
+      - name: Check the D3 bundle
+        run: node scripts/build-d3.mjs --check
+
       - name: Test static JS
         run: node --test "tests/*.test.mjs"
 

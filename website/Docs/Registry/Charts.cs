@@ -76,5 +76,16 @@ public static partial class DocRegistry
         {
             Portrait = typeof(SparklineCoverExample),
         },
+
+        new("SankeyChart", Category.Charts,
+            "Flows between named stages, each band as wide as its value: signups from source to plan to status, budgets from team to project. D3 places the nodes and bands; the chart draws them in theme colours. It needs JavaScript, so under static server rendering it shows a placeholder.",
+            [typeof(SankeyChart)],
+            [
+                new("Basic", "Each SankeyLink moves a Value from Source to Target; node names come from the links, and each node shows its total.", typeof(SankeyChartBasicExample)),
+                new("Node colours", "NodeColors maps a node name to any CSS colour; ShowValues=\"false\" keeps only the names, and AspectRatio sets the shape.", typeof(SankeyChartColorsExample)),
+            ])
+        {
+            Portrait = typeof(SankeyChartCoverExample),
+        },
     ];
 }

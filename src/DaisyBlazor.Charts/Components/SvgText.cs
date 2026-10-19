@@ -32,6 +32,9 @@ public sealed class SvgText : ComponentBase
     /// <summary>Fill opacity (0..1).</summary>
     [Parameter] public double FillOpacity { get; set; } = 1;
 
+    /// <summary>Optional vertical shift (e.g. "0.35em" to centre the text on <see cref="Y"/>).</summary>
+    [Parameter] public string? Dy { get; set; }
+
     /// <summary>The text content to render.</summary>
     [Parameter] public string? Text { get; set; }
 
@@ -55,7 +58,12 @@ public sealed class SvgText : ComponentBase
             builder.AddAttribute(7, "fill-opacity", FillOpacity.ToString(Ci));
         }
 
-        builder.AddContent(8, Text);
+        if (!string.IsNullOrEmpty(Dy))
+        {
+            builder.AddAttribute(8, "dy", Dy);
+        }
+
+        builder.AddContent(9, Text);
         builder.CloseElement();
     }
 }

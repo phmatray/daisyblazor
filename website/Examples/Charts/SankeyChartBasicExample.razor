@@ -1,0 +1,19 @@
+<SankeyChart Title="Signups by source, plan and status" Links="_links" />
+
+@code {
+    private readonly SankeyLink[] _links =
+    [
+        new("Organic", "Starter", 320),
+        new("Organic", "Pro", 180),
+        new("Referral", "Pro", 140),
+        new("Referral", "Starter", 90),
+        new("Partner", "Enterprise", 70),
+        new("Partner", "Pro", 60),
+        new("Starter", "Active", 460),
+        new("Starter", "Churned", 150),
+        new("Pro", "Active", 330),
+        new("Pro", "Churned", 50),
+        new("Enterprise", "Active", 66),
+        new("Enterprise", "Churned", 4),
+    ];
+}

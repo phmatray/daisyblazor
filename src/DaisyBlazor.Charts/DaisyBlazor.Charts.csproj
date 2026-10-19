@@ -10,8 +10,8 @@
 
     <IsPackable>true</IsPackable>
     <PackageId>DaisyBlazor.Charts</PackageId>
-    <Description>Dependency-free, theme-aware SVG charts for Blazor: line, area, bar, pie, donut and sparkline components rendered as pure inline SVG. Colors follow the active daisyUI v5 theme via CSS custom properties (--color-primary, etc.) with zero charting runtime dependency.</Description>
-    <PackageTags>$(PackageTags);charts;svg;sparkline</PackageTags>
+    <Description>Theme-aware SVG charts for Blazor. Line, area, bar, pie, donut and sparkline charts are pure C# with no JavaScript; advanced charts (Sankey and more) compute their geometry with a D3 module bundled in the package, so there is nothing to install from npm. Colors follow the active daisyUI v5 theme via CSS custom properties (--color-primary, etc.).</Description>
+    <PackageTags>$(PackageTags);charts;svg;sparkline;d3;sankey</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
