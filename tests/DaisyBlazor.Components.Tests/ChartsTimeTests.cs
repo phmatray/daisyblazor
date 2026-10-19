@@ -438,4 +438,24 @@ public class ChartsTimeTests : BunitContext
         cut.WaitForAssertion(() => cut.FindAll(".rounded-sm").Count.ShouldBe(1));
         cut.Find(".rounded-sm + span").TextContent.ShouldBe("5");
     }
+    [Fact]
+    public void CandlestickChart_names_the_close_price_with_CloseLabel()
+    {
+        BunitJSModuleInterop module = JSInterop.SetupModule(ModulePath);
+        CandlestickLayout layout = new(
+            [new("Oct 1, 2026 09:00", 40, 70, 30, 55, true, 300, 20, 200, 120, 40, 260)],
+            [new(300, "09:00")], [], _plot)
+        {
+            PriceLine = "M290,150L310,140",
+        };
+        module.Setup<CandlestickLayout>("layout", _ => true).SetResult(layout);
+
+        IRenderedComponent<CandlestickChart> cut = Render<CandlestickChart>(ps => ps
+            .Add(p => p.Candles, [new Candle(new DateTime(2026, 10, 1, 9, 0, 0), 40, 70, 30, 55)])
+            .Add(p => p.CandleStyle, CandlestickStyle.Line)
+            .Add(p => p.CloseLabel, "Last price"));
+
+        cut.WaitForAssertion(() => cut.Find("svg + div").TextContent.ShouldContain("Last price"));
+        cut.Find("svg + div").TextContent.ShouldNotContain("Close");
+    }
 }

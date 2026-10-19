@@ -132,4 +132,15 @@ public class ChartsCoreVariantsTests : BunitContext
         paths[2].TextContent.ShouldBe("2025, Pro: 50 (50%)");
         cut.FindAll("li").Count.ShouldBe(2);
     }
+    [Fact]
+    public void Donut_forwards_ShowPercent_to_the_pie()
+    {
+        JSInterop.SetupCharts(pie: ChartFakes.Pie with { Slices = [new(0, "M0,0Z", 70, 0, 4.4), new(1, "M0,0Z", 30, 4.4, 6.28)] });
+        IRenderedComponent<DonutChart> cut = Render<DonutChart>(ps => ps
+            .Add(p => p.Data, [new ChartDataPoint("Free", 70), new ChartDataPoint("Pro", 30)])
+            .Add(p => p.ShowPercent, false));
+
+        cut.FindComponent<PieChart>().Instance.ShowPercent.ShouldBeFalse();
+        cut.FindAll("path")[0].TextContent.ShouldBe("Free: 70");
+    }
 }

@@ -148,6 +148,9 @@
     /// <summary>Legend name of falling periods.</summary>
     [Parameter] public string DownLabel { get; set; } = "Falling";
 
+    /// <summary>Legend name of the close price in the <see cref="CandlestickStyle.Line"/> and <see cref="CandlestickStyle.Area"/> styles.</summary>
+    [Parameter] public string CloseLabel { get; set; } = "Close";
+
     /// <summary>Show the rising/falling legend (and the indicators) under the chart.</summary>
     [Parameter] public bool ShowLegend { get; set; } = true;
 
@@ -259,7 +262,7 @@
 
     private IReadOnlyList<(string Name, string Color)> _legend =>
     [
-        .. (_closeOnly ? new[] { ("Close", PriceColor) } : new[] { (UpLabel, UpColor), (DownLabel, DownColor) }),
+        .. (_closeOnly ? new[] { (CloseLabel, PriceColor) } : new[] { (UpLabel, UpColor), (DownLabel, DownColor) }),
         .. (Layout?.Indicators ?? []).Select(i => (_indicatorName(i.Index), _indicatorColor(i.Index))),
     ];
 
