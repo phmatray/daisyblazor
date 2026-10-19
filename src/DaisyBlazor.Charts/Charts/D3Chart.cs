@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
@@ -169,7 +170,7 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
     }
 
     // Persisted state only exists for the first render, so only the first spec is looked up.
-    private bool TryRestore(string json, out string? persisted)
+    private bool TryRestore(string json, [NotNullWhen(true)] out string? persisted)
     {
         _restoreTried = true;
         return _state!.TryTakeFromJson(StateKey(json), out persisted) && persisted is not null;
