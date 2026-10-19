@@ -1,4 +1,4 @@
-import { scaleBand } from '../d3.mjs';
+import { scaleBand } from '../d3/d3-scale.mjs';
 import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, compact, valueScale, ticks } from './_shared.mjs';
 
 // Bar chart, flat or grouped. spec: { categories: [string], series: [[number|null]], horizontal,

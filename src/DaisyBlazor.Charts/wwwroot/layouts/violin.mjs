@@ -1,4 +1,5 @@
-import { area, curveCatmullRom, max } from '../d3.mjs';
+import { max } from '../d3/d3-array.mjs';
+import { area, curveCatmullRom } from '../d3/d3-shape.mjs';
 import { r2 } from './_shared.mjs';
 import { boxStats, grouped, kde, sorted, steps } from './_distribution.mjs';
 

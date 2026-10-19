@@ -1,4 +1,4 @@
-import { area, line, curveMonotoneX, curveLinear } from '../d3.mjs';
+import { area, line, curveMonotoneX, curveLinear } from '../d3/d3-shape.mjs';
 import { finite, r2, ticks, valueScale } from './_shared.mjs';
 import { xScale, yAxisWidth, byDate } from './_time.mjs';
 

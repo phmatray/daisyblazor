@@ -1,6 +1,7 @@
 // Helpers every layout shares: numbers, label sizes, nice scales and ticks. The leading underscore
 // keeps this file out of reach of layout(kind), which only accepts names starting with a letter.
-import { scaleLinear, scaleLog, extent } from '../d3.mjs';
+import { extent } from '../d3/d3-array.mjs';
+import { scaleLinear, scaleLog } from '../d3/d3-scale.mjs';
 
 /** Axis text size in chart units; the components draw tick and category labels at this size. */
 export const FONT = 11;

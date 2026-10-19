@@ -1,4 +1,6 @@
-import { forceSimulation, forceLink, forceManyBody, forceX, forceY, forceCollide, scaleSqrt, max } from '../d3.mjs';
+import { max } from '../d3/d3-array.mjs';
+import { forceSimulation, forceLink, forceManyBody, forceX, forceY, forceCollide } from '../d3/d3-force.mjs';
+import { scaleSqrt } from '../d3/d3-scale.mjs';
 import { graph, nameWidth } from './_graph.mjs';
 
 const EMPTY = { nodes: [], links: [], groups: [], labelRoom: 0 };

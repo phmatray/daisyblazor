@@ -1,4 +1,5 @@
-import { scalePoint, scaleSqrt, max } from '../d3.mjs';
+import { max } from '../d3/d3-array.mjs';
+import { scalePoint, scaleSqrt } from '../d3/d3-scale.mjs';
 import { graph, nameWidth } from './_graph.mjs';
 
 const EMPTY = { nodes: [], links: [], groups: [], labelRoom: 0 };

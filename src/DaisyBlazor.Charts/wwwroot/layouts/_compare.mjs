@@ -1,6 +1,6 @@
 // Helpers shared by the category "compare" layouts (lollipop, dumbbell, range bars). The leading
 // underscore keeps it out of reach of charts.mjs's layout(kind).
-import { scaleBand } from '../d3.mjs';
+import { scaleBand } from '../d3/d3-scale.mjs';
 import { maxWidth, r2, ticks } from './_shared.mjs';
 
 // A band per category along one side, a value axis along the other, with margins sized to the

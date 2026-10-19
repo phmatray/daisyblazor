@@ -1,4 +1,6 @@
-import { chord, chordDirected, ribbon, ribbonArrow, arc, descending } from '../d3.mjs';
+import { descending } from '../d3/d3-array.mjs';
+import { chord, chordDirected, ribbon, ribbonArrow } from '../d3/d3-chord.mjs';
+import { arc } from '../d3/d3-shape.mjs';
 import { graph, nameWidth } from './_graph.mjs';
 
 const EMPTY = { groups: [], ribbons: [], cx: 0, cy: 0 };

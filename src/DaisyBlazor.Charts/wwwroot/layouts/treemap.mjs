@@ -1,4 +1,4 @@
-import { treemap, treemapSquarify, treemapBinary, treemapSlice, treemapDice, treemapSliceDice } from '../d3.mjs';
+import { treemap, treemapSquarify, treemapBinary, treemapSlice, treemapDice, treemapSliceDice } from '../d3/d3-hierarchy.mjs';
 import { build, groups, base, EMPTY } from './_hierarchy.mjs';
 
 const TILE = { squarify: treemapSquarify, binary: treemapBinary, slice: treemapSlice, dice: treemapDice, slicedice: treemapSliceDice };

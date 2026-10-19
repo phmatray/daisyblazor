@@ -1,4 +1,4 @@
-import { scaleLinear } from '../d3.mjs';
+import { scaleLinear } from '../d3/d3-scale.mjs';
 import { r2 } from './_shared.mjs';
 
 const EMPTY = { track: null, fill: null, bands: [], pointer: null, marker: null, ticks: [], value: 0, fontSize: 12 };

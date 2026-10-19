@@ -1,4 +1,4 @@
-import { scaleUtc, scaleBand } from '../d3.mjs';
+import { scaleUtc, scaleBand } from '../d3/d3-scale.mjs';
 import { fit, maxWidth, r2 } from './_shared.mjs';
 import { parseDate, labelOf, timeTicks } from './_time.mjs';
 

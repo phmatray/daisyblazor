@@ -1,4 +1,4 @@
-import { bin, max, median, thresholdSturges } from '../d3.mjs';
+import { bin, max, median, thresholdSturges } from '../d3/d3-array.mjs';
 import { valueScale, r2 } from './_shared.mjs';
 import { cartesian, sorted } from './_distribution.mjs';
 

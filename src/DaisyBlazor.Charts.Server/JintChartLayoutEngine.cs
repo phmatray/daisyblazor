@@ -11,8 +11,8 @@ namespace DaisyBlazor.Charts.Server;
 /// <summary>
 /// Runs the charts' D3 layout modules with Jint. The modules ship embedded in this assembly and are
 /// written once to a temporary folder that Jint loads them from. A Jint engine is not thread-safe, so
-/// each call rents one from a pool; the first call on an engine parses the D3 bundle (about half a
-/// second), later calls take a few milliseconds (density contours and force layouts take longer),
+/// each call rents one from a pool; the first call of each kind on an engine parses the D3 modules it needs (a few hundred
+/// milliseconds), later calls take a few milliseconds (density contours and force layouts take longer),
 /// and repeated specs come from a cache.
 /// </summary>
 public sealed partial class JintChartLayoutEngine : IChartLayoutEngine, IDisposable
@@ -73,7 +73,7 @@ public sealed partial class JintChartLayoutEngine : IChartLayoutEngine, IDisposa
         return engine;
     }
 
-    /// <summary>Parses the D3 bundle on one engine ahead of the first request.</summary>
+    /// <summary>Loads the D3 modules on one engine ahead of the first request.</summary>
     public void Warmup() => Layout("sankey", """{"links":[],"width":10,"height":10}""");
 
     /// <inheritdoc />

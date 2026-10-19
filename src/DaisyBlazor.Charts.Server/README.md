@@ -15,5 +15,5 @@ rendering, instead of a placeholder. The prerendered layout is handed to the int
 (WebAssembly or a new circuit) through the persisted component state, so the chart never flashes
 back to a placeholder; charts sized by their box lay out again at its real size.
 
-The first layout parses the D3 bundle (about half a second); later layouts take a few milliseconds.
+The first layout of each kind parses the D3 modules it needs (a few hundred milliseconds, once per engine); later layouts take a few milliseconds.
 Each concurrent request uses its own engine from a pool.

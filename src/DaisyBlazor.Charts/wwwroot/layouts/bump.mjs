@@ -1,4 +1,5 @@
-import { line, scalePoint, curveBumpX } from '../d3.mjs';
+import { scalePoint } from '../d3/d3-scale.mjs';
+import { line, curveBumpX } from '../d3/d3-shape.mjs';
 import { finite, maxWidth, fit, r2, stride } from './_shared.mjs';
 
 const EMPTY = { lines: [], xTicks: [], ranks: 0, plot: { left: 0, top: 0, right: 0, bottom: 0 } };

@@ -1,4 +1,4 @@
-import { hierarchy } from '../d3.mjs';
+import { hierarchy } from '../d3/d3-hierarchy.mjs';
 
 // Shared by the hierarchy layouts (treemap, sunburst, circle-packing, icicle). The leading
 // underscore keeps it out of reach of layout(kind), whose kinds start with a letter.

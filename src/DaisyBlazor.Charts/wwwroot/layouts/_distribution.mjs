@@ -1,6 +1,7 @@
 // Helpers shared by the distribution layouts (scatter, contour, hexbin, box plot, violin, histogram,
 // beeswarm, ridgeline). The leading underscore keeps it out of charts.mjs's kind pattern.
-import { scaleBand, quantileSorted, deviation } from '../d3.mjs';
+import { quantileSorted, deviation } from '../d3/d3-array.mjs';
+import { scaleBand } from '../d3/d3-scale.mjs';
 import { finite, maxWidth, r2, ticks as niceTicks, valueScale } from './_shared.mjs';
 
 /** The finite values, ascending. */

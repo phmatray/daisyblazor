@@ -1,4 +1,4 @@
-import { scaleLinear } from '../d3.mjs';
+import { scaleLinear } from '../d3/d3-scale.mjs';
 import { dodge, r2 } from './_shared.mjs';
 
 // spec: { stages: [{ label, value }], width, height, shape: 'funnel' | 'pyramid', gap }

@@ -1,4 +1,6 @@
-import { utcDay, utcFormat, scaleQuantize } from '../d3.mjs';
+import { scaleQuantize } from '../d3/d3-scale.mjs';
+import { utcDay } from '../d3/d3-time.mjs';
+import { utcFormat } from '../d3/d3-time-format.mjs';
 import { finite, r2 } from './_shared.mjs';
 import { parseDate } from './_time.mjs';
 

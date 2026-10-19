@@ -1,4 +1,5 @@
-import { scaleLinear, line as d3Line, area as d3Area } from '../d3.mjs';
+import { scaleLinear } from '../d3/d3-scale.mjs';
+import { line as d3Line, area as d3Area } from '../d3/d3-shape.mjs';
 import { finite, r2 } from './_shared.mjs';
 
 // Sparkline: a tiny trend line with no axes. spec: { data: [number|null], pad, width, height } (px).

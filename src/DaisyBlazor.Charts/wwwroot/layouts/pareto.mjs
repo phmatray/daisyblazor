@@ -1,4 +1,5 @@
-import { line, scaleBand, scaleLinear } from '../d3.mjs';
+import { scaleBand, scaleLinear } from '../d3/d3-scale.mjs';
+import { line } from '../d3/d3-shape.mjs';
 import { ticks, valueScale } from './_shared.mjs';
 
 // spec: { items: [{ label, value }], threshold, width, height }

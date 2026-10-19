@@ -1,4 +1,5 @@
-import { scalePoint, line as d3Line, area as d3Area, stack, curveMonotoneX, curveLinear } from '../d3.mjs';
+import { scalePoint } from '../d3/d3-scale.mjs';
+import { line as d3Line, area as d3Area, stack, curveMonotoneX, curveLinear } from '../d3/d3-shape.mjs';
 import { LABEL_ROW, finite, r2, textWidth, fit, stride, compact, valueScale, ticks } from './_shared.mjs';
 
 // Line and area charts. spec: { series: [[number|null]], labels: [string], stacked, smooth,

@@ -1,4 +1,4 @@
-import { scaleBand } from '../d3.mjs';
+import { scaleBand } from '../d3/d3-scale.mjs';
 import { finite, maxWidth, r2, valueScale } from './_shared.mjs';
 import { categoryFrame, frameOut, valueText } from './_compare.mjs';
 

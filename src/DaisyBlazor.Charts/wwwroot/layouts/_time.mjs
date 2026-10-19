@@ -1,6 +1,8 @@
 // Shared helpers for the "over time" layouts. The leading underscore keeps this file out of
 // charts.mjs's layout names, so it can only be imported by the layouts themselves.
-import { scaleUtc, scalePoint, utcFormat, extent } from '../d3.mjs';
+import { extent } from '../d3/d3-array.mjs';
+import { scaleUtc, scalePoint } from '../d3/d3-scale.mjs';
+import { utcFormat } from '../d3/d3-time-format.mjs';
 import { maxWidth, r2, stride, ticks } from './_shared.mjs';
 
 // .NET sends DateTime without an offset ("2026-10-05T00:00:00"), which JavaScript would read as

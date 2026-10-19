@@ -1,4 +1,4 @@
-import { scaleLinear } from '../d3.mjs';
+import { scaleLinear } from '../d3/d3-scale.mjs';
 import { ticks } from './_shared.mjs';
 
 // spec: { cells: [{ column, segment, value }], width, height, gap }

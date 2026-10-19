@@ -114,7 +114,7 @@
             <CodeBlock Language="bash" Code="dotnet add package DaisyBlazor.Charts.Server" />
             <CodeBlock Title="Program.cs" Language="csharp" Code="builder.Services.AddDaisyBlazorChartsServerRendering();" />
             <p>
-                The first layout parses the D3 bundle (about half a second); most layouts then take under 5 ms, force-directed networks and density
+                The first layout of each kind parses the D3 modules it needs (a few hundred milliseconds, once per engine); most layouts then take under 5 ms, force-directed networks and density
                 contours longer, and a chart with the same data is answered from a cache. The server and browser results are tested to match for every
                 chart type.
             </p>

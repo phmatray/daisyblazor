@@ -1,4 +1,5 @@
-import { line, scalePoint } from '../d3.mjs';
+import { scalePoint } from '../d3/d3-scale.mjs';
+import { line } from '../d3/d3-shape.mjs';
 import { finite, maxWidth, r2, textWidth, ticks, valueScale } from './_shared.mjs';
 
 const EMPTY = { axes: [], lines: [] };

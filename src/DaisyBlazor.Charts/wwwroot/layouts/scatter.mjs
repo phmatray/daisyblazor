@@ -1,4 +1,6 @@
-import { Delaunay, scaleSqrt, extent } from '../d3.mjs';
+import { extent } from '../d3/d3-array.mjs';
+import { Delaunay } from '../d3/d3-delaunay.mjs';
+import { scaleSqrt } from '../d3/d3-scale.mjs';
 import { finite, valueScale, r2 } from './_shared.mjs';
 import { cartesian } from './_distribution.mjs';
 

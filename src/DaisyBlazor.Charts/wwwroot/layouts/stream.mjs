@@ -1,7 +1,6 @@
-import {
-    stack, area, scaleLinear, format, curveBasis, curveMonotoneX,
-    stackOffsetWiggle, stackOffsetNone, stackOffsetExpand, stackOrderInsideOut, stackOrderNone,
-} from '../d3.mjs';
+import { format } from '../d3/d3-format.mjs';
+import { scaleLinear } from '../d3/d3-scale.mjs';
+import { stack, area, curveBasis, curveMonotoneX, stackOffsetWiggle, stackOffsetNone, stackOffsetExpand, stackOrderInsideOut, stackOrderNone } from '../d3/d3-shape.mjs';
 import { finite, r2, textWidth, ticks } from './_shared.mjs';
 import { xScale, yAxisWidth } from './_time.mjs';
 

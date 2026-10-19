@@ -1,4 +1,4 @@
-import { scaleBand } from '../d3.mjs';
+import { scaleBand } from '../d3/d3-scale.mjs';
 import { ticks, valueScale } from './_shared.mjs';
 
 const EMPTY = { bars: [], connectors: [], ticks: [], plot: null, zero: 0 };

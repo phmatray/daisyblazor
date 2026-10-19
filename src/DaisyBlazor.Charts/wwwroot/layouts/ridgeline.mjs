@@ -1,4 +1,5 @@
-import { area, curveBasis, max } from '../d3.mjs';
+import { max } from '../d3/d3-array.mjs';
+import { area, curveBasis } from '../d3/d3-shape.mjs';
 import { valueScale, r2 } from './_shared.mjs';
 import { frame, kde, sorted, steps, ticks } from './_distribution.mjs';
 

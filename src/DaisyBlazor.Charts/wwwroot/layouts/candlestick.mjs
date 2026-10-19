@@ -1,4 +1,4 @@
-import { scaleUtc } from '../d3.mjs';
+import { scaleUtc } from '../d3/d3-scale.mjs';
 import { finite, r2, ticks, valueScale } from './_shared.mjs';
 import { parseDate, labelOf, yAxisWidth, timeTicks } from './_time.mjs';
 

@@ -1,4 +1,5 @@
-import { scaleBand, scaleSequential, extent } from '../d3.mjs';
+import { extent } from '../d3/d3-array.mjs';
+import { scaleBand, scaleSequential } from '../d3/d3-scale.mjs';
 import { finite, maxWidth, fit, r2, stride } from './_shared.mjs';
 
 const EMPTY = { rows: [], columns: [], cells: [], min: 0, max: 0, plot: { left: 0, top: 0, right: 0, bottom: 0 } };
