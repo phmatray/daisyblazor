@@ -27,7 +27,7 @@
   <!-- Ship the Tailwind/daisyUI preset (with the vendored daisyUI bundles) inside the NuGet, plus the
        build target that copies it into consumers' obj/daisyblazor/ and can run Tailwind for them. -->
   <ItemGroup>
-    <None Include="styles\**\*.css;styles\**\*.mjs" Pack="true" PackagePath="staticwebassets\styles\" />
+    <None Include="styles\**\*.css;styles\**\*.mjs" Pack="true" PackagePath="staticwebassets\styles" />
     <None Include="buildTransitive\*.targets" Pack="true" PackagePath="buildTransitive\" />
     <None Include="README.md" Pack="true" PackagePath="\" Condition="Exists('README.md')" />
   </ItemGroup>

@@ -23,10 +23,18 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReleaseNotes>https://github.com/phmatray/daisyblazor/blob/main/CHANGELOG.md</PackageReleaseNotes>
+    <!-- Checks the package against itself on every pack (and against a baseline once one is set). -->
+    <EnablePackageValidation>true</EnablePackageValidation>
     <PackageTags>blazor;tailwind;daisyui;ui;components;razor</PackageTags>
     <!-- Owned by release-please (release-please-config.json -> extra-files). -->
     <Version>0.6.0</Version> <!-- x-release-please-version -->
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)assets/icon.png" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
 
   <!-- Debug symbols / source link friendliness -->
   <PropertyGroup>
