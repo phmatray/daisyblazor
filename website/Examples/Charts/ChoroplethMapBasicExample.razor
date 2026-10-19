@@ -1,0 +1,55 @@
+@using System.Net.Http.Json
+@using System.Text.Json
+@inject NavigationManager Nav
+
+@* The countries come from Natural Earth 1:110m (public domain), see wwwroot/data/world-countries-110m.txt.
+   Until the file arrives (or if it cannot be loaded) the map shows an empty globe. *@
+<ChoroplethMap Title="Active customers by country" Features="_world" Values="_customers" IdProperty="name" ValueFormat="{0:N0} customers" />
+
+@code {
+    private JsonElement _world;
+
+    private readonly Dictionary<string, double> _customers = new()
+    {
+        ["United States of America"] = 4_820,
+        ["Canada"] = 910,
+        ["Mexico"] = 380,
+        ["Brazil"] = 1_120,
+        ["Argentina"] = 260,
+        ["United Kingdom"] = 2_140,
+        ["Ireland"] = 340,
+        ["France"] = 1_760,
+        ["Germany"] = 2_430,
+        ["Netherlands"] = 820,
+        ["Spain"] = 690,
+        ["Italy"] = 610,
+        ["Sweden"] = 450,
+        ["Poland"] = 390,
+        ["Nigeria"] = 210,
+        ["Kenya"] = 140,
+        ["South Africa"] = 330,
+        ["India"] = 1_540,
+        ["Japan"] = 980,
+        ["South Korea"] = 520,
+        ["Indonesia"] = 300,
+        ["Australia"] = 870,
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Static rendering runs no requests: the globe stands in until the browser loads the map.
+        if (!RendererInfo.IsInteractive)
+        {
+            return;
+        }
+
+        try
+        {
+            using HttpClient http = new() { BaseAddress = new Uri(Nav.BaseUri) };
+            _world = await http.GetFromJsonAsync<JsonElement>("data/world-countries-110m.json");
+        }
+        catch (Exception ex) when (ex is HttpRequestException or JsonException)
+        {
+        }
+    }
+}
