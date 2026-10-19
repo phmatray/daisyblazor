@@ -1,6 +1,6 @@
 # Charts
 
-`DaisyBlazor.Charts` ships **46 chart types**. Every chart is rendered as **inline `<svg>`** by its
+`DaisyBlazor.Charts` ships **50 chart types**. Every chart is rendered as **inline `<svg>`** by its
 Razor component, and every color is emitted as a daisyUI theme token (`var(--color-primary)`, …), so
 charts **follow the active `data-theme` automatically**. The geometry (scales, ticks, layouts, paths)
 is computed by D3 modules bundled in the package (`_content/DaisyBlazor.Charts/d3/`, trimmed to the D3 code the charts use, plus one small
