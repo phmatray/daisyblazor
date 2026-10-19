@@ -353,6 +353,16 @@ test('bar: a moving-average trend through the category centres, also horizontal'
     assert.deepEqual(ends(lin.trends[0].path).map(([, y]) => y), [lin.bars[0].y, lin.bars[3].y]);
 });
 
+test('bar: on grouped bars each trend runs through its own series\' bars', async () => {
+    const out = await layout('bar', { categories: ['Q1', 'Q2', 'Q3'], series: [[10, 20, 30], [5, 15, 25]], ...size, trendline: 'linear' });
+    for (const s of [0, 1]) {
+        const xs = out.trends[s].path.slice(1).split('L').map(p => Number(p.split(',')[0]));
+        const centres = out.bars.filter(b => b.s === s).map(b => b.x + b.width / 2);
+        assert.ok(Math.abs(xs[0] - centres[0]) < 0.02, `series ${s} starts on its first bar`);
+        assert.ok(Math.abs(xs.at(-1) - centres.at(-1)) < 0.02, `series ${s} ends on its last bar`);
+    }
+});
+
 // Measured mode, against a stubbed ResizeObserver and element.
 const observers = [];
 globalThis.ResizeObserver = class {

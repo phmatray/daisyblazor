@@ -293,9 +293,9 @@ export function trendOf(fit, kind, series, path) {
  * the first and last fitted index and broken where they leave the plot. spec: { kind, order, period }.
  */
 export function categoryTrends(series, place, value, horizontal, plot, { kind, order, period }) {
-    const point = (i, v) => {
+    const point = (i, v, s) => {
         const lo = Math.floor(i), hi = Math.min(lo + 1, Math.ceil(i));
-        const p = lo === hi ? place(lo) : place(lo) + (place(hi) - place(lo)) * (i - lo);
+        const p = lo === hi ? place(lo, s) : place(lo, s) + (place(hi, s) - place(lo, s)) * (i - lo);
         const q = value(v);
         return horizontal ? [r2(q), r2(p)] : [r2(p), r2(q)];
     };
@@ -315,8 +315,8 @@ export function categoryTrends(series, place, value, horizontal, plot, { kind, o
         }
         const steps = 48, first = xs[0], last = xs.at(-1);
         const pts = fit.points
-            ? fit.points.map(([i, v]) => point(i, v))
-            : Array.from({ length: steps + 1 }, (_, k) => point(first + (last - first) * k / steps, fit.f(first + (last - first) * k / steps)));
+            ? fit.points.map(([i, v]) => point(i, v, s))
+            : Array.from({ length: steps + 1 }, (_, k) => point(first + (last - first) * k / steps, fit.f(first + (last - first) * k / steps), s));
         return trendOf(fit, kind, s, line().defined(inPlot)(pts) ?? '');
     }).filter(Boolean);
 }

@@ -13,7 +13,7 @@ import { LABEL_ROW, finite, r2, textWidth, maxWidth, fit, compact, valueScale, t
 // reference lines and value bands (see referenceMarks); the result then carries `references` and `bands`.
 // trendline ('linear', 'exponential', 'logarithmic', 'power', 'polynomial' of trendlineOrder,
 // 'movingaverage' of trendlinePeriod points) adds `trends`, one per series fitted over the category
-// index on its own values and drawn through the category centres (see categoryTrends); it is
+// index on its own values and drawn through the centres of that series' own bars (see categoryTrends); it is
 // ignored when stacked or percent.
 export default function bar({ trendline = 'none', trendlineOrder = 2, trendlinePeriod = 3, categories = [], series = [], horizontal = false, showGrid = true, stacked = false, percent = false, stacks = [], references, bands, width, height }) {
     stacked ||= percent;
@@ -99,7 +99,8 @@ export default function bar({ trendline = 'none', trendlineOrder = 2, trendlineP
         bars,
     };
     if (trendline && trendline !== 'none' && !stacked) {
-        out.trends = categoryTrends(series, c => band(c) + band.bandwidth() / 2, value, horizontal, plot, { kind: trendline, order: trendlineOrder, period: trendlinePeriod });
+        // Grouped bars: each series' trend runs through its own bars, not the category centre.
+        out.trends = categoryTrends(series, (c, s) => band(c) + inner(stackOf(s)) + inner.bandwidth() / 2, value, horizontal, plot, { kind: trendline, order: trendlineOrder, period: trendlinePeriod });
     }
     return references?.length || bands?.length ? { ...out, ...referenceMarks(value, horizontal, plot, references, bands) } : out;
 }
