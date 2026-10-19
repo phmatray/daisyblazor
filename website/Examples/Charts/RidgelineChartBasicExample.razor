@@ -1,0 +1,12 @@
+<RidgelineChart Title="Sign-in time of day, by weekday" Groups="_days" ValueTitle="Hour of day (UTC)" />
+
+@code {
+    // Weekdays peak in the morning and after lunch; weekends are later and flatter.
+    private readonly ValueGroup[] _days =
+    [
+        .. new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" }.Select((day, i) => new ValueGroup(day,
+            [.. DistributionSamples.Normal(seed: 80 + i, count: 300, mean: 9.5, sd: 1.4, min: 0), .. DistributionSamples.Normal(seed: 90 + i, count: 220 - 20 * i, mean: 14.5, sd: 1.8)])),
+        new("Saturday", DistributionSamples.Normal(seed: 86, count: 160, mean: 13, sd: 3.5, min: 0)),
+        new("Sunday", DistributionSamples.Normal(seed: 87, count: 140, mean: 15, sd: 3.8, min: 0)),
+    ];
+}

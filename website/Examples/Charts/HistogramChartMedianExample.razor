@@ -1,0 +1,7 @@
+<HistogramChart Values="_durations" Bins="30" ShowMedian="true" Color="var(--color-secondary)" AspectRatio="2.2"
+                XTitle="Deployment duration (min)" YTitle="Deployments" ValueFormat="{0:N1} min" />
+
+@code {
+    // Bins asks for about 30 bins (D3 rounds to tidy edges); ShowMedian marks the middle deployment.
+    private readonly double[] _durations = DistributionSamples.Skewed(seed: 62, count: 600, median: 14, spread: 0.35);
+}

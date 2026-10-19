@@ -1,0 +1,66 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<BeeswarmLayout>
+
+@* Beeswarm: every value is a dot along the horizontal axis, nudged up or down just enough not to
+   overlap its neighbours, one row per group. Unlike a histogram it keeps each observation visible.
+   The layout places the dots deterministically on a D3 scale. *@
+
+<D3ChartFrame TLayout="BeeswarmLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { } view)
+    {
+        <DistributionAxes Plot="view.Plot" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@ValueTitle" XGrid="true" Height="ViewHeight" />
+        @foreach (BeeswarmLayoutGroup g in view.Groups)
+        {
+            string color = _color(g);
+            <g fill="@color" fill-opacity="0.8">
+                @foreach (BeeswarmDot d in g.Dots)
+                {
+                    <circle cx="@N(d.Cx)" cy="@N(d.Cy)" r="@N(view.Radius)">
+                        <title>@(string.IsNullOrEmpty(g.Name) ? _format(d.Value) : $"{g.Name}: {_format(d.Value)}")</title>
+                    </circle>
+                }
+            </g>
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The groups, one row each, with their raw values. Values that are not finite numbers are ignored; empty groups are not drawn.</summary>
+    [Parameter] public IReadOnlyList<ValueGroup> Groups { get; set; } = [];
+
+    /// <summary>Title of the value axis, e.g. "Session length (min)".</summary>
+    [Parameter] public string? ValueTitle { get; set; }
+
+    /// <summary>Dot radius in chart units. A row too crowded for its height lets dots overlap rather than spill into the next.</summary>
+    [Parameter] public double Radius { get; set; } = 4;
+
+    /// <summary>Format string for values in tooltips, e.g. "{0:N0} min".</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <inheritdoc />
+    protected override string Kind => "beeswarm";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Groups = Groups.Select(g => new { g.Name, Values = g.Values.Where(double.IsFinite).ToArray() }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        ValueTitle,
+        Radius,
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _color(BeeswarmLayoutGroup g) => ChartPalette.At(g.Index, g.Index < Groups.Count ? Groups[g.Index].Color : null);
+
+    private string _label => Title ?? (ValueTitle is null ? "Beeswarm plot" : $"Beeswarm plot of {ValueTitle}");
+
+    private string _description => string.Join("; ", Groups.Select(g =>
+    {
+        double[] values = g.Values.Where(double.IsFinite).ToArray();
+        return values.Length == 0
+            ? $"{g.Name}: no values"
+            : $"{g.Name}: {values.Length} values from {_format(values.Min())} to {_format(values.Max())}";
+    }));
+}

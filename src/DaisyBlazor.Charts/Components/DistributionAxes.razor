@@ -1,0 +1,66 @@
+@namespace DaisyBlazor.Charts
+
+@* Gridlines, tick labels and axis titles for the distribution charts. Positions come from the layout,
+   which keeps margins wide enough for every label: y labels right-aligned left of the plot, the y
+   title above them, x labels and the x title under the plot. *@
+
+@if (XGrid)
+{
+    @foreach (AxisTick t in XTicks)
+    {
+        <line x1="@N(t.Pos)" x2="@N(t.Pos)" y1="@N(Plot.Top)" y2="@N(Plot.Bottom)" stroke="var(--color-base-content)" stroke-opacity="0.1" />
+    }
+}
+@if (YGrid)
+{
+    @foreach (AxisTick t in YTicks)
+    {
+        <line x1="@N(Plot.Left)" x2="@N(Plot.Right)" y1="@N(t.Pos)" y2="@N(t.Pos)" stroke="var(--color-base-content)" stroke-opacity="0.1" />
+    }
+}
+<line x1="@N(Plot.Left)" x2="@N(Plot.Right)" y1="@N(Plot.Bottom)" y2="@N(Plot.Bottom)" stroke="var(--color-base-content)" stroke-opacity="0.3" />
+
+@foreach (AxisTick t in XTicks)
+{
+    <SvgText X="@t.Pos" Y="@(Plot.Bottom + 16)" Anchor="middle" FontSize="11" FillOpacity="0.7" Text="@t.Label" />
+}
+@foreach (AxisTick t in YTicks)
+{
+    <SvgText X="@(Plot.Left - 8)" Y="@t.Pos" Dy="0.35em" Anchor="end" FontSize="11" FillOpacity="0.7" Text="@t.Label" />
+}
+@if (!string.IsNullOrEmpty(XTitle))
+{
+    <SvgText X="@((Plot.Left + Plot.Right) / 2)" Y="@(Height - 6)" Anchor="middle" FontSize="11" FontWeight="600" FillOpacity="0.8" Text="@XTitle" />
+}
+@if (!string.IsNullOrEmpty(YTitle))
+{
+    <SvgText X="0" Y="12" FontSize="11" FontWeight="600" FillOpacity="0.8" Text="@YTitle" />
+}
+
+@code {
+    /// <summary>The plot rectangle.</summary>
+    [Parameter, EditorRequired] public PlotArea Plot { get; set; } = null!;
+
+    /// <summary>Ticks along the bottom.</summary>
+    [Parameter] public IReadOnlyList<AxisTick> XTicks { get; set; } = [];
+
+    /// <summary>Ticks down the left.</summary>
+    [Parameter] public IReadOnlyList<AxisTick> YTicks { get; set; } = [];
+
+    /// <summary>Title under the x tick labels.</summary>
+    [Parameter] public string? XTitle { get; set; }
+
+    /// <summary>Title above the y tick labels.</summary>
+    [Parameter] public string? YTitle { get; set; }
+
+    /// <summary>Draw a vertical gridline at each x tick.</summary>
+    [Parameter] public bool XGrid { get; set; }
+
+    /// <summary>Draw a horizontal gridline at each y tick.</summary>
+    [Parameter] public bool YGrid { get; set; }
+
+    /// <summary>Height of the chart's coordinate space, to place the x title.</summary>
+    [Parameter] public double Height { get; set; }
+
+    private static string N(double value) => Math.Round(value, 2).ToString(CultureInfo.InvariantCulture);
+}

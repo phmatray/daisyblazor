@@ -1,0 +1,25 @@
+<ScatterChart Points="_accounts" XScale="AxisScale.Log" YScale="AxisScale.Log"
+              XTitle="Seats" YTitle="API calls per day" SizeFormat="{0:N0} sessions this week"
+              SeriesColors="_colors" AspectRatio="1.6" />
+
+@code {
+    // Size turns dots into bubbles (area follows sessions); log axes keep small and large accounts readable.
+    private readonly ScatterPoint[] _accounts =
+    [
+        new(3, 420, 35, "Starter", "Northwind Labs"),
+        new(8, 1_900, 120, "Starter", "Blue Fern"),
+        new(15, 2_600, 260, "Starter", "Quarry Bay"),
+        new(24, 9_800, 410, "Pro", "Larkspur"),
+        new(40, 18_000, 900, "Pro", "Tidewater"),
+        new(65, 31_000, 1_300, "Pro", "Halcyon"),
+        new(90, 75_000, 2_100, "Pro", "Juniper Health"),
+        new(180, 140_000, 4_800, "Enterprise", "Meridian"),
+        new(420, 610_000, 9_500, "Enterprise", "Atlas Freight"),
+        new(1_200, 1_900_000, 21_000, "Enterprise", "Polar Systems"),
+    ];
+
+    private readonly Dictionary<string, string> _colors = new()
+    {
+        ["Enterprise"] = "var(--color-success)",
+    };
+}

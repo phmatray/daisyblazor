@@ -1,0 +1,6 @@
+<HistogramChart Title="API response times, last hour" Values="_responseTimes" XTitle="Response time (ms)" YTitle="Requests" CountFormat="{0:N0} requests" />
+
+@code {
+    // Bins are picked by Sturges' rule unless you set Bins.
+    private readonly double[] _responseTimes = DistributionSamples.Skewed(seed: 61, count: 1_000, median: 90, spread: 0.45);
+}

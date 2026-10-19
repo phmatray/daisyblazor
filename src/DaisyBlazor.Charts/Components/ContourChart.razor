@@ -1,0 +1,80 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<ContourLayout>
+
+@* Density contours: where many points crowd together, the bands get darker. D3 (d3-contour) estimates
+   the density on the plot's grid and traces one band per level; this component fills them with one
+   theme colour, deeper for denser levels. *@
+
+<D3ChartFrame TLayout="ContourLayout" Chart="this" Label="@_label" Description="@_description">
+    @if (Layout is { } view)
+    {
+        <DistributionAxes Plot="view.Plot" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
+                          XGrid="true" YGrid="true" Height="ViewHeight" />
+        <g transform="@($"translate({N(view.Plot.Left)},{N(view.Plot.Top)})")">
+            @for (int i = 0; i < view.Contours.Count; i++)
+            {
+                double level = (i + 1d) / view.Contours.Count;
+                <path d="@view.Contours[i].Path" fill="@Color" fill-opacity="@N(0.05 + 0.55 * level)"
+                      stroke="@Color" stroke-opacity="0.6" stroke-width="0.75" stroke-linejoin="round">
+                    <title>@($"Density level {i + 1} of {view.Contours.Count}")</title>
+                </path>
+            }
+        </g>
+        @foreach (ContourLayoutPoint p in view.Points)
+        {
+            <circle cx="@N(p.Cx)" cy="@N(p.Cy)" r="1.75" fill="var(--color-base-content)" fill-opacity="0.55">
+                <title>@($"{XTitle ?? "x"} {_format(p.X)}, {YTitle ?? "y"} {_format(p.Y)}")</title>
+            </circle>
+        }
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The points whose density is drawn. Size, Series and Label are ignored; points without a finite X and Y are skipped.</summary>
+    [Parameter] public IReadOnlyList<ScatterPoint> Points { get; set; } = [];
+
+    /// <summary>Title of the horizontal axis.</summary>
+    [Parameter] public string? XTitle { get; set; }
+
+    /// <summary>Title of the vertical axis.</summary>
+    [Parameter] public string? YTitle { get; set; }
+
+    /// <summary>Smoothing radius of the density estimate, in chart units: larger gives rounder, broader bands.</summary>
+    [Parameter] public double Bandwidth { get; set; } = 20;
+
+    /// <summary>About how many density levels to draw (D3 rounds to nice thresholds).</summary>
+    [Parameter] public int Levels { get; set; } = 10;
+
+    /// <summary>Draw the points themselves over the bands.</summary>
+    [Parameter] public bool ShowPoints { get; set; }
+
+    /// <summary>Colour of the bands (any CSS colour); deeper levels are more opaque.</summary>
+    [Parameter] public string Color { get; set; } = "var(--color-primary)";
+
+    /// <summary>Format string for X and Y in point tooltips.</summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <inheritdoc />
+    protected override string Kind => "contour";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Points = Points.Where(p => double.IsFinite(p.X) && double.IsFinite(p.Y)).Select(p => new { p.X, p.Y }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        XTitle,
+        YTitle,
+        Bandwidth,
+        Thresholds = Levels,
+        ShowPoints,
+    };
+
+    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    private string _label => Title ?? "Density contour chart";
+
+    private string _description => $"Density of {Points.Count} points"
+        + (XTitle is not null && YTitle is not null ? $", {YTitle} against {XTitle}" : string.Empty)
+        + "; darker bands mark where points are most concentrated.";
+}

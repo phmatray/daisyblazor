@@ -1,0 +1,11 @@
+<HexbinChart Title="API requests by payload and response time" Points="_requests"
+             XTitle="Payload (KB)" YTitle="Response time (ms)" CountFormat="{0:N0} requests" />
+
+@code {
+    // 3,000 requests would be a solid blot as dots; hexagons show where they concentrate.
+    private readonly ScatterPoint[] _requests =
+    [
+        .. DistributionSamples.Cloud(seed: 31, count: 2_400, xMean: 40, xSd: 14, intercept: 50, slope: 2, noise: 18),
+        .. DistributionSamples.Cloud(seed: 32, count: 600, xMean: 110, xSd: 20, intercept: 120, slope: 1.5, noise: 40),
+    ];
+}

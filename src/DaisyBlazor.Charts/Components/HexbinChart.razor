@@ -1,0 +1,83 @@
+@namespace DaisyBlazor.Charts
+@inherits D3Chart<HexbinLayout>
+
+@* Hexagonal binning: the plot is tiled with hexagons and each one is shaded by how many points fall
+   in it, which keeps thousands of overlapping points readable. The view bins the points on D3
+   scales; this component draws the occupied hexagons in one theme colour. *@
+
+<D3ChartFrame TLayout="HexbinLayout" Chart="this" Label="@_label" Description="@_description" Legend="@_legend">
+    @if (Layout is { } view)
+    {
+        <defs>
+            <clipPath id="@_clipId">
+                <rect x="@N(view.Plot.Left)" y="@N(view.Plot.Top)" width="@N(view.Plot.Right - view.Plot.Left)" height="@N(view.Plot.Bottom - view.Plot.Top)" />
+            </clipPath>
+        </defs>
+        <DistributionAxes Plot="view.Plot" XTicks="view.XTicks" YTicks="view.YTicks" XTitle="@XTitle" YTitle="@YTitle"
+                          XGrid="true" YGrid="true" Height="ViewHeight" />
+        <g clip-path="@($"url(#{_clipId})")">
+            @foreach (HexbinBin bin in view.Bins)
+            {
+                <path d="@view.Hexagon" transform="@($"translate({N(bin.Cx)},{N(bin.Cy)})")" fill="@Color"
+                      fill-opacity="@N(_opacity(bin.Count, view.MaxCount))" stroke="var(--color-base-100)" stroke-width="1">
+                    <title>@string.Format(CultureInfo.CurrentCulture, CountFormat, bin.Count)</title>
+                </path>
+            }
+        </g>
+    }
+</D3ChartFrame>
+
+@code {
+    /// <summary>The points to bin. Size, Series and Label are ignored; points without a finite X and Y are skipped.</summary>
+    [Parameter] public IReadOnlyList<ScatterPoint> Points { get; set; } = [];
+
+    /// <summary>Title of the horizontal axis.</summary>
+    [Parameter] public string? XTitle { get; set; }
+
+    /// <summary>Title of the vertical axis.</summary>
+    [Parameter] public string? YTitle { get; set; }
+
+    /// <summary>Hexagon radius (centre to corner) in chart units. Smaller shows more detail, larger smooths more.</summary>
+    [Parameter] public double Radius { get; set; } = 12;
+
+    /// <summary>Colour of the hexagons (any CSS colour); the fuller a hexagon, the more opaque.</summary>
+    [Parameter] public string Color { get; set; } = "var(--color-primary)";
+
+    /// <summary>Format string for a hexagon's count in its tooltip and the legend, e.g. "{0:N0} sessions".</summary>
+    [Parameter] public string CountFormat { get; set; } = "{0:N0} points";
+
+    /// <summary>Show a key under the chart giving the counts of the lightest and darkest hexagons.</summary>
+    [Parameter] public bool ShowLegend { get; set; } = true;
+
+    /// <inheritdoc />
+    protected override string Kind => "hexbin";
+
+    /// <inheritdoc />
+    protected override object BuildSpec() => new
+    {
+        Points = Points.Where(p => double.IsFinite(p.X) && double.IsFinite(p.Y)).Select(p => new { p.X, p.Y }).ToArray(),
+        Width = ViewWidth,
+        Height = ViewHeight,
+        XTitle,
+        YTitle,
+        Radius,
+    };
+
+    private readonly string _clipId = "hexclip-" + Guid.NewGuid().ToString("N")[..8];
+
+    // Square root, so a few sparse bins stay visible next to a crowded one.
+    private static double _opacity(int count, int max) => max <= 0 ? 0 : 0.12 + 0.88 * Math.Sqrt((double)count / max);
+
+    private RenderFragment? _legend => ShowLegend && Layout is { Bins.Count: > 0 } view
+        ? @<ChartLegend Items="@([
+              (string.Format(CultureInfo.CurrentCulture, CountFormat, view.Bins[0].Count), $"color-mix(in oklab, {Color} {N(_opacity(view.Bins[0].Count, view.MaxCount) * 100)}%, transparent)"),
+              (string.Format(CultureInfo.CurrentCulture, CountFormat, view.MaxCount), Color),
+          ])" />
+        : null;
+
+    private string _label => Title ?? "Hexagonal bin chart";
+
+    private string _description => $"{Points.Count} points binned into hexagons"
+        + (XTitle is not null && YTitle is not null ? $", {YTitle} against {XTitle}" : string.Empty)
+        + "; darker hexagons hold more points.";
+}

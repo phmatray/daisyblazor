@@ -1,0 +1,6 @@
+<BeeswarmChart Groups="_deploys" Radius="3" AspectRatio="3" ValueTitle="Deployment duration (min)" ValueFormat="{0:N1} min" />
+
+@code {
+    // One unnamed group draws a single row with no labels; a smaller Radius fits more dots.
+    private readonly ValueGroup[] _deploys = [new("", DistributionSamples.Skewed(seed: 74, count: 150, median: 12, spread: 0.3))];
+}

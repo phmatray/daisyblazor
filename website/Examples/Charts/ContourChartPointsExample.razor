@@ -1,0 +1,8 @@
+<ContourChart Points="_requests" ShowPoints="true" Bandwidth="12" Levels="6" Color="var(--color-secondary)"
+              XTitle="Payload (KB)" YTitle="Response time (ms)" AspectRatio="1.8" />
+
+@code {
+    // ShowPoints draws the observations over the bands; a smaller Bandwidth follows them more closely.
+    private readonly ScatterPoint[] _requests =
+        DistributionSamples.Cloud(seed: 23, count: 150, xMean: 40, xSd: 15, intercept: 60, slope: 2.2, noise: 25);
+}
