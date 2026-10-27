@@ -395,9 +395,11 @@ public abstract class D3ChartBase<TLayout> : ComponentBase, IAsyncDisposable
 
 /// <summary>
 /// Base for the charts drawn in a fixed-shape coordinate space (<see cref="ViewWidth"/> by
-/// <see cref="ViewHeight"/>, from <see cref="AspectRatio"/>) inside a <c>D3ChartFrame</c>: the SVG
-/// scales with the wrapper's width and its text scales with it. In a box narrower than the frame (a
-/// phone) the chart lays out again at the box's width, so its text is not shrunk below its size.
+/// <see cref="ViewHeight"/>, from <see cref="AspectRatio"/>) inside a <c>D3ChartFrame</c>. Once
+/// interactive, the chart lays out again at its box's width (and whenever the box is resized), so its
+/// text keeps its nominal size in a narrow column as on a full-width card. Before that (prerendering,
+/// static server rendering) it lays out at 640 units, or at <see cref="Width"/> when that is in
+/// px or rem, and the SVG scales to the box.
 /// </summary>
 /// <typeparam name="TLayout">The data the layout returns, deserialized from JSON.</typeparam>
 public abstract class D3Chart<TLayout> : D3ChartBase<TLayout>
@@ -405,20 +407,25 @@ public abstract class D3Chart<TLayout> : D3ChartBase<TLayout>
 {
     private const double FrameWidth = 640;
     private const double MinFrameWidth = 280;
+    private bool _measured;
 
     /// <summary>
-    /// Width of the SVG coordinate space; layouts are computed in these units. It is 640, or the box's
-    /// own width (at least 280) once measured narrower, so text keeps its true size on a phone.
+    /// Width of the SVG coordinate space; layouts are computed in these units. It is the box's own
+    /// width (at least 280) once measured, so text keeps its true size; until then 640, or
+    /// <see cref="Width"/> when that is given in px or rem.
     /// </summary>
     protected double ViewWidth { get; private set; } = FrameWidth;
 
-    /// <summary>Optional heading rendered above the chart.</summary>
+    /// <summary>Optional heading rendered above the chart; it is also the chart's accessible name.</summary>
     [Parameter] public string? Title { get; set; }
+
+    /// <summary>Draw <c>Title</c> as a visible heading above the chart (the default); false keeps it only as the chart's accessible name, for a chart inside a card that already has a heading.</summary>
+    [Parameter] public bool ShowTitle { get; set; } = true;
 
     /// <summary>CSS width of the chart wrapper.</summary>
     [Parameter] public string? Width { get; set; } = "100%";
 
-    /// <summary>Width divided by height. The chart keeps this shape at any width; its text scales with it above <see cref="ViewWidth"/>.</summary>
+    /// <summary>Width divided by height. The chart keeps this shape at any width; its text keeps its size.</summary>
     [Parameter] public double AspectRatio { get; set; } = 16d / 9;
 
     /// <summary>Additional CSS classes merged onto the <c>w-full</c> wrapper.</summary>
@@ -437,11 +444,26 @@ public abstract class D3Chart<TLayout> : D3ChartBase<TLayout>
 
     internal string WrapperStyle => (string.IsNullOrEmpty(Width) ? string.Empty : $"width:{Width};") + Style;
 
+    internal double FrameViewWidth => ViewWidth;
+
     internal string ViewBox => $"0 0 {ViewWidth.ToString(Ci)} {ViewHeight.ToString(Ci)}";
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        // Until the box is measured, a width in pixels is the best guess of it (server layout).
+        if (!_measured)
+        {
+            ViewWidth = ChartText.Pixels(Width) is { } px ? Math.Max(MinFrameWidth, px) : FrameWidth;
+        }
+
+        base.OnParametersSet();
+    }
 
     private protected override bool FitFrame(double width)
     {
-        double fit = Math.Clamp(Math.Round(width), MinFrameWidth, FrameWidth);
+        _measured = true;
+        double fit = Math.Max(Math.Round(width), MinFrameWidth);
         if (fit == ViewWidth)
         {
             return false;

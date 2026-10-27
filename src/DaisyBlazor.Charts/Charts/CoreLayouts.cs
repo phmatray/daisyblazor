@@ -1,3 +1,6 @@
+using System.Globalization;
+using System.Text.RegularExpressions;
+
 namespace DaisyBlazor.Charts;
 
 // Geometry returned by the line, bar, pie and spark layouts in wwwroot/layouts/. Line, bar and
@@ -64,7 +67,7 @@ public enum SparklineKind
 }
 
 /// <summary>Text helpers shared by the charts.</summary>
-internal static class ChartText
+internal static partial class ChartText
 {
     // Charts cannot measure text while they render, so widths use the layouts' estimate (_shared.mjs):
     // 0.6 em a glyph, 0.72 em a capital and 0.95 em the wide M, W, m, w, %, @ and em dash.
@@ -72,17 +75,62 @@ internal static class ChartText
 
     private static double Glyph(char c) => "MWmw%@—".Contains(c) ? 0.95 : c is >= 'A' and <= 'Z' ? 0.72 : Em;
 
-    /// <summary>A data value for tooltips and screen-reader descriptions: 48200 → "48,200".</summary>
-    public static string Value(double value) => value.ToString("#,0.##", System.Globalization.CultureInfo.InvariantCulture);
+    /// <summary>A data value for tooltips and screen-reader descriptions, in the current culture: 48200 → "48,200" (en), "48 200" (fr).</summary>
+    public static string Value(double value) => value.ToString("#,0.##", CultureInfo.CurrentCulture);
 
     /// <summary>A formatted number with a leading hyphen as the minus sign (U+2212) the D3 axis ticks print: "-8" → "−8".</summary>
     public static string Minus(string text) => text.StartsWith('-') ? "\u2212" + text[1..] : text;
 
-    /// <summary>A share in percent for tooltips: 33.333 → "33.3%".</summary>
-    public static string Percent(double value) => value.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + "%";
+    /// <summary>A share in percent, in the current culture: 33.333 → "33.3%" (en), "33,3 %" (fr).</summary>
+    public static string Percent(double value) => value < 0
+        ? "−" + Percent(-value)
+        : WithPercent(value.ToString("0.#", CultureInfo.CurrentCulture));
+
+    // The number placed as the current culture writes a percentage ("80%", "80 %", "%80"), read from
+    // how it formats 50 %; the invariant culture (no culture, as on a globalization-invariant app) keeps "80%".
+    private static string WithPercent(string number) => CultureInfo.CurrentCulture.Name.Length == 0
+        ? number + "%"
+        : 0.5.ToString("P0", CultureInfo.CurrentCulture).Replace("50", number, StringComparison.Ordinal);
+
+    /// <summary>
+    /// A number the layouts wrote in invariant form (D3 tick text such as "1,500", "2.5", "−1.5k",
+    /// "80%") in the current culture: "1 500", "2,5", "−1,5k", "80 %" in French. Any other text (a
+    /// category, a date, a time) is returned as is.
+    /// </summary>
+    public static string Localize(string text)
+    {
+        if (InvariantNumber().Match(text) is not { Success: true } m)
+        {
+            return text;
+        }
+
+        NumberFormatInfo nf = NumberFormatInfo.CurrentInfo;
+        string number = string.Concat(m.Groups["n"].Value.Select(c => c switch
+        {
+            ',' => nf.NumberGroupSeparator,
+            '.' => nf.NumberDecimalSeparator,
+            _ => c.ToString(),
+        })) + m.Groups["unit"].Value;
+        return m.Groups["sign"].Value + (m.Groups["pct"].Success ? WithPercent(number) : number);
+    }
+
+    [GeneratedRegex(@"^(?<sign>[−-]?)(?<n>\d+(,\d{3})*(\.\d+)?|\.\d+)(?<unit>[kMGB]?)(?<pct>%)?$")]
+    private static partial Regex InvariantNumber();
 
     /// <summary>A CSS size of a measured chart box; an empty one falls back so the box can be measured.</summary>
     public static string Size(string? size, string fallback) => string.IsNullOrWhiteSpace(size) ? fallback : size;
+
+    /// <summary>A CSS size given in px or rem (16 px) as pixels; null for any other unit (%, em, vw) or no size.</summary>
+    public static double? Pixels(string? size)
+    {
+        string text = size?.Trim() ?? string.Empty;
+        (string number, double scale) = text.EndsWith("px", StringComparison.OrdinalIgnoreCase) ? (text[..^2], 1d)
+            : text.EndsWith("rem", StringComparison.OrdinalIgnoreCase) ? (text[..^3], 16d)
+            : (string.Empty, 0d);
+        return double.TryParse(number, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) && value > 0
+            ? Math.Round(value * scale)
+            : null;
+    }
 
     /// <summary>Estimated width of a label at the given font size, as the layouts estimate it.</summary>
     public static double Width(string text, double fontSize = 11) => text.Sum(Glyph) * fontSize;

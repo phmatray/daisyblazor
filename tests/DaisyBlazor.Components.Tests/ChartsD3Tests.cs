@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Components;
+using System.Globalization;
 using DaisyBlazor.Charts;
 using Microsoft.JSInterop;
 
@@ -96,14 +98,61 @@ public class ChartsD3Tests : BunitContext
         module.Spec("layout").ShouldContain("\"width\":360,\"height\":180");
         module.Invocations["layout"].Count.ShouldBe(1);
 
-        // A resize lays out again; a box wider than the frame keeps the 640 frame, and a tiny one stops at 280.
+        // A resize lays out again at the new width, wide boxes included (text keeps its size), and a tiny one stops at 280.
         cut.InvokeAsync(() => cut.Instance.OnFrameWidth(1200));
-        cut.WaitForAssertion(() => cut.Find("svg").GetAttribute("viewBox").ShouldBe("0 0 640 320"));
-        cut.InvokeAsync(() => cut.Instance.OnFrameWidth(900));
+        cut.WaitForAssertion(() => cut.Find("svg").GetAttribute("viewBox").ShouldBe("0 0 1200 600"));
         cut.InvokeAsync(() => cut.Instance.OnFrameWidth(120));
         cut.WaitForAssertion(() => cut.Find("svg").GetAttribute("viewBox").ShouldBe("0 0 280 140"));
         module.Invocations["layout"].Count.ShouldBe(3);
         module.Invocations["observe"].Count.ShouldBe(1);
+    }
+
+    [Fact]
+    public void Frame_charts_lay_out_at_a_width_in_pixels_until_measured()
+    {
+        // A box with no size yet answers null: the chart keeps the width it was given.
+        SetRendererInfo(new RendererInfo("WebAssembly", isInteractive: true));
+        BunitJSModuleInterop module = JSInterop.SetupModule(ChartFakes.ModulePath);
+        module.Setup<double?>("observe", _ => true).SetResult(null);
+        module.Setup<SankeyLayout>("layout", _ => true).SetResult(_layout);
+
+        IRenderedComponent<SankeyChart> cut = Render<SankeyChart>(ps => ps.Add(p => p.Links, _links).Add(p => p.AspectRatio, 2).Add(p => p.Width, "900px"));
+
+        cut.WaitForAssertion(() => cut.Find("svg").GetAttribute("viewBox").ShouldBe("0 0 900 450"));
+    }
+
+    [Fact]
+    public void ShowTitle_false_keeps_the_title_as_the_accessible_name_only()
+    {
+        this.SetupChartModule().Setup<SankeyLayout>("layout", _ => true).SetResult(_layout);
+
+        IRenderedComponent<SankeyChart> cut = Render<SankeyChart>(ps => ps.Add(p => p.Links, _links).Add(p => p.Title, "Flows").Add(p => p.ShowTitle, false));
+
+        cut.WaitForAssertion(() => cut.Find("svg").GetAttribute("aria-label").ShouldBe("Flows"));
+        cut.FindAll("div.font-medium").ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Value_ticks_follow_the_current_culture_and_categories_stay_as_given()
+    {
+        CultureInfo previous = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = new CultureInfo("fr-FR");
+        try
+        {
+            IRenderedComponent<ChartAxes> cut = Render<ChartAxes>(ps => ps
+                .Add(p => p.Plot, new PlotArea(40, 10, 600, 300))
+                .Add(p => p.YTicks, [new AxisTick(300, "−1,500.5"), new AxisTick(200, "1.5k"), new AxisTick(100, "80%"), new AxisTick(50, "14000")])
+                .Add(p => p.XTicks, [new AxisTick(100, "2.5"), new AxisTick(200, "12:00")])
+                .Add(p => p.XCategories, true));
+
+            NumberFormatInfo nf = CultureInfo.CurrentCulture.NumberFormat;
+            string[] texts = [.. cut.FindAll("text").Select(t => t.TextContent)];
+            texts.ShouldBe(["2.5", "12:00", $"−1{nf.NumberGroupSeparator}500,5", "1,5k", 0.8.ToString("P0", nf), "14000"]);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previous;
+        }
     }
 
     [Fact]

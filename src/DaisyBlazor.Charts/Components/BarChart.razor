@@ -7,7 +7,7 @@
    follow the active daisyUI theme via the cycling ChartPalette. *@
 
 <div class="@CssClass.Merge("w-full", Class)" style="@(string.IsNullOrEmpty(Width) ? Style : $"width:{Width};{Style}")" @attributes="UserAttributes">
-    @if (!string.IsNullOrEmpty(Title))
+    @if (ShowTitle && !string.IsNullOrEmpty(Title))
     {
         <div class="text-sm font-medium mb-2 text-base-content/80">@Title</div>
     }
@@ -158,6 +158,9 @@
     /// <summary>Optional heading rendered above the chart.</summary>
     [Parameter] public string? Title { get; set; }
 
+    /// <summary>Draw <c>Title</c> as a visible heading above the chart (the default); false keeps it only as the chart's accessible name, for a chart inside a card that already has a heading.</summary>
+    [Parameter] public bool ShowTitle { get; set; } = true;
+
     /// <summary>Extra CSS classes added to the chart wrapper.</summary>
     [Parameter] public string? Class { get; set; }
     /// <summary>Inline CSS style appended to the chart wrapper.</summary>
@@ -169,6 +172,10 @@
 
     /// <inheritdoc />
     protected override bool Measured => true;
+
+    // On the server the box cannot be measured: lay out at the size asked for when it is in px or rem.
+    /// <inheritdoc />
+    protected override (double Width, double Height) ServerSize => (ChartText.Pixels(Width) ?? 800, ChartText.Pixels(Height) ?? 256);
 
     private IReadOnlyList<ChartSeries>? _series;
     private IReadOnlyList<ChartDataPoint> _points = [];

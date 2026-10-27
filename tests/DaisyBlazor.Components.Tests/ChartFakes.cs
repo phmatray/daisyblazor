@@ -42,9 +42,9 @@ internal static class ChartFakes
 
     /// <summary>
     /// Sets up the chart module for an interactive render, where a fixed-frame chart first measures
-    /// its box: observe() with no kind answers <paramref name="frameWidth"/> (by default wider than the 640 frame).
+    /// its box: observe() with no kind answers <paramref name="frameWidth"/> (by default as wide as the 640 frame it lays out at before that).
     /// </summary>
-    public static BunitJSModuleInterop SetupChartModule(this BunitContext context, double frameWidth = 800)
+    public static BunitJSModuleInterop SetupChartModule(this BunitContext context, double frameWidth = 640)
     {
         context.SetRendererInfo(new RendererInfo("WebAssembly", isInteractive: true));
         BunitJSModuleInterop module = context.JSInterop.SetupModule(ModulePath);

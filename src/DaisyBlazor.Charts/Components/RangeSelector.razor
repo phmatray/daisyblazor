@@ -9,7 +9,7 @@
    lines up at any size, server rendering included. *@
 
 <div class="@CssClass.Merge("w-full", Class)" style="@(string.IsNullOrEmpty(Width) ? Style : $"width:{Width};{Style}")" @attributes="UserAttributes">
-    @if (!string.IsNullOrEmpty(Title))
+    @if (ShowTitle && !string.IsNullOrEmpty(Title))
     {
         <div class="text-sm font-medium mb-2 text-base-content/80">@Title</div>
     }
@@ -124,6 +124,9 @@
 
     /// <summary>Optional heading above the selector; also its accessible name.</summary>
     [Parameter] public string? Title { get; set; }
+
+    /// <summary>Draw <c>Title</c> as a visible heading above the chart (the default); false keeps it only as the chart's accessible name, for a chart inside a card that already has a heading.</summary>
+    [Parameter] public bool ShowTitle { get; set; } = true;
 
     /// <summary>CSS width of the selector.</summary>
     [Parameter] public string? Width { get; set; } = "100%";
