@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.9.0](https://github.com/phmatray/daisyblazor/compare/v0.8.0...v0.9.0) (2026-10-27)
+
+
+### Features
+
+* **charts:** category-axis markers on line, area and bar charts ([#140](https://github.com/phmatray/daisyblazor/issues/140)) ([795f1ca](https://github.com/phmatray/daisyblazor/commit/795f1caebcfed8f833889b64fa87f8831efeed7d))
+* **charts:** culture-aware ticks, frames that follow any box width, ShowTitle ([#160](https://github.com/phmatray/daisyblazor/issues/160)) ([f828710](https://github.com/phmatray/daisyblazor/commit/f8287102d255525ca785b2e5f1a14da154cc2b24))
+* **charts:** Gantt lanes and group colours, RangeBar time-of-day ticks, localized Gantt dates ([#161](https://github.com/phmatray/daisyblazor/issues/161)) ([a96b5c8](https://github.com/phmatray/daisyblazor/commit/a96b5c8917c12aea7642719ceab1451f9866b53e))
+* **components:** PageHeader is an h1 sized by TitleTypo, KpiCard accent and elevation, app-wide default button variant ([#162](https://github.com/phmatray/daisyblazor/issues/162)) ([5be7442](https://github.com/phmatray/daisyblazor/commit/5be7442798a03708f3283719b265edfb7422215e))
+
+
+### Bug Fixes
+
+* **charts:** heatmap label colour and zero-based scale, lollipop zero values and domain, bullet shared axis ([#155](https://github.com/phmatray/daisyblazor/issues/155)) ([a26834f](https://github.com/phmatray/daisyblazor/commit/a26834f9dc8c566bd1fbf863e9f7a28cc2a32998))
+* **charts:** Pareto integer ticks, Donut percentages, overridable and localized chart strings ([#156](https://github.com/phmatray/daisyblazor/issues/156)) ([8463ab4](https://github.com/phmatray/daisyblazor/commit/8463ab4fe0237f4532eca5ac5356b864e2763807))
+* **docs:** no live cover spills out of its tile ([#138](https://github.com/phmatray/daisyblazor/issues/138)) ([d8d2cd5](https://github.com/phmatray/daisyblazor/commit/d8d2cd5e510d6bde611a565ad4afb320699ff45d))
+
 ## [0.8.0](https://github.com/phmatray/daisyblazor/compare/v0.7.0...v0.8.0) (2026-10-19)
 
 
