@@ -4,11 +4,13 @@
 
 <Paper Class="@_paperClass" Style="@($"{_accent}height: 100%;{Style}")" Elevation="Elevation" @attributes="UserAttributes">
     <Typography Typo="Typo.caption" Style="opacity: 0.7;">@Label</Typography>
-    @* Value stays in the base text colour: accent colours (warning, success) fail contrast as text on light themes. *@
-    <Typography Typo="Typo.h4" Class="mt-1">@Value</Typography>
+    @* Value stays in the base text colour: accent colours (warning, success) fail contrast as text on light themes.
+       It looks like an h4 but is a <p>: a bare number is not a section heading (WCAG 1.3.1, 2.4.6). *@
+    <Typography Typo="Typo.body1" Look="Typo.h4" Class="mt-1">@Value</Typography>
     @if (!string.IsNullOrEmpty(Subtitle))
     {
-        <Typography Typo="Typo.caption" Style="opacity: 0.5;" Class="mt-1">@Subtitle</Typography>
+        @* /70 fades the colour, not the element: opacity .5 measured 4.36:1, below AA. *@
+        <Typography Typo="Typo.caption" Class="mt-1 text-base-content/70">@Subtitle</Typography>
     }
 </Paper>
 

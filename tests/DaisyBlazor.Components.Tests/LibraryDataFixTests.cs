@@ -150,4 +150,17 @@ public class LibraryDataFixTests : BunitContext
         cut.Markup.ShouldContain("border-inline-start: 4px solid var(--color-warning)");
         cut.Markup.ShouldNotContain("color: var(--color-warning)");
     }
+
+    [Fact]
+    public void KpiCard_value_is_not_a_heading_and_subtitle_passes_contrast()
+    {
+        IRenderedComponent<KpiCard> cut = Render<KpiCard>(ps => ps
+            .Add(p => p.Label, "Open incidents")
+            .Add(p => p.Value, "42")
+            .Add(p => p.Subtitle, "since Monday"));
+
+        cut.FindAll("h1, h2, h3, h4, h5, h6").ShouldBeEmpty();
+        cut.Markup.ShouldNotContain("opacity: 0.5");
+        cut.Find("p.text-base-content\\/70").TextContent.ShouldBe("since Monday");
+    }
 }
