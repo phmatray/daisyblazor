@@ -5,9 +5,10 @@ import { maxWidth, r2, ticks } from './_shared.mjs';
 
 // A band per category along one side, a value axis along the other, with margins sized to the
 // category labels, the tick labels and any value text drawn beyond the low (`before`) or high
-// (`after`) end of the value axis. The category axis sits beyond the `before` text.
-export function categoryFrame({ width, height, labels, scale, vertical = false, before = 0, after = 0, padding = 0.3, tickCount = 5 }) {
-    const tickW = maxWidth(ticks(scale, tickCount).map(t => t.label));
+// (`after`) end of the value axis. The category axis sits beyond the `before` text. `tickWidth` is
+// the least room for a tick label, for ticks the caller relabels.
+export function categoryFrame({ width, height, labels, scale, vertical = false, before = 0, after = 0, padding = 0.3, tickCount = 5, tickWidth = 0 }) {
+    const tickW = Math.max(tickWidth, maxWidth(ticks(scale, tickCount).map(t => t.label)));
     const labelW = maxWidth(labels);
     const index = labels.map((_, i) => i);
     const center = band => labels.map((label, i) => ({ pos: r2(band(i) + band.bandwidth() / 2), label }));

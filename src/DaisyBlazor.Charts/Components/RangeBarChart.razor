@@ -9,7 +9,7 @@
     <ChildContent>
         @if (Layout is { } layout)
         {
-            <ChartAxes Plot="layout.Plot" XTicks="layout.XTicks" YTicks="layout.YTicks" XAxisAt="layout.XAxisAt" YAxisAt="layout.YAxisAt"
+            <ChartAxes Plot="layout.Plot" XTicks="_ticks(layout.XTicks)" YTicks="_ticks(layout.YTicks)" XAxisAt="layout.XAxisAt" YAxisAt="layout.YAxisAt"
                        XLabelAngle="layout.LabelAngle" XGrid="Horizontal" YGrid="!Horizontal" XCategories="!Horizontal" YCategories="Horizontal" />
 
             @foreach (RangeBarLayoutBar bar in layout.Bars)
@@ -54,6 +54,13 @@
     /// <summary>Format string for values in labels and tooltips, e.g. "{0:N0} GB".</summary>
     [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
 
+    /// <summary>Optional function writing a value, used for the value axis ticks, labels and tooltips instead of ValueFormat. <see cref="TimeOfDay"/> prints hours past midnight as a time of day (25 as 01:00).</summary>
+    [Parameter] public Func<double, string>? ValueFormatter { get; set; }
+
+    /// <summary>A <see cref="ValueFormatter"/> for hours past midnight: writes the time of day, so 9.5 is 09:30 and 25 (past the next midnight) is 01:00.</summary>
+    public static readonly Func<double, string> TimeOfDay = hours =>
+        TimeOnly.FromTimeSpan(TimeSpan.FromHours((hours % 24 + 24) % 24)).ToString("HH:mm", CultureInfo.InvariantCulture);
+
     /// <inheritdoc />
     protected override string Kind => "rangebar";
 
@@ -74,12 +81,18 @@
         Height = ViewHeight,
         Vertical = !Horizontal,
         ShowValues,
+        FormattedTicks = ValueFormatter is not null,
     };
 
     private string _color(int group, RangeBarLayout layout) =>
         GroupColors is not null && group < layout.Groups.Count && GroupColors.TryGetValue(layout.Groups[group], out string? c) ? c : ChartPalette.At(group);
 
-    private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+    private string _format(double value) => ValueFormatter?.Invoke(value) ?? string.Format(CultureInfo.CurrentCulture, ValueFormat, value);
+
+    // Value ticks written by the ValueFormatter. The number is dropped once used so the axes do not write it their own way.
+    private IReadOnlyList<AxisTick> _ticks(IReadOnlyList<AxisTick> ticks) => ValueFormatter is null
+        ? ticks
+        : ticks.Select(t => t.Value is double v ? t with { Label = ValueFormatter(v), Value = null } : t).ToList();
 
     private string _tip(RangeBarLayoutBar bar) =>
         $"{bar.Label}{(string.IsNullOrEmpty(bar.Group) ? "" : $", {bar.Group}")}: {_format(bar.Low)} to {_format(bar.High)}";
