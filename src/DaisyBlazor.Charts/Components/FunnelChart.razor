@@ -18,7 +18,7 @@
             @if (stage.Conversion is { } conversion)
             {
                 <SvgText X="@stage.ValueX" Y="@stage.LabelY" Dy="1.05em" FontSize="11" FillOpacity="0.65"
-                         Text="@($"{_percent(conversion)} of previous")" />
+                         Text="@_text(PreviousFormat, conversion)" />
             }
         }
     }
@@ -36,6 +36,12 @@
 
     /// <summary>Format string for stage values, e.g. "{0:N0} accounts".</summary>
     [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
+
+    /// <summary>Format string for a stage's conversion from the stage before, under its value and in its tooltip; {0} is the percentage.</summary>
+    [Parameter] public string PreviousFormat { get; set; } = "{0} of previous";
+
+    /// <summary>Format string for a stage's share of the first stage in its tooltip; {0} is the percentage.</summary>
+    [Parameter] public string FirstFormat { get; set; } = "{0} of first";
 
     /// <summary>Colour of every stage that has no Color of its own. When null, stages cycle through the theme palette.</summary>
     [Parameter] public string? Color { get; set; } = "var(--color-primary)";
@@ -60,8 +66,10 @@
 
     private static string _percent(double share) => share.ToString("0.#%", CultureInfo.CurrentCulture);
 
+    private static string _text(string format, double share) => string.Format(CultureInfo.CurrentCulture, format, _percent(share));
+
     private string _tooltip(FunnelLayoutStage s) =>
-        $"{s.Label}: {_format(s.Value)}" + (s.Conversion is { } c ? $", {_percent(c)} of previous, {_percent(s.Share)} of first" : string.Empty);
+        $"{s.Label}: {_format(s.Value)}" + (s.Conversion is { } c ? $", {_text(PreviousFormat, c)}, {_text(FirstFormat, s.Share)}" : string.Empty);
 
     private string _label => Title ?? (Shape == FunnelShape.Pyramid ? "Pyramid chart" : "Funnel chart");
 

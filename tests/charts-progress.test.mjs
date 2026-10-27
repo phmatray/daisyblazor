@@ -151,6 +151,13 @@ test('pareto sorts descending, accumulates to 100 % and finds the vital few', as
     assert.equal((await layout('pareto', { items: [], width: W, height: H })).bars.length, 0);
 });
 
+test('pareto: whole-number counts get whole-number ticks, never a repeated rounded label', async () => {
+    const p = await layout('pareto', { items: [{ label: 'A', value: 2 }, { label: 'B', value: 1 }, { label: 'C', value: 1 }], width: W, height: H });
+    assert.deepEqual(p.ticks.map(t => t.value), [0, 1, 2]);
+    const f = await layout('pareto', { items: [{ label: 'A', value: 2.5 }, { label: 'B', value: 1 }], width: W, height: H });
+    assert.ok(f.ticks.some(t => !Number.isInteger(t.value)));
+});
+
 test('marimekko sizes columns by their total and stacks each to 100 %', async () => {
     const cells = [
         { column: 'EU', segment: 'Free', value: 30 }, { column: 'EU', segment: 'Pro', value: 10 },

@@ -200,6 +200,10 @@ public class ChartsDistributionTests : BunitContext
         cut.Markup.ShouldContain("0 to 2: 2");
         cut.Markup.ShouldContain("Median 2");
         cut.Find("svg line[stroke-dasharray]").GetAttribute("x1").ShouldBe("300");
+
+        cut.Render(ps => ps.Add(p => p.MedianLabel, "Médiane"));
+        cut.Markup.ShouldContain("Médiane 2");
+        cut.Find("svg line[stroke-dasharray] title").TextContent.ShouldBe("Médiane: 2");
     }
 
     [Fact]

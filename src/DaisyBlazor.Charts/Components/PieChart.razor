@@ -76,7 +76,10 @@
                         <li class="flex items-center gap-1.5">
                             <span class="inline-block w-3 h-3 rounded-sm" style="@($"background:{_color(slice, k)};")"></span>
                             <span class="text-base-content/80">@_point(slice).Label</span>
-                            <span class="text-base-content/70">@_percent(slice)%</span>
+                            @if (ShowPercent)
+                            {
+                                <span class="text-base-content/70">@_percent(slice)%</span>
+                            }
                         </li>
                     }
                 </ul>
@@ -130,7 +133,7 @@
     /// </summary>
     [Parameter] public IReadOnlyList<DonutRing>? Rings { get; set; }
 
-    /// <summary>Show each slice's share of the whole in its tooltip and the description (default true).</summary>
+    /// <summary>Show each slice's share of the whole in the legend, its tooltip and the description (default true).</summary>
     [Parameter] public bool ShowPercent { get; set; } = true;
 
     /// <summary>Additional CSS classes merged onto the <c>w-full</c> wrapper.</summary>

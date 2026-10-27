@@ -55,6 +55,16 @@ test('calendar-heatmap: dates with a time keep their calendar day; nothing to sh
     assert.deepEqual((await layout('calendar-heatmap', { days: [{ date: 'nope', value: 1 }], width: W, height: 100 })).cells, []);
 });
 
+test('calendar-heatmap: month and weekday names come from the spec when given', async () => {
+    const monthNames = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+    const dayNames = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
+    const { months, weekdays } = await layout('calendar-heatmap', {
+        days: [], from: '2026-01-05', to: '2026-03-02', monthNames, dayNames, width: W, height: 100,
+    });
+    assert.deepEqual(months.map(m => m.label), ['janv.', 'févr.', 'mars']);
+    assert.deepEqual(weekdays.map(w => w.label), ['lun.', 'mer.', 'ven.']);
+});
+
 test('heatmap: rows and columns in first-appearance order, a sequential t from zero to max', async () => {
     const out = await layout('heatmap', {
         cells: [

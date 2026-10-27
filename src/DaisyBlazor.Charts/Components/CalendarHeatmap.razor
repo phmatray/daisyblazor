@@ -20,7 +20,7 @@
             @foreach (CalendarHeatmapCell cell in geo.Cells)
             {
                 <rect x="@N(cell.X)" y="@N(cell.Y)" width="@N(cell.Size)" height="@N(cell.Size)" rx="2" fill="@_shade(cell.Level)">
-                    <title>@($"{cell.Label}: {_format(cell.Value)}")</title>
+                    <title>@($"{_day(cell)}: {_format(cell.Value)}")</title>
                 </rect>
             }
         }
@@ -90,7 +90,16 @@
         Levels = _levels,
         Width = ViewWidth,
         Height = ViewHeight,
+        // Month and weekday names in the current culture (AbbreviatedMonthNames has a 13th, empty slot).
+        MonthNames = CultureInfo.CurrentCulture.DateTimeFormat.AbbreviatedMonthNames[..12],
+        DayNames = CultureInfo.CurrentCulture.DateTimeFormat.AbbreviatedDayNames,
     };
+
+    // A cell's date in the current culture's long date pattern.
+    private static string _day(CalendarHeatmapCell cell) =>
+        DateOnly.TryParseExact(cell.Date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateOnly date)
+            ? date.ToString("D", CultureInfo.CurrentCulture)
+            : cell.Label;
 
     private int _levels => Math.Clamp(Levels, 2, 10);
 
@@ -118,6 +127,6 @@
     private string _label => Title ?? "Calendar heatmap";
 
     private string _description => Layout is { Cells.Count: > 0 } geo
-        ? $"{geo.Cells.Count} days from {geo.Cells[0].Label} to {geo.Cells[^1].Label}; {geo.Cells.Count(c => c.Value > 0)} with a value, total {_format(geo.Cells.Sum(c => c.Value))}, highest {_format(geo.Max)}."
+        ? $"{geo.Cells.Count} days from {_day(geo.Cells[0])} to {_day(geo.Cells[^1])}; {geo.Cells.Count(c => c.Value > 0)} with a value, total {_format(geo.Cells.Sum(c => c.Value))}, highest {_format(geo.Max)}."
         : "No data.";
 }
