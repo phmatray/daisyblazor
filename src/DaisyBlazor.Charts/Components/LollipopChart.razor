@@ -43,6 +43,12 @@
     /// <summary>Colour of every stem and dot (any CSS colour). Defaults to the theme's primary colour.</summary>
     [Parameter] public string? Color { get; set; }
 
+    /// <summary>Low end of the value axis, e.g. 0 for rates. Defaults to zero or the smallest value, rounded; smaller values are clamped to it.</summary>
+    [Parameter] public double? Min { get; set; }
+
+    /// <summary>High end of the value axis, e.g. 100 for percentages. Defaults to the largest value, rounded; larger values are clamped to it.</summary>
+    [Parameter] public double? Max { get; set; }
+
     /// <summary>Format string for values in labels and tooltips, e.g. "{0:N0}".</summary>
     [Parameter] public string ValueFormat { get; set; } = "{0:#,0.##}";
 
@@ -60,6 +66,8 @@
         Vertical = !Horizontal,
         Sort = Sort.ToString().ToLowerInvariant(),
         ShowValues,
+        Min,
+        Max,
     };
 
     private string _format(double value) => string.Format(CultureInfo.CurrentCulture, ValueFormat, value);

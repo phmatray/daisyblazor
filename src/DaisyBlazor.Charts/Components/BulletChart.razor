@@ -2,7 +2,8 @@
 @inherits D3Chart<BulletLayout>
 
 @* Bullet chart: one row per measure, a thin value bar over shaded qualitative bands, with a line
-   at the target. Each row has its own scale, so measures in different units sit together. D3
+   at the target. Each row has its own scale, so measures in different units sit together, unless
+   the rows share one axis (SharedAxis). D3
    computes the scales, ticks and boxes; this component draws them in theme colours. *@
 
 <D3ChartFrame TLayout="BulletLayout" Chart="this" Label="@_label" Description="@_description">
@@ -39,6 +40,13 @@
     /// <summary>Lay the bullets out as rows (the default); false stands them up as columns.</summary>
     [Parameter] public bool Horizontal { get; set; } = true;
 
+    /// <summary>
+    /// Put every row on one scale with a single axis: under the last row, or beside the first column
+    /// when not <see cref="Horizontal"/>. False gives each row its own scale and axis. Null (the
+    /// default) shares the axis only when every row's own scale already spans the same range.
+    /// </summary>
+    [Parameter] public bool? SharedAxis { get; set; }
+
     /// <summary>Colour of the value bar (any CSS colour). Defaults to the theme's primary colour.</summary>
     [Parameter] public string? BarColor { get; set; }
 
@@ -64,6 +72,7 @@
         Width = ViewWidth,
         Height = ViewHeight,
         Vertical = !Horizontal,
+        SharedAxis,
     };
 
     private string _barColor => ChartPalette.At(0, BarColor);
