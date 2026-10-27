@@ -11,8 +11,20 @@ public static class DaisyBlazorServiceCollectionExtensions
     /// </summary>
     /// <param name="services">The service collection to add to.</param>
     /// <returns>The service collection for chaining.</returns>
-    public static IServiceCollection AddDaisyBlazor(this IServiceCollection services)
+    public static IServiceCollection AddDaisyBlazor(this IServiceCollection services) => services.AddDaisyBlazor(_ => { });
+
+    /// <summary>
+    /// Registers the core DaisyBlazor services (see <see cref="AddDaisyBlazor(IServiceCollection)"/>) and
+    /// the app-wide component defaults, e.g. <c>o =&gt; o.DefaultButtonVariant = Variant.Filled</c>.
+    /// </summary>
+    /// <param name="services">The service collection to add to.</param>
+    /// <param name="configure">Sets the defaults.</param>
+    /// <returns>The service collection for chaining.</returns>
+    public static IServiceCollection AddDaisyBlazor(this IServiceCollection services, Action<DaisyBlazorOptions> configure)
     {
+        DaisyBlazorOptions options = new();
+        configure(options);
+        services.AddSingleton(options);
         services.AddScoped<ISnackbar, SnackbarService>();
         services.AddScoped<IDialogService, DialogService>();
         return services;

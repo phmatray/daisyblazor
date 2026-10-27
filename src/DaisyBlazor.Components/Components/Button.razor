@@ -22,11 +22,18 @@ else
 @code {
     [CascadingParameter] private ButtonGroup? Group { get; set; }
 
+    [Inject] private IServiceProvider Services { get; set; } = null!;
+
+    private bool _variantSet;
+
     /// <summary>Button label or content, rendered between the optional start and end icons.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
     /// <summary>Semantic color mapped to btn-{color} (e.g. btn-primary); Default adds no color class.</summary>
     [Parameter] public Color Color { get; set; } = Color.Default;
-    /// <summary>Visual style: Outlined maps to btn-outline, Text (default) to btn-ghost, Filled to a solid button.</summary>
+    /// <summary>
+    /// Visual style: Outlined maps to btn-outline, Text to btn-ghost, Filled to a solid button. When not set, the
+    /// app's <see cref="DaisyBlazorOptions.DefaultButtonVariant"/> applies (Text unless configured).
+    /// </summary>
     [Parameter] public Variant Variant { get; set; } = Variant.Text;
     /// <summary>Button size: Small maps to btn-sm, Large to btn-lg, Medium (default) adds no class.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
@@ -56,6 +63,15 @@ else
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
+    /// <inheritdoc />
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        _variantSet = parameters.TryGetValue<Variant>(nameof(Variant), out _);
+        return base.SetParametersAsync(parameters);
+    }
+
+    private Variant _variant => _variantSet ? Variant : (Services.GetService(typeof(DaisyBlazorOptions)) as DaisyBlazorOptions)?.DefaultButtonVariant ?? Variant;
+
     private string _type => ButtonType switch
     {
         ButtonType.Submit => "submit",
@@ -78,7 +94,7 @@ else
     private string _cls => CssClass.Merge(
         "btn",
         CssClass.ButtonColor(Group is { OverrideStyles: true, Color: not Color.Default } g1 ? g1.Color : Color),
-        CssClass.ButtonVariant(Group is { OverrideStyles: true, Variant: not Variant.Text } g2 ? g2.Variant : Variant),
+        CssClass.ButtonVariant(Group is { OverrideStyles: true, Variant: not Variant.Text } g2 ? g2.Variant : _variant),
         CssClass.ButtonSize(Group is { OverrideStyles: true, Size: not Size.Medium } g3 ? g3.Size : Size),
         FullWidth ? "btn-block" : null,
         _inert && !string.IsNullOrEmpty(Href) ? "btn-disabled" : null,

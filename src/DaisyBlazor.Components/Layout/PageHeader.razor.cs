@@ -7,13 +7,20 @@ namespace DaisyBlazor.Layout;
 /// </summary>
 public partial class PageHeader
 {
-    /// <summary>Main page title; its element and size follow <see cref="HeadingLevel"/> (h4 by default).</summary>
+    /// <summary>Main page title: an <c>h1</c> by default (see <see cref="HeadingLevel"/>), styled by <see cref="TitleTypo"/>.</summary>
     [Parameter, EditorRequired]
     public string Title { get; set; } = null!;
 
-    /// <summary>Heading level (1-6) of the title element. Defaults to 4, the historical output.</summary>
+    /// <summary>
+    /// Heading level (1-6) of the title element. Defaults to 1: a page header is the page's main
+    /// heading. It only picks the element; the size comes from <see cref="TitleTypo"/>.
+    /// </summary>
     [Parameter]
-    public int HeadingLevel { get; set; } = 4;
+    public int HeadingLevel { get; set; } = 1;
+
+    /// <summary>Text style of the title, whatever its <see cref="HeadingLevel"/>. Defaults to <see cref="Typo.h4"/>, the size page headers always had.</summary>
+    [Parameter]
+    public Typo TitleTypo { get; set; } = Typo.h4;
 
     /// <summary>Optional secondary line beneath the title.</summary>
     [Parameter]

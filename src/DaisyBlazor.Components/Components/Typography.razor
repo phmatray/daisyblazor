@@ -34,6 +34,8 @@ else
 @code {
     /// <summary>Text style; picks the element (h1–h6 or p) and its typography classes. Defaults to body1.</summary>
     [Parameter] public Typo Typo { get; set; } = Typo.body1;
+    /// <summary>Text style when it should differ from the element's (an <c>h1</c> that looks like an <c>h4</c>); null takes the style of <see cref="Typo"/>.</summary>
+    [Parameter] public Typo? Look { get; set; }
     /// <summary>Text color class (e.g. <c>text-primary</c>); defaults to Inherit.</summary>
     [Parameter] public Color Color { get; set; } = Color.Inherit;
     /// <summary>Extra CSS classes added to the rendered element.</summary>
@@ -47,7 +49,7 @@ else
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
     private string _element => CssClass.TypographyElement(Typo);
-    private string _cls => CssClass.Merge(CssClass.Typography(Typo), CssClass.TextColor(Color), _alignCls, Class);
+    private string _cls => CssClass.Merge(CssClass.Typography(Look ?? Typo), CssClass.TextColor(Color), _alignCls, Class);
 
     private string? _alignCls => Align?.Trim().ToLowerInvariant() switch
     {

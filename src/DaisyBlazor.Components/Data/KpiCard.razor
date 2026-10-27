@@ -1,8 +1,8 @@
 @namespace DaisyBlazor.Data
 
-@* MudBlazor KpiCard replacement. A surface tile with a colored left border and value text. *@
+@* MudBlazor KpiCard replacement. A surface tile with an optional coloured accent stripe and value text. *@
 
-<Paper Class="@_paperClass" Style="@($"border-left: 4px solid {Color}; height: 100%;{Style}")" Elevation="2" @attributes="UserAttributes">
+<Paper Class="@_paperClass" Style="@($"{_accent}height: 100%;{Style}")" Elevation="Elevation" @attributes="UserAttributes">
     <Typography Typo="Typo.caption" Style="opacity: 0.7;">@Label</Typography>
     @* Value stays in the base text colour: accent colours (warning, success) fail contrast as text on light themes. *@
     <Typography Typo="Typo.h4" Class="mt-1">@Value</Typography>
@@ -14,4 +14,11 @@
 
 @code {
     private string _paperClass => CssClass.Merge("p-4", Class);
+
+    private string _accent => Accent switch
+    {
+        KpiAccent.Start => $"border-inline-start: 4px solid {Color}; ",
+        KpiAccent.Top => $"border-top: 4px solid {Color}; ",
+        _ => string.Empty,
+    };
 }
