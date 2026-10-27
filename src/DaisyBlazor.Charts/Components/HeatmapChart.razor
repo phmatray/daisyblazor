@@ -2,17 +2,17 @@
 @inherits D3Chart<HeatmapLayout>
 
 @* Heatmap: a value for each row and column, as a grid of cells shaded on a sequential scale from
-   the smallest to the largest value. D3 lays out the bands and the scale; this component mixes
+   zero (or Min) to the largest value (or Max). D3 lays out the bands and the scale; this component mixes
    the shade from a theme colour and the page background. *@
 
 <D3ChartFrame TLayout="HeatmapLayout" Chart="this" Label="@_label" Description="@_description">
     <ChildContent>
         @if (Layout is { } geo)
         {
-            @* Column names over the plot, smaller so more of them fit. *@
+            @* Column names over the plot, smaller so more of them fit, in the row names' colour. *@
             @foreach (AxisTick column in geo.Columns.Where(c => c.Label.Length > 0))
             {
-                <SvgText X="@column.Pos" Y="@(geo.Plot.Top - 6)" Anchor="middle" FontSize="10" FillOpacity="0.7" Text="@column.Label" />
+                <SvgText X="@column.Pos" Y="@(geo.Plot.Top - 6)" Anchor="middle" FontSize="10" FillOpacity="0.8" Text="@column.Label" />
             }
             <ChartAxes Plot="geo.Plot" YTicks="geo.Rows" YCategories="true" />
             @foreach (HeatmapLayoutCell cell in geo.Cells)
@@ -74,12 +74,21 @@
     /// <summary>Write each value inside its cell, where it fits.</summary>
     [Parameter] public bool ShowValues { get; set; }
 
-    /// <summary>Show the colour scale, from the smallest to the largest value, under the chart.</summary>
+    /// <summary>Show the colour scale, from <see cref="Min"/> to <see cref="Max"/>, under the chart.</summary>
     [Parameter] public bool ShowLegend { get; set; } = true;
 
     /// <summary>
+    /// Value drawn as the faintest shade; smaller values are clamped to it. Defaults to 0, or to the
+    /// smallest value when one is negative.
+    /// </summary>
+    [Parameter] public double? Min { get; set; }
+
+    /// <summary>Value drawn as the full colour; larger values are clamped to it. Defaults to the largest value.</summary>
+    [Parameter] public double? Max { get; set; }
+
+    /// <summary>
     /// Number of discrete colour steps (2 to 10). When set, the values are split into that many equal
-    /// ranges between the smallest and the largest value, each drawn in one shade, and the legend
+    /// ranges between <see cref="Min"/> and <see cref="Max"/>, each drawn in one shade, and the legend
     /// shows one swatch per range. When null (the default) the shading is continuous.
     /// </summary>
     [Parameter] public int? Levels { get; set; }
@@ -102,13 +111,13 @@
 
         // Levels only when set, so the spec (and the layout cache key) of an existing chart stays as it was.
         return Levels is { } levels
-            ? new { Cells = cells, Rows, Columns, Width = ViewWidth, Height = ViewHeight, Levels = Math.Clamp(levels, 2, 10) }
-            : new { Cells = cells, Rows, Columns, Width = ViewWidth, Height = ViewHeight };
+            ? new { Cells = cells, Rows, Columns, Min, Max, Width = ViewWidth, Height = ViewHeight, Levels = Math.Clamp(levels, 2, 10) }
+            : new { Cells = cells, Rows, Columns, Min, Max, Width = ViewWidth, Height = ViewHeight };
     }
 
     private string _color => ChartPalette.At(0, Color);
 
-    // The scale runs from a faint tint (smallest value) to the full colour (largest).
+    // The scale runs from a faint tint (Min) to the full colour (Max).
     private string _shade(double t) =>
         $"color-mix(in oklab, {_color} {Math.Round(8 + 92 * t).ToString(Ci)}%, var(--color-base-100))";
 
@@ -130,6 +139,6 @@
     private string _label => Title ?? "Heatmap";
 
     private string _description => Layout is { Cells.Count: > 0 } geo
-        ? $"{geo.Rows.Count} rows by {geo.Columns.Count} columns, values from {_format(geo.Min)} to {_format(geo.Max)}. Highest: {string.Join(", ", geo.Cells.OrderByDescending(c => c.Value).Take(3).Select(c => $"{c.Row}, {c.Column} ({_format(c.Value)})"))}."
+        ? $"{geo.Rows.Count} rows by {geo.Columns.Count} columns, values from {_format(geo.Cells.Min(c => c.Value))} to {_format(geo.Cells.Max(c => c.Value))}. Highest: {string.Join(", ", geo.Cells.OrderByDescending(c => c.Value).Take(3).Select(c => $"{c.Row}, {c.Column} ({_format(c.Value)})"))}."
         : "No data.";
 }

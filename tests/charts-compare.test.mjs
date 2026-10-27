@@ -119,6 +119,30 @@ test('bullet: vertical columns; no ranges gives one band; rows without a value a
     assert.deepEqual(await layout('bullet', { rows: [], width: W, height: H }), { rows: [] });
 });
 
+test('bullet: rows on one domain share a single axis; sharedAxis forces or refuses it', async () => {
+    const rows = [
+        { label: 'Uptime', value: 92, target: 95, ranges: [60, 80, 100] },
+        { label: 'Coverage', value: 71, target: 80, ranges: [50, 75, 100] },
+        { label: 'Adoption', value: 40, ranges: [30, 60, 100] },
+    ];
+    const auto = await layout('bullet', { rows, width: W, height: 200 });
+    assert.deepEqual(auto.rows.map(r => r.xTicks.length > 0), [false, false, true], 'ticks under the last row only');
+    assert.equal(auto.rows[2].xTicks.at(-1).label, '100');
+    assertInside(auto, W, 200);
+    const own = await layout('bullet', { rows, width: W, height: 200, sharedAxis: false });
+    assert.ok(own.rows.every(r => r.xTicks.length > 0));
+    assert.ok(auto.rows[0].plot.bottom - auto.rows[0].plot.top >= own.rows[0].plot.bottom - own.rows[0].plot.top, 'rows take the room the axes left');
+
+    // Forced on rows of different domains: one scale over them all.
+    const mixed = [{ label: 'a', value: 10, ranges: [20] }, { label: 'b', value: 300 }];
+    const forced = await layout('bullet', { rows: mixed, width: W, height: 200, sharedAxis: true });
+    assert.equal(forced.rows[0].xTicks.length, 0);
+    assert.equal(forced.rows[0].ranges.at(-1).x + forced.rows[0].ranges.at(-1).width, forced.rows[1].ranges.at(-1).x + forced.rows[1].ranges.at(-1).width);
+    assert.ok((await layout('bullet', { rows: mixed, width: W, height: 200 })).rows.every(r => r.xTicks.length > 0), 'different domains: an axis each');
+    const v = await layout('bullet', { rows, width: 400, height: 300, vertical: true });
+    assert.deepEqual(v.rows.map(r => r.yTicks.length > 0), [true, false, false], 'ticks beside the first column only');
+});
+
 test('dumbbell: two dots per row, value texts outside the pair', async () => {
     const r = await layout('dumbbell', {
         items: [
@@ -197,6 +221,20 @@ test('lollipop: long labels in a narrow vertical chart turn and keep room', asyn
     assert.equal(v.labelAngle, -40);
     assert.ok(v.plot.bottom < 300 - 50);
     assert.deepEqual((await layout('lollipop', { items: [{ label: 'a', value: null }], width: W, height: H })).items, []);
+});
+
+test('lollipop: a dot at zero stays clear of its label; min and max fix the value axis', async () => {
+    const items = [{ label: 'Done', value: 0, text: '0' }, { label: 'Open', value: 30, text: '30' }];
+    const r = await layout('lollipop', { items, width: W, height: H });
+    const dot = r.items.find(i => i.value === 0);
+    assert.ok(r.yAxisAt - 6 <= dot.x2 - 6 - 2, 'label end left of the dot');
+    const v = await layout('lollipop', { items, width: W, height: H, vertical: true });
+    assert.ok(v.xAxisAt + 16 - 11 >= v.items.find(i => i.value === 0).y2 + 6, 'label top under the dot');
+
+    const rate = await layout('lollipop', { items: [...items, { label: 'Over', value: 130, text: '130' }], min: 0, max: 100, width: W, height: H });
+    assert.deepEqual([rate.xTicks[0].label, rate.xTicks.at(-1).label], ['0', '100']);
+    assert.equal(rate.items[0].x2, rate.plot.right, 'clamped to the axis end');
+    assertInside(rate);
 });
 
 test('parallel: one axis per dimension with its own ticks, a polyline per item', async () => {

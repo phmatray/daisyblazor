@@ -55,7 +55,7 @@ test('calendar-heatmap: dates with a time keep their calendar day; nothing to sh
     assert.deepEqual((await layout('calendar-heatmap', { days: [{ date: 'nope', value: 1 }], width: W, height: 100 })).cells, []);
 });
 
-test('heatmap: rows and columns in first-appearance order, a sequential t from min to max', async () => {
+test('heatmap: rows and columns in first-appearance order, a sequential t from zero to max', async () => {
     const out = await layout('heatmap', {
         cells: [
             { row: 'Mon', column: '09', value: 10 }, { row: 'Mon', column: '10', value: 30 },
@@ -67,8 +67,8 @@ test('heatmap: rows and columns in first-appearance order, a sequential t from m
     assert.deepEqual(out.rows.map(r => r.full), ['Mon', 'Tue']);
     assert.deepEqual(out.columns.map(c => c.full), ['09', '10']);
     assert.equal(out.cells.length, 3);
-    assert.deepEqual(out.cells.map(c => c.t), [0, 1, 0.5]);
-    assert.equal(out.min, 10);
+    assert.deepEqual(out.cells.map(c => c.t), [0.33, 1, 0.67]);
+    assert.equal(out.min, 0);
     assert.equal(out.max, 30);
     for (const c of out.cells) {
         assert.ok(c.x >= out.plot.left && c.x + c.w <= W && c.y >= out.plot.top && c.y + c.h <= H);
@@ -411,15 +411,27 @@ test('heatmap: levels quantize the values into equal steps, with the thresholds 
     assert.ok(!('thresholds' in continuous));
 });
 
+test('heatmap: the scale starts at zero, or at the given min and max, clamping values outside', async () => {
+    const cells = [40, 70, 100].map((value, i) => ({ row: 'A', column: `c${i}`, value }));
+    const zero = await layout('heatmap', { cells, width: W, height: H });
+    assert.deepEqual([zero.min, zero.max], [0, 100]);
+    assert.deepEqual(zero.cells.map(c => c.t), [0.4, 0.7, 1], 'the smallest value is not drawn as empty');
+    const fixed = await layout('heatmap', { cells, min: 50, max: 80, width: W, height: H });
+    assert.deepEqual([fixed.min, fixed.max], [50, 80]);
+    assert.deepEqual(fixed.cells.map(c => c.t), [0, 0.67, 1]);
+    const negative = await layout('heatmap', { cells: [-5, 5].map((value, i) => ({ row: 'A', column: `c${i}`, value })), width: W, height: H });
+    assert.deepEqual([negative.min, negative.max], [-5, 5]);
+});
+
 test('heatmap: level thresholds stay exact for small values; a flat domain is one step', async () => {
     const small = await layout('heatmap', {
-        cells: [0.001, 0.005].map((value, i) => ({ row: 'A', column: `c${i}`, value })), levels: 4, width: W, height: H,
+        cells: [0.001, 0.005].map((value, i) => ({ row: 'A', column: `c${i}`, value })), min: 0.001, levels: 4, width: W, height: H,
     });
     assert.equal(small.thresholds.length, 3);
     [0.002, 0.003, 0.004].forEach((v, i) => assert.ok(Math.abs(small.thresholds[i] - v) < 1e-12, `threshold ${i}: ${small.thresholds[i]}`));
     assert.deepEqual(small.cells.map(c => c.t), [0, 1]);
     const flat = await layout('heatmap', {
-        cells: [5, 5, 5].map((value, i) => ({ row: 'A', column: `c${i}`, value })), levels: 4, width: W, height: H,
+        cells: [5, 5, 5].map((value, i) => ({ row: 'A', column: `c${i}`, value })), min: 5, levels: 4, width: W, height: H,
     });
     assert.deepEqual(flat.thresholds, [], 'one step, no thresholds');
     assert.deepEqual([flat.min, flat.max], [5, 5]);

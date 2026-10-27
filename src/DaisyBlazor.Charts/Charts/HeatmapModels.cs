@@ -3,7 +3,7 @@ namespace DaisyBlazor.Charts;
 /// <summary>One cell of a <see cref="HeatmapChart"/>: the <paramref name="Value"/> at <paramref name="Row"/> and <paramref name="Column"/>.</summary>
 public sealed record HeatmapCell(string Row, string Column, double Value);
 
-/// <summary>Geometry of a <see cref="HeatmapChart"/>, computed by D3. Row and column ticks carry the name in Full; a column label left out to avoid crowding is empty. With discrete levels, Thresholds holds the values between the steps (one fewer than the levels), else null.</summary>
+/// <summary>Geometry of a <see cref="HeatmapChart"/>, computed by D3. Row and column ticks carry the name in Full; a column label left out to avoid crowding is empty. Min and Max bound the colour scale. With discrete levels, Thresholds holds the values between the steps (one fewer than the levels), else null.</summary>
 public sealed record HeatmapLayout(
     IReadOnlyList<AxisTick> Rows,
     IReadOnlyList<AxisTick> Columns,

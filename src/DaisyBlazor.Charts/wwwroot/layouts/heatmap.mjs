@@ -4,15 +4,15 @@ import { finite, maxWidth, fit, r2, stride } from './_shared.mjs';
 
 const EMPTY = { rows: [], columns: [], cells: [], min: 0, max: 0, plot: { left: 0, top: 0, right: 0, bottom: 0 } };
 
-// spec: { cells: [{ row, column, value }], rows, columns, width, height }
+// spec: { cells: [{ row, column, value }], rows, columns, min, max, width, height }
 // Rows and columns are the given orders, or else the distinct names in order of first appearance.
 // A repeated (row, column) pair is summed. Each cell gets t in [0, 1] on a sequential scale from
-// the smallest to the largest value; the component turns t into a theme colour.
-// levels (2 to 10) quantizes the values into that many equal steps between the smallest and the
-// largest value: t is then level / (levels - 1), and the result carries the exact `thresholds`
-// between the steps (levels - 1 of them, unrounded). When every value is the same there is a single
-// step: no thresholds, and t is 1.
-export default function heatmap({ cells, rows, columns, levels, width, height }) {
+// min to max; the component turns t into a theme colour. min defaults to 0 (or the smallest value
+// when one is negative), max to the largest value; values outside are clamped.
+// levels (2 to 10) quantizes the values into that many equal steps between min and max: t is then
+// level / (levels - 1), and the result carries the exact `thresholds` between the steps (levels - 1
+// of them, unrounded). When min and max are the same there is a single step: no thresholds, and t is 1.
+export default function heatmap({ cells, rows, columns, levels, min: lo, max: hi, width, height }) {
     const sums = new Map();
     for (const c of cells ?? []) {
         if (c && c.row != null && c.column != null && finite(c.value)) {
@@ -39,10 +39,12 @@ export default function heatmap({ cells, rows, columns, levels, width, height })
     const plot = { left, top: 20, right: width - 2, bottom: height - 2 };
     const x = scaleBand().domain(colNames).range([plot.left, plot.right]).padding(0.06);
     const y = scaleBand().domain(rowNames).range([plot.top, plot.bottom]).padding(0.06);
-    const [min, max] = extent(entries, e => e.value);
+    const [low, high] = extent(entries, e => e.value);
+    const min = finite(lo) ? lo : Math.min(0, low);
+    const max = finite(hi) ? hi : high;
     const steps = finite(levels) ? Math.max(2, Math.min(10, Math.round(levels))) : null;
     // A flat domain with levels is a single step at full colour (its legend shows the one value).
-    const flat = max === min;
+    const flat = max <= min;
     const quantize = steps && !flat && scaleQuantize().domain([min, max]).range([...Array(steps).keys()]);
     const t = !steps ? scaleSequential(v => v).domain([min, max > min ? max : min + 1]).clamp(true)
         : flat ? () => 1 : v => quantize(v) / (steps - 1);

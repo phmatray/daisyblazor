@@ -3,10 +3,16 @@ import { categoryFrame, frameOut, valueText } from './_compare.mjs';
 
 const EMPTY = { plot: { left: 0, top: 0, right: 0, bottom: 0 }, xTicks: [], yTicks: [], xAxisAt: 0, yAxisAt: 0, labelAngle: 0, items: [] };
 
-// spec: { items: [{ label, value, text }], width, height, vertical, sort: 'descending'|'ascending'|'none', showValues }
+// Room between the low end of the value axis and the category axis, so a dot (radius 6) at zero
+// never sits on its category label.
+const DOT = 8;
+
+// spec: { items: [{ label, value, text }], width, height, vertical, sort: 'descending'|'ascending'|'none', showValues, min, max }
 // Each item is a stem from zero to its value with a dot at the end; `text` is the formatted value,
-// drawn past the dot when showValues is set. Items without a finite value are skipped.
-export default function lollipop({ items, width, height, vertical = false, sort = 'descending', showValues = true }) {
+// drawn past the dot when showValues is set. Items without a finite value are skipped. min and max
+// fix either end of the value axis (else it takes in zero and the values, rounded); values beyond
+// it are clamped.
+export default function lollipop({ items, width, height, vertical = false, sort = 'descending', showValues = true, min, max }) {
     const rows = (items ?? []).map((d, index) => ({ ...d, index })).filter(d => finite(d.value));
     if (rows.length === 0) {
         return EMPTY;
@@ -17,13 +23,18 @@ export default function lollipop({ items, width, height, vertical = false, sort 
         rows.sort((a, b) => a.value - b.value || a.index - b.index);
     }
 
+    const scale = valueScale(rows.map(d => d.value), { zero: true, count: 5 });
+    if (finite(min) || finite(max)) {
+        const [lo, hi] = scale.domain();
+        scale.domain([finite(min) ? min : lo, finite(max) ? max : hi]).clamp(true);
+    }
     const shown = showValues ? rows : [];
     const space = list => list.length === 0 ? 0 : vertical ? 16 : maxWidth(list.map(d => d.text)) + 10;
     const f = categoryFrame({
         width, height, vertical,
         labels: rows.map(d => String(d.label ?? '')),
-        scale: valueScale(rows.map(d => d.value), { zero: true, count: 5 }),
-        before: space(shown.filter(d => d.value < 0)),
+        scale,
+        before: space(shown.filter(d => d.value < 0)) + DOT,
         after: space(shown.filter(d => d.value >= 0)),
         padding: 0.2,
     });
