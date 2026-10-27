@@ -87,9 +87,10 @@ internal static partial class ChartText
         : WithPercent(value.ToString("0.#", CultureInfo.CurrentCulture));
 
     // The number placed as the current culture writes a percentage ("80%", "80 %", "%80"), read from
-    // how it formats 50 %.
-    private static string WithPercent(string number) =>
-        0.5.ToString("P0", CultureInfo.CurrentCulture).Replace("50", number, StringComparison.Ordinal);
+    // how it formats 50 %; the invariant culture (no culture, as on a globalization-invariant app) keeps "80%".
+    private static string WithPercent(string number) => CultureInfo.CurrentCulture.Name.Length == 0
+        ? number + "%"
+        : 0.5.ToString("P0", CultureInfo.CurrentCulture).Replace("50", number, StringComparison.Ordinal);
 
     /// <summary>
     /// A number the layouts wrote in invariant form (D3 tick text such as "1,500", "2.5", "−1.5k",
