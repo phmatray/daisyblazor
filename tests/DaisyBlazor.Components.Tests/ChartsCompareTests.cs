@@ -220,6 +220,31 @@ public class ChartsCompareTests : BunitContext
     }
 
     [Fact]
+    public void RangeBar_value_formatter_writes_ticks_values_and_tooltips_as_times_of_day()
+    {
+        (BunitJSModuleInterop module, JSRuntimeInvocationHandler<RangeBarLayout> call) = Setup<RangeBarLayout>();
+        RangeBarItem shift = RangeBarItem.FromTimes("Ward A", new TimeOnly(22, 0), new TimeOnly(1, 30));
+        shift.ShouldBe(new RangeBarItem("Ward A", 22, 25.5));
+
+        IRenderedComponent<RangeBarChart> cut = Render<RangeBarChart>(ps => ps
+            .Add(p => p.Items, [shift])
+            .Add(p => p.ValueFormatter, RangeBarChart.TimeOfDay));
+
+        string spec = Sent(module).Spec;
+        spec.ShouldContain("\"highText\":\"01:30\"");
+        spec.ShouldContain("\"formattedTicks\":true");
+
+        call.SetResult(new RangeBarLayout(_plot, [new(80, "22", 22), new(355, "25", 25)], [new(166, "Ward A")], 334, 80, 0, [""],
+            [new("Ward A", "", 0, 22, 25.5, 80, 60, 400, 100, null, null)]));
+
+        cut.WaitForAssertion(() => cut.Markup.ShouldContain("Ward A: 22:00 to 01:30"));
+        List<string> texts = cut.FindAll("svg text").Select(t => t.TextContent).ToList();
+        texts.ShouldContain("01:00");
+        texts.ShouldNotContain("25");
+        RangeBarChart.TimeOfDay(-1).ShouldBe("23:00");
+    }
+
+    [Fact]
     public void Empty_input_draws_an_empty_svg_without_throwing()
     {
         (BunitJSModuleInterop _, JSRuntimeInvocationHandler<SlopeLayout> slope) = Setup<SlopeLayout>();

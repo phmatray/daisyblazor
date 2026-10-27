@@ -4,10 +4,11 @@ import { categoryFrame, frameOut, valueText } from './_compare.mjs';
 
 const EMPTY = { plot: { left: 0, top: 0, right: 0, bottom: 0 }, xTicks: [], yTicks: [], xAxisAt: 0, yAxisAt: 0, labelAngle: 0, groups: [], bars: [] };
 
-// spec: { items: [{ label, low, high, group, lowText, highText }], width, height, vertical, showValues }
+// spec: { items: [{ label, low, high, group, lowText, highText }], width, height, vertical, showValues, formattedTicks }
 // A bar from low to high per item. Items sharing a label sit side by side in its band, one slot per
 // distinct group (in order of first appearance). Items need both ends finite; reversed ends are swapped.
-export default function rangebar({ items, width, height, vertical = false, showValues = false }) {
+// With formattedTicks, .NET writes the tick labels like the value texts, so the tick margin fits those too.
+export default function rangebar({ items, width, height, vertical = false, showValues = false, formattedTicks = false }) {
     const rows = (items ?? [])
         .filter(d => finite(d.low) && finite(d.high))
         .map(d => d.low <= d.high ? d : { ...d, low: d.high, high: d.low, lowText: d.highText, highText: d.lowText });
@@ -24,6 +25,7 @@ export default function rangebar({ items, width, height, vertical = false, showV
         before: space(rows.map(d => d.lowText)),
         after: space(rows.map(d => d.highText)),
         padding: groups.length > 1 ? 0.2 : 0.3,
+        tickWidth: formattedTicks ? maxWidth(rows.flatMap(d => [String(d.lowText ?? ''), String(d.highText ?? '')])) : 0,
     });
     const inner = scaleBand(groups, [0, f.band.bandwidth()]).padding(groups.length > 1 ? 0.1 : 0);
 

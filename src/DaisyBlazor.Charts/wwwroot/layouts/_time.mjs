@@ -42,18 +42,21 @@ const tickTime = utcFormat('%H:%M');
 const tickDay = utcFormat('%b %-d');
 const tickMonth = utcFormat('%b');
 const tickYear = utcFormat('%Y');
-const tickLabel = d => (d.getUTCHours() || d.getUTCMinutes() ? tickTime(d)
+export const tickLabel = d => (d.getUTCHours() || d.getUTCMinutes() ? tickTime(d)
     : d.getUTCDate() !== 1 ? tickDay(d) : d.getUTCMonth() !== 0 ? tickMonth(d) : tickYear(d));
 
-// Ticks for a time scale: about one per 90 units, never more than there are data points, and
-// only at midnight when every data point is at midnight (daily data gets no hour ticks).
-export function timeTicks(scale, dates) {
+// The dates to tick on a time scale: about one per 90 units, never more than there are data points,
+// and only at midnight when every data point is at midnight (daily data gets no hour ticks).
+export function timeTickDates(scale, dates) {
     const [x0, x1] = scale.range();
     const daily = dates.every(d => d.getUTCHours() === 0 && d.getUTCMinutes() === 0);
     const count = Math.max(2, Math.min(Math.floor(Math.abs(x1 - x0) / 90), dates.length));
-    return scale.ticks(count)
-        .filter(d => !daily || (d.getUTCHours() === 0 && d.getUTCMinutes() === 0))
-        .map(d => ({ pos: r2(scale(d)), label: tickLabel(d) }));
+    return scale.ticks(count).filter(d => !daily || (d.getUTCHours() === 0 && d.getUTCMinutes() === 0));
+}
+
+// Ticks for a time scale (see timeTickDates), labelled in English.
+export function timeTicks(scale, dates) {
+    return timeTickDates(scale, dates).map(d => ({ pos: r2(scale(d)), label: tickLabel(d) }));
 }
 
 // The date shown in tooltips: the day, plus the time when it is not midnight.

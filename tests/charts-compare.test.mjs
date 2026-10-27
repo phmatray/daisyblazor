@@ -287,6 +287,14 @@ test('rangebar: bars from low to high, grouped side by side, reversed ends swapp
     assert.deepEqual((await layout('rangebar', { items: [], width: W, height: H })).bars, []);
 });
 
+test('rangebar: ticks relabelled in .NET get room for labels as wide as the value texts', async () => {
+    const items = [{ label: 'A', low: 22, high: 25, lowText: '22:00', highText: '01:00' }];
+    const plain = await layout('rangebar', { items, width: W, height: H, vertical: true });
+    const timed = await layout('rangebar', { items, width: W, height: H, vertical: true, formattedTicks: true });
+    assert.ok(timed.plot.left > plain.plot.left, `${timed.plot.left} > ${plain.plot.left}`);
+    assert.ok(timed.yTicks.every(t => typeof t.value === 'number'), 'value ticks keep their number for the formatter');
+});
+
 test('radar: stacked series sit on the running total; percent fills every spoke to 100%', async () => {
     const axes = ['Seats', 'Storage', 'API calls'];
     const series = [[10, 20, 30], [30, 20, 10], [null, 10, -5]];

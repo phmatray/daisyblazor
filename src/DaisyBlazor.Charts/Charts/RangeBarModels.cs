@@ -5,7 +5,15 @@ namespace DaisyBlazor.Charts;
 /// <param name="Low">Start of the span.</param>
 /// <param name="High">End of the span.</param>
 /// <param name="Group">Optional group; each group gets its own slot in every band and its own colour.</param>
-public sealed record RangeBarItem(string Label, double Low, double High, string? Group = null);
+public sealed record RangeBarItem(string Label, double Low, double High, string? Group = null)
+{
+    /// <summary>
+    /// A span between two times of day, in hours past midnight (pair it with <see cref="RangeBarChart.TimeOfDay"/>).
+    /// An <paramref name="end"/> before <paramref name="start"/> is on the next day, so 22:00 to 01:00 runs from 22 to 25.
+    /// </summary>
+    public static RangeBarItem FromTimes(string label, TimeOnly start, TimeOnly end, string? group = null) =>
+        new(label, start.ToTimeSpan().TotalHours, end.ToTimeSpan().TotalHours + (end < start ? 24 : 0), group);
+}
 
 /// <summary>Geometry of a <see cref="RangeBarChart"/>, computed by D3. The category axis sits at XAxisAt (vertical) or YAxisAt (horizontal), beyond any value text; LabelAngle turns crowded category labels.</summary>
 public sealed record RangeBarLayout(PlotArea Plot, IReadOnlyList<AxisTick> XTicks, IReadOnlyList<AxisTick> YTicks, double XAxisAt, double YAxisAt, double LabelAngle, IReadOnlyList<string> Groups, IReadOnlyList<RangeBarLayoutBar> Bars);

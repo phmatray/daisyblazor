@@ -81,6 +81,7 @@ public static partial class DocRegistry
             [
                 new("Basic", "Each RangeBarItem spans from Low to High; ShowValues writes both ends beside the bar.", typeof(RangeBarChartBasicExample)),
                 new("Grouped", "Items with the same Label share a band and each Group gets its own slot, colour and legend entry; GroupColors maps a group to any CSS colour.", typeof(RangeBarChartGroupedExample)),
+                new("Time of day", "ValueFormatter writes the values on the axis, beside the bars and in tooltips; RangeBarChart.TimeOfDay prints hours past midnight as a time (25 as 01:00), and RangeBarItem.FromTimes builds an item from two TimeOnly values, past midnight when the end is before the start.", typeof(RangeBarChartTimeOfDayExample)),
             ])
         {
             Portrait = typeof(RangeBarChartCoverExample),

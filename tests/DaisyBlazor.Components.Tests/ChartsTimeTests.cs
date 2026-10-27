@@ -357,6 +357,50 @@ public class ChartsTimeTests : BunitContext
     }
 
     [Fact]
+    public void GanttChart_draws_lanes_group_colours_a_legend_and_dates_in_the_current_culture()
+    {
+        System.Globalization.CultureInfo before = System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("fr-FR");
+            BunitJSModuleInterop module = this.SetupChartModule();
+            // Two flights share stand A1 (same y), the second with its own colour; Oct 5 2026 is the tick.
+            GanttLayout layout = new(
+                [
+                    new(false, "AF 1", "A1", 0, false, "x", "x", null, 100, 200, 20, 30, Index: 0),
+                    new(false, "LH 1", "A1", 1, false, "x", "x", null, 300, 400, 20, 30, "red", Index: 1),
+                ],
+                ["AF", "LH"], null, [new(100, "Oct 5", new DateTime(2026, 10, 5, 0, 0, 0, DateTimeKind.Utc).Subtract(DateTime.UnixEpoch).TotalMilliseconds)], _plot);
+            module.Setup<GanttLayout>("layout", _ => true).SetResult(layout);
+
+            IRenderedComponent<GanttChart> cut = Render<GanttChart>(ps => ps
+                .Add(p => p.Tasks,
+                [
+                    new GanttTask("AF 1", new DateTime(2026, 10, 5, 6, 0, 0), new DateTime(2026, 10, 5, 8, 0, 0), "AF", Row: "A1"),
+                    new GanttTask("LH 1", new DateTime(2026, 10, 5, 9, 0, 0), new DateTime(2026, 10, 5, 10, 0, 0), "LH", Row: "A1", Color: "red"),
+                ])
+                .Add(p => p.ShowGroupHeaders, false)
+                .Add(p => p.ShowLegend, true)
+                .Add(p => p.GroupColors, new Dictionary<string, string> { ["AF"] = "blue" }));
+
+            cut.WaitForAssertion(() => cut.FindAll("svg rect").Count.ShouldBe(2));
+            cut.FindAll("svg rect").Select(r => r.GetAttribute("fill")).ShouldBe(["blue", "red"]);
+            cut.FindAll("svg text").Count(t => t.TextContent == "A1").ShouldBe(1);
+            cut.FindAll("svg text").ShouldContain(t => t.TextContent == "5 oct.");
+            cut.Markup.ShouldContain("AF 1: 05/10/2026 06:00 – 05/10/2026 08:00");
+            cut.FindAll(".flex-wrap span.inline-flex").Count.ShouldBe(2);
+
+            string spec = Spec(module, "gantt");
+            spec.ShouldContain("\"row\":\"A1\"");
+            spec.ShouldContain("\"headers\":false");
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentCulture = before;
+        }
+    }
+
+    [Fact]
     public void BumpChart_draws_lines_points_and_end_labels()
     {
         BunitJSModuleInterop module = this.SetupChartModule();

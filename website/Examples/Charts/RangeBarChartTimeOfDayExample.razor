@@ -1,0 +1,12 @@
+<RangeBarChart Title="Night shifts" Items="_shifts" ValueFormatter="RangeBarChart.TimeOfDay" ShowValues="true" />
+
+@code {
+    // FromTimes turns two times of day into hours past midnight; an end before the start runs into the next day.
+    private readonly RangeBarItem[] _shifts =
+    [
+        RangeBarItem.FromTimes("Ward A", new TimeOnly(19, 0), new TimeOnly(3, 0)),
+        RangeBarItem.FromTimes("Ward B", new TimeOnly(21, 30), new TimeOnly(6, 0)),
+        RangeBarItem.FromTimes("Emergency", new TimeOnly(18, 0), new TimeOnly(7, 30)),
+        RangeBarItem.FromTimes("Pharmacy", new TimeOnly(22, 0), new TimeOnly(23, 59)),
+    ];
+}
