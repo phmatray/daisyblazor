@@ -2,12 +2,12 @@
 
 @* MudPagination replacement. A daisyUI .join of buttons. Selected is 1-based. *@
 
-<nav class="@_cls" style="@Style" aria-label="@AriaLabel" @attributes="UserAttributes">
+<nav class="@_cls" style="@Style" aria-label="@(AriaLabel ?? _strings.Pagination)" @attributes="UserAttributes">
     @if (ShowFirstButton)
     {
         <button type="button" class="join-item btn btn-sm"
                 disabled="@(Disabled || Selected <= 1)"
-                aria-label="@FirstPageLabel"
+                aria-label="@(FirstPageLabel ?? _strings.FirstPage)"
                 @onclick="@(() => SelectPage(1))">
             <Icon Name="@Icons.Material.Filled.FirstPage" Size="Size.Small" />
         </button>
@@ -15,7 +15,7 @@
 
     <button type="button" class="join-item btn btn-sm"
             disabled="@(Disabled || Selected <= 1)"
-            aria-label="@PreviousPageLabel"
+            aria-label="@(PreviousPageLabel ?? _strings.PreviousPage)"
             @onclick="@(() => SelectPage(Selected - 1))">
         <Icon Name="@Icons.Material.Filled.ChevronLeft" Size="Size.Small" />
     </button>
@@ -39,7 +39,7 @@
 
     <button type="button" class="join-item btn btn-sm"
             disabled="@(Disabled || Selected >= Count)"
-            aria-label="@NextPageLabel"
+            aria-label="@(NextPageLabel ?? _strings.NextPage)"
             @onclick="@(() => SelectPage(Selected + 1))">
         <Icon Name="@Icons.Material.Filled.ChevronRight" Size="Size.Small" />
     </button>
@@ -48,7 +48,7 @@
     {
         <button type="button" class="join-item btn btn-sm"
                 disabled="@(Disabled || Selected >= Count)"
-                aria-label="@LastPageLabel"
+                aria-label="@(LastPageLabel ?? _strings.LastPage)"
                 @onclick="@(() => SelectPage(Count))">
             <Icon Name="@Icons.Material.Filled.LastPage" Size="Size.Small" />
         </button>
@@ -56,6 +56,9 @@
 </nav>
 
 @code {
+    [Inject] private IServiceProvider Services { get; set; } = null!;
+    private DaisyBlazorStrings _strings => DaisyBlazorStrings.From(Services);
+
     /// <summary>Total number of pages.</summary>
     [Parameter] public int Count { get; set; }
     /// <summary>The current page, 1-based; defaults to 1. Supports two-way binding.</summary>
@@ -75,20 +78,20 @@
     /// <summary>Disables every page and navigation button.</summary>
     [Parameter] public bool Disabled { get; set; }
 
-    /// <summary>Accessible name for the pagination navigation landmark. Defaults to "Pagination".</summary>
-    [Parameter] public string AriaLabel { get; set; } = "Pagination";
+    /// <summary>Accessible name for the pagination navigation landmark. Null uses the app-wide <see cref="DaisyBlazorOptions.Strings"/>.</summary>
+    [Parameter] public string? AriaLabel { get; set; }
 
-    /// <summary>Accessible label for the "first page" control. Defaults to "First page".</summary>
-    [Parameter] public string FirstPageLabel { get; set; } = "First page";
+    /// <summary>Accessible label for the "first page" control. Null uses the app-wide <see cref="DaisyBlazorOptions.Strings"/>.</summary>
+    [Parameter] public string? FirstPageLabel { get; set; }
 
-    /// <summary>Accessible label for the "previous page" control. Defaults to "Previous page".</summary>
-    [Parameter] public string PreviousPageLabel { get; set; } = "Previous page";
+    /// <summary>Accessible label for the "previous page" control. Null uses the app-wide <see cref="DaisyBlazorOptions.Strings"/>.</summary>
+    [Parameter] public string? PreviousPageLabel { get; set; }
 
-    /// <summary>Accessible label for the "next page" control. Defaults to "Next page".</summary>
-    [Parameter] public string NextPageLabel { get; set; } = "Next page";
+    /// <summary>Accessible label for the "next page" control. Null uses the app-wide <see cref="DaisyBlazorOptions.Strings"/>.</summary>
+    [Parameter] public string? NextPageLabel { get; set; }
 
-    /// <summary>Accessible label for the "last page" control. Defaults to "Last page".</summary>
-    [Parameter] public string LastPageLabel { get; set; } = "Last page";
+    /// <summary>Accessible label for the "last page" control. Null uses the app-wide <see cref="DaisyBlazorOptions.Strings"/>.</summary>
+    [Parameter] public string? LastPageLabel { get; set; }
 
     /// <summary>Extra CSS classes merged onto the root element.</summary>
     [Parameter] public string? Class { get; set; }

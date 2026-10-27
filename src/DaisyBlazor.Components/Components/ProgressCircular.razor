@@ -5,16 +5,19 @@
 
 @if (Indeterminate)
 {
-    <span class="@_cls" style="@Style" role="status" aria-label="@AriaLabel" @attributes="UserAttributes"></span>
+    <span class="@_cls" style="@Style" role="status" aria-label="@(AriaLabel ?? _strings.Loading)" @attributes="UserAttributes"></span>
 }
 else
 {
-    <div class="@_ringCls" style="@_ringStyle" role="progressbar" aria-label="@AriaLabel"
+    <div class="@_ringCls" style="@_ringStyle" role="progressbar" aria-label="@(AriaLabel ?? _strings.Loading)"
          aria-valuemin="@_fmt(Min)" aria-valuemax="@_fmt(Max)" aria-valuenow="@_fmt(_clamped)"
          @attributes="UserAttributes"></div>
 }
 
 @code {
+    [Inject] private IServiceProvider Services { get; set; } = null!;
+    private DaisyBlazorStrings _strings => DaisyBlazorStrings.From(Services);
+
     /// <summary>True (the default) shows an endless spinner; false shows a ring filled to <see cref="Value"/>.</summary>
     [Parameter] public bool Indeterminate { get; set; } = true;
     /// <summary>Current progress, between <see cref="Min"/> and <see cref="Max"/>. Used when <see cref="Indeterminate"/> is false.</summary>
@@ -27,8 +30,8 @@ else
     [Parameter] public Color Color { get; set; } = Color.Default;
     /// <summary>Spinner or ring size (loading-{size} for the spinner). Defaults to Medium.</summary>
     [Parameter] public Size Size { get; set; } = Size.Medium;
-    /// <summary>Accessible label of the status / progressbar element. Defaults to "loading".</summary>
-    [Parameter] public string AriaLabel { get; set; } = "loading";
+    /// <summary>Accessible label of the status / progressbar element. Null uses the app-wide <see cref="DaisyBlazorOptions.Strings"/>.</summary>
+    [Parameter] public string? AriaLabel { get; set; }
 
     /// <summary>Extra CSS classes merged onto the root element.</summary>
     [Parameter] public string? Class { get; set; }

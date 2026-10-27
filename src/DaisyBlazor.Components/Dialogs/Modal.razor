@@ -24,7 +24,7 @@
                 <button type="button"
                         class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
                         @onclick="CloseAsync"
-                        aria-label="@CloseLabel">
+                        aria-label="@(CloseLabel ?? _strings.Close)">
                     <Icon Name="@Icons.Material.Filled.Close" Size="Size.Small" />
                 </button>
             }
@@ -43,12 +43,15 @@
             }
         </div>
         <form method="dialog" class="modal-backdrop" @onclick="OnBackdrop">
-            <button type="button" tabindex="-1" aria-hidden="true">@CloseLabel</button>
+            <button type="button" tabindex="-1" aria-hidden="true">@(CloseLabel ?? _strings.Close)</button>
         </form>
     </dialog>
 }
 
 @code {
+    [Inject] private IServiceProvider Services { get; set; } = null!;
+    private DaisyBlazorStrings _strings => DaisyBlazorStrings.From(Services);
+
     /// <summary>Whether the modal is shown. Use <c>@bind-Open</c> (MudDialog's <c>@bind-Visible</c>).</summary>
     [Parameter] public bool Open { get; set; }
     /// <summary>Raised with <c>false</c> when the modal closes itself (Escape, backdrop, close button).</summary>
@@ -75,8 +78,8 @@
     [Parameter] public bool CloseOnEscapeKey { get; set; } = true;
     /// <summary>Allow dismissing by clicking the backdrop.</summary>
     [Parameter] public bool BackdropClick { get; set; } = true;
-    /// <summary>Accessible label of the close button and backdrop. Override to localise.</summary>
-    [Parameter] public string CloseLabel { get; set; } = "Close";
+    /// <summary>Accessible label of the close button and backdrop. Null uses the app-wide <see cref="DaisyBlazorOptions.Strings"/>.</summary>
+    [Parameter] public string? CloseLabel { get; set; }
 
     /// <summary>Extra CSS classes on the .modal-box (e.g. <c>max-w-4xl</c>).</summary>
     [Parameter] public string? Class { get; set; }

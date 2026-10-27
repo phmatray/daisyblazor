@@ -8,4 +8,7 @@ public sealed class DaisyBlazorOptions
     /// (a ghost button, as MudButton); <see cref="Variant.Filled"/> gives daisyUI's own solid <c>.btn</c>.
     /// </summary>
     public Variant DefaultButtonVariant { get; set; } = Variant.Text;
+
+    /// <summary>Built-in texts and accessible names, used where a component's own label parameter is not set.</summary>
+    public DaisyBlazorStrings Strings { get; set; } = new();
 }

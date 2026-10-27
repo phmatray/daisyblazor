@@ -38,7 +38,7 @@
             {
                 <button type="button"
                         class="btn btn-ghost btn-xs btn-circle"
-                        aria-label="@CloseLabel"
+                        aria-label="@(CloseLabel ?? _strings.Close)"
                         @onclick="() => Snackbar.Remove(message)">
                     <Icon Name="@Icons.Material.Filled.Close" Size="Size.Small" />
                 </button>
@@ -53,14 +53,17 @@
 </div>
 
 @code {
+    [Inject] private IServiceProvider Services { get; set; } = null!;
+    private DaisyBlazorStrings _strings => DaisyBlazorStrings.From(Services);
+
     /// <summary>Extra CSS classes merged onto the root toast container element.</summary>
     [Parameter] public string? Class { get; set; }
     /// <summary>Inline CSS styles applied to the root toast container element.</summary>
     [Parameter] public string? Style { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
-    /// <summary>Accessible label of each toast's close button. Override to localise; defaults to "Close".</summary>
-    [Parameter] public string CloseLabel { get; set; } = "Close";
+    /// <summary>Accessible label of each toast's close button. Null uses the app-wide <see cref="DaisyBlazorOptions.Strings"/>.</summary>
+    [Parameter] public string? CloseLabel { get; set; }
 
     /// <summary>
     /// Default alert style of every toast: Filled (default) is solid, Outlined adds <c>alert-outline</c>,
