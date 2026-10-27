@@ -42,10 +42,14 @@ export default function pareto({ items, threshold = 0.8, width, height }) {
     // The "vital few": every bar up to and including the one where the cumulative share reaches the threshold.
     const vitalFew = bars.findIndex(b => b.cumulative >= t - 1e-9) + 1;
 
+    // Whole-number values (counts) get whole-number ticks only, so a small scale never repeats a
+    // rounded label (0, 0.5, 1 … printed as 0, 1, 1 …).
+    const whole = valid.every(d => Number.isInteger(d.value));
+
     return {
         bars,
         line: line().x(b => b.cx).y(b => b.cy)(bars),
-        ticks: ticks(y, 5),
+        ticks: ticks(y, 5).filter(tick => !whole || Number.isInteger(tick.value)),
         shareTicks: ticks(share, 5),
         plot,
         thresholdY: share(t),
