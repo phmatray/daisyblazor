@@ -14,6 +14,7 @@
             @onkeydown="OnKeyDown">
         <div class="@_boxCls"
              role="@(AlertDialog ? "alertdialog" : "dialog")"
+             tabindex="-1"
              aria-modal="true"
              aria-labelledby="@(_hasTitle ? _titleId : null)"
              style="@Style"
@@ -42,7 +43,7 @@
             }
         </div>
         <form method="dialog" class="modal-backdrop" @onclick="OnBackdrop">
-            <button type="button" tabindex="-1">@CloseLabel</button>
+            <button type="button" tabindex="-1" aria-hidden="true">@CloseLabel</button>
         </form>
     </dialog>
 }
@@ -95,7 +96,7 @@
     private bool _hasTitle => TitleContent is not null || !string.IsNullOrEmpty(Title);
 
     private string _boxCls => CssClass.Merge(
-        "modal-box relative",
+        "modal-box relative focus:outline-none",
         CloseButton ? "[&_[id$=-title]]:pr-8" : null,
         Class);
 

@@ -13,6 +13,10 @@ export function open(dialog) {
     }
     if (dialog.open) dialog.close();
     dialog.showModal();
+    // showModal() focuses the first focusable descendant; in a content-only box that is the invisible
+    // backdrop button (viewport-wide ring, "Close" announced). Focus the box so its title is read (#163).
+    const box = dialog.querySelector(".modal-box");
+    if (box && !box.contains(document.activeElement)) box.focus();
     // A dialog removed while open (e.g. an `@if` around a Modal) never gets close(): its ElementReference
     // no longer resolves, so watch for the removal and give focus back then (#101).
     dialog.__daisyRemoval?.disconnect();

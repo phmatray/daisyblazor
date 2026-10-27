@@ -17,6 +17,7 @@
             @onkeydown="@(e => OnKeyDown(e, dialog))">
         <div class="@ModalBoxCss(dialog)"
              role="@Role(dialog)"
+             tabindex="-1"
              aria-modal="true"
              aria-labelledby="@dialog.TitleId"
              aria-label="@AriaLabel(dialog)">
@@ -34,7 +35,7 @@
             </CascadingValue>
         </div>
         <form method="dialog" class="modal-backdrop" @onclick="@(() => OnBackdrop(dialog))">
-            <button type="button" tabindex="-1">@CloseLabel</button>
+            <button type="button" tabindex="-1" aria-hidden="true">@CloseLabel</button>
         </form>
     </dialog>
 }
@@ -167,7 +168,7 @@
             : "dialog";
 
     private static string ModalBoxCss(DialogReference dialog) => CssClass.Merge(
-        "modal-box relative",
+        "modal-box relative focus:outline-none",
         MaxWidthCss(dialog.Options.MaxWidth),
         dialog.Options.FullWidth == true ? "w-full" : null,
         // Keep a long title clear of the absolutely positioned close (x) button.
