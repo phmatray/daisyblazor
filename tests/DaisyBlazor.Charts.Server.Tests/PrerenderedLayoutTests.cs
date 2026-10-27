@@ -42,9 +42,9 @@ public sealed class PrerenderedLayoutTests : IClassFixture<PrerenderedLayoutTest
 
         using BunitContext browser = new();
         browser.JSInterop.Mode = JSRuntimeMode.Strict;
-        // The chart only measures its box, which is as wide as the frame or wider.
+        // The chart only measures its box, which is as wide as the frame it was prerendered at.
         BunitJSModuleInterop module = browser.JSInterop.SetupModule("./_content/DaisyBlazor.Charts/charts.mjs");
-        module.Setup<double?>("observe", _ => true).SetResult(800);
+        module.Setup<double?>("observe", _ => true).SetResult(640);
         BunitPersistentComponentState restored = browser.AddBunitPersistentComponentState();
         restored.Persist(key, layout);
         browser.SetRendererInfo(new RendererInfo("WebAssembly", isInteractive: true));

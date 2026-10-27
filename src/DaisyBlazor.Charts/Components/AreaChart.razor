@@ -23,6 +23,7 @@
            Width="@Width"
            Height="@Height"
            Title="@Title"
+           ShowTitle="@ShowTitle"
            Class="@Class"
            Style="@Style"
            @attributes="UserAttributes" />
@@ -102,6 +103,9 @@
 
     /// <summary>Optional heading rendered above the chart.</summary>
     [Parameter] public string? Title { get; set; }
+
+    /// <summary>Draw <c>Title</c> as a visible heading above the chart (the default); false keeps it only as the chart's accessible name, for a chart inside a card that already has a heading.</summary>
+    [Parameter] public bool ShowTitle { get; set; } = true;
 
     /// <summary>Extra CSS classes forwarded to the underlying LineChart.</summary>
     [Parameter] public string? Class { get; set; }

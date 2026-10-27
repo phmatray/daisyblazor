@@ -4,7 +4,7 @@
    across the plot, tick marks, tick labels and axis titles. X labels hang under the x axis, y labels
    sit left of the y axis (and, for a second scale, right of the plot). Category labels are drawn
    stronger than value ticks. An x label near either edge of the chart is anchored to that edge so
-   it never leaves the viewBox. *@
+   it never leaves the viewBox. Value tick labels are written in the current culture. *@
 
 @if (XGrid)
 {
@@ -49,12 +49,12 @@
         @if (XLabelAngle != 0)
         {
             <g transform="@($"rotate({N(XLabelAngle)} {N(tick.Pos)} {N(_xAt + 16)})")">
-                <SvgText X="@tick.Pos" Y="@(_xAt + 16)" Anchor="end" FontSize="11" FillOpacity="@_xOpacity" Text="@tick.Label" />
+                <SvgText X="@tick.Pos" Y="@(_xAt + 16)" Anchor="end" FontSize="11" FillOpacity="@_xOpacity" Text="@_text(tick, XCategories)" />
             </g>
         }
         else
         {
-            <SvgText X="@tick.Pos" Y="@(_xAt + 16)" Anchor="@_anchor(tick)" FontSize="11" FillOpacity="@_xOpacity" Text="@tick.Label" />
+            <SvgText X="@tick.Pos" Y="@(_xAt + 16)" Anchor="@_anchor(tick)" FontSize="11" FillOpacity="@_xOpacity" Text="@_text(tick, XCategories)" />
         }
     </g>
 }
@@ -65,12 +65,12 @@
         {
             <title>@full</title>
         }
-        <SvgText X="@(_yAt - 6)" Y="@tick.Pos" Dy="0.35em" Anchor="end" FontSize="11" FillOpacity="@_yOpacity" Text="@tick.Label" />
+        <SvgText X="@(_yAt - 6)" Y="@tick.Pos" Dy="0.35em" Anchor="end" FontSize="11" FillOpacity="@_yOpacity" Text="@_text(tick, YCategories)" />
     </g>
 }
 @foreach (AxisTick tick in Y2Ticks.Where(t => t.Label.Length > 0))
 {
-    <SvgText X="@(Plot.Right + 6)" Y="@tick.Pos" Dy="0.35em" FontSize="11" FillOpacity="0.7" Text="@tick.Label" />
+    <SvgText X="@(Plot.Right + 6)" Y="@tick.Pos" Dy="0.35em" FontSize="11" FillOpacity="0.7" Text="@_text(tick, false)" />
 }
 
 @if (!string.IsNullOrEmpty(XTitle))
@@ -137,8 +137,11 @@
     /// <summary>Height of the chart's coordinate space, to place the x title.</summary>
     [Parameter] public double Height { get; set; }
 
-    /// <summary>Width of the chart's coordinate space, to keep edge labels inside it.</summary>
-    [Parameter] public double ViewWidth { get; set; } = 640;
+    /// <summary>Width of the chart's coordinate space, to keep edge labels inside it; inside a D3 chart frame it defaults to the frame's width.</summary>
+    [Parameter] public double? ViewWidth { get; set; }
+
+    // Inside a D3ChartFrame, its coordinate space's width.
+    [CascadingParameter(Name = "ChartViewWidth")] private double? FrameWidth { get; set; }
 
     private double _xAt => XAxisAt ?? Plot.Bottom;
 
@@ -148,6 +151,9 @@
 
     private double _yOpacity => YCategories ? 0.8 : 0.7;
 
+    // Value ticks come from D3 in invariant form; category names are drawn as given.
+    private static string _text(AxisTick tick, bool category) => category ? tick.Label : ChartText.Localize(tick.Label);
+
     private string _gridOpacity(AxisTick tick) => ZeroLine && tick.Value == 0 ? "0.35" : "0.1";
 
     private static string N(double value) => Math.Round(value, 2).ToString(CultureInfo.InvariantCulture);
@@ -155,6 +161,6 @@
     private string _anchor(AxisTick tick)
     {
         double half = ChartText.Width(tick.Label) / 2;
-        return tick.Pos - half < 0 ? "start" : tick.Pos + half > ViewWidth ? "end" : "middle";
+        return tick.Pos - half < 0 ? "start" : tick.Pos + half > (ViewWidth ?? FrameWidth ?? 640) ? "end" : "middle";
     }
 }

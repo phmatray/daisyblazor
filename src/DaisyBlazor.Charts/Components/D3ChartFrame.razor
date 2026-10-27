@@ -6,7 +6,7 @@
    layout's message when it fails. *@
 
 <div @ref="Chart.Frame" class="@Chart.WrapperClass" style="@Chart.WrapperStyle" @attributes="Chart.UserAttributes">
-    @if (!string.IsNullOrEmpty(Chart.Title))
+    @if (Chart.ShowTitle && !string.IsNullOrEmpty(Chart.Title))
     {
         <div class="text-sm font-medium mb-2 text-base-content/80">@Chart.Title</div>
     }
@@ -33,7 +33,9 @@
             {
                 <desc id="@_descId">@Description</desc>
             }
-            @ChildContent
+            <CascadingValue Name="ChartViewWidth" Value="@((double?)Chart.FrameViewWidth)">
+                @ChildContent
+            </CascadingValue>
         </svg>
         @Legend
     }
