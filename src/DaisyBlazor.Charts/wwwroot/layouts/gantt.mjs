@@ -1,19 +1,23 @@
 import { scaleUtc, scaleBand } from '../d3/d3-scale.mjs';
 import { fit, maxWidth, r2 } from './_shared.mjs';
-import { parseDate, labelOf, timeTicks } from './_time.mjs';
+import { parseDate, labelOf, tickLabel, timeTickDates } from './_time.mjs';
 
 const EMPTY = { rows: [], groups: [], today: null, xTicks: [], plot: { left: 0, top: 0, right: 0, bottom: 0 } };
 
-// spec: { tasks: [{ name, start, end, group, progress }], today, width, height }
+// spec: { tasks: [{ name, start, end, group, progress, row, color }], today, width, height, headers }
 // Tasks need a name and a valid start; a missing or earlier end makes a milestone (start = end).
-// Grouped tasks are listed under a header row per group, groups in order of first appearance;
-// tasks without a group come first. Progress is a fraction (0..1) and is clamped.
-export default function gantt({ tasks, today, width, height }) {
+// Tasks with the same `row` key share one row (a lane) labelled with that key; other tasks get a row
+// each. With `headers` (the default), a row whose tasks all share a group is listed under a header
+// row for that group, groups in order of first appearance; other rows come first. Without headers
+// rows keep their order and groups only colour the bars. Progress is a fraction (0..1) and is clamped.
+// Each task row carries `index`, its position in `tasks`, and every x tick its date (`value`, in
+// epoch milliseconds), so .NET can write the dates in the reader's culture.
+export default function gantt({ tasks, today, width, height, headers = true }) {
     const valid = (tasks ?? [])
-        .map(t => {
+        .map((t, index) => {
             const start = parseDate(t?.start);
             const end = parseDate(t?.end);
-            return { ...t, start, end: end && start && end > start ? end : start };
+            return { ...t, index, start, end: end && start && end > start ? end : start };
         })
         .filter(t => t.name && t.start);
     if (valid.length === 0) {
@@ -21,13 +25,28 @@ export default function gantt({ tasks, today, width, height }) {
     }
 
     const groups = [...new Set(valid.map(t => t.group).filter(g => g))];
+    const lanes = new Map();
+    for (const t of valid) {
+        const key = t.row ? `row:${t.row}` : t.index;
+        if (!lanes.has(key)) {
+            lanes.set(key, { label: t.row || t.name, tasks: [] });
+        }
+        lanes.get(key).tasks.push(t);
+    }
+    const laneList = [...lanes.values()].map(l => {
+        const g = l.tasks[0].group;
+        return { ...l, group: headers && g && l.tasks.every(t => t.group === g) ? g : null };
+    });
     const rows = [
-        ...valid.filter(t => !t.group).map(t => ({ task: t })),
-        ...groups.flatMap(g => [{ header: g }, ...valid.filter(t => t.group === g).map(t => ({ task: t }))]),
+        ...laneList.filter(l => !l.group),
+        ...groups.flatMap(g => {
+            const of = laneList.filter(l => l.group === g);
+            return of.length ? [{ header: g }, ...of] : [];
+        }),
     ];
 
-    const widest = maxWidth(rows.map(r => r.header ?? r.task.name));
-    const labelRoom = Math.min(widest, width * 0.35); // grouped tasks are indented 8 more units
+    const widest = maxWidth(rows.map(r => r.header ?? r.label));
+    const labelRoom = Math.min(widest, width * 0.35); // rows under a header are indented 8 more units
     const plot = { left: labelRoom + 20, top: 18, right: width - 24, bottom: height - 24 };
 
     const first = new Date(Math.min(...valid.map(t => t.start)));
@@ -39,26 +58,29 @@ export default function gantt({ tasks, today, width, height }) {
     const now = parseDate(today);
 
     return {
-        rows: rows.map((r, i) => {
+        // One entry per header and per task; the tasks of a lane follow each other and share its y.
+        rows: rows.flatMap((r, i) => {
             const y = r2(band(i));
             const h = r2(band.bandwidth());
             if (r.header) {
-                return { header: true, name: r.header, label: fit(r.header, labelRoom), group: groups.indexOf(r.header), y, h };
+                return [{ header: true, name: r.header, label: fit(r.header, labelRoom), group: groups.indexOf(r.header), y, h }];
             }
-            const t = r.task;
-            const x0 = x(t.start);
-            const x1 = Math.max(x(t.end), x0 + 2);
-            const progress = typeof t.progress === 'number' && Number.isFinite(t.progress) ? Math.min(1, Math.max(0, t.progress)) : null;
-            return {
-                header: false, name: t.name, label: fit(t.name, labelRoom), group: t.group ? groups.indexOf(t.group) : -1,
-                milestone: +t.start === +t.end, start: labelOf(t.start), end: labelOf(t.end), progress,
-                x0: r2(x0), x1: r2(x1), y, h,
-            };
+            const label = fit(r.label, labelRoom);
+            return r.tasks.map(t => {
+                const x0 = x(t.start);
+                const x1 = Math.max(x(t.end), x0 + 2);
+                const progress = typeof t.progress === 'number' && Number.isFinite(t.progress) ? Math.min(1, Math.max(0, t.progress)) : null;
+                return {
+                    header: false, name: t.name, label, group: t.group ? groups.indexOf(t.group) : -1,
+                    milestone: +t.start === +t.end, start: labelOf(t.start), end: labelOf(t.end), progress,
+                    x0: r2(x0), x1: r2(x1), y, h, color: t.color || null, indent: r.group != null, index: t.index,
+                };
+            });
         }),
         groups,
         today: now && now >= x.domain()[0] && now <= x.domain()[1] ? { pos: r2(x(now)), label: labelOf(now) } : null,
         // Every task boundary counts as a data point, so a long plan still gets enough ticks.
-        xTicks: timeTicks(x, valid.flatMap(t => [t.start, t.end])),
+        xTicks: timeTickDates(x, valid.flatMap(t => [t.start, t.end])).map(d => ({ pos: r2(x(d)), label: tickLabel(d), value: +d })),
         plot,
     };
 }

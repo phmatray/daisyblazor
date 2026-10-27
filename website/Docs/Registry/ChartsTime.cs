@@ -83,6 +83,7 @@ public static partial class DocRegistry
             [
                 new("Basic", "Each GanttTask has a Name, Start and End; tasks with the same Group are listed under its name, Progress fills the done part and a task without an End is a milestone.", typeof(GanttChartBasicExample)),
                 new("Marker", "Today places the marker at any moment (it defaults to the current date) and TodayLabel names it; without groups the tasks are listed in order.", typeof(GanttChartMarkerExample)),
+                new("Lanes", "Tasks with the same Row share one lane, labelled with the key. ShowGroupHeaders=\"false\" lets groups only colour the bars, ShowLegend names them, GroupColors maps a group to any CSS colour and a task's own Color wins. Dates follow the current culture.", typeof(GanttChartLanesExample)),
             ])
         {
             Portrait = typeof(GanttChartCoverExample),

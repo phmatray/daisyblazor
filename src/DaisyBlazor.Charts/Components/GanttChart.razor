@@ -1,61 +1,84 @@
 @namespace DaisyBlazor.Charts
 @inherits D3Chart<GanttLayout>
 
-@* Gantt chart: one row per task, a bar from its start to its end on a time axis, an optional
-   progress fill, milestones as diamonds, groups under header rows and a marker for today. D3
-   computes the time scale, rows and ticks; this component draws them in theme colours. *@
+@* Gantt chart: one row per task (or per lane of tasks sharing a row key), a bar from its start to
+   its end on a time axis, an optional progress fill, milestones as diamonds, groups under header
+   rows and a marker for today. D3 computes the time scale, rows and ticks; this component draws
+   them in theme colours and writes the dates in the current culture. *@
 
 <D3ChartFrame TLayout="GanttLayout" Chart="this" Label="@_label" Description="@_description">
-    @if (Layout is { } geo)
-    {
-        <ChartAxes Plot="geo.Plot" XTicks="geo.XTicks" XGrid="true" Baseline="true" XTickMarks="true" ViewWidth="ViewWidth" />
-        @foreach (GanttRow row in geo.Rows)
+    <ChildContent>
+        @if (Layout is { } geo)
         {
-            double mid = row.Y + row.H / 2;
-            @if (row.Header)
+            <ChartAxes Plot="geo.Plot" XTicks="_ticks(geo.XTicks)" XGrid="true" Baseline="true" XTickMarks="true" ViewWidth="ViewWidth" />
+            double? laneY = null;
+            @foreach (GanttRow row in geo.Rows)
             {
-                <SvgText X="2" Y="@mid" Dy="0.35em" FontSize="11" FontWeight="700" Text="@row.Label" />
-                continue;
+                double mid = row.Y + row.H / 2;
+                @if (row.Header)
+                {
+                    <SvgText X="2" Y="@mid" Dy="0.35em" FontSize="11" FontWeight="700" Text="@row.Label" />
+                    continue;
+                }
+
+                string color = row.Color ?? _color(row.Group, geo);
+                @if (row.Y != laneY)
+                {
+                    <SvgText X="@(row.Indent ? 10 : 2)" Y="@mid" Dy="0.35em" FontSize="11" FillOpacity="0.85" Text="@row.Label" />
+                }
+                laneY = row.Y;
+                @if (row.Milestone)
+                {
+                    double r = Math.Min(row.H / 2, 8);
+                    <path d="@($"M{N(row.X0)},{N(mid - r)}L{N(row.X0 + r)},{N(mid)}L{N(row.X0)},{N(mid + r)}L{N(row.X0 - r)},{N(mid)}Z")" fill="@color">
+                        <title>@($"{row.Name}: {_start(row)}")</title>
+                    </path>
+                }
+                else
+                {
+                    <g>
+                        <title>@_tooltip(row)</title>
+                        <rect x="@N(row.X0)" y="@N(row.Y)" width="@N(row.X1 - row.X0)" height="@N(row.H)" rx="3"
+                              fill="@color" fill-opacity="@(row.Progress is null ? "0.85" : "0.3")" />
+                        @if (row.Progress is double done && done > 0)
+                        {
+                            <rect x="@N(row.X0)" y="@N(row.Y)" width="@N((row.X1 - row.X0) * done)" height="@N(row.H)" rx="3" fill="@color" />
+                        }
+                    </g>
+                }
             }
 
-            string color = ChartPalette.At(Math.Max(0, row.Group));
-            <SvgText X="@(row.Group >= 0 ? 10 : 2)" Y="@mid" Dy="0.35em" FontSize="11" FillOpacity="0.85" Text="@row.Label" />
-            @if (row.Milestone)
+            @if (ShowToday && geo.Today is { } today)
             {
-                double r = Math.Min(row.H / 2, 8);
-                <path d="@($"M{N(row.X0)},{N(mid - r)}L{N(row.X0 + r)},{N(mid)}L{N(row.X0)},{N(mid + r)}L{N(row.X0 - r)},{N(mid)}Z")" fill="@color">
-                    <title>@($"{row.Name}: {row.Start}")</title>
-                </path>
-            }
-            else
-            {
-                <g>
-                    <title>@_tooltip(row)</title>
-                    <rect x="@N(row.X0)" y="@N(row.Y)" width="@N(row.X1 - row.X0)" height="@N(row.H)" rx="3"
-                          fill="@color" fill-opacity="@(row.Progress is null ? "0.85" : "0.3")" />
-                    @if (row.Progress is double done && done > 0)
-                    {
-                        <rect x="@N(row.X0)" y="@N(row.Y)" width="@N((row.X1 - row.X0) * done)" height="@N(row.H)" rx="3" fill="@color" />
-                    }
-                </g>
+                <line x1="@N(today.Pos)" x2="@N(today.Pos)" y1="@N(geo.Plot.Top - 4)" y2="@N(geo.Plot.Bottom)"
+                      stroke="var(--color-error)" stroke-width="1.5" stroke-dasharray="4 3">
+                    <title>@($"{TodayLabel}: {_date(Today ?? DateTime.Today)}")</title>
+                </line>
+                <SvgText X="@today.Pos" Y="@(geo.Plot.Top - 7)" Anchor="@(today.Pos + ChartText.Width(TodayLabel, 10) / 2 > ViewWidth ? "end" : "middle")" FontSize="10" FontWeight="600"
+                         Fill="var(--color-error)" Text="@TodayLabel" />
             }
         }
-
-        @if (ShowToday && geo.Today is { } today)
+    </ChildContent>
+    <Legend>
+        @if (ShowLegend && Layout is { Groups.Count: > 0 } legend)
         {
-            <line x1="@N(today.Pos)" x2="@N(today.Pos)" y1="@N(geo.Plot.Top - 4)" y2="@N(geo.Plot.Bottom)"
-                  stroke="var(--color-error)" stroke-width="1.5" stroke-dasharray="4 3">
-                <title>@($"{TodayLabel}: {today.Label}")</title>
-            </line>
-            <SvgText X="@today.Pos" Y="@(geo.Plot.Top - 7)" Anchor="@(today.Pos + ChartText.Width(TodayLabel, 10) / 2 > ViewWidth ? "end" : "middle")" FontSize="10" FontWeight="600"
-                     Fill="var(--color-error)" Text="@TodayLabel" />
+            <ChartLegend Items="@legend.Groups.Select((g, i) => (g, _color(i, legend))).ToList()" />
         }
-    }
+    </Legend>
 </D3ChartFrame>
 
 @code {
-    /// <summary>The tasks, listed top to bottom (grouped tasks under their group's header, groups in order of first appearance). A task without an End is a milestone.</summary>
+    /// <summary>The tasks, listed top to bottom (grouped tasks under their group's header, groups in order of first appearance). A task without an End is a milestone; tasks with the same Row share one lane.</summary>
     [Parameter] public IReadOnlyList<GanttTask> Tasks { get; set; } = [];
+
+    /// <summary>List the rows of each group under a header row (the default). False keeps the rows in task order and lets groups only colour the bars, e.g. when a lane holds tasks of several groups.</summary>
+    [Parameter] public bool ShowGroupHeaders { get; set; } = true;
+
+    /// <summary>Show a legend of the groups and their colours.</summary>
+    [Parameter] public bool ShowLegend { get; set; }
+
+    /// <summary>Optional colour per group name (any CSS colour); other groups cycle through the theme palette. A task's own Color wins.</summary>
+    [Parameter] public IReadOnlyDictionary<string, string>? GroupColors { get; set; }
 
     /// <summary>The date the today marker shows. Defaults to the current date; the marker is drawn only when it falls within the tasks' span.</summary>
     [Parameter] public DateTime? Today { get; set; }
@@ -79,18 +102,50 @@
             t.End,
             t.Group,
             t.Progress,
+            t.Row,
+            t.Color,
         }).ToArray(),
         Today = ShowToday ? Today ?? DateTime.Today : (DateTime?)null,
         Width = ViewWidth,
         Height = ViewHeight,
+        Headers = ShowGroupHeaders,
     };
 
-    private static string _tooltip(GanttRow row) =>
-        $"{row.Name}: {row.Start} – {row.End}" + (row.Progress is double p ? $" ({p.ToString("P0", CultureInfo.CurrentCulture)} done)" : string.Empty);
+    private string _color(int group, GanttLayout layout) =>
+        GroupColors is not null && group >= 0 && group < layout.Groups.Count && GroupColors.TryGetValue(layout.Groups[group], out string? c) ? c : ChartPalette.At(Math.Max(0, group));
+
+    // Dates in the current culture: the short date, plus the time when it is not midnight.
+    private static string _date(DateTime d) => d.ToString(d.TimeOfDay == TimeSpan.Zero ? "d" : "g", CultureInfo.CurrentCulture);
+
+    // The dates of the task a row points at (an end not after the start is a milestone); else the layout's text.
+    private GanttTask? _task(GanttRow row) => row.Index >= 0 && row.Index < Tasks.Count ? Tasks[row.Index] : null;
+
+    private string? _start(GanttRow row) => _task(row) is { } t ? _date(t.Start) : row.Start;
+
+    private string? _end(GanttRow row) => _task(row) is { } t ? _date(t.End is { } end && end > t.Start ? end : t.Start) : row.End;
+
+    // Tick labels like the layout's (a time, else a day, else a month, else a year) in the current
+    // culture. The tick's date is dropped once used so the axes do not take it for a number.
+    private static List<AxisTick> _ticks(IReadOnlyList<AxisTick> ticks) => ticks.Select(t =>
+    {
+        if (t.Value is not double ms)
+        {
+            return t;
+        }
+        CultureInfo culture = CultureInfo.CurrentCulture;
+        DateTime d = DateTime.UnixEpoch.AddMilliseconds(ms);
+        string format = d.TimeOfDay != TimeSpan.Zero ? "t"
+            : d.Day != 1 ? culture.DateTimeFormat.MonthDayPattern.Replace("MMMM", "MMM")
+            : d.Month != 1 ? "MMM" : "yyyy";
+        return t with { Label = d.ToString(format, culture), Value = null };
+    }).ToList();
+
+    private string _tooltip(GanttRow row) =>
+        $"{row.Name}: {_start(row)} – {_end(row)}" + (row.Progress is double p ? $" ({p.ToString("P0", CultureInfo.CurrentCulture)} done)" : string.Empty);
 
     private string _label => Title ?? "Gantt chart";
 
     private string _description => Layout is { Rows.Count: > 0 } geo
-        ? string.Join("; ", geo.Rows.Where(r => !r.Header).Select(r => r.Milestone ? $"{r.Name} (milestone): {r.Start}" : _tooltip(r)))
+        ? string.Join("; ", geo.Rows.Where(r => !r.Header).Select(r => r.Milestone ? $"{r.Name} (milestone): {_start(r)}" : _tooltip(r)))
         : "No tasks.";
 }

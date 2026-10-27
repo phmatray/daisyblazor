@@ -1,0 +1,22 @@
+<GanttChart Title="Stand allocation, Oct 5" Tasks="_flights" ShowGroupHeaders="false" ShowLegend="true" GroupColors="_colors" AspectRatio="2.4" />
+
+@code {
+    // Flights with the same Row share the stand's lane; the Group colours them by airline, named in the legend.
+    private readonly GanttTask[] _flights =
+    [
+        new("AF 1234", new DateTime(2026, 10, 5, 6, 0, 0), new DateTime(2026, 10, 5, 7, 30, 0), "Air France", Row: "Stand A1"),
+        new("LH 402", new DateTime(2026, 10, 5, 8, 15, 0), new DateTime(2026, 10, 5, 9, 45, 0), "Lufthansa", Row: "Stand A1"),
+        new("AF 1680", new DateTime(2026, 10, 5, 11, 0, 0), new DateTime(2026, 10, 5, 12, 0, 0), "Air France", Row: "Stand A1"),
+        new("KL 1987", new DateTime(2026, 10, 5, 6, 30, 0), new DateTime(2026, 10, 5, 8, 0, 0), "KLM", Row: "Stand A2"),
+        new("LH 1030", new DateTime(2026, 10, 5, 9, 0, 0), new DateTime(2026, 10, 5, 11, 30, 0), "Lufthansa", Row: "Stand A2"),
+        new("KL 1224", new DateTime(2026, 10, 5, 7, 0, 0), new DateTime(2026, 10, 5, 10, 0, 0), "KLM", Row: "Stand B1"),
+        new("Charter", new DateTime(2026, 10, 5, 10, 30, 0), new DateTime(2026, 10, 5, 12, 0, 0), Row: "Stand B1", Color: "var(--color-neutral)"),
+    ];
+
+    private readonly Dictionary<string, string> _colors = new()
+    {
+        ["Air France"] = "var(--color-primary)",
+        ["Lufthansa"] = "var(--color-warning)",
+        ["KLM"] = "var(--color-info)",
+    };
+}

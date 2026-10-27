@@ -246,6 +246,33 @@ test('gantt: ungrouped tasks first, then a header per group; milestones and prog
     assert.ok(spaced(out.xTicks));
 });
 
+test('gantt: tasks with the same row share a lane; mixed-group lanes sit outside headers', async () => {
+    const tasks = [
+        { name: 'AF 1', start: '2026-10-05T06:00:00', end: '2026-10-05T08:00:00', group: 'AF', row: 'A1', color: 'red' },
+        { name: 'LH 1', start: '2026-10-05T09:00:00', end: '2026-10-05T10:00:00', group: 'LH', row: 'A1' },
+        { name: 'AF 2', start: '2026-10-05T07:00:00', end: '2026-10-05T09:00:00', group: 'AF', row: 'A2' },
+        { name: 'Solo', start: '2026-10-05T08:00:00', end: '2026-10-05T11:00:00', group: 'AF' },
+        { name: 'AF 3', start: '2026-10-05T10:00:00', end: '2026-10-05T11:00:00', group: 'AF', row: 'A2' },
+    ];
+    const out = await layout('gantt', { tasks, width: W, height: H });
+    // A1 mixes groups, so it comes first; A2 and Solo are all AF and go under its header.
+    assert.deepEqual(out.rows.map(r => r.header ? `[${r.name}]` : `${r.label}:${r.name}`), ['A1:AF 1', 'A1:LH 1', '[AF]', 'A2:AF 2', 'A2:AF 3', 'Solo:Solo']);
+    assert.deepEqual(out.rows.filter(r => !r.header).map(r => r.index), [0, 1, 2, 4, 3]);
+    const [af1, lh1, , af2, af3, solo] = out.rows;
+    assert.equal(af1.y, lh1.y);
+    assert.equal(af2.y, af3.y);
+    assert.ok(af2.y > lh1.y && solo.y > af3.y);
+    assert.deepEqual([af1.indent, af2.indent, solo.indent], [false, true, true]);
+    assert.deepEqual([af1.color, lh1.color], ['red', null]);
+    assert.deepEqual([af1.group, lh1.group], [0, 1]);
+    // Every tick carries its date so .NET can label it in its own culture.
+    assert.ok(out.xTicks.length > 0 && out.xTicks.every(t => new Date(t.value).getUTCMinutes() === 0));
+
+    const flat = await layout('gantt', { tasks, width: W, height: H, headers: false });
+    assert.deepEqual(flat.rows.map(r => r.label), ['A1', 'A1', 'A2', 'A2', 'Solo']);
+    assert.ok(flat.rows.every(r => !r.header && !r.indent));
+});
+
 test('gantt: a today outside the plan is not drawn; no tasks is empty', async () => {
     const out = await layout('gantt', { tasks: [{ name: 'A', start: '2026-01-01', end: '2026-01-05' }], today: '2027-01-01T00:00:00', width: W, height: H });
     assert.equal(out.today, null);
