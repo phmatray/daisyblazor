@@ -150,5 +150,10 @@ public class ChartsCoreVariantsTests : BunitContext
 
         cut.FindComponent<PieChart>().Instance.ShowPercent.ShouldBeFalse();
         cut.FindAll("path")[0].TextContent.ShouldBe("Free: 70");
+        cut.Find("ul").TextContent.ShouldNotContain("%");
+
+        cut.Render(ps => ps.Add(p => p.ShowPercent, true));
+        cut.FindAll("path")[0].TextContent.ShouldBe("Free: 70 (70%)");
+        cut.Find("ul").TextContent.ShouldContain("70%");
     }
 }
