@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.10.0](https://github.com/phmatray/daisyblazor/compare/v0.9.0...v0.10.0) (2026-10-27)
+
+
+### Features
+
+* **components:** app-wide localisation of built-in labels via DaisyBlazorOptions.Strings ([#169](https://github.com/phmatray/daisyblazor/issues/169)) ([486e94b](https://github.com/phmatray/daisyblazor/commit/486e94bd97697a35f5b4dd6d00e1d9dfcfbfe626)), closes [#165](https://github.com/phmatray/daisyblazor/issues/165)
+
+
+### Bug Fixes
+
+* **components:** content-only Modal and DialogProvider focus the dialog box ([#167](https://github.com/phmatray/daisyblazor/issues/167)) ([a9f45d1](https://github.com/phmatray/daisyblazor/commit/a9f45d1b1540fe7923510efaa09a42f2f14feeb1))
+* **components:** KpiCard value is no longer a heading, subtitle meets AA contrast ([#166](https://github.com/phmatray/daisyblazor/issues/166)) ([bf14732](https://github.com/phmatray/daisyblazor/commit/bf14732023a5297328ef6e37fb0f006f7c8b0995)), closes [#164](https://github.com/phmatray/daisyblazor/issues/164)
+
 ## [0.9.0](https://github.com/phmatray/daisyblazor/compare/v0.8.0...v0.9.0) (2026-10-27)
 
 
