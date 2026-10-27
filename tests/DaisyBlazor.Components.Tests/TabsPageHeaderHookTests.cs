@@ -31,7 +31,7 @@ public class TabsPageHeaderHookTests : BunitContext
             .Add(p => p.TitleClass, "font-display")
             .Add(p => p.SubtitleClass, "italic"));
 
-        cut.Find("h4").ClassList.ShouldContain("font-display");
+        cut.Find("h1").ClassList.ShouldContain("font-display");
         cut.Find(".italic").TextContent.Trim().ShouldBe("All songs");
     }
 }

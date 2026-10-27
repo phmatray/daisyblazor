@@ -6,7 +6,7 @@
 <Stack Row="true" Wrap="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center"
        Class="@Class" Style="@Style" @attributes="UserAttributes">
     <Stack Spacing="0" Class="min-w-0">
-        <Typography Typo="@(Typo.h1 + Math.Clamp(HeadingLevel, 1, 6) - 1)" Class="@CssClass.Merge(string.IsNullOrEmpty(Icon) ? null : "flex items-center gap-2", TitleClass)">
+        <Typography Typo="@(Typo.h1 + Math.Clamp(HeadingLevel, 1, 6) - 1)" Look="@TitleTypo" Class="@CssClass.Merge(string.IsNullOrEmpty(Icon) ? null : "flex items-center gap-2", TitleClass)">
             @if (!string.IsNullOrEmpty(Icon))
             {
                 <Icon Name="@Icon" />

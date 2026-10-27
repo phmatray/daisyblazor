@@ -1,3 +1,5 @@
+using DaisyBlazor.Data;
+using Microsoft.Extensions.DependencyInjection;
 using DaisyBlazor.Layout;
 
 namespace DaisyBlazor.Components.Tests;
@@ -66,15 +68,37 @@ public class ComponentsBatchTests : BunitContext
     }
 
     [Fact]
-    public void PageHeader_defaults_to_h4_and_honours_HeadingLevel()
+    public void Button_takes_the_app_default_variant_unless_it_sets_one()
     {
-        Render<PageHeader>(ps => ps.Add(p => p.Title, "T")).FindAll("h4").Count.ShouldBe(1);
+        Services.AddSingleton(new DaisyBlazorOptions { DefaultButtonVariant = Variant.Filled });
+        Render<Button>(ps => ps.Add(p => p.Color, Color.Primary)).Find("button").ClassList.ShouldNotContain("btn-ghost");
+        Render<Button>(ps => ps.Add(p => p.Variant, Variant.Text)).Find("button").ClassList.ShouldContain("btn-ghost");
+    }
 
-        IRenderedComponent<PageHeader> h1 = Render<PageHeader>(ps => ps
+    [Fact]
+    public void KpiCard_accent_and_elevation_are_configurable()
+    {
+        string Style(KpiAccent accent) => Render<KpiCard>(ps => ps
+            .Add(p => p.Label, "L").Add(p => p.Value, "1").Add(p => p.Accent, accent).Add(p => p.Elevation, 0))
+            .Find("div").GetAttribute("style")!;
+
+        Style(KpiAccent.None).ShouldNotContain("border");
+        Style(KpiAccent.Top).ShouldContain("border-top: 4px solid");
+        Style(KpiAccent.Start).ShouldContain("border-inline-start: 4px solid");
+    }
+
+    [Fact]
+    public void PageHeader_is_an_h1_with_the_h4_look_and_the_level_never_changes_the_size()
+    {
+        IRenderedComponent<PageHeader> page = Render<PageHeader>(ps => ps.Add(p => p.Title, "T"));
+        page.Find("h1").ClassName.ShouldBe(Render<Typography>(ps => ps.Add(p => p.Typo, Typo.h4)).Find("h4").ClassName);
+
+        IRenderedComponent<PageHeader> h3 = Render<PageHeader>(ps => ps
             .Add(p => p.Title, "T")
-            .Add(p => p.HeadingLevel, 1));
-        h1.FindAll("h1").Count.ShouldBe(1);
-        h1.FindAll("h4").Count.ShouldBe(0);
+            .Add(p => p.HeadingLevel, 3)
+            .Add(p => p.TitleTypo, Typo.h6));
+        h3.FindAll("h1").Count.ShouldBe(0);
+        h3.Find("h3").ClassName.ShouldBe(Render<Typography>(ps => ps.Add(p => p.Typo, Typo.h6)).Find("h6").ClassName);
     }
 
     [Fact]

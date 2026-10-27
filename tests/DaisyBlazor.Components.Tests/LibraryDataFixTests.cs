@@ -147,7 +147,7 @@ public class LibraryDataFixTests : BunitContext
             .Add(p => p.Value, "42")
             .Add(p => p.Color, "var(--color-warning)"));
 
-        cut.Markup.ShouldContain("border-left: 4px solid var(--color-warning)");
+        cut.Markup.ShouldContain("border-inline-start: 4px solid var(--color-warning)");
         cut.Markup.ShouldNotContain("color: var(--color-warning)");
     }
 }
