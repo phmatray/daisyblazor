@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using DaisyBlazor.Charts;
 using Microsoft.JSInterop;
@@ -37,7 +38,7 @@ public class ChartsTimeTests : BunitContext
         cut.Find("[aria-busy=true]").ShouldNotBeNull();
         call.SetResult(layout);
         cut.WaitForAssertion(() => cut.FindAll("svg rect").Count.ShouldBe(2));
-        cut.Markup.ShouldContain("Mon, Jan 5, 2026: 3");
+        cut.Markup.ShouldContain($"{new DateOnly(2026, 1, 5).ToString("D", CultureInfo.CurrentCulture)}: 3");
         cut.Markup.ShouldContain("Less");
         cut.Find("svg").GetAttribute("viewBox").ShouldBe("0 0 640 100");
 
@@ -45,6 +46,30 @@ public class ChartsTimeTests : BunitContext
         spec.ShouldContain("\"date\":\"2026-01-05\"");
         spec.ShouldContain("\"weekStart\":0");
         spec.ShouldContain("\"levels\":5");
+    }
+
+    [Fact]
+    public void CalendarHeatmap_names_months_weekdays_and_days_in_the_current_culture()
+    {
+        CultureInfo previous = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = new CultureInfo("fr-FR");
+        try
+        {
+            BunitJSModuleInterop module = this.SetupChartModule();
+            module.Setup<CalendarHeatmapLayout>("layout", _ => true).SetResult(new CalendarHeatmapLayout(
+                [new("2026-01-05", "Mon, Jan 5, 2026", 3, 2, 30, 16, 11)], [new(30, "janv.")], [new(21, "lun.")], [2, 4, 6], 8, 11));
+
+            IRenderedComponent<CalendarHeatmap> cut = Render<CalendarHeatmap>(ps => ps.Add(p => p.Days, [new CalendarDay(new DateOnly(2026, 1, 5), 3)]));
+
+            string spec = Spec(module, "calendar-heatmap");
+            spec.ShouldContain("\"monthNames\":[\"janv.\"");
+            spec.ShouldContain("\"dayNames\":[\"dim.\",\"lun.\"");
+            cut.WaitForAssertion(() => cut.Markup.ShouldContain("lundi 5 janvier 2026: 3"));
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previous;
+        }
     }
 
     [Fact]

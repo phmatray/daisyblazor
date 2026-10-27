@@ -17,12 +17,14 @@ const dayOf = value => {
     return date && utcDay.floor(date);
 };
 
-// spec: { days: [{ date, value }], from, to, weekStart (0 = Sunday … 6), levels, width, height }
+// spec: { days: [{ date, value }], from, to, weekStart (0 = Sunday … 6), levels, width, height,
+//         monthNames: [12 names, January first], dayNames: [7 names, Sunday first] }
 // One cell per day from `from` to `to` (default: the first and last dated day), weeks as columns
 // and weekdays as rows. Values on the same day are summed. Days without a positive value are
 // level 0; positive values are quantized into levels 1 … levels-1 between 0 and the largest value.
-// Everything is computed in UTC, so the grid never depends on the machine's time zone.
-export default function calendar({ days, from, to, weekStart = 1, levels = 5, width, height }) {
+// Everything is computed in UTC, so the grid never depends on the machine's time zone. The month
+// and weekday labels come from monthNames and dayNames (the caller's culture), else English.
+export default function calendar({ days, from, to, weekStart = 1, levels = 5, width, height, monthNames, dayNames }) {
     const sums = new Map();
     for (const d of days ?? []) {
         const day = dayOf(d?.date);
@@ -56,7 +58,7 @@ export default function calendar({ days, from, to, weekStart = 1, levels = 5, wi
     // A month is named over the week holding its first day (or the first shown day); a name too
     // close to the next one is dropped so labels never overlap.
     const months = all.filter((d, i) => i === 0 || d.getUTCDate() === 1)
-        .map(d => ({ label: monthLabel(d), x: left + column(d) * cell }))
+        .map(d => ({ label: monthNames?.[d.getUTCMonth()] ?? monthLabel(d), x: left + column(d) * cell }))
         .filter((m, i, list) => i === list.length - 1 || list[i + 1].x - m.x >= 26)
         .map(m => ({ pos: r2(m.x), label: m.label }));
 
@@ -72,7 +74,7 @@ export default function calendar({ days, from, to, weekStart = 1, levels = 5, wi
         // Monday, Wednesday and Friday are named, wherever the week starts.
         weekdays: [1, 3, 5].map(w => {
             const sample = new Date(Date.UTC(2024, 0, 7 + w)); // 2024-01-07 is a Sunday
-            return { pos: r2(top + offset(sample) * cell + (cell - gap) / 2), label: weekdayLabel(sample) };
+            return { pos: r2(top + offset(sample) * cell + (cell - gap) / 2), label: dayNames?.[w] ?? weekdayLabel(sample) };
         }),
         thresholds: level.thresholds().map(r2),
         max,

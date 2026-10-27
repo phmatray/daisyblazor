@@ -82,6 +82,11 @@ public class ChartsProgressTests : BunitContext
         cut.WaitForAssertion(() => cut.FindAll("svg path").Count.ShouldBe(2));
         cut.Markup.ShouldContain("25% of previous");
         cut.Find("svg").GetAttribute("aria-label").ShouldBe("Pyramid chart");
+
+        cut.Render(ps => ps.Add(p => p.PreviousFormat, "{0} de l'étape précédente").Add(p => p.FirstFormat, "{0} du départ"));
+        cut.Markup.ShouldContain("25% de l'étape précédente");
+        cut.Find("svg path title").TextContent.ShouldBe("Trial: 1,000");
+        cut.FindAll("svg path title")[1].TextContent.ShouldBe("Paid: 250, 25% de l'étape précédente, 25% du départ");
     }
 
     [Fact]

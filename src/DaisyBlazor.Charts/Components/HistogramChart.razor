@@ -22,10 +22,10 @@
             bool flip = median.Pos > (view.Plot.Left + view.Plot.Right) / 2;
             <line x1="@N(median.Pos)" x2="@N(median.Pos)" y1="@N(view.Plot.Top - 12)" y2="@N(view.Plot.Bottom)"
                   stroke="var(--color-base-content)" stroke-width="1.5" stroke-dasharray="4 3">
-                <title>@($"Median: {_format(median.Value)}")</title>
+                <title>@($"{MedianLabel}: {_format(median.Value)}")</title>
             </line>
             <SvgText X="@(median.Pos + (flip ? -5 : 5))" Y="@(view.Plot.Top - 4)" Anchor="@(flip ? "end" : "start")"
-                     FontSize="11" FontWeight="600" Text="@($"Median {_format(median.Value)}")" />
+                     FontSize="11" FontWeight="600" Text="@($"{MedianLabel} {_format(median.Value)}")" />
         }
     }
 </D3ChartFrame>
@@ -45,6 +45,9 @@
 
     /// <summary>Mark the median with a dashed line and its value.</summary>
     [Parameter] public bool ShowMedian { get; set; }
+
+    /// <summary>Text before the median's value on its line, in its tooltip and the description.</summary>
+    [Parameter] public string MedianLabel { get; set; } = "Median";
 
     /// <summary>Colour of the bars (any CSS colour).</summary>
     [Parameter] public string Color { get; set; } = "var(--color-primary)";
@@ -76,6 +79,6 @@
 
     private string _description => Layout is { Bars.Count: > 0 } view
         ? string.Join("; ", view.Bars.Select(b => $"{_format(b.X0)} to {_format(b.X1)}: {b.Count}"))
-          + (view.Median is { } m ? $". Median {_format(m.Value)}." : ".")
+          + (view.Median is { } m ? $". {MedianLabel} {_format(m.Value)}." : ".")
         : $"{Values.Count} values";
 }

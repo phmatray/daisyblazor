@@ -65,7 +65,11 @@ public class ChartsComboTests : BunitContext
         cut.Markup.ShouldContain("Failure rate (right axis)");
         cut.FindAll(".rounded-sm").Count.ShouldBe(2);
         cut.Find("svg").GetAttribute("aria-label").ShouldBe("Combo chart");
-        cut.Find("svg desc").TextContent.ShouldBe("2 categories; grouped bars: Deployments; lines: Failure rate on the right axis.");
+        cut.Find("svg desc").TextContent.ShouldBe("2 categories; grouped bars: Deployments; lines: Failure rate (right axis).");
+
+        cut.Render(ps => ps.Add(p => p.SecondaryAxisFormat, "{0} (axe de droite)"));
+        cut.Markup.ShouldContain("Failure rate (axe de droite)");
+        cut.Find("svg desc").TextContent.ShouldContain("lines: Failure rate (axe de droite).");
     }
 
     [Fact]
