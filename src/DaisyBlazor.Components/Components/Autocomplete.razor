@@ -33,7 +33,7 @@
                    @attributes="UserAttributes" />
             @if (Clearable && (!string.IsNullOrEmpty(_text) || Value is not null))
             {
-                <button type="button" class="btn btn-ghost btn-xs btn-circle" @onclick="ClearAsync" tabindex="-1" aria-label="@ClearAriaLabel">
+                <button type="button" class="btn btn-ghost btn-xs btn-circle" @onclick="ClearAsync" tabindex="-1" aria-label="@(ClearAriaLabel ?? _strings.Clear)">
                     <Icon Name="@Icons.Material.Filled.Clear" Size="Size.Small" />
                 </button>
             }
@@ -60,7 +60,7 @@
                         }
                         else
                         {
-                            <span class="p-2 text-sm opacity-70">@NoItemsText</span>
+                            <span class="p-2 text-sm opacity-70">@(NoItemsText ?? _strings.NoItemsFound)</span>
                         }
                     </li>
                 }
@@ -99,6 +99,9 @@
 </div>
 
 @code {
+    [Inject] private IServiceProvider Services { get; set; } = null!;
+    private DaisyBlazorStrings _strings => DaisyBlazorStrings.From(Services);
+
     private readonly string _generatedId = FieldId.New();
     private string _id => FieldId.Resolve(UserAttributes, _generatedId);
 
@@ -144,10 +147,10 @@
     [Parameter] public bool CoerceText { get; set; }
     /// <summary>Accepted for MudBlazor compatibility; currently has no effect.</summary>
     [Parameter] public bool CoerceValue { get; set; }
-    /// <summary>Text shown in the dropdown when a search returns no results; defaults to "No items found".</summary>
-    [Parameter] public string NoItemsText { get; set; } = "No items found";
-    /// <summary>Accessible label for the clear button; defaults to "Clear".</summary>
-    [Parameter] public string ClearAriaLabel { get; set; } = "Clear";
+    /// <summary>Text shown in the dropdown when a search returns no results. Null uses the app-wide <see cref="DaisyBlazorOptions.Strings"/>.</summary>
+    [Parameter] public string? NoItemsText { get; set; }
+    /// <summary>Accessible label for the clear button. Null uses the app-wide <see cref="DaisyBlazorOptions.Strings"/>.</summary>
+    [Parameter] public string? ClearAriaLabel { get; set; }
     /// <summary>Custom content for each result in the dropdown; defaults to the item's display text.</summary>
     [Parameter] public RenderFragment<T>? ItemTemplate { get; set; }
     /// <summary>Custom content shown when a search returns no results; overrides <see cref="NoItemsText"/>.</summary>

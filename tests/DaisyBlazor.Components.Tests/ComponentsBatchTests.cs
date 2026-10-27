@@ -76,6 +76,17 @@ public class ComponentsBatchTests : BunitContext
     }
 
     [Fact]
+    public void Built_in_labels_come_from_the_app_strings_unless_the_parameter_is_set()
+    {
+        new BunitContext().Render<Loading>().Find("span").GetAttribute("aria-label").ShouldBe("Loading");
+
+        Services.AddSingleton(new DaisyBlazorOptions { Strings = new DaisyBlazorStrings { Loading = "Chargement", Pagination = "Pages" } });
+        Render<Loading>().Find("span").GetAttribute("aria-label").ShouldBe("Chargement");
+        Render<Loading>(ps => ps.Add(p => p.AriaLabel, "Envoi")).Find("span").GetAttribute("aria-label").ShouldBe("Envoi");
+        Render<Pagination>(ps => ps.Add(p => p.Count, 3)).Find("nav").GetAttribute("aria-label").ShouldBe("Pages");
+    }
+
+    [Fact]
     public void KpiCard_accent_and_elevation_are_configurable()
     {
         string Style(KpiAccent accent) => Render<KpiCard>(ps => ps

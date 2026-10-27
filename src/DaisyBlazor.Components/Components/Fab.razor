@@ -21,7 +21,7 @@
            So it is a pointer-only affordance and hidden from assistive tech; keyboard users collapse
            the speed dial by tabbing out of it (focus leaving the fab), the native equivalent. *@
         <div class="fab-close" aria-hidden="true">
-            <span class="@_closeCls" title="@CloseAriaLabel">
+            <span class="@_closeCls" title="@(CloseAriaLabel ?? _strings.Close)">
                 <Icon Name="@Icons.Material.Filled.Close" />
             </span>
         </div>
@@ -31,6 +31,9 @@
 </div>
 
 @code {
+    [Inject] private IServiceProvider Services { get; set; } = null!;
+    private DaisyBlazorStrings _strings => DaisyBlazorStrings.From(Services);
+
     /// <summary>Material Symbols ligature for the trigger icon. Defaults to "add".</summary>
     [Parameter] public string? Icon { get; set; }
 
@@ -40,8 +43,8 @@
     /// </summary>
     [Parameter] public string? AriaLabel { get; set; }
 
-    /// <summary>Tooltip (title) of the pointer-only close overlay control. Defaults to "Close".</summary>
-    [Parameter] public string? CloseAriaLabel { get; set; } = "Close";
+    /// <summary>Tooltip (title) of the pointer-only close overlay control. Null uses the app-wide <see cref="DaisyBlazorOptions.Strings"/>.</summary>
+    [Parameter] public string? CloseAriaLabel { get; set; }
 
     /// <summary>Semantic color applied to the trigger button.</summary>
     [Parameter] public Color Color { get; set; } = Color.Primary;

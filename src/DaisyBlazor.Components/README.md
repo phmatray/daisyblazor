@@ -31,6 +31,25 @@ dotnet add package DaisyBlazor.Components
 builder.Services.AddDaisyBlazor();
 ```
 
+The built-in labels ("Close", "Loading", "Pagination"…) are set once for the whole app, and a component's own
+parameter still wins:
+
+```csharp
+builder.Services.AddDaisyBlazor(o => o.Strings = new DaisyBlazorStrings { Close = "Fermer", Loading = "Chargement" });
+```
+
+An app that switches culture at runtime subclasses it instead; the properties are read on every render, so a
+`.resx` designer class (which follows `CultureInfo.CurrentUICulture`) gives each request its own language:
+
+```csharp
+sealed class AppStrings : DaisyBlazorStrings
+{
+    public override string Close => Resources.Shared.Close;
+}
+
+builder.Services.AddDaisyBlazor(o => o.Strings = new AppStrings());
+```
+
 `_Imports.razor`:
 
 ```razor

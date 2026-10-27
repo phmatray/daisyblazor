@@ -9,7 +9,7 @@
     <div class="@CssClass.Merge("flex flex-wrap items-center justify-end gap-4 px-2 py-2 text-sm", Class)"
          style="@Style" @attributes="UserAttributes">
         <label class="flex items-center gap-2">
-            <span class="text-base-content/70">@RowsPerPageText</span>
+            <span class="text-base-content/70">@(RowsPerPageText ?? _strings.RowsPerPage)</span>
             <select class="select select-bordered select-sm w-20" @onchange="OnPageSizeChanged">
                 @foreach (int option in Grid.PageSizeOptions)
                 {
@@ -19,20 +19,20 @@
         </label>
 
         <span class="text-base-content/70">
-            @Grid.FirstItemIndex-@Grid.LastItemIndex @InfoSeparatorText @Grid.TotalItems
+            @Grid.FirstItemIndex-@Grid.LastItemIndex @(InfoSeparatorText ?? _strings.Of) @Grid.TotalItems
         </span>
 
         <div class="join">
             <button type="button" class="btn btn-sm join-item"
                     disabled="@(Grid.Page <= 0)"
                     @onclick="PreviousPageAsync"
-                    aria-label="@PreviousPageText">
+                    aria-label="@(PreviousPageText ?? _strings.PreviousPage)">
                 <Icon Name="@Icons.Material.Filled.ChevronLeft" Size="Size.Small" />
             </button>
             <button type="button" class="btn btn-sm join-item"
                     disabled="@(Grid.Page >= Grid.PageCount - 1)"
                     @onclick="NextPageAsync"
-                    aria-label="@NextPageText">
+                    aria-label="@(NextPageText ?? _strings.NextPage)">
                 <Icon Name="@Icons.Material.Filled.ChevronRight" Size="Size.Small" />
             </button>
         </div>
@@ -40,6 +40,9 @@
 }
 
 @code {
+    [Inject] private IServiceProvider Services { get; set; } = null!;
+    private DaisyBlazorStrings _strings => DaisyBlazorStrings.From(Services);
+
     /// <summary>Owning grid, supplied via cascading value.</summary>
     [CascadingParameter]
     public DataGrid<T>? Grid { get; set; }
@@ -47,17 +50,17 @@
     /// <summary>Page-size options. When set, mirrored onto the grid.</summary>
     [Parameter] public int[]? PageSizeOptions { get; set; }
 
-    /// <summary>Label shown before the page-size select.</summary>
-    [Parameter] public string RowsPerPageText { get; set; } = "Rows per page:";
+    /// <summary>Label shown before the page-size select. Null uses the app-wide <see cref="DaisyBlazorOptions.Strings"/>.</summary>
+    [Parameter] public string? RowsPerPageText { get; set; }
 
-    /// <summary>Separator word in the range text (e.g. "of").</summary>
-    [Parameter] public string InfoSeparatorText { get; set; } = "of";
+    /// <summary>Separator word in the range text (e.g. "of"). Null uses the app-wide <see cref="DaisyBlazorOptions.Strings"/>.</summary>
+    [Parameter] public string? InfoSeparatorText { get; set; }
 
-    /// <summary>Accessible label for the previous-page navigation button.</summary>
-    [Parameter] public string PreviousPageText { get; set; } = "Previous page";
+    /// <summary>Accessible label for the previous-page navigation button. Null uses the app-wide <see cref="DaisyBlazorOptions.Strings"/>.</summary>
+    [Parameter] public string? PreviousPageText { get; set; }
 
-    /// <summary>Accessible label for the next-page navigation button.</summary>
-    [Parameter] public string NextPageText { get; set; } = "Next page";
+    /// <summary>Accessible label for the next-page navigation button. Null uses the app-wide <see cref="DaisyBlazorOptions.Strings"/>.</summary>
+    [Parameter] public string? NextPageText { get; set; }
 
     /// <summary>Extra CSS classes added to the pager bar.</summary>
     [Parameter] public string? Class { get; set; }
