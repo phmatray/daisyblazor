@@ -41,6 +41,11 @@
     /// <inheritdoc />
     protected override string Kind => "ridgeline";
 
+    // layouts/ridgeline.mjs: n curves stepped (bottom − top) ÷ (n − 1 + overlap) apart, so the padding
+    // is overlap − 1 rows.
+    private protected override ChartRows? RowBands =>
+        new ChartRows(Groups.Count(g => g.Values.Any(double.IsFinite)), (double.IsFinite(Overlap) && Overlap > 0 ? Overlap : 1.6) - 1, ChartRows.DistributionChrome(ValueTitle));
+
     /// <inheritdoc />
     protected override object BuildSpec() => new
     {

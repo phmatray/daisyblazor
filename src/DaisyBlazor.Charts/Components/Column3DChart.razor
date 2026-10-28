@@ -66,6 +66,13 @@
     /// <inheritdoc />
     protected override string Kind => "column3d";
 
+    // layouts/column3d.mjs laid out horizontally: a band per category over [8 − dy, height − LABEL_ROW],
+    // paddingInner 0.3 and paddingOuter 0.2. The depth's dy grows with the band, so the rows come out
+    // a little shorter than RowHeight.
+    private protected override ChartRows? RowBands => Horizontal
+        ? new ChartRows(Series is { Count: > 0 } series ? Math.Max(series.Max(s => s.Data?.Count ?? 0), Labels?.Count ?? 0) : Data?.Count ?? 0, ChartRows.Band(0.3, 0.2), 8 + ChartRows.LabelRow)
+        : null;
+
     private IReadOnlyList<ChartSeries>? _series;
     private IReadOnlyList<ChartDataPoint> _points = [];
     private List<string> _categories = [];

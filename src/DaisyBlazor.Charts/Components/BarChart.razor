@@ -12,7 +12,7 @@
         <div class="text-sm font-medium mb-2 text-base-content/80">@Title</div>
     }
 
-    <div @ref="MeasuredElement" style="@($"position:relative;height:{ChartText.Size(Height, "16rem")};")">
+    <div @ref="MeasuredElement" style="@($"position:relative;height:{_height};")">
         @if (Error is { } error)
         {
             <div role="alert" class="flex items-center justify-center rounded-box border border-dashed border-error/50 text-error text-sm p-4 text-center" style="height:100%;">
@@ -155,6 +155,9 @@
     /// <summary>CSS height of the SVG plot area.</summary>
     [Parameter] public string? Height { get; set; } = "16rem";
 
+    /// <summary>Height of each category row in px when the bars lie <see cref="Horizontal"/>: the chart is then sized by its categories instead of <see cref="Height"/>, so a long list neither squeezes its rows nor leaves them sparse. Ignored for columns.</summary>
+    [Parameter] public double? RowHeight { get; set; }
+
     /// <summary>Optional heading rendered above the chart.</summary>
     [Parameter] public string? Title { get; set; }
 
@@ -175,7 +178,18 @@
 
     // On the server the box cannot be measured: lay out at the size asked for when it is in px or rem.
     /// <inheritdoc />
-    protected override (double Width, double Height) ServerSize => (ChartText.Pixels(Width) ?? 800, ChartText.Pixels(Height) ?? 256);
+    protected override (double Width, double Height) ServerSize => (ChartText.Pixels(Width) ?? 800, ChartText.Pixels(_height) ?? 256);
+
+    // layouts/bar.mjs laid out horizontally: bands over [8, height − LABEL_ROW] (− 4 without the grid),
+    // paddingInner 0.25 and paddingOuter 0.125, which add no padding term. References and markers
+    // labelled above the plot take a little of it.
+    private string _height => Horizontal && RowHeight is > 0 && _categoryCount > 0
+        ? $"{Math.Round((RowHeight.Value * _categoryCount) + 8 + (ShowGrid ? ChartRows.LabelRow : 4), 2).ToString(Ci)}px"
+        : ChartText.Size(Height, "16rem");
+
+    private int _categoryCount => Series is { Count: > 0 } series
+        ? Math.Max(series.Max(s => s.Data?.Count ?? 0), Labels?.Count ?? 0)
+        : Data?.Count ?? 0;
 
     private IReadOnlyList<ChartSeries>? _series;
     private IReadOnlyList<ChartDataPoint> _points = [];

@@ -59,6 +59,13 @@
     /// <inheritdoc />
     protected override string Kind => "bullet";
 
+    // layouts/bullet.mjs: rows of (height − 4) ÷ n, each keeping its own tick line, or (height − 20) ÷ n
+    // over one shared axis line. Exact when SharedAxis is set; left unset, the layout shares the axis
+    // only when every row's scale comes out the same, and its rows are then 16 ÷ n units shorter.
+    private protected override ChartRows? RowBands => Horizontal
+        ? new ChartRows(Items.Count(i => double.IsFinite(i.Value)), 0, SharedAxis == true ? 20 : 4)
+        : null;
+
     /// <inheritdoc />
     protected override object BuildSpec() => new
     {

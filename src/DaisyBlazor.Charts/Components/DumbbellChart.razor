@@ -65,6 +65,10 @@
     /// <inheritdoc />
     protected override string Kind => "dumbbell";
 
+    // categoryFrame's horizontal frame (layouts/_compare.mjs): a band per item with both ends finite, padded 0.2.
+    private protected override ChartRows? RowBands =>
+        new ChartRows(Items.Count(i => double.IsFinite(i.Start) && double.IsFinite(i.End)), 0.2, ChartRows.CategoryChrome);
+
     // The formatted values travel with the data so the layout can leave room for them.
     /// <inheritdoc />
     protected override object BuildSpec() => new

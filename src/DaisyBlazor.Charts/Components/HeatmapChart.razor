@@ -104,6 +104,11 @@
     /// <inheritdoc />
     protected override string Kind => "heatmap";
 
+    // layouts/heatmap.mjs: the given Rows, else every row with a finite cell, banded over
+    // [20, height − 2] with 0.06 padding.
+    private protected override ChartRows? RowBands =>
+        new ChartRows(Rows is { Count: > 0 } names ? names.Count : Cells.Where(c => double.IsFinite(c.Value)).Select(c => c.Row).Distinct().Count(), 0.06, 22);
+
     /// <inheritdoc />
     protected override object BuildSpec()
     {

@@ -55,6 +55,11 @@
     /// <inheritdoc />
     protected override string Kind => "lollipop";
 
+    // categoryFrame's horizontal frame (layouts/_compare.mjs): a band per finite item, padded 0.2.
+    private protected override ChartRows? RowBands => Horizontal
+        ? new ChartRows(Data.Count(d => double.IsFinite(d.Value)), 0.2, ChartRows.CategoryChrome)
+        : null;
+
     // The formatted values travel with the data so the layout can leave room for them; a negative one
     // takes the axis's minus sign.
     /// <inheritdoc />

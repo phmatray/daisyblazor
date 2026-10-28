@@ -61,9 +61,6 @@
     public static readonly Func<double, string> TimeOfDay = hours =>
         TimeOnly.FromTimeSpan(TimeSpan.FromHours((hours % 24 + 24) % 24)).ToString("HH:mm", CultureInfo.InvariantCulture);
 
-    /// <summary>Height of each category row in px, for a horizontal chart: the chart then grows with its number of categories instead of keeping <c>AspectRatio</c>, so a long list keeps readable rows at any width. Ignored when the bars stand as columns.</summary>
-    [Parameter] public double? RowHeight { get; set; }
-
     /// <summary>Start of the value axis, e.g. -24 for "the last 24 hours". Defaults to the lowest value, rounded; spans are clipped to it, and spans entirely before it are left out.</summary>
     [Parameter] public double? Min { get; set; }
 
@@ -73,23 +70,11 @@
     /// <inheritdoc />
     protected override string Kind => "rangebar";
 
-    // The horizontal frame of categoryFrame (layouts/_compare.mjs): the bands fill [4, height − 22]
-    // and d3's band step is that span ÷ (rows + padding), so this height makes the step RowHeight.
-    /// <inheritdoc />
-    protected override double ViewHeight
-    {
-        get
-        {
-            if (!Horizontal || RowHeight is not > 0 || _shown.Count == 0)
-            {
-                return base.ViewHeight;
-            }
-
-            int rows = _shown.Select(i => i.Label).Distinct().Count();
-            double padding = _shown.Select(i => i.Group ?? "").Distinct().Count() > 1 ? 0.2 : 0.3;
-            return Math.Round((RowHeight.Value * (rows + padding)) + 26, 2);
-        }
-    }
+    // categoryFrame's horizontal frame (layouts/_compare.mjs): bands over [4, height − 22], padded
+    // 0.2 with several groups, else 0.3.
+    private protected override ChartRows? RowBands => Horizontal
+        ? new ChartRows(_shown.Select(i => i.Label).Distinct().Count(), _shown.Select(i => i.Group ?? "").Distinct().Count() > 1 ? 0.2 : 0.3, ChartRows.CategoryChrome)
+        : null;
 
     // The formatted values travel with the data so the layout can leave room for them.
     /// <inheritdoc />

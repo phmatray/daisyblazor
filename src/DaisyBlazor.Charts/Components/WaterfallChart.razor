@@ -57,6 +57,12 @@
     /// <inheritdoc />
     protected override string Kind => "waterfall";
 
+    // layouts/waterfall.mjs laid out horizontally: a band per drawn step over [6, height − 24],
+    // paddingInner 0.3 and paddingOuter 0.15.
+    private protected override ChartRows? RowBands => Horizontal
+        ? new ChartRows(Steps.Count(s => s.Kind is WaterfallStepKind.Subtotal or WaterfallStepKind.End || double.IsFinite(s.Value)), ChartRows.Band(0.3, 0.15), 30)
+        : null;
+
     /// <inheritdoc />
     protected override object BuildSpec() => new
     {

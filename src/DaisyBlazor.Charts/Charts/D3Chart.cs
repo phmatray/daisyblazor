@@ -438,10 +438,27 @@ public abstract class D3Chart<TLayout> : D3ChartBase<TLayout>
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
     /// <summary>
-    /// Height of the SVG coordinate space, from <see cref="AspectRatio"/>. A chart whose height follows
-    /// its data rather than its width (a row per category) overrides it.
+    /// Height of each row in px, for a chart that lays its categories out as rows (horizontal bars, a
+    /// Gantt's lanes, a heatmap's rows…): its height then follows its number of rows instead of
+    /// <see cref="AspectRatio"/>, so a long list keeps readable rows at any width. A chart, or an
+    /// orientation, without rows ignores it.
     /// </summary>
-    protected virtual double ViewHeight => Math.Round(ViewWidth / (AspectRatio > 0.1 ? AspectRatio : 16d / 9), 2);
+    [Parameter] public double? RowHeight { get; set; }
+
+    /// <summary>
+    /// Height of the SVG coordinate space: from <see cref="RowHeight"/> and the chart's
+    /// <see cref="RowBands"/> when both are known, else from <see cref="AspectRatio"/>.
+    /// </summary>
+    protected virtual double ViewHeight => RowHeight is > 0 && RowBands is { Count: > 0 } rows
+        ? Math.Round((RowHeight.Value * (rows.Count + rows.Padding)) + rows.Chrome, 2)
+        : Math.Round(ViewWidth / (AspectRatio > 0.1 ? AspectRatio : 16d / 9), 2);
+
+    /// <summary>
+    /// The rows this chart's layout bands its categories into right now, or null when it has none
+    /// (no row layout, or the other orientation). A chart that has rows reports them from the same
+    /// filtering its layout applies, with the constants of that layout's frame.
+    /// </summary>
+    private protected virtual ChartRows? RowBands => null;
 
     internal string WrapperClass => CssClass.Merge("w-full", Class);
 
@@ -497,4 +514,26 @@ internal sealed class FiniteDoubleConverter : JsonConverter<double>
             writer.WriteNullValue();
         }
     }
+}
+
+/// <summary>
+/// The rows a chart's layout bands its categories into: their <paramref name="Count"/>, the band
+/// padding the layout adds on top, in rows (d3's band step is span ÷ (count + padding)), and the
+/// <paramref name="Chrome"/>: the height the layout keeps outside the bands for its axis, titles and
+/// margins. With <see cref="D3Chart{TLayout}.RowHeight"/> the chart is RowHeight × (Count + Padding)
+/// + Chrome tall, so each band step is RowHeight.
+/// </summary>
+internal readonly record struct ChartRows(int Count, double Padding, double Chrome)
+{
+    /// <summary>_shared.mjs LABEL_ROW (FONT × 1.2 + 6): the tick-label row under a horizontal plot.</summary>
+    internal const double LabelRow = (11 * 1.2) + 6;
+
+    /// <summary>_compare.mjs categoryFrame() laid out horizontally: bands over [4, height − 22].</summary>
+    internal const double CategoryChrome = 26;
+
+    /// <summary>The padding term of a band with paddingInner <paramref name="inner"/> and paddingOuter <paramref name="outer"/>.</summary>
+    internal static double Band(double inner, double outer) => (2 * outer) - inner;
+
+    /// <summary>_distribution.mjs frame() with no y title: 10 above the plot, a tick row (24) or a tick row and the value title (42) under it.</summary>
+    internal static double DistributionChrome(string? valueTitle) => 10 + (string.IsNullOrEmpty(valueTitle) ? 24 : 42);
 }
