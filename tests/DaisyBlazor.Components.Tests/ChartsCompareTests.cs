@@ -245,6 +245,47 @@ public class ChartsCompareTests : BunitContext
     }
 
     [Fact]
+    public void RangeBar_row_height_sizes_the_chart_by_its_rows_and_min_max_pin_the_axis()
+    {
+        (BunitJSModuleInterop module, JSRuntimeInvocationHandler<RangeBarLayout> call) = Setup<RangeBarLayout>();
+        IRenderedComponent<RangeBarChart> cut = Render<RangeBarChart>(ps => ps
+            .Add(p => p.Items,
+            [
+                new RangeBarItem("Lir", -3, -2.9),
+                new RangeBarItem("Lir", -1, -0.9),
+                new RangeBarItem("Fuel", -0.5, -0.4),
+                new RangeBarItem("Bss", -19, -18.9),
+                new RangeBarItem("Forecast", -50, -49.9),
+            ])
+            .Add(p => p.RowHeight, 24)
+            .Add(p => p.Min, -24)
+            .Add(p => p.Max, 0));
+
+        // Three rows inside the window (Forecast is wholly before it): 24 × (3 + 0.3 padding) + 26.
+        cut.Find("[aria-busy=true]").GetAttribute("style").ShouldBe("aspect-ratio:640 / 105.2;");
+        string spec = Sent(module).Spec;
+        spec.ShouldContain("\"height\":105.2");
+        spec.ShouldContain("\"min\":-24");
+        spec.ShouldContain("\"max\":0");
+
+        call.SetResult(new RangeBarLayout(_plot, _ticks, [new(30, "Lir")], 79.2, 80, 0, [""],
+            [new("Lir", "", 0, -3, -2.9, 500, 10, 2, 16, null, null)]));
+        cut.WaitForAssertion(() => cut.Find("svg").GetAttribute("viewBox").ShouldBe("0 0 640 105.2"));
+    }
+
+    [Fact]
+    public void RangeBar_keeps_its_aspect_ratio_without_row_height_and_when_vertical()
+    {
+        Setup<RangeBarLayout>();
+        RangeBarItem[] items = [new("A", 1, 2), new("B", 2, 3)];
+
+        Render<RangeBarChart>(ps => ps.Add(p => p.Items, items).Add(p => p.AspectRatio, 2))
+            .Find("[aria-busy=true]").GetAttribute("style").ShouldBe("aspect-ratio:640 / 320;");
+        Render<RangeBarChart>(ps => ps.Add(p => p.Items, items).Add(p => p.AspectRatio, 2).Add(p => p.RowHeight, 24).Add(p => p.Horizontal, false))
+            .Find("[aria-busy=true]").GetAttribute("style").ShouldBe("aspect-ratio:640 / 320;");
+    }
+
+    [Fact]
     public void Empty_input_draws_an_empty_svg_without_throwing()
     {
         (BunitJSModuleInterop _, JSRuntimeInvocationHandler<SlopeLayout> slope) = Setup<SlopeLayout>();
