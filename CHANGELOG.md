@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/phmatray/daisyblazor/compare/v0.11.0...v0.12.0) (2026-10-28)
+
+
+### Features
+
+* **charts:** RowHeight on every chart that lays its categories out as rows ([#176](https://github.com/phmatray/daisyblazor/issues/176)) ([cb89b22](https://github.com/phmatray/daisyblazor/commit/cb89b225736385589d598b63630cb4b71a50e585)), closes [#175](https://github.com/phmatray/daisyblazor/issues/175)
+
 ## [0.11.0](https://github.com/phmatray/daisyblazor/compare/v0.10.0...v0.11.0) (2026-10-28)
 
 
