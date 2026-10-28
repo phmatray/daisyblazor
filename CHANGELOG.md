@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/phmatray/daisyblazor/compare/v0.10.0...v0.11.0) (2026-10-28)
+
+
+### Features
+
+* **charts:** RangeBarChart RowHeight and a pinned Min/Max value axis ([#173](https://github.com/phmatray/daisyblazor/issues/173)) ([ef05f97](https://github.com/phmatray/daisyblazor/commit/ef05f973ea8e2c743f57ed7533942d34adc64dc8)), closes [#172](https://github.com/phmatray/daisyblazor/issues/172)
+
 ## [0.10.0](https://github.com/phmatray/daisyblazor/compare/v0.9.0...v0.10.0) (2026-10-27)
 
 
