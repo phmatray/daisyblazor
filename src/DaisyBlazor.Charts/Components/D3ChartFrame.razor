@@ -14,14 +14,14 @@
     @if (Chart.ErrorMessage is { } error)
     {
         <div role="alert" class="flex items-center justify-center rounded-box border border-dashed border-error/50 text-error text-sm p-4 text-center"
-             style="@($"aspect-ratio:{Chart.AspectRatio.ToString(CultureInfo.InvariantCulture)};")">
+             style="@Chart.PlaceholderStyle">
             The chart could not be drawn: @error
         </div>
     }
     else if (!Chart.IsReady)
     {
         <div aria-busy="true" aria-label="@($"{Label} (loading)")" class="rounded-box bg-base-200 animate-pulse motion-reduce:animate-none"
-             style="@($"aspect-ratio:{Chart.AspectRatio.ToString(CultureInfo.InvariantCulture)};")"></div>
+             style="@Chart.PlaceholderStyle"></div>
     }
     else
     {

@@ -287,6 +287,30 @@ test('rangebar: bars from low to high, grouped side by side, reversed ends swapp
     assert.deepEqual((await layout('rangebar', { items: [], width: W, height: H })).bars, []);
 });
 
+test('rangebar: a pinned min/max sets the axis, clips spans to it and leaves out spans outside it', async () => {
+    const items = [
+        { label: 'A', low: -30, high: -20 },
+        { label: 'B', low: -2, high: 3 },
+        { label: 'C', low: -40, high: -26 },
+    ];
+    const free = await layout('rangebar', { items, width: W, height: H });
+    assert.ok(free.xTicks.some(t => t.value < -24) && free.xTicks.some(t => t.value > 0), 'the data alone runs past -24 and 0');
+
+    const r = await layout('rangebar', { items, width: W, height: H, min: -24, max: 0 });
+    assert.deepEqual(r.yTicks.map(t => t.label), ['A', 'B'], 'C lies wholly before -24');
+    assert.ok(r.xTicks.every(t => t.value >= -24 && t.value <= 0), 'ticks stay inside the window');
+    const [a, b] = r.bars;
+    assert.equal(a.x, r.plot.left, 'A is clipped at the axis start');
+    assert.ok(Math.abs(b.x + b.width - r.plot.right) < 0.02, 'B is clipped at the axis end');
+    assert.equal(a.low, -30, 'the bar keeps its own values for tooltips');
+    assertInside(r);
+
+    const one = await layout('rangebar', { items, width: W, height: H, max: 0 });
+    assert.ok(one.xTicks.at(-1).value === 0 && one.xTicks[0].value < -24, 'one pinned end keeps the other rounded');
+    const reversed = await layout('rangebar', { items, width: W, height: H, min: 5, max: -5 });
+    assert.deepEqual(reversed.xTicks, [], 'an empty window draws nothing');
+});
+
 test('rangebar: ticks relabelled in .NET get room for labels as wide as the value texts', async () => {
     const items = [{ label: 'A', low: 22, high: 25, lowText: '22:00', highText: '01:00' }];
     const plain = await layout('rangebar', { items, width: W, height: H, vertical: true });

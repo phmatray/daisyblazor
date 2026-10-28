@@ -4,14 +4,17 @@ import { categoryFrame, frameOut, valueText } from './_compare.mjs';
 
 const EMPTY = { plot: { left: 0, top: 0, right: 0, bottom: 0 }, xTicks: [], yTicks: [], xAxisAt: 0, yAxisAt: 0, labelAngle: 0, groups: [], bars: [] };
 
-// spec: { items: [{ label, low, high, group, lowText, highText }], width, height, vertical, showValues, formattedTicks }
+// spec: { items: [{ label, low, high, group, lowText, highText }], width, height, vertical, showValues, formattedTicks, min, max }
 // A bar from low to high per item. Items sharing a label sit side by side in its band, one slot per
 // distinct group (in order of first appearance). Items need both ends finite; reversed ends are swapped.
 // With formattedTicks, .NET writes the tick labels like the value texts, so the tick margin fits those too.
-export default function rangebar({ items, width, height, vertical = false, showValues = false, formattedTicks = false }) {
+// A finite min / max pins that end of the value axis (otherwise the data's, rounded): bars are clipped
+// to it, and bars wholly outside it are left out (RangeBarChart.ViewHeight counts the same rows).
+export default function rangebar({ items, width, height, vertical = false, showValues = false, formattedTicks = false, min = null, max = null }) {
     const rows = (items ?? [])
         .filter(d => finite(d.low) && finite(d.high))
-        .map(d => d.low <= d.high ? d : { ...d, low: d.high, high: d.low, lowText: d.highText, highText: d.lowText });
+        .map(d => d.low <= d.high ? d : { ...d, low: d.high, high: d.low, lowText: d.highText, highText: d.lowText })
+        .filter(d => (!finite(min) || d.high >= min) && (!finite(max) || d.low <= max));
     if (rows.length === 0) {
         return EMPTY;
     }
@@ -19,9 +22,17 @@ export default function rangebar({ items, width, height, vertical = false, showV
     const labels = [...new Set(rows.map(d => String(d.label ?? '')))];
     const groups = [...new Set(rows.map(d => String(d.group ?? '')))];
     const space = list => !showValues ? 0 : vertical ? 16 : maxWidth(list) + 10;
+    const scale = valueScale(rows.flatMap(d => [d.low, d.high]), { count: 5 });
+    if (finite(min) || finite(max)) {
+        const [lo, hi] = scale.domain();
+        const pinned = [finite(min) ? min : lo, finite(max) ? max : hi];
+        if (pinned[0] < pinned[1]) {
+            scale.domain(pinned).clamp(true);
+        }
+    }
     const f = categoryFrame({
         width, height, vertical, labels,
-        scale: valueScale(rows.flatMap(d => [d.low, d.high]), { count: 5 }),
+        scale,
         before: space(rows.map(d => d.lowText)),
         after: space(rows.map(d => d.highText)),
         padding: groups.length > 1 ? 0.2 : 0.3,

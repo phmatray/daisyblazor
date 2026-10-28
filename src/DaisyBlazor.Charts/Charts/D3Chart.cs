@@ -437,8 +437,11 @@ public abstract class D3Chart<TLayout> : D3ChartBase<TLayout>
     /// <summary>Attributes splatted onto the wrapper.</summary>
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? UserAttributes { get; set; }
 
-    /// <summary>Height of the SVG coordinate space, from <see cref="AspectRatio"/>.</summary>
-    protected double ViewHeight => Math.Round(ViewWidth / (AspectRatio > 0.1 ? AspectRatio : 16d / 9), 2);
+    /// <summary>
+    /// Height of the SVG coordinate space, from <see cref="AspectRatio"/>. A chart whose height follows
+    /// its data rather than its width (a row per category) overrides it.
+    /// </summary>
+    protected virtual double ViewHeight => Math.Round(ViewWidth / (AspectRatio > 0.1 ? AspectRatio : 16d / 9), 2);
 
     internal string WrapperClass => CssClass.Merge("w-full", Class);
 
@@ -447,6 +450,9 @@ public abstract class D3Chart<TLayout> : D3ChartBase<TLayout>
     internal double FrameViewWidth => ViewWidth;
 
     internal string ViewBox => $"0 0 {ViewWidth.ToString(Ci)} {ViewHeight.ToString(Ci)}";
+
+    // The view box's own shape, so a chart that sets its height reserves that space while it loads.
+    internal string PlaceholderStyle => $"aspect-ratio:{ViewWidth.ToString(Ci)} / {ViewHeight.ToString(Ci)};";
 
     /// <inheritdoc />
     protected override void OnParametersSet()
