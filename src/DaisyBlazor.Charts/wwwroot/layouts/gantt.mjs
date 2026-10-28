@@ -12,14 +12,18 @@ const EMPTY = { rows: [], groups: [], today: null, xTicks: [], plot: { left: 0, 
 // rows keep their order and groups only colour the bars. Progress is a fraction (0..1) and is clamped.
 // Each task row carries `index`, its position in `tasks`, and every x tick its date (`value`, in
 // epoch milliseconds), so .NET can write the dates in the reader's culture.
-export default function gantt({ tasks, today, width, height, headers = true }) {
+// `from` / `to` pin the ends of the time axis (otherwise the tasks' span): bars are clipped to it, and
+// tasks wholly outside it are left out (GanttChart counts its rows from the same tasks).
+export default function gantt({ tasks, today, width, height, headers = true, from = null, to = null }) {
+    const lo = parseDate(from);
+    const hi = parseDate(to);
     const valid = (tasks ?? [])
         .map((t, index) => {
             const start = parseDate(t?.start);
             const end = parseDate(t?.end);
             return { ...t, index, start, end: end && start && end > start ? end : start };
         })
-        .filter(t => t.name && t.start);
+        .filter(t => t.name && t.start && (!lo || +t.end >= +lo) && (!hi || +t.start <= +hi));
     if (valid.length === 0) {
         return EMPTY;
     }
@@ -49,11 +53,12 @@ export default function gantt({ tasks, today, width, height, headers = true }) {
     const labelRoom = Math.min(widest, width * 0.35); // rows under a header are indented 8 more units
     const plot = { left: labelRoom + 20, top: 18, right: width - 24, bottom: height - 24 };
 
-    const first = new Date(Math.min(...valid.map(t => t.start)));
-    const last = new Date(Math.max(...valid.map(t => t.end)));
+    const first = lo ?? new Date(Math.min(...valid.map(t => t.start)));
+    const last = hi ?? new Date(Math.max(...valid.map(t => t.end)));
     const x = scaleUtc()
         .domain([first, +last > +first ? last : new Date(+first + 86400000)])
-        .range([plot.left, plot.right]);
+        .range([plot.left, plot.right])
+        .clamp(Boolean(lo || hi));
     const band = scaleBand().domain(rows.map((_, i) => i)).range([plot.top, plot.bottom]).paddingInner(0.3).paddingOuter(0.15);
     const now = parseDate(today);
 

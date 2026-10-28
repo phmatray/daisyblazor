@@ -40,6 +40,10 @@
     /// <inheritdoc />
     protected override string Kind => "beeswarm";
 
+    // _distribution.mjs grouped(), always horizontal: a band per group with values, padded 0.08.
+    private protected override ChartRows? RowBands =>
+        new ChartRows(Groups.Count(g => g.Values.Any(double.IsFinite)), 0.08, ChartRows.DistributionChrome(ValueTitle));
+
     /// <inheritdoc />
     protected override object BuildSpec() => new
     {

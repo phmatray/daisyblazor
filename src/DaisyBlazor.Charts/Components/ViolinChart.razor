@@ -59,6 +59,11 @@
     /// <inheritdoc />
     protected override string Kind => "violin";
 
+    // _distribution.mjs grouped() laid out horizontally: a band per group with values, padded 0.15.
+    private protected override ChartRows? RowBands => Horizontal
+        ? new ChartRows(Groups.Count(g => g.Values.Any(double.IsFinite)), 0.15, ChartRows.DistributionChrome(ValueTitle))
+        : null;
+
     /// <inheritdoc />
     protected override object BuildSpec() => new
     {

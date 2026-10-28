@@ -61,6 +61,11 @@
     /// <inheritdoc />
     protected override string Kind => "boxplot";
 
+    // _distribution.mjs grouped() laid out horizontally: a band per group with values, padded 0.3.
+    private protected override ChartRows? RowBands => Horizontal
+        ? new ChartRows(Groups.Count(g => g.Values.Any(double.IsFinite)), 0.3, ChartRows.DistributionChrome(ValueTitle))
+        : null;
+
     /// <inheritdoc />
     protected override object BuildSpec() => new
     {

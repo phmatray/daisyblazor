@@ -89,8 +89,32 @@
     /// <summary>Text of the today marker.</summary>
     [Parameter] public string TodayLabel { get; set; } = "Today";
 
+    /// <summary>Start of the time axis, e.g. the start of a shift. Defaults to the earliest task; tasks are clipped to it, and tasks that end before it are left out.</summary>
+    [Parameter] public DateTime? From { get; set; }
+
+    /// <summary>End of the time axis. Defaults to the latest task end; tasks are clipped to it, and tasks that start after it are left out.</summary>
+    [Parameter] public DateTime? To { get; set; }
+
     /// <inheritdoc />
     protected override string Kind => "gantt";
+
+    // layouts/gantt.mjs: its rows banded over [18, height − 24], paddingInner 0.3 and paddingOuter 0.15.
+    private protected override ChartRows? RowBands => new ChartRows(_rowCount(), ChartRows.Band(0.3, 0.15), 42);
+
+    // The rows layouts/gantt.mjs lays out from the tasks it keeps (named, and inside From/To): a lane
+    // per Row name, else per task, and with ShowGroupHeaders a header row over each group's lanes.
+    private int _rowCount()
+    {
+        List<string?> lanes = Tasks
+            .Where(t => !string.IsNullOrEmpty(t.Name)
+                && (From is not { } from || (t.End is { } e && e > t.Start ? e : t.Start) >= from)
+                && (To is not { } to || t.Start <= to))
+            .Select((t, i) => (Key: string.IsNullOrEmpty(t.Row) ? $"#{i}" : $"row:{t.Row}", t.Group))
+            .GroupBy(l => l.Key)
+            .Select(lane => ShowGroupHeaders && !string.IsNullOrEmpty(lane.First().Group) && lane.All(l => l.Group == lane.First().Group) ? lane.First().Group : null)
+            .ToList();
+        return lanes.Count + lanes.Where(g => g is not null).Distinct().Count();
+    }
 
     /// <inheritdoc />
     protected override object BuildSpec() => new
@@ -109,6 +133,8 @@
         Width = ViewWidth,
         Height = ViewHeight,
         Headers = ShowGroupHeaders,
+        From,
+        To,
     };
 
     private string _color(int group, GanttLayout layout) =>
