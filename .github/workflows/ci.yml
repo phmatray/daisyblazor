@@ -22,7 +22,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
-          node-version: '24'
+          node-version: '26'
 
       # scripts/gen-styles.mjs needs Tailwind's scanner and the vendored daisyUI version; the
       # docs site compiles its CSS with the NuGet's standalone Tailwind CLI (no npm). The shipped
