@@ -43,7 +43,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
-          node-version: '24'
+          node-version: '26'
 
       # Every page becomes static HTML with its own title, description, canonical URL and content
       # (served with a 200 for /charts, /components/barchart…), plus 404.html for the SPA fallback,
