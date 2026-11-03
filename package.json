@@ -6,7 +6,7 @@
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.0",
     "d3-array": "3.2.4",
-    "d3-chord": "3.0.1",
+    "d3-chord": "3.0.2",
     "d3-contour": "4.0.2",
     "d3-delaunay": "6.0.4",
     "d3-force": "3.0.0",
