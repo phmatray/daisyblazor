@@ -20,7 +20,7 @@
     "d3-time-format": "4.1.0",
     "daisyui": "5.7.50",
     "esbuild": "0.28.2",
-    "playwright": "1.64.1",
+    "playwright": "1.65.0",
     "tailwindcss": "^4.1.0"
   }
 }
